@@ -43,3 +43,13 @@ py_test(
         "//third_party/com/github/bazelbuild/bazel/src/main/protobuf:crosstool_config_py_pb2",
     ],
 )
+
+py_binary(
+    name = "crosstool_query",
+    srcs = ["crosstool_query.py"],
+    deps = [
+        "//third_party/com/github/bazelbuild/bazel/src/main/protobuf:crosstool_config_py_pb2",
+        "@io_abseil_py//absl:app",
+        "@io_abseil_py//absl/flags",
+    ],
+)
