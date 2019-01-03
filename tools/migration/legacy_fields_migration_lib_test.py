@@ -4,6 +4,7 @@ from third_party.com.github.bazelbuild.bazel.src.main.protobuf import crosstool_
 from tools.migration.legacy_fields_migration_lib import ALL_COMPILE_ACTIONS
 from tools.migration.legacy_fields_migration_lib import ALL_CXX_COMPILE_ACTIONS
 from tools.migration.legacy_fields_migration_lib import ALL_LINK_ACTIONS
+from tools.migration.legacy_fields_migration_lib import DYNAMIC_LIBRARY_LINK_ACTIONS
 from tools.migration.legacy_fields_migration_lib import migrate_legacy_fields
 
 
@@ -30,7 +31,7 @@ def to_string(crosstool):
 
 class LegacyFieldsMigrationLibTest(unittest.TestCase):
 
-  def test_deletes_unused_fields(self):
+  def test_deletes_fields(self):
     crosstool = make_crosstool("""
           debian_extra_requires: 'debian-1'
           gcc_plugin_compiler_flag: 'gcc_plugin_compiler_flag-1'
@@ -45,6 +46,13 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
           supports_thin_archives: false
           supports_incremental_linker: false
           supports_dsym: false
+          supports_gold_linker: false
+          needsPic: false
+          supports_start_end_lib: false
+          supports_interface_shared_objects: false
+          supports_fission: false
+          static_runtimes_filegroup: 'yolo'
+          dynamic_runtimes_filegroup: 'yolo'
       """)
     output = migrate_to_string(crosstool)
     self.assertNotIn("debian_extra_requires", output)
@@ -60,6 +68,13 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
     self.assertNotIn("default_python_top", output)
     self.assertNotIn("default_python_version", output)
     self.assertNotIn("python_preload_swigdeps", output)
+    self.assertNotIn("supports_gold_linker", output)
+    self.assertNotIn("needsPic", output)
+    self.assertNotIn("supports_start_end_lib", output)
+    self.assertNotIn("supports_interface_shared_objects", output)
+    self.assertNotIn("supports_fission", output)
+    self.assertNotIn("static_runtimes_filegroup", output)
+    self.assertNotIn("dynamic_runtimes_filegroup", output)
 
   def test_deletes_default_toolchains(self):
     crosstool = make_crosstool("")
@@ -118,6 +133,19 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
     self.assertEqual(len(output.linker_flag), 0)
     self.assertEqual(output.feature[0].name, "default_link_flags")
     self.assertEqual(output.feature[0].flag_set[0].action, ALL_LINK_ACTIONS)
+    self.assertEqual(output.feature[0].flag_set[0].flag_group[0].flag,
+                     ["linker-flag-1"])
+
+  def test_migrate_dynamic_library_linker_flags(self):
+    crosstool = make_crosstool("""
+        dynamic_library_linker_flag: 'linker-flag-1'
+    """)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(len(output.linker_flag), 0)
+    self.assertEqual(output.feature[0].name, "default_link_flags")
+    self.assertEqual(output.feature[0].flag_set[0].action,
+                     DYNAMIC_LIBRARY_LINK_ACTIONS)
     self.assertEqual(output.feature[0].flag_set[0].flag_group[0].flag,
                      ["linker-flag-1"])
 
@@ -230,16 +258,78 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
     self.assertNotIn("coverage-flag-3", output)
     self.assertNotIn("COVERAGE", output)
 
-  def test_dynamic_linking_mode_is_added_even_when_empty(self):
+  def test_supports_dynamic_linker_when_dynamic_library_linker_flag_is_used(
+      self):
+    crosstool = make_crosstool("""
+        dynamic_library_linker_flag: "foo"
+    """)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(output.feature[0].name, "default_link_flags")
+    self.assertEqual(output.feature[1].name, "supports_dynamic_linker")
+    self.assertEqual(output.feature[1].enabled, True)
+
+  def test_supports_dynamic_linker_is_added_when_DYNAMIC_present(self):
     crosstool = make_crosstool("""
     linking_mode_flags {
       mode: DYNAMIC
     }
     """)
-    output = migrate_to_string(crosstool)
-    self.assertNotIn("linking_mode_flags", output)
-    self.assertNotIn("DYNAMIC", output)
-    self.assertIn("name: \"dynamic_linking_mode\"", output)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(output.feature[0].name, "supports_dynamic_linker")
+    self.assertEqual(output.feature[0].enabled, True)
+
+  def test_supports_dynamic_linker_is_not_added_when_present(self):
+    crosstool = make_crosstool("""
+    feature { name: "supports_dynamic_linker" enabled: false }
+    """)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(output.feature[0].name, "supports_dynamic_linker")
+    self.assertEqual(output.feature[0].enabled, False)
+
+  def test_all_linker_flag_ordering(self):
+    crosstool = make_crosstool("""
+    linker_flag: 'linker-flag-1'
+    compilation_mode_flags {
+        mode: OPT
+        linker_flag: 'cmf-flag-2'
+    }
+    linking_mode_flags {
+      mode: MOSTLY_STATIC
+      linker_flag: 'lmf-flag-3'
+    }
+    dynamic_library_linker_flag: 'dl-flag-4'
+    test_only_linker_flag: 'to-flag-5'
+    """)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(output.feature[0].name, "default_link_flags")
+    self.assertEqual(output.feature[0].enabled, True)
+    self.assertEqual(output.feature[0].flag_set[0].action[:], ALL_LINK_ACTIONS)
+    self.assertEqual(output.feature[0].flag_set[0].flag_group[0].flag[:],
+                     ["linker-flag-1"])
+    self.assertEqual(output.feature[0].flag_set[1].action[:], ALL_LINK_ACTIONS)
+    self.assertEqual(output.feature[0].flag_set[1].with_feature[0].feature[0],
+                     "opt")
+    self.assertEqual(output.feature[0].flag_set[1].flag_group[0].flag[:],
+                     ["cmf-flag-2"])
+    self.assertEqual(output.feature[0].flag_set[2].action[:], ALL_LINK_ACTIONS)
+    self.assertEqual(output.feature[0].flag_set[2].with_feature[0].feature[0],
+                     "static_linking_mode")
+    self.assertEqual(output.feature[0].flag_set[2].flag_group[0].flag[:],
+                     ["lmf-flag-3"])
+    self.assertEqual(output.feature[0].flag_set[3].action[:],
+                     DYNAMIC_LIBRARY_LINK_ACTIONS)
+    self.assertEqual(output.feature[0].flag_set[3].flag_group[0].flag[:],
+                     ["dl-flag-4"])
+    self.assertEqual(output.feature[0].flag_set[4].action[:], ALL_LINK_ACTIONS)
+    self.assertEqual(output.feature[0].flag_set[4].flag_group[0].flag[:],
+                     ["to-flag-5"])
+    self.assertEqual(
+        output.feature[0].flag_set[4].flag_group[0].expand_if_all_available[:],
+        ["is_cc_test"])
 
   def test_linking_mode_features_are_not_added_when_present(self):
     crosstool = make_crosstool("""
@@ -359,6 +449,176 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
     self.assertEqual(output.feature[0].name, "something_else")
     self.assertEqual(output.feature[1].name, "default_compile_flags")
     self.assertEqual(len(output.feature[1].flag_set), 0)
+
+  def test_supports_start_end_lib_migrated(self):
+    crosstool = make_crosstool("supports_start_end_lib: true")
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(output.feature[0].name, "supports_start_end_lib")
+    self.assertEqual(output.feature[0].enabled, True)
+
+  def test_supports_start_end_lib_not_migrated_on_false(self):
+    crosstool = make_crosstool("supports_start_end_lib: false")
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(len(output.feature), 0)
+
+  def test_supports_start_end_lib_not_migrated_when_already_present(self):
+    crosstool = make_crosstool("""
+            supports_start_end_lib: true
+            feature { name: "supports_start_end_lib" enabled: false }
+        """)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(output.feature[0].name, "supports_start_end_lib")
+    self.assertEqual(output.feature[0].enabled, False)
+
+  def test_supports_interface_shared_libraries_migrated(self):
+    crosstool = make_crosstool("supports_interface_shared_objects: true")
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(output.feature[0].name,
+                     "supports_interface_shared_libraries")
+    self.assertEqual(output.feature[0].enabled, True)
+
+  def test_supports_interface_shared_libraries_not_migrated_on_false(self):
+    crosstool = make_crosstool("supports_interface_shared_objects: false")
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(len(output.feature), 0)
+
+  def test_supports_interface_shared_libraries_not_migrated_when_present(self):
+    crosstool = make_crosstool("""
+            supports_interface_shared_objects: true
+            feature {
+              name: "supports_interface_shared_libraries"
+              enabled: false }
+        """)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(output.feature[0].name,
+                     "supports_interface_shared_libraries")
+    self.assertEqual(output.feature[0].enabled, False)
+
+  def test_supports_embedded_runtimes_migrated(self):
+    crosstool = make_crosstool("supports_embedded_runtimes: true")
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(output.feature[0].name, "static_link_cpp_runtimes")
+    self.assertEqual(output.feature[0].enabled, True)
+
+  def test_supports_embedded_runtimes_not_migrated_on_false(self):
+    crosstool = make_crosstool("supports_embedded_runtimes: false")
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(len(output.feature), 0)
+
+  def test_supports_embedded_runtimes_not_migrated_when_already_present(self):
+    crosstool = make_crosstool("""
+            supports_embedded_runtimes: true
+            feature { name: "static_link_cpp_runtimes" enabled: false }
+        """)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(output.feature[0].name, "static_link_cpp_runtimes")
+    self.assertEqual(output.feature[0].enabled, False)
+
+  def test_needs_pic_migrated(self):
+    crosstool = make_crosstool("needsPic: true")
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(output.feature[0].name, "supports_pic")
+    self.assertEqual(output.feature[0].enabled, True)
+
+  def test_needs_pic_not_migrated_on_false(self):
+    crosstool = make_crosstool("needsPic: false")
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(len(output.feature), 0)
+
+  def test_needs_pic_not_migrated_when_already_present(self):
+    crosstool = make_crosstool("""
+            needsPic: true
+            feature { name: "supports_pic" enabled: false }
+        """)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(output.feature[0].name, "supports_pic")
+    self.assertEqual(output.feature[0].enabled, False)
+
+  def test_supports_fission_migrated(self):
+    crosstool = make_crosstool("supports_fission: true")
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(output.feature[0].name, "per_object_debug_info")
+    self.assertEqual(output.feature[0].enabled, False)
+
+  def test_supports_fission_not_migrated_on_false(self):
+    crosstool = make_crosstool("supports_fission: false")
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(len(output.feature), 0)
+
+  def test_supports_fission_not_migrated_when_already_present(self):
+    crosstool = make_crosstool("""
+            supports_fission: true
+            feature { name: "per_object_debug_info" enabled: false }
+        """)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(output.feature[0].name, "per_object_debug_info")
+    self.assertEqual(output.feature[0].enabled, False)
+
+  def test_migrating_objcopy_embed_flag(self):
+    crosstool = make_crosstool("""
+            objcopy_embed_flag: "a"
+            objcopy_embed_flag: "b"
+        """)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(output.feature[0].name, "objcopy_embed_flags")
+    self.assertEqual(output.feature[0].enabled, True)
+    self.assertEqual(output.feature[0].flag_set[0].action[:],
+                     ["objcopy_embed_data"])
+    self.assertEqual(output.feature[0].flag_set[0].flag_group[0].flag[:],
+                     ["a", "b"])
+    self.assertEqual(len(output.objcopy_embed_flag), 0)
+
+  def test_not_migrating_objcopy_embed_flag_when_feature_present(self):
+    crosstool = make_crosstool("""
+            objcopy_embed_flag: "a"
+            objcopy_embed_flag: "b"
+            feature { name: "objcopy_embed_flags" }
+        """)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(output.feature[0].name, "objcopy_embed_flags")
+    self.assertEqual(output.feature[0].enabled, False)
+
+  def test_migrating_ld_embed_flag(self):
+    crosstool = make_crosstool("""
+            ld_embed_flag: "a"
+            ld_embed_flag: "b"
+        """)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(output.feature[0].name, "ld_embed_flags")
+    self.assertEqual(output.feature[0].enabled, True)
+    self.assertEqual(output.feature[0].flag_set[0].action[:], ["ld_embed_data"])
+    self.assertEqual(output.feature[0].flag_set[0].flag_group[0].flag[:],
+                     ["a", "b"])
+    self.assertEqual(len(output.ld_embed_flag), 0)
+
+  def test_not_migrating_objcopy_embed_flag_when_feature_present(self):
+    crosstool = make_crosstool("""
+            objcopy_embed_flag: "a"
+            objcopy_embed_flag: "b"
+            feature { name: "objcopy_embed_flags" }
+        """)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(output.feature[0].name, "objcopy_embed_flags")
+    self.assertEqual(output.feature[0].enabled, False)
 
   def test_migrate_expand_if_all_available_from_flag_sets(self):
     crosstool = make_crosstool("""

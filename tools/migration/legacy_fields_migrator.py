@@ -19,6 +19,7 @@ from absl import flags
 from google.protobuf import text_format
 from third_party.com.github.bazelbuild.bazel.src.main.protobuf import crosstool_config_pb2
 from tools.migration.legacy_fields_migration_lib import migrate_legacy_fields
+import os
 
 flags.DEFINE_string("input", None, "Input CROSSTOOL file to be migrated")
 flags.DEFINE_string("output", None,
@@ -36,17 +37,28 @@ def main(unused_argv):
   if not output_filename:
     raise app.UsageError("ERROR output unspecified")
 
-  f = open(input_filename, "r")
+  f = open(to_absolute_path(input_filename), "r")
   input_text = f.read()
   text_format.Merge(input_text, crosstool)
   f.close()
 
   output_text = migrate_legacy_fields(crosstool)
 
-  f = open(output_filename, "w")
+  f = open(to_absolute_path(output_filename), "w")
   output_text = text_format.MessageToString(crosstool)
   f.write(output_text)
   f.close()
+
+
+def to_absolute_path(path):
+  path = os.path.expanduser(path)
+  if os.path.isabs(path):
+    return path
+  else:
+    if os.environ["BUILD_WORKING_DIRECTORY"]:
+      return os.path.join(os.environ["BUILD_WORKING_DIRECTORY"], path)
+    else:
+      return path
 
 
 if __name__ == "__main__":

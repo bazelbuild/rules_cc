@@ -29,6 +29,10 @@ ALL_LINK_ACTIONS = [
     "c++-link-nodeps-dynamic-library"
 ]
 
+DYNAMIC_LIBRARY_LINK_ACTIONS = [
+    "c++-link-dynamic-library", "c++-link-nodeps-dynamic-library"
+]
+
 # Map converting from LinkingMode to corresponding feature name
 LINKING_MODE_TO_FEATURE_NAME = {
     "FULLY_STATIC": "fully_static_link",
@@ -42,23 +46,87 @@ def migrate_legacy_fields(crosstool):
   """Migrates parsed crosstool (inplace) to not use legacy fields."""
   crosstool.ClearField("default_toolchain")
   for toolchain in crosstool.toolchain:
-    # clear noop fields first
-    toolchain.ClearField("debian_extra_requires")
-    toolchain.ClearField("gcc_plugin_compiler_flag")
-    toolchain.ClearField("ar_flag")
-    toolchain.ClearField("ar_thin_archives_flag")
-    toolchain.ClearField("gcc_plugin_header_directory")
-    toolchain.ClearField("mao_plugin_header_directory")
-    toolchain.ClearField("supports_normalizing_ar")
-    toolchain.ClearField("supports_thin_archives")
-    toolchain.ClearField("supports_incremental_linker")
-    toolchain.ClearField("supports_dsym")
-    toolchain.ClearField("default_python_top")
-    toolchain.ClearField("default_python_version")
-    toolchain.ClearField("python_preload_swigdeps")
-
     _ = [_migrate_expand_if_all_available(f) for f in toolchain.feature]
     _ = [_migrate_expand_if_all_available(ac) for ac in toolchain.action_config]
+
+    if (toolchain.dynamic_library_linker_flag or
+        _contains_dynamic_flags(toolchain)) and not _contains_feature(
+            toolchain, "supports_dynamic_linker"):
+      feature = toolchain.feature.add()
+      feature.name = "supports_dynamic_linker"
+      feature.enabled = True
+
+    if toolchain.supports_start_end_lib and not _contains_feature(
+        toolchain, "supports_start_end_lib"):
+      feature = toolchain.feature.add()
+      feature.name = "supports_start_end_lib"
+      feature.enabled = True
+
+    if toolchain.supports_interface_shared_objects and not _contains_feature(
+        toolchain, "supports_interface_shared_libraries"):
+      feature = toolchain.feature.add()
+      feature.name = "supports_interface_shared_libraries"
+      feature.enabled = True
+
+    if toolchain.supports_embedded_runtimes and not _contains_feature(
+        toolchain, "static_link_cpp_runtimes"):
+      feature = toolchain.feature.add()
+      feature.name = "static_link_cpp_runtimes"
+      feature.enabled = True
+
+    if toolchain.needsPic and not _contains_feature(toolchain, "supports_pic"):
+      feature = toolchain.feature.add()
+      feature.name = "supports_pic"
+      feature.enabled = True
+
+    if toolchain.supports_fission and not _contains_feature(
+        toolchain, "per_object_debug_info"):
+      # feature {
+      #   name: "per_object_debug_info"
+      #   flag_set {
+      #     action: "assemble"
+      #     action: "preprocess-assemble"
+      #     action: "c-compile"
+      #     action: "c++-compile"
+      #     action: "c++-module-codegen"
+      #     action: "lto-backend"
+      #     flag_group {
+      #       expand_if_all_available: 'per_object_debug_info_file'",
+      #       flag: "-gsplit-dwarf"
+      #     }
+      #   }
+      # }
+      feature = toolchain.feature.add()
+      feature.name = "per_object_debug_info"
+      flag_set = feature.flag_set.add()
+      flag_set.action[:] = [
+          "c-compile", "c++-compile", "c++-module-codegen", "assemble",
+          "preprocess-assemble", "lto-backend"
+      ]
+      flag_group = flag_set.flag_group.add()
+      flag_group.expand_if_all_available[:] = ["per_object_debug_info_file"]
+      flag_group.flag[:] = ["-gsplit-dwarf"]
+
+    if toolchain.objcopy_embed_flag and not _contains_feature(
+        toolchain, "objcopy_embed_flags"):
+      feature = toolchain.feature.add()
+      feature.name = "objcopy_embed_flags"
+      feature.enabled = True
+      flag_set = feature.flag_set.add()
+      flag_set.action[:] = ["objcopy_embed_data"]
+      flag_group = flag_set.flag_group.add()
+      flag_group.flag[:] = toolchain.objcopy_embed_flag
+
+    if toolchain.ld_embed_flag and not _contains_feature(
+        toolchain, "ld_embed_flags"):
+      feature = toolchain.feature.add()
+      feature.name = "ld_embed_flags"
+      feature.enabled = True
+      flag_set = feature.flag_set.add()
+      flag_set.action[:] = ["ld_embed_data"]
+      flag_group = flag_set.flag_group.add()
+      flag_group.flag[:] = toolchain.ld_embed_flag
+
 
     # Create default_link_flags feature for linker_flag
     flag_sets = _extract_legacy_link_flag_sets_for(toolchain)
@@ -78,8 +146,6 @@ def migrate_legacy_fields(crosstool):
       feature.name = "default_compile_flags"
       _add_flag_sets(feature, flag_sets)
 
-    toolchain.ClearField("compilation_mode_flags")
-
     # Unfiltered cxx flags have to have their own special feature.
     # "unfiltered_compile_flags" is a well-known (by Bazel) feature name that is
     # excluded from nocopts filtering.
@@ -97,8 +163,38 @@ def migrate_legacy_fields(crosstool):
         feature.enabled = True
 
       _add_flag_sets(
-          feature, [[None, ALL_COMPILE_ACTIONS, toolchain.unfiltered_cxx_flag]])
-      toolchain.ClearField("unfiltered_cxx_flag")
+          feature,
+          [[None, ALL_COMPILE_ACTIONS, toolchain.unfiltered_cxx_flag, []]])
+
+    # clear fields
+    toolchain.ClearField("debian_extra_requires")
+    toolchain.ClearField("gcc_plugin_compiler_flag")
+    toolchain.ClearField("ar_flag")
+    toolchain.ClearField("ar_thin_archives_flag")
+    toolchain.ClearField("gcc_plugin_header_directory")
+    toolchain.ClearField("mao_plugin_header_directory")
+    toolchain.ClearField("supports_normalizing_ar")
+    toolchain.ClearField("supports_thin_archives")
+    toolchain.ClearField("supports_incremental_linker")
+    toolchain.ClearField("supports_dsym")
+    toolchain.ClearField("supports_gold_linker")
+    toolchain.ClearField("default_python_top")
+    toolchain.ClearField("default_python_version")
+    toolchain.ClearField("python_preload_swigdeps")
+    toolchain.ClearField("needsPic")
+    toolchain.ClearField("compilation_mode_flags")
+    toolchain.ClearField("linking_mode_flags")
+    toolchain.ClearField("unfiltered_cxx_flag")
+    toolchain.ClearField("ld_embed_flag")
+    toolchain.ClearField("objcopy_embed_flag")
+    toolchain.ClearField("supports_start_end_lib")
+    toolchain.ClearField("supports_interface_shared_objects")
+    toolchain.ClearField("supports_fission")
+    toolchain.ClearField("compiler_flag")
+    toolchain.ClearField("cxx_flag")
+    toolchain.ClearField("linker_flag")
+    toolchain.ClearField("static_runtimes_filegroup")
+    toolchain.ClearField("dynamic_runtimes_filegroup")
 
 
 def _add_flag_sets(feature, flag_sets):
@@ -107,11 +203,13 @@ def _add_flag_sets(feature, flag_sets):
     with_feature = flag_set[0]
     actions = flag_set[1]
     flags = flag_set[2]
+    expand_if_all_available = flag_set[3]
     flag_set = feature.flag_set.add()
     if with_feature is not None:
       flag_set.with_feature.add().feature[:] = [with_feature]
     flag_set.action[:] = actions
     flag_group = flag_set.flag_group.add()
+    flag_group.expand_if_all_available[:] = expand_if_all_available
     flag_group.flag[:] = flags
   return feature
 
@@ -120,11 +218,9 @@ def _extract_legacy_compile_flag_sets_for(toolchain):
   """Get flag sets for default_compile_flags feature."""
   result = []
   if toolchain.compiler_flag:
-    result.append([None, ALL_COMPILE_ACTIONS, toolchain.compiler_flag])
-    toolchain.ClearField("compiler_flag")
+    result.append([None, ALL_COMPILE_ACTIONS, toolchain.compiler_flag, []])
   if toolchain.cxx_flag:
-    result.append([None, ALL_CXX_COMPILE_ACTIONS, toolchain.cxx_flag])
-    toolchain.ClearField("cxx_flag")
+    result.append([None, ALL_CXX_COMPILE_ACTIONS, toolchain.cxx_flag, []])
 
   # Migrate compiler_flag/cxx_flag from compilation_mode_flags
   for cmf in toolchain.compilation_mode_flags:
@@ -139,10 +235,10 @@ def _extract_legacy_compile_flag_sets_for(toolchain):
       feature.name = mode
 
     if cmf.compiler_flag:
-      result.append([mode, ALL_COMPILE_ACTIONS, cmf.compiler_flag])
+      result.append([mode, ALL_COMPILE_ACTIONS, cmf.compiler_flag, []])
 
     if cmf.cxx_flag:
-      result.append([mode, ALL_CXX_COMPILE_ACTIONS, cmf.cxx_flag])
+      result.append([mode, ALL_CXX_COMPILE_ACTIONS, cmf.cxx_flag, []])
 
   return result
 
@@ -153,8 +249,7 @@ def _extract_legacy_link_flag_sets_for(toolchain):
 
   # Migrate linker_flag
   if toolchain.linker_flag:
-    result.append([None, ALL_LINK_ACTIONS, toolchain.linker_flag])
-  toolchain.ClearField("linker_flag")
+    result.append([None, ALL_LINK_ACTIONS, toolchain.linker_flag, []])
 
   # Migrate linker_flags from compilation_mode_flags
   for cmf in toolchain.compilation_mode_flags:
@@ -168,7 +263,7 @@ def _extract_legacy_link_flag_sets_for(toolchain):
       feature.name = mode
 
     if cmf.linker_flag:
-      result.append([mode, ALL_LINK_ACTIONS, cmf.linker_flag])
+      result.append([mode, ALL_LINK_ACTIONS, cmf.linker_flag, []])
 
   # Migrate linker_flags from linking_mode_flags
   for lmf in toolchain.linking_mode_flags:
@@ -178,15 +273,23 @@ def _extract_legacy_link_flag_sets_for(toolchain):
     if _contains_feature(toolchain, mode):
       continue
 
-    # dynamic_linking_mode is also a marker feature it has a meaning
-    # even when empty
-    if lmf.linker_flag or mode == "dynamic_linking_mode":
+    if lmf.linker_flag:
       feature = toolchain.feature.add()
       feature.name = mode
 
     if lmf.linker_flag:
-      result.append([mode, ALL_LINK_ACTIONS, lmf.linker_flag])
-  toolchain.ClearField("linking_mode_flags")
+      result.append([mode, ALL_LINK_ACTIONS, lmf.linker_flag, []])
+
+  if toolchain.dynamic_library_linker_flag:
+    result.append([
+        None, DYNAMIC_LIBRARY_LINK_ACTIONS,
+        toolchain.dynamic_library_linker_flag, []
+    ])
+
+  if toolchain.test_only_linker_flag:
+    result.append([
+        None, ALL_LINK_ACTIONS, toolchain.test_only_linker_flag, ["is_cc_test"]
+    ])
 
   return result
 
@@ -215,3 +318,11 @@ def _migrate_expand_if_all_available(message):
             flag_set.expand_if_all_available[:])
         flag_group.expand_if_all_available[:] = new_vars
       flag_set.ClearField("expand_if_all_available")
+
+
+def _contains_dynamic_flags(toolchain):
+  for lmf in toolchain.linking_mode_flags:
+    mode = crosstool_config_pb2.LinkingMode.Name(lmf.mode)
+    if mode == "DYNAMIC":
+      return True
+  return False
