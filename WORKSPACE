@@ -29,3 +29,17 @@ http_archive(
     strip_prefix = "abseil-py-pypi-v0.6.1",
     urls = ["https://github.com/abseil/abseil-py/archive/pypi-v0.6.1.zip"],
 )
+
+http_archive(
+    name = "py_mock",
+    sha256 = "b839dd2d9c117c701430c149956918a423a9863b48b09c90e30a6013e7d2f44f",
+    urls = ["https://pypi.python.org/packages/source/m/mock/mock-1.0.1.tar.gz"],
+    strip_prefix = "mock-1.0.1",
+    patch_cmds = [
+        "mkdir -p py/mock",
+        "mv mock.py py/mock/__init__.py",
+        """echo 'licenses(["notice"])' > BUILD""",
+        "touch py/BUILD",
+        """echo 'py_library(name = "mock", srcs = ["__init__.py"], visibility = ["//visibility:public"],)' > py/mock/BUILD""",
+    ],
+)
