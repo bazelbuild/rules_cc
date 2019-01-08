@@ -717,6 +717,7 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
 
   def test_migrating_objcopy_embed_flag(self):
     crosstool = make_crosstool("""
+            tool_path { name: "objcopy" path: "foo/objcopy" }
             objcopy_embed_flag: "a"
             objcopy_embed_flag: "b"
         """)
@@ -729,6 +730,8 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
     self.assertEqual(output.feature[0].flag_set[0].flag_group[0].flag[:],
                      ["a", "b"])
     self.assertEqual(len(output.objcopy_embed_flag), 0)
+    self.assertEqual(output.action_config[0].action_name, "objcopy_embed_data")
+    self.assertEqual(output.action_config[0].tool[0].tool_path, "foo/objcopy")
 
   def test_not_migrating_objcopy_embed_flag_when_feature_present(self):
     crosstool = make_crosstool("""
@@ -743,6 +746,7 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
 
   def test_migrating_ld_embed_flag(self):
     crosstool = make_crosstool("""
+            tool_path { name: "ld" path: "foo/ld" }
             ld_embed_flag: "a"
             ld_embed_flag: "b"
         """)
@@ -754,6 +758,8 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
     self.assertEqual(output.feature[0].flag_set[0].flag_group[0].flag[:],
                      ["a", "b"])
     self.assertEqual(len(output.ld_embed_flag), 0)
+    self.assertEqual(output.action_config[0].action_name, "ld_embed_data")
+    self.assertEqual(output.action_config[0].tool[0].tool_path, "foo/ld")
 
   def test_not_migrating_objcopy_embed_flag_when_feature_present(self):
     crosstool = make_crosstool("""

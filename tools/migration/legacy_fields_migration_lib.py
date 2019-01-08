@@ -117,6 +117,13 @@ def migrate_legacy_fields(crosstool):
       flag_group = flag_set.flag_group.add()
       flag_group.flag[:] = toolchain.objcopy_embed_flag
 
+      action_config = toolchain.action_config.add()
+      action_config.action_name = "objcopy_embed_data"
+      action_config.config_name = "objcopy_embed_data"
+      action_config.enabled = True
+      tool = action_config.tool.add()
+      tool.tool_path = _find_tool_path(toolchain, "objcopy")
+
     if toolchain.ld_embed_flag and not _contains_feature(
         toolchain, "ld_embed_flags"):
       feature = toolchain.feature.add()
@@ -126,6 +133,13 @@ def migrate_legacy_fields(crosstool):
       flag_set.action[:] = ["ld_embed_data"]
       flag_group = flag_set.flag_group.add()
       flag_group.flag[:] = toolchain.ld_embed_flag
+
+      action_config = toolchain.action_config.add()
+      action_config.action_name = "ld_embed_data"
+      action_config.config_name = "ld_embed_data"
+      action_config.enabled = True
+      tool = action_config.tool.add()
+      tool.tool_path = _find_tool_path(toolchain, "ld")
 
 
     # Create default_link_flags feature for linker_flag
@@ -222,6 +236,14 @@ def migrate_legacy_fields(crosstool):
     toolchain.ClearField("linker_flag")
     toolchain.ClearField("static_runtimes_filegroup")
     toolchain.ClearField("dynamic_runtimes_filegroup")
+
+
+def _find_tool_path(toolchain, tool_name):
+  """Returns the tool path of the tool with the given name."""
+  for tool in toolchain.tool_path:
+    if tool.name == tool_name:
+      return tool.path
+  return None
 
 
 def _add_flag_sets(feature, flag_sets):
