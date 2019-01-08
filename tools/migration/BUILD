@@ -53,3 +53,32 @@ py_binary(
         "@io_abseil_py//absl/flags",
     ],
 )
+
+py_binary(
+    name = "ctoolchain_comparator",
+    srcs = ["ctoolchain_comparator.py"],
+    deps = [
+        ":ctoolchain_comparator_lib",
+        "//third_party/com/github/bazelbuild/bazel/src/main/protobuf:crosstool_config_py_pb2",
+        "@io_abseil_py//absl:app",
+        "@io_abseil_py//absl/flags",
+    ],
+)
+
+py_library(
+    name = "ctoolchain_comparator_lib",
+    srcs = ["ctoolchain_comparator_lib.py"],
+    deps = [
+        "//third_party/com/github/bazelbuild/bazel/src/main/protobuf:crosstool_config_py_pb2",
+    ],
+)
+
+py_test(
+    name = "ctoolchain_comparator_lib_test",
+    srcs = ["ctoolchain_comparator_lib_test.py"],
+    deps = [
+        ":ctoolchain_comparator_lib",
+        "//third_party/com/github/bazelbuild/bazel/src/main/protobuf:crosstool_config_py_pb2",
+        "@py_mock//py/mock",
+    ],
+)
