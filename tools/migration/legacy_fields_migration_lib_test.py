@@ -51,6 +51,7 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
           supports_start_end_lib: false
           supports_interface_shared_objects: false
           supports_fission: false
+          supports_embedded_runtimes: false
           static_runtimes_filegroup: 'yolo'
           dynamic_runtimes_filegroup: 'yolo'
       """)
@@ -73,6 +74,7 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
     self.assertNotIn("supports_start_end_lib", output)
     self.assertNotIn("supports_interface_shared_objects", output)
     self.assertNotIn("supports_fission", output)
+    self.assertNotIn("supports_embedded_runtimes", output)
     self.assertNotIn("static_runtimes_filegroup", output)
     self.assertNotIn("dynamic_runtimes_filegroup", output)
 
@@ -365,6 +367,79 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
     self.assertNotIn("mostly-static-flag", output)
     self.assertNotIn("mostly-static-libraries-flag", output)
 
+  def test_unfiltered_require_user_compile_flags_and_sysroot(self):
+    crosstool = make_crosstool("""
+      feature { name: 'preexisting_feature' }
+      unfiltered_cxx_flag: 'unfiltered-flag-1'
+    """)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    # all these features are added after features that are already present in
+    # the crosstool
+    self.assertEqual(output.feature[0].name, "preexisting_feature")
+    self.assertEqual(output.feature[1].name, "user_compile_flags")
+    self.assertEqual(output.feature[2].name, "sysroot")
+    self.assertEqual(output.feature[3].name, "unfiltered_compile_flags")
+
+  def test_user_compile_flags_not_migrated_when_present(self):
+    crosstool = make_crosstool("""
+      unfiltered_cxx_flag: 'unfiltered-flag-1'
+      feature { name: 'user_compile_flags' }
+      feature { name: 'preexisting_feature' }
+    """)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(output.feature[0].name, "user_compile_flags")
+    self.assertEqual(output.feature[1].name, "preexisting_feature")
+    self.assertEqual(output.feature[2].name, "sysroot")
+    self.assertEqual(output.feature[3].name, "unfiltered_compile_flags")
+
+  def test_sysroot_not_migrated_when_present(self):
+    crosstool = make_crosstool("""
+      unfiltered_cxx_flag: 'unfiltered-flag-1'
+      feature { name: 'sysroot' }
+      feature { name: 'preexisting_feature' }
+    """)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(output.feature[0].name, "sysroot")
+    self.assertEqual(output.feature[1].name, "preexisting_feature")
+    self.assertEqual(output.feature[2].name, "user_compile_flags")
+    self.assertEqual(output.feature[3].name, "unfiltered_compile_flags")
+
+  def test_user_compile_flags(self):
+    crosstool = make_crosstool("""
+      unfiltered_cxx_flag: 'unfiltered-flag-1'
+    """)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(output.feature[0].name, "user_compile_flags")
+    self.assertEqual(output.feature[0].enabled, True)
+    self.assertEqual(output.feature[0].flag_set[0].action, ALL_COMPILE_ACTIONS)
+    self.assertEqual(
+        output.feature[0].flag_set[0].flag_group[0].expand_if_all_available,
+        ["user_compile_flags"])
+    self.assertEqual(output.feature[0].flag_set[0].flag_group[0].iterate_over,
+                     "user_compile_flags")
+    self.assertEqual(output.feature[0].flag_set[0].flag_group[0].flag,
+                     ["%{user_compile_flags}"])
+
+  def test_sysroot(self):
+    crosstool = make_crosstool("""
+      unfiltered_cxx_flag: 'unfiltered-flag-1'
+    """)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(output.feature[1].name, "sysroot")
+    self.assertEqual(output.feature[1].enabled, True)
+    self.assertEqual(output.feature[1].flag_set[0].action,
+                     ALL_COMPILE_ACTIONS + ALL_LINK_ACTIONS)
+    self.assertEqual(
+        output.feature[1].flag_set[0].flag_group[0].expand_if_all_available,
+        ["sysroot"])
+    self.assertEqual(output.feature[1].flag_set[0].flag_group[0].flag,
+                     ["--sysroot=%{sysroot}"])
+
   def test_unfiltered_compile_flags_is_not_added_when_already_present(self):
     crosstool = make_crosstool("""
             unfiltered_cxx_flag: 'unfiltered-flag-1'
@@ -376,10 +451,79 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
     output = crosstool.toolchain[0]
     self.assertEqual(output.feature[0].name, "something_else")
     self.assertEqual(output.feature[1].name, "unfiltered_compile_flags")
-    self.assertEqual(output.feature[1].flag_set[0].action, ALL_COMPILE_ACTIONS)
-    self.assertEqual(output.feature[1].flag_set[0].flag_group[0].flag,
-                     ["unfiltered-flag-1"])
+    self.assertEqual(len(output.feature[1].flag_set), 0)
     self.assertEqual(output.feature[2].name, "something_else_2")
+
+  def test_unfiltered_compile_flags_is_not_edited_if_old_variant_present(self):
+    crosstool = make_crosstool("""
+            unfiltered_cxx_flag: 'unfiltered-flag-1'
+            feature {
+              name: 'unfiltered_compile_flags'
+              flag_set {
+                action: 'c-compile'
+                flag_group {
+                  flag: 'foo-flag-1'
+                }
+              }
+            }
+        """)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(output.feature[0].name, "unfiltered_compile_flags")
+    self.assertEqual(len(output.feature[0].flag_set), 1)
+    self.assertEqual(output.feature[0].flag_set[0].action, ["c-compile"])
+    self.assertEqual(output.feature[0].flag_set[0].flag_group[0].flag,
+                     ["foo-flag-1"])
+
+  def test_use_of_unfiltered_compile_flags_var_is_removed_and_replaced(self):
+    crosstool = make_crosstool("""
+            unfiltered_cxx_flag: 'unfiltered-flag-1'
+            feature {
+              name: 'unfiltered_compile_flags'
+              flag_set {
+                action: 'c-compile'
+                flag_group {
+                  flag: 'foo-flag-1'
+                }
+              }
+              flag_set {
+                action: 'c++-compile'
+                flag_group {
+                  flag: 'bar-flag-1'
+                }
+                flag_group {
+                  expand_if_all_available: 'unfiltered_compile_flags'
+                  iterate_over: 'unfiltered_compile_flags'
+                  flag: '%{unfiltered_compile_flags}'
+                }
+                flag_group {
+                  flag: 'bar-flag-2'
+                }
+              }
+              flag_set {
+                action: 'c-compile'
+                flag_group {
+                  flag: 'foo-flag-2'
+                }
+              }
+            }
+        """)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(output.feature[0].name, "unfiltered_compile_flags")
+    self.assertEqual(output.feature[0].flag_set[0].action, ["c-compile"])
+    self.assertEqual(output.feature[0].flag_set[0].flag_group[0].flag,
+                     ["foo-flag-1"])
+    self.assertEqual(output.feature[0].flag_set[1].action, ["c++-compile"])
+    self.assertEqual(output.feature[0].flag_set[1].flag_group[0].flag,
+                     ["bar-flag-1"])
+    self.assertEqual(output.feature[0].flag_set[1].flag_group[1].flag,
+                     ["unfiltered-flag-1"])
+    self.assertEqual(output.feature[0].flag_set[1].flag_group[2].flag,
+                     ["bar-flag-2"])
+    self.assertEqual(output.feature[0].flag_set[2].action, ["c-compile"])
+    self.assertEqual(output.feature[0].flag_set[2].flag_group[0].flag,
+                     ["foo-flag-2"])
 
   def test_unfiltered_compile_flags_is_added_at_the_end(self):
     crosstool = make_crosstool("""
@@ -389,9 +533,11 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
     migrate_legacy_fields(crosstool)
     output = crosstool.toolchain[0]
     self.assertEqual(output.feature[0].name, "something_else")
-    self.assertEqual(output.feature[1].name, "unfiltered_compile_flags")
-    self.assertEqual(output.feature[1].flag_set[0].action, ALL_COMPILE_ACTIONS)
-    self.assertEqual(output.feature[1].flag_set[0].flag_group[0].flag,
+    self.assertEqual(output.feature[1].name, "user_compile_flags")
+    self.assertEqual(output.feature[2].name, "sysroot")
+    self.assertEqual(output.feature[3].name, "unfiltered_compile_flags")
+    self.assertEqual(output.feature[3].flag_set[0].action, ALL_COMPILE_ACTIONS)
+    self.assertEqual(output.feature[3].flag_set[0].flag_group[0].flag,
                      ["unfiltered-flag-1"])
 
   def test_default_link_flags_is_added_first(self):

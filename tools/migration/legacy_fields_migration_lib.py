@@ -155,16 +155,42 @@ def migrate_legacy_fields(crosstool):
       if _contains_feature(toolchain, "unfiltered_compile_flags"):
         for f in toolchain.feature:
           if f.name == "unfiltered_compile_flags":
-            feature = f
-            break
+            for flag_set in f.flag_set:
+              for flag_group in flag_set.flag_group:
+                if flag_group.iterate_over == "unfiltered_compile_flags":
+                  flag_group.ClearField("iterate_over")
+                  flag_group.ClearField("expand_if_all_available")
+                  flag_group.ClearField("flag")
+                  flag_group.flag[:] = toolchain.unfiltered_cxx_flag
       else:
+        if not _contains_feature(toolchain, "user_compile_flags"):
+          feature = toolchain.feature.add()
+          feature.name = "user_compile_flags"
+          feature.enabled = True
+          flag_set = feature.flag_set.add()
+          flag_set.action[:] = ALL_COMPILE_ACTIONS
+          flag_group = flag_set.flag_group.add()
+          flag_group.expand_if_all_available[:] = ["user_compile_flags"]
+          flag_group.iterate_over = "user_compile_flags"
+          flag_group.flag[:] = ["%{user_compile_flags}"]
+
+        if not _contains_feature(toolchain, "sysroot"):
+          feature = toolchain.feature.add()
+          feature.name = "sysroot"
+          feature.enabled = True
+          flag_set = feature.flag_set.add()
+          flag_set.action[:] = ALL_COMPILE_ACTIONS + ALL_LINK_ACTIONS
+          flag_group = flag_set.flag_group.add()
+          flag_group.expand_if_all_available[:] = ["sysroot"]
+          flag_group.flag[:] = ["--sysroot=%{sysroot}"]
+
         feature = toolchain.feature.add()
         feature.name = "unfiltered_compile_flags"
         feature.enabled = True
-
-      _add_flag_sets(
-          feature,
-          [[None, ALL_COMPILE_ACTIONS, toolchain.unfiltered_cxx_flag, []]])
+        flag_set = feature.flag_set.add()
+        flag_set.action[:] = ALL_COMPILE_ACTIONS
+        flag_group = flag_set.flag_group.add()
+        flag_group.flag[:] = toolchain.unfiltered_cxx_flag
 
     # clear fields
     toolchain.ClearField("debian_extra_requires")
@@ -190,6 +216,7 @@ def migrate_legacy_fields(crosstool):
     toolchain.ClearField("supports_start_end_lib")
     toolchain.ClearField("supports_interface_shared_objects")
     toolchain.ClearField("supports_fission")
+    toolchain.ClearField("supports_embedded_runtimes")
     toolchain.ClearField("compiler_flag")
     toolchain.ClearField("cxx_flag")
     toolchain.ClearField("linker_flag")
