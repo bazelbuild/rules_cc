@@ -20,20 +20,29 @@ http_archive(
     name = "com_google_protobuf",
     sha256 = "d6618d117698132dadf0f830b762315807dc424ba36ab9183f1f436008a2fdb6",
     strip_prefix = "protobuf-3.6.1.2",
-    urls = ["https://github.com/google/protobuf/archive/v3.6.1.2.zip"],
+    urls = [
+        "http://mirror.bazel.build/github.com/google/protobuf/archive/v3.6.1.2.tar.gz",
+        "https://github.com/google/protobuf/archive/v3.6.1.2.zip",
+    ],
 )
 
 http_archive(
     name = "io_abseil_py",
     sha256 = "74a2203a9b4681851f4f1dfc17f2832e0a16bae0369b288b18b431cea63f0ee9",
     strip_prefix = "abseil-py-pypi-v0.6.1",
-    urls = ["https://github.com/abseil/abseil-py/archive/pypi-v0.6.1.zip"],
+    urls = [
+        "https://mirror.bazel.build/github.com/abseil/abseil-py/archive/pypi-v0.6.1.zip",
+        "https://github.com/abseil/abseil-py/archive/pypi-v0.6.1.zip",
+    ],
 )
 
 http_archive(
     name = "py_mock",
     sha256 = "b839dd2d9c117c701430c149956918a423a9863b48b09c90e30a6013e7d2f44f",
-    urls = ["https://pypi.python.org/packages/source/m/mock/mock-1.0.1.tar.gz"],
+    urls = [
+        "https://mirror.bazel.build/pypi.python.org/packages/source/m/mock/mock-1.0.1.tar.gz",
+        "https://pypi.python.org/packages/source/m/mock/mock-1.0.1.tar.gz",
+    ],
     strip_prefix = "mock-1.0.1",
     patch_cmds = [
         "mkdir -p py/mock",
