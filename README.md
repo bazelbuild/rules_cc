@@ -34,3 +34,15 @@ cc_library(
 
 This repository also contains migration tools that can be used to migrate your
 project for Bazel incompatible changes.
+
+## Legacy fields migrator
+
+Script that migrates legacy crosstool fields into features
+([incompatible flag](https://github.com/bazelbuild/bazel/issues/6861), 
+[tracking issue](https://github.com/bazelbuild/bazel/issues/5883).
+
+TLDR:
+
+    bazel run @rules_cc//tools/migration:legacy_fields_migrator -- \
+      --input=my_toolchain/CROSSTOOL \
+      --inline
