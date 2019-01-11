@@ -14,24 +14,49 @@ https://github.com/bazelbuild/bazel/issues/5380.
 
 from third_party.com.github.bazelbuild.bazel.src.main.protobuf import crosstool_config_pb2
 
-ALL_COMPILE_ACTIONS = [
+ALL_CC_COMPILE_ACTIONS = [
     "assemble", "preprocess-assemble", "linkstamp-compile", "c-compile",
     "c++-compile", "c++-header-parsing", "c++-module-compile",
     "c++-module-codegen", "lto-backend", "clif-match"
 ]
 
-ALL_CXX_COMPILE_ACTIONS = [
-    action for action in ALL_COMPILE_ACTIONS if action != "c-compile"
+ALL_OBJC_COMPILE_ACTIONS = [
+    "objc-compile", "objc++-compile"
 ]
 
-ALL_LINK_ACTIONS = [
+ALL_CXX_COMPILE_ACTIONS = [
+    action for action in ALL_CC_COMPILE_ACTIONS if action != "c-compile"
+]
+
+ALL_CC_LINK_ACTIONS = [
     "c++-link-executable", "c++-link-dynamic-library",
     "c++-link-nodeps-dynamic-library"
+]
+
+ALL_OBJC_LINK_ACTIONS = [
+    "objc-executable", "objc++-executable",
 ]
 
 DYNAMIC_LIBRARY_LINK_ACTIONS = [
     "c++-link-dynamic-library", "c++-link-nodeps-dynamic-library"
 ]
+
+def compile_actions(toolchain):
+  """Returns compile actions for cc or objc rules."""
+  if _is_objc_toolchain(toolchain):
+      return ALL_CC_COMPILE_ACTIONS + ALL_OBJC_COMPILE_ACTIONS
+  else:
+      return ALL_CC_COMPILE_ACTIONS
+
+def link_actions(toolchain):
+  """Returns link actions for cc or objc rules."""
+  if _is_objc_toolchain(toolchain):
+      return ALL_CC_LINK_ACTIONS + ALL_OBJC_LINK_ACTIONS
+  else:
+      return ALL_CC_LINK_ACTIONS
+
+def _is_objc_toolchain(toolchain):
+  return any(ac.action_name == "objc-compile" for ac in toolchain.action_config)
 
 # Map converting from LinkingMode to corresponding feature name
 LINKING_MODE_TO_FEATURE_NAME = {
@@ -182,7 +207,7 @@ def migrate_legacy_fields(crosstool):
           feature.name = "user_compile_flags"
           feature.enabled = True
           flag_set = feature.flag_set.add()
-          flag_set.action[:] = ALL_COMPILE_ACTIONS
+          flag_set.action[:] = compile_actions(toolchain)
           flag_group = flag_set.flag_group.add()
           flag_group.expand_if_all_available[:] = ["user_compile_flags"]
           flag_group.iterate_over = "user_compile_flags"
@@ -193,7 +218,7 @@ def migrate_legacy_fields(crosstool):
           feature.name = "sysroot"
           feature.enabled = True
           flag_set = feature.flag_set.add()
-          flag_set.action[:] = ALL_COMPILE_ACTIONS + ALL_LINK_ACTIONS
+          flag_set.action[:] = compile_actions(toolchain) + link_actions(toolchain)
           flag_group = flag_set.flag_group.add()
           flag_group.expand_if_all_available[:] = ["sysroot"]
           flag_group.flag[:] = ["--sysroot=%{sysroot}"]
@@ -202,7 +227,7 @@ def migrate_legacy_fields(crosstool):
         feature.name = "unfiltered_compile_flags"
         feature.enabled = True
         flag_set = feature.flag_set.add()
-        flag_set.action[:] = ALL_COMPILE_ACTIONS
+        flag_set.action[:] = compile_actions(toolchain)
         flag_group = flag_set.flag_group.add()
         flag_group.flag[:] = toolchain.unfiltered_cxx_flag
 
@@ -267,7 +292,7 @@ def _extract_legacy_compile_flag_sets_for(toolchain):
   """Get flag sets for default_compile_flags feature."""
   result = []
   if toolchain.compiler_flag:
-    result.append([None, ALL_COMPILE_ACTIONS, toolchain.compiler_flag, []])
+    result.append([None, compile_actions(toolchain), toolchain.compiler_flag, []])
   if toolchain.cxx_flag:
     result.append([None, ALL_CXX_COMPILE_ACTIONS, toolchain.cxx_flag, []])
 
@@ -284,7 +309,7 @@ def _extract_legacy_compile_flag_sets_for(toolchain):
       feature.name = mode
 
     if cmf.compiler_flag:
-      result.append([mode, ALL_COMPILE_ACTIONS, cmf.compiler_flag, []])
+      result.append([mode, compile_actions(toolchain), cmf.compiler_flag, []])
 
     if cmf.cxx_flag:
       result.append([mode, ALL_CXX_COMPILE_ACTIONS, cmf.cxx_flag, []])
@@ -298,7 +323,7 @@ def _extract_legacy_link_flag_sets_for(toolchain):
 
   # Migrate linker_flag
   if toolchain.linker_flag:
-    result.append([None, ALL_LINK_ACTIONS, toolchain.linker_flag, []])
+    result.append([None, link_actions(toolchain), toolchain.linker_flag, []])
 
   # Migrate linker_flags from compilation_mode_flags
   for cmf in toolchain.compilation_mode_flags:
@@ -312,7 +337,7 @@ def _extract_legacy_link_flag_sets_for(toolchain):
       feature.name = mode
 
     if cmf.linker_flag:
-      result.append([mode, ALL_LINK_ACTIONS, cmf.linker_flag, []])
+      result.append([mode, link_actions(toolchain), cmf.linker_flag, []])
 
   # Migrate linker_flags from linking_mode_flags
   for lmf in toolchain.linking_mode_flags:
@@ -327,7 +352,7 @@ def _extract_legacy_link_flag_sets_for(toolchain):
       feature.name = mode
 
     if lmf.linker_flag:
-      result.append([mode, ALL_LINK_ACTIONS, lmf.linker_flag, []])
+      result.append([mode, link_actions(toolchain), lmf.linker_flag, []])
 
   if toolchain.dynamic_library_linker_flag:
     result.append([
@@ -337,7 +362,7 @@ def _extract_legacy_link_flag_sets_for(toolchain):
 
   if toolchain.test_only_linker_flag:
     result.append([
-        None, ALL_LINK_ACTIONS, toolchain.test_only_linker_flag, ["is_cc_test"]
+        None, link_actions(toolchain), toolchain.test_only_linker_flag, ["is_cc_test"]
     ])
 
   return result
