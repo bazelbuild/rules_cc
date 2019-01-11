@@ -3,7 +3,7 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 http_archive(
     name = "six_archive",
     urls = [
-        "http://mirror.bazel.build/pypi.python.org/packages/source/s/six/six-1.10.0.tar.gz",
+        "https://mirror.bazel.build/pypi.python.org/packages/source/s/six/six-1.10.0.tar.gz",
         "https://pypi.python.org/packages/source/s/six/six-1.10.0.tar.gz",
     ],
     sha256 = "105f8d68616f8248e24bf0e9372ef04d3cc10104f1980f54d57b2ce73a5ad56a",
@@ -18,11 +18,11 @@ bind(
 
 http_archive(
     name = "com_google_protobuf",
-    sha256 = "d6618d117698132dadf0f830b762315807dc424ba36ab9183f1f436008a2fdb6",
+    sha256 = "2244b0308846bb22b4ff0bcc675e99290ff9f1115553ae9671eba1030af31bc0",
     strip_prefix = "protobuf-3.6.1.2",
     urls = [
-        "http://mirror.bazel.build/github.com/google/protobuf/archive/v3.6.1.2.tar.gz",
-        "https://github.com/google/protobuf/archive/v3.6.1.2.zip",
+        "https://mirror.bazel.build/github.com/google/protobuf/archive/v3.6.1.2.tar.gz",
+        "https://github.com/google/protobuf/archive/v3.6.1.2.tar.gz",
     ],
 )
 
