@@ -51,7 +51,7 @@ assignees: ''
 > Places to look:
 > * StackOverflow: http://stackoverflow.com/questions/tagged/bazel
 > * GitHub issues:
->   * https://github.com/bazelbuild/bazel/issues
+>   * https://github.com/bazelbuild/rules_cc/issues
 >   * https://github.com/bazelbuild/bazel/issues
 > * email threads on https://groups.google.com/forum/#!forum/bazel-discuss
 
