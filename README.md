@@ -39,7 +39,7 @@ project for Bazel incompatible changes.
 
 Script that migrates legacy crosstool fields into features
 ([incompatible flag](https://github.com/bazelbuild/bazel/issues/6861), 
-[tracking issue](https://github.com/bazelbuild/bazel/issues/5883).
+[tracking issue](https://github.com/bazelbuild/bazel/issues/5883)).
 
 TLDR:
 
