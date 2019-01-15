@@ -1,5 +1,7 @@
 # C++ rules for Bazel
 
+[![Build status](https://badge.buildkite.com/f03592ae2d7d25a2abc2a2ba776e704823fa17fd3e061f5103.svg)](https://buildkite.com/bazel/rules-cc)
+
 This repository contains Starlark implementation of C++ rules in Bazel.
 
 The rules are being incrementally converted from their native implementations in the [Bazel source tree](https://source.bazel.build/bazel/+/master:src/main/java/com/google/devtools/build/lib/rules/cpp/).
