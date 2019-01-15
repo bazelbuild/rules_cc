@@ -25,7 +25,8 @@ ALL_OBJC_COMPILE_ACTIONS = [
 ]
 
 ALL_CXX_COMPILE_ACTIONS = [
-    action for action in ALL_CC_COMPILE_ACTIONS if action != "c-compile"
+    action for action in ALL_CC_COMPILE_ACTIONS
+    if action not in ["c-compile", "preprocess-assemble", "assemble"]
 ]
 
 ALL_CC_LINK_ACTIONS = [
@@ -44,16 +45,16 @@ DYNAMIC_LIBRARY_LINK_ACTIONS = [
 def compile_actions(toolchain):
   """Returns compile actions for cc or objc rules."""
   if _is_objc_toolchain(toolchain):
-      return ALL_CC_COMPILE_ACTIONS + ALL_OBJC_COMPILE_ACTIONS
+    return ALL_CC_COMPILE_ACTIONS + ALL_OBJC_COMPILE_ACTIONS
   else:
-      return ALL_CC_COMPILE_ACTIONS
+    return ALL_CC_COMPILE_ACTIONS
 
 def link_actions(toolchain):
   """Returns link actions for cc or objc rules."""
   if _is_objc_toolchain(toolchain):
-      return ALL_CC_LINK_ACTIONS + ALL_OBJC_LINK_ACTIONS
+    return ALL_CC_LINK_ACTIONS + ALL_OBJC_LINK_ACTIONS
   else:
-      return ALL_CC_LINK_ACTIONS
+    return ALL_CC_LINK_ACTIONS
 
 def _is_objc_toolchain(toolchain):
   return any(ac.action_name == "objc-compile" for ac in toolchain.action_config)
@@ -172,7 +173,14 @@ def migrate_legacy_fields(crosstool):
     if flag_sets:
       if _contains_feature(toolchain, "default_link_flags"):
         continue
-      feature = _prepend_feature(toolchain)
+      if _contains_feature(toolchain, "legacy_link_flags"):
+        for f in toolchain.feature:
+          if f.name == "legacy_link_flags":
+            f.ClearField("flag_set")
+            feature = f
+            break
+      else:
+        feature = _prepend_feature(toolchain)
       feature.name = "default_link_flags"
       feature.enabled = True
       _add_flag_sets(feature, flag_sets)
@@ -180,7 +188,14 @@ def migrate_legacy_fields(crosstool):
     # Create default_compile_flags feature for compiler_flag, cxx_flag
     flag_sets = _extract_legacy_compile_flag_sets_for(toolchain)
     if flag_sets and not _contains_feature(toolchain, "default_compile_flags"):
-      feature = _prepend_feature(toolchain)
+      if _contains_feature(toolchain, "legacy_compile_flags"):
+        for f in toolchain.feature:
+          if f.name == "legacy_compile_flags":
+            f.ClearField("flag_set")
+            feature = f
+            break
+      else:
+        feature = _prepend_feature(toolchain)
       feature.enabled = True
       feature.name = "default_compile_flags"
       _add_flag_sets(feature, flag_sets)
@@ -214,11 +229,13 @@ def migrate_legacy_fields(crosstool):
           flag_group.flag[:] = ["%{user_compile_flags}"]
 
         if not _contains_feature(toolchain, "sysroot"):
+          sysroot_actions = compile_actions(toolchain) + link_actions(toolchain)
+          sysroot_actions.remove("assemble")
           feature = toolchain.feature.add()
           feature.name = "sysroot"
           feature.enabled = True
           flag_set = feature.flag_set.add()
-          flag_set.action[:] = compile_actions(toolchain) + link_actions(toolchain)
+          flag_set.action[:] = sysroot_actions
           flag_group = flag_set.flag_group.add()
           flag_group.expand_if_all_available[:] = ["sysroot"]
           flag_group.flag[:] = ["--sysroot=%{sysroot}"]
@@ -293,10 +310,8 @@ def _extract_legacy_compile_flag_sets_for(toolchain):
   result = []
   if toolchain.compiler_flag:
     result.append([None, compile_actions(toolchain), toolchain.compiler_flag, []])
-  if toolchain.cxx_flag:
-    result.append([None, ALL_CXX_COMPILE_ACTIONS, toolchain.cxx_flag, []])
 
-  # Migrate compiler_flag/cxx_flag from compilation_mode_flags
+  # Migrate compiler_flag from compilation_mode_flags
   for cmf in toolchain.compilation_mode_flags:
     mode = crosstool_config_pb2.CompilationMode.Name(cmf.mode).lower()
     # coverage mode has been a noop since a while
@@ -310,6 +325,16 @@ def _extract_legacy_compile_flag_sets_for(toolchain):
 
     if cmf.compiler_flag:
       result.append([mode, compile_actions(toolchain), cmf.compiler_flag, []])
+
+  if toolchain.cxx_flag:
+    result.append([None, ALL_CXX_COMPILE_ACTIONS, toolchain.cxx_flag, []])
+
+  # Migrate compiler_flag/cxx_flag from compilation_mode_flags
+  for cmf in toolchain.compilation_mode_flags:
+    mode = crosstool_config_pb2.CompilationMode.Name(cmf.mode).lower()
+    # coverage mode has been a noop since a while
+    if mode == "coverage":
+      continue
 
     if cmf.cxx_flag:
       result.append([mode, ALL_CXX_COMPILE_ACTIONS, cmf.cxx_flag, []])

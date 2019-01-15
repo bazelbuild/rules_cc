@@ -87,6 +87,37 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
     migrate_legacy_fields(crosstool)
     self.assertEqual(len(crosstool.default_toolchain), 0)
 
+  def test_replace_legacy_compile_flags(self):
+    crosstool = make_crosstool("""
+        feature { name: 'foo' }
+        feature { name: 'legacy_compile_flags' }
+        compiler_flag: 'clang-flag-1'
+    """)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(len(output.compiler_flag), 0)
+    self.assertEqual(output.feature[0].name, "foo")
+    self.assertEqual(output.feature[1].name, "default_compile_flags")
+    self.assertEqual(output.feature[1].flag_set[0].action,
+                     ALL_CC_COMPILE_ACTIONS)
+    self.assertEqual(output.feature[1].flag_set[0].flag_group[0].flag,
+                     ["clang-flag-1"])
+
+  def test_replace_legacy_link_flags(self):
+    crosstool = make_crosstool("""
+        feature { name: 'foo' }
+        feature { name: 'legacy_link_flags' }
+        linker_flag: 'ld-flag-1'
+    """)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(len(output.compiler_flag), 0)
+    self.assertEqual(output.feature[0].name, "foo")
+    self.assertEqual(output.feature[1].name, "default_link_flags")
+    self.assertEqual(output.feature[1].flag_set[0].action, ALL_CC_LINK_ACTIONS)
+    self.assertEqual(output.feature[1].flag_set[0].flag_group[0].flag,
+                     ["ld-flag-1"])
+
   def test_migrate_compiler_flags(self):
     crosstool = make_crosstool("""
         compiler_flag: 'clang-flag-1'
@@ -191,17 +222,17 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
     self.assertEqual(output.feature[0].flag_set[0].flag_group[0].flag,
                      ["compile-flag-1"])
 
-    # flag set for cxx_flag fields
-    self.assertEqual(len(output.feature[0].flag_set[1].with_feature), 0)
-    self.assertEqual(output.feature[0].flag_set[1].flag_group[0].flag,
-                     ["cxx-flag-1"])
-
     # flag set for compiler_flag from compilation_mode_flags
-    self.assertEqual(len(output.feature[0].flag_set[2].with_feature), 1)
-    self.assertEqual(output.feature[0].flag_set[2].with_feature[0].feature[0],
+    self.assertEqual(len(output.feature[0].flag_set[1].with_feature), 1)
+    self.assertEqual(output.feature[0].flag_set[1].with_feature[0].feature[0],
                      "opt")
-    self.assertEqual(output.feature[0].flag_set[2].flag_group[0].flag,
+    self.assertEqual(output.feature[0].flag_set[1].flag_group[0].flag,
                      ["opt-flag-1"])
+
+    # flag set for cxx_flag fields
+    self.assertEqual(len(output.feature[0].flag_set[2].with_feature), 0)
+    self.assertEqual(output.feature[0].flag_set[2].flag_group[0].flag,
+                     ["cxx-flag-1"])
 
     # flag set for cxx_flag from compilation_mode_flags
     self.assertEqual(len(output.feature[0].flag_set[3].with_feature), 1)
@@ -464,6 +495,9 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
                      ["%{user_compile_flags}"])
 
   def test_sysroot(self):
+    sysroot_actions = ALL_CC_COMPILE_ACTIONS + ALL_CC_LINK_ACTIONS
+    sysroot_actions.remove("assemble")
+    self.assertTrue("assemble" not in sysroot_actions)
     crosstool = make_crosstool("""
       unfiltered_cxx_flag: 'unfiltered-flag-1'
     """)
@@ -471,8 +505,7 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
     output = crosstool.toolchain[0]
     self.assertEqual(output.feature[1].name, "sysroot")
     self.assertEqual(output.feature[1].enabled, True)
-    self.assertEqual(output.feature[1].flag_set[0].action,
-                     ALL_CC_COMPILE_ACTIONS + ALL_CC_LINK_ACTIONS)
+    self.assertEqual(output.feature[1].flag_set[0].action, sysroot_actions)
     self.assertEqual(
         output.feature[1].flag_set[0].flag_group[0].expand_if_all_available,
         ["sysroot"])
