@@ -103,6 +103,68 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
     self.assertEqual(output.feature[1].flag_set[0].flag_group[0].flag,
                      ["clang-flag-1"])
 
+  def test_replace_legacy_compile_flags_in_action_configs(self):
+    crosstool = make_crosstool("""
+        feature {
+          name: 'foo'
+          implies: 'legacy_compile_flags'
+          requires: { feature: 'legacy_compile_flags' }
+          flag_set {
+            with_feature { feature: 'legacy_compile_flags' }
+            with_feature { not_feature: 'legacy_compile_flags' }
+          }
+          env_set {
+            with_feature { feature: 'legacy_compile_flags' }
+            with_feature { not_feature: 'legacy_compile_flags' }
+          }
+        }
+        feature { name: 'legacy_compile_flags' }
+        action_config {
+          action_name: 'foo'
+          config_name: 'foo'
+          implies: 'legacy_compile_flags'
+          requires: { feature: 'legacy_compile_flags' }
+          flag_set {
+            with_feature { feature: 'legacy_compile_flags' }
+            with_feature { not_feature: 'legacy_compile_flags' }
+          }
+          env_set {
+            with_feature { feature: 'legacy_compile_flags' }
+            with_feature { not_feature: 'legacy_compile_flags' }
+          }
+        }
+        compiler_flag: 'clang-flag-1'
+    """)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(output.action_config[0].action_name, "foo")
+    self.assertEqual(output.action_config[0].implies, [])
+    self.assertEqual(output.action_config[0].requires[0].feature,
+                     ["default_compile_flags"])
+    self.assertEqual(
+        output.action_config[0].flag_set[0].with_feature[0].feature,
+        ["default_compile_flags"])
+    self.assertEqual(
+        output.action_config[0].flag_set[0].with_feature[1].not_feature,
+        ["default_compile_flags"])
+    self.assertEqual(output.action_config[0].env_set[0].with_feature[0].feature,
+                     ["default_compile_flags"])
+    self.assertEqual(
+        output.action_config[0].env_set[0].with_feature[1].not_feature,
+        ["default_compile_flags"])
+    self.assertEqual(output.feature[0].name, "foo")
+    self.assertEqual(output.feature[0].implies, [])
+    self.assertEqual(output.feature[0].requires[0].feature,
+                     ["default_compile_flags"])
+    self.assertEqual(output.feature[0].flag_set[0].with_feature[0].feature,
+                     ["default_compile_flags"])
+    self.assertEqual(output.feature[0].flag_set[0].with_feature[1].not_feature,
+                     ["default_compile_flags"])
+    self.assertEqual(output.feature[0].env_set[0].with_feature[0].feature,
+                     ["default_compile_flags"])
+    self.assertEqual(output.feature[0].env_set[0].with_feature[1].not_feature,
+                     ["default_compile_flags"])
+
   def test_replace_legacy_link_flags(self):
     crosstool = make_crosstool("""
         feature { name: 'foo' }
@@ -117,6 +179,69 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
     self.assertEqual(output.feature[1].flag_set[0].action, ALL_CC_LINK_ACTIONS)
     self.assertEqual(output.feature[1].flag_set[0].flag_group[0].flag,
                      ["ld-flag-1"])
+
+  def test_replace_legacy_link_flags_in_action_configs(self):
+    crosstool = make_crosstool("""
+        feature {
+          name: 'foo'
+          implies: 'legacy_link_flags'
+          requires: { feature: 'legacy_link_flags' }
+          flag_set {
+            with_feature { feature: 'legacy_link_flags' }
+            with_feature { not_feature: 'legacy_link_flags' }
+          }
+          env_set {
+            with_feature { feature: 'legacy_link_flags' }
+            with_feature { not_feature: 'legacy_link_flags' }
+          }
+        }
+        feature { name: 'legacy_link_flags' }
+        action_config {
+          action_name: 'foo'
+          config_name: 'foo'
+          implies: 'legacy_link_flags'
+          requires: { feature: 'legacy_link_flags' }
+          flag_set {
+            with_feature { feature: 'legacy_link_flags' }
+            with_feature { not_feature: 'legacy_link_flags' }
+          }
+          env_set {
+            with_feature { feature: 'legacy_link_flags' }
+            with_feature { not_feature: 'legacy_link_flags' }
+          }
+        }
+        linker_flag: 'clang-flag-1'
+    """)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(output.action_config[0].action_name, "foo")
+    self.assertEqual(output.action_config[0].implies, [])
+    self.assertEqual(output.action_config[0].requires[0].feature,
+                     ["default_link_flags"])
+    self.assertEqual(
+        output.action_config[0].flag_set[0].with_feature[0].feature,
+        ["default_link_flags"])
+    self.assertEqual(
+        output.action_config[0].flag_set[0].with_feature[1].not_feature,
+        ["default_link_flags"])
+    self.assertEqual(output.action_config[0].env_set[0].with_feature[0].feature,
+                     ["default_link_flags"])
+    self.assertEqual(
+        output.action_config[0].env_set[0].with_feature[1].not_feature,
+        ["default_link_flags"])
+    self.assertEqual(output.feature[0].name, "foo")
+    self.assertEqual(output.feature[0].implies, [])
+    self.assertEqual(output.feature[0].requires[0].feature,
+                     ["default_link_flags"])
+    self.assertEqual(output.feature[0].flag_set[0].with_feature[0].feature,
+                     ["default_link_flags"])
+    self.assertEqual(output.feature[0].flag_set[0].with_feature[1].not_feature,
+                     ["default_link_flags"])
+    self.assertEqual(output.feature[0].env_set[0].with_feature[0].feature,
+                     ["default_link_flags"])
+    self.assertEqual(output.feature[0].env_set[0].with_feature[1].not_feature,
+                     ["default_link_flags"])
+
 
   def test_migrate_compiler_flags(self):
     crosstool = make_crosstool("""

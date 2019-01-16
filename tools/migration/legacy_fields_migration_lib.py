@@ -67,7 +67,6 @@ LINKING_MODE_TO_FEATURE_NAME = {
     "MOSTLY_STATIC_LIBRARIES": "static_linking_mode_nodeps_library",
 }
 
-
 def migrate_legacy_fields(crosstool):
   """Migrates parsed crosstool (inplace) to not use legacy fields."""
   crosstool.ClearField("default_toolchain")
@@ -178,6 +177,8 @@ def migrate_legacy_fields(crosstool):
           if f.name == "legacy_link_flags":
             f.ClearField("flag_set")
             feature = f
+            _rename_feature_in_toolchain(toolchain, "legacy_link_flags",
+                                         "default_link_flags")
             break
       else:
         feature = _prepend_feature(toolchain)
@@ -193,6 +194,8 @@ def migrate_legacy_fields(crosstool):
           if f.name == "legacy_compile_flags":
             f.ClearField("flag_set")
             feature = f
+            _rename_feature_in_toolchain(toolchain, "legacy_compile_flags",
+                                         "default_compile_flags")
             break
       else:
         feature = _prepend_feature(toolchain)
@@ -425,3 +428,35 @@ def _contains_dynamic_flags(toolchain):
     if mode == "DYNAMIC":
       return True
   return False
+
+
+def _rename_feature_in_toolchain(toolchain, from_name, to_name):
+  for f in toolchain.feature:
+    _rename_feature_in(f, from_name, to_name)
+  for a in toolchain.action_config:
+    _rename_feature_in(a, from_name, to_name)
+
+
+def _rename_feature_in(msg, from_name, to_name):
+  if from_name in msg.implies:
+    msg.implies.remove(from_name)
+  for requires in msg.requires:
+    if from_name in requires.feature:
+      requires.feature.remove(from_name)
+      requires.feature.extend([to_name])
+    for flag_set in msg.flag_set:
+      for with_feature in flag_set.with_feature:
+        if from_name in with_feature.feature:
+          with_feature.feature.remove(from_name)
+          with_feature.feature.extend([to_name])
+        if from_name in with_feature.not_feature:
+          with_feature.not_feature.remove(from_name)
+          with_feature.not_feature.extend([to_name])
+    for env_set in msg.env_set:
+      for with_feature in env_set.with_feature:
+        if from_name in with_feature.feature:
+          with_feature.feature.remove(from_name)
+          with_feature.feature.extend([to_name])
+        if from_name in with_feature.not_feature:
+          with_feature.not_feature.remove(from_name)
+          with_feature.not_feature.extend([to_name])
