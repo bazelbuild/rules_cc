@@ -7,6 +7,8 @@ from tools.migration.legacy_fields_migration_lib import ALL_CXX_COMPILE_ACTIONS
 from tools.migration.legacy_fields_migration_lib import ALL_CC_LINK_ACTIONS
 from tools.migration.legacy_fields_migration_lib import ALL_OBJC_LINK_ACTIONS
 from tools.migration.legacy_fields_migration_lib import DYNAMIC_LIBRARY_LINK_ACTIONS
+from tools.migration.legacy_fields_migration_lib import NODEPS_DYNAMIC_LIBRARY_LINK_ACTIONS
+from tools.migration.legacy_fields_migration_lib import TRANSITIVE_LINK_ACTIONS
 from tools.migration.legacy_fields_migration_lib import migrate_legacy_fields
 
 
@@ -473,8 +475,12 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
       mode: MOSTLY_STATIC
       linker_flag: 'lmf-flag-3'
     }
-    dynamic_library_linker_flag: 'dl-flag-4'
-    test_only_linker_flag: 'to-flag-5'
+    linking_mode_flags {
+      mode: DYNAMIC
+      linker_flag: 'lmf-dynamic-flag-4'
+    }
+    dynamic_library_linker_flag: 'dl-flag-5'
+    test_only_linker_flag: 'to-flag-6'
     """)
     migrate_legacy_fields(crosstool)
     output = crosstool.toolchain[0]
@@ -483,25 +489,42 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
     self.assertEqual(output.feature[0].flag_set[0].action[:], ALL_CC_LINK_ACTIONS)
     self.assertEqual(output.feature[0].flag_set[0].flag_group[0].flag[:],
                      ["linker-flag-1"])
+
     self.assertEqual(output.feature[0].flag_set[1].action[:], ALL_CC_LINK_ACTIONS)
     self.assertEqual(output.feature[0].flag_set[1].with_feature[0].feature[0],
                      "opt")
-    self.assertEqual(output.feature[0].flag_set[1].flag_group[0].flag[:],
+    self.assertEqual(output.feature[0].flag_set[1].flag_group[0].flag,
                      ["cmf-flag-2"])
-    self.assertEqual(output.feature[0].flag_set[2].action[:], ALL_CC_LINK_ACTIONS)
+
+    self.assertEqual(output.feature[0].flag_set[2].action, ALL_CC_LINK_ACTIONS)
     self.assertEqual(output.feature[0].flag_set[2].with_feature[0].feature[0],
                      "static_linking_mode")
-    self.assertEqual(output.feature[0].flag_set[2].flag_group[0].flag[:],
+    self.assertEqual(output.feature[0].flag_set[2].flag_group[0].flag,
                      ["lmf-flag-3"])
-    self.assertEqual(output.feature[0].flag_set[3].action[:],
+
+    self.assertEqual(len(output.feature[0].flag_set[3].with_feature), 0)
+    self.assertEqual(output.feature[0].flag_set[3].flag_group[0].flag,
+                     ["lmf-dynamic-flag-4"])
+    self.assertEqual(output.feature[0].flag_set[3].action,
+                     NODEPS_DYNAMIC_LIBRARY_LINK_ACTIONS)
+
+    self.assertEqual(output.feature[0].flag_set[4].with_feature[0].feature[0],
+                     "dynamic_linking_mode")
+    self.assertEqual(output.feature[0].flag_set[4].flag_group[0].flag,
+                     ["lmf-dynamic-flag-4"])
+    self.assertEqual(output.feature[0].flag_set[4].action,
+                     TRANSITIVE_LINK_ACTIONS)
+
+    self.assertEqual(output.feature[0].flag_set[5].flag_group[0].flag,
+                     ["dl-flag-5"])
+    self.assertEqual(output.feature[0].flag_set[5].action,
                      DYNAMIC_LIBRARY_LINK_ACTIONS)
-    self.assertEqual(output.feature[0].flag_set[3].flag_group[0].flag[:],
-                     ["dl-flag-4"])
-    self.assertEqual(output.feature[0].flag_set[4].action[:], ALL_CC_LINK_ACTIONS)
-    self.assertEqual(output.feature[0].flag_set[4].flag_group[0].flag[:],
-                     ["to-flag-5"])
+
+    self.assertEqual(output.feature[0].flag_set[6].flag_group[0].flag,
+                     ["to-flag-6"])
+    self.assertEqual(output.feature[0].flag_set[6].action, ALL_CC_LINK_ACTIONS)
     self.assertEqual(
-        output.feature[0].flag_set[4].flag_group[0].expand_if_all_available[:],
+        output.feature[0].flag_set[6].flag_group[0].expand_if_all_available,
         ["is_cc_test"])
 
   def test_all_linker_flag_objc_actions(self):
@@ -516,17 +539,22 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
       mode: MOSTLY_STATIC
       linker_flag: 'lmf-flag-3'
     }
-    dynamic_library_linker_flag: 'dl-flag-4'
-    test_only_linker_flag: 'to-flag-5'
+    dynamic_library_linker_flag: 'dl-flag-5'
+    test_only_linker_flag: 'to-flag-6'
     """)
     migrate_legacy_fields(crosstool)
     output = crosstool.toolchain[0]
     self.assertEqual(output.feature[0].name, "default_link_flags")
-    self.assertEqual(output.feature[0].flag_set[0].action[:], ALL_CC_LINK_ACTIONS + ALL_OBJC_LINK_ACTIONS)
-    self.assertEqual(output.feature[0].flag_set[1].action[:], ALL_CC_LINK_ACTIONS + ALL_OBJC_LINK_ACTIONS)
-    self.assertEqual(output.feature[0].flag_set[2].action[:], ALL_CC_LINK_ACTIONS + ALL_OBJC_LINK_ACTIONS)
-    self.assertEqual(output.feature[0].flag_set[3].action[:], DYNAMIC_LIBRARY_LINK_ACTIONS)
-    self.assertEqual(output.feature[0].flag_set[4].action[:], ALL_CC_LINK_ACTIONS + ALL_OBJC_LINK_ACTIONS)
+    self.assertEqual(output.feature[0].flag_set[0].action[:],
+                     ALL_CC_LINK_ACTIONS + ALL_OBJC_LINK_ACTIONS)
+    self.assertEqual(output.feature[0].flag_set[1].action[:],
+                     ALL_CC_LINK_ACTIONS + ALL_OBJC_LINK_ACTIONS)
+    self.assertEqual(output.feature[0].flag_set[2].action[:],
+                     ALL_CC_LINK_ACTIONS + ALL_OBJC_LINK_ACTIONS)
+    self.assertEqual(output.feature[0].flag_set[3].action[:],
+                     DYNAMIC_LIBRARY_LINK_ACTIONS)
+    self.assertEqual(output.feature[0].flag_set[4].action[:],
+                     ALL_CC_LINK_ACTIONS + ALL_OBJC_LINK_ACTIONS)
 
   def test_linking_mode_features_are_not_added_when_present(self):
     crosstool = make_crosstool("""
@@ -610,7 +638,8 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
     output = crosstool.toolchain[0]
     self.assertEqual(output.feature[0].name, "user_compile_flags")
     self.assertEqual(output.feature[0].enabled, True)
-    self.assertEqual(output.feature[0].flag_set[0].action, ALL_CC_COMPILE_ACTIONS)
+    self.assertEqual(output.feature[0].flag_set[0].action,
+                     ALL_CC_COMPILE_ACTIONS)
     self.assertEqual(
         output.feature[0].flag_set[0].flag_group[0].expand_if_all_available,
         ["user_compile_flags"])
@@ -733,7 +762,8 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
     self.assertEqual(output.feature[1].name, "user_compile_flags")
     self.assertEqual(output.feature[2].name, "sysroot")
     self.assertEqual(output.feature[3].name, "unfiltered_compile_flags")
-    self.assertEqual(output.feature[3].flag_set[0].action, ALL_CC_COMPILE_ACTIONS)
+    self.assertEqual(output.feature[3].flag_set[0].action,
+                     ALL_CC_COMPILE_ACTIONS)
     self.assertEqual(output.feature[3].flag_set[0].flag_group[0].flag,
                      ["unfiltered-flag-1"])
 
@@ -746,7 +776,8 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
     migrate_legacy_fields(crosstool)
     output = crosstool.toolchain[0]
     self.assertEqual(output.feature[3].name, "unfiltered_compile_flags")
-    self.assertEqual(output.feature[3].flag_set[0].action, ALL_CC_COMPILE_ACTIONS)
+    self.assertEqual(output.feature[3].flag_set[0].action,
+                     ALL_CC_COMPILE_ACTIONS)
     self.assertEqual(output.feature[3].flag_set[0].flag_group[0].flag,
                      ["unfiltered-flag-1"])
 

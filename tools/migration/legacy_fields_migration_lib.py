@@ -42,6 +42,11 @@ DYNAMIC_LIBRARY_LINK_ACTIONS = [
     "c++-link-dynamic-library", "c++-link-nodeps-dynamic-library"
 ]
 
+NODEPS_DYNAMIC_LIBRARY_LINK_ACTIONS = ["c++-link-nodeps-dynamic-library"]
+
+TRANSITIVE_LINK_ACTIONS = ["c++-link-executable", "c++-link-dynamic-library"]
+
+
 def compile_actions(toolchain):
   """Returns compile actions for cc or objc rules."""
   if _is_objc_toolchain(toolchain):
@@ -55,6 +60,15 @@ def link_actions(toolchain):
     return ALL_CC_LINK_ACTIONS + ALL_OBJC_LINK_ACTIONS
   else:
     return ALL_CC_LINK_ACTIONS
+
+
+def transitive_link_actions(toolchain):
+  """Returns transitive link actions for cc or objc rules."""
+  if _is_objc_toolchain(toolchain):
+    return TRANSITIVE_LINK_ACTIONS + ALL_OBJC_LINK_ACTIONS
+  else:
+    return TRANSITIVE_LINK_ACTIONS
+
 
 def _is_objc_toolchain(toolchain):
   return any(ac.action_name == "objc-compile" for ac in toolchain.action_config)
@@ -312,7 +326,8 @@ def _extract_legacy_compile_flag_sets_for(toolchain):
   """Get flag sets for default_compile_flags feature."""
   result = []
   if toolchain.compiler_flag:
-    result.append([None, compile_actions(toolchain), toolchain.compiler_flag, []])
+    result.append(
+        [None, compile_actions(toolchain), toolchain.compiler_flag, []])
 
   # Migrate compiler_flag from compilation_mode_flags
   for cmf in toolchain.compilation_mode_flags:
@@ -370,17 +385,25 @@ def _extract_legacy_link_flag_sets_for(toolchain):
   # Migrate linker_flags from linking_mode_flags
   for lmf in toolchain.linking_mode_flags:
     mode = crosstool_config_pb2.LinkingMode.Name(lmf.mode)
-    mode = LINKING_MODE_TO_FEATURE_NAME.get(mode)
+    feature_name = LINKING_MODE_TO_FEATURE_NAME.get(mode)
     # if the feature is already there, we don't migrate, lmf is not used
-    if _contains_feature(toolchain, mode):
+    if _contains_feature(toolchain, feature_name):
       continue
 
     if lmf.linker_flag:
       feature = toolchain.feature.add()
-      feature.name = mode
-
-    if lmf.linker_flag:
-      result.append([mode, link_actions(toolchain), lmf.linker_flag, []])
+      feature.name = feature_name
+      if mode == "DYNAMIC":
+        result.append(
+            [None, NODEPS_DYNAMIC_LIBRARY_LINK_ACTIONS, lmf.linker_flag, []])
+        result.append([
+            feature_name,
+            transitive_link_actions(toolchain), lmf.linker_flag, []
+        ])
+      else:
+        result.append(
+            [feature_name,
+             link_actions(toolchain), lmf.linker_flag, []])
 
   if toolchain.dynamic_library_linker_flag:
     result.append([
@@ -390,7 +413,9 @@ def _extract_legacy_link_flag_sets_for(toolchain):
 
   if toolchain.test_only_linker_flag:
     result.append([
-        None, link_actions(toolchain), toolchain.test_only_linker_flag, ["is_cc_test"]
+        None,
+        link_actions(toolchain), toolchain.test_only_linker_flag,
+        ["is_cc_test"]
     ])
 
   return result
