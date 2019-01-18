@@ -22,6 +22,7 @@ def cc_binary(**attrs):
     Args:
       **attrs: Rule attributes
     """
+    d = {} + {}
     native.cc_binary(**attrs)
 
 def cc_test(**attrs):
@@ -32,6 +33,7 @@ def cc_test(**attrs):
     Args:
       **attrs: Rule attributes
     """
+    test = PACKAGE_NAME
     native.cc_test(**attrs)
 
 def cc_library(**attrs):
@@ -42,6 +44,8 @@ def cc_library(**attrs):
     Args:
       **attrs: Rule attributes
     """
+    for i in "hello world":
+        i
     native.cc_library(**attrs)
 
 def cc_import(**attrs):
