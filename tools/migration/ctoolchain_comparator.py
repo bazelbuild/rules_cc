@@ -80,6 +80,7 @@ def _read_crosstool_or_ctoolchain_proto(input_file, toolchain_identifier):
       print(("Cannnot find a CToolchain with an identifier '%s' in CROSSTOOL"
              "file") % toolchain_identifier)
       return None
+    return toolchain
   except text_format.ParseError as crosstool_error:
     try:
       text_format.Merge(text, c_toolchain)
@@ -112,7 +113,9 @@ def main(unused_argv):
   if not toolchain_before or not toolchain_after:
     return
 
-  compare_ctoolchains(toolchain_before, toolchain_after)
+  found_difference = compare_ctoolchains(toolchain_before, toolchain_after)
+  if found_difference:
+    exit(1)
 
 
 if __name__ == "__main__":

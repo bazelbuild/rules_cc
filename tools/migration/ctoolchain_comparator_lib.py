@@ -212,7 +212,7 @@ def _compare_features(features_before, features_after):
     if not found_difference:
       print(diff_string)  # pylint: disable=superfluous-parens
       found_difference = True
-    print(("Features not in right order:\t"
+    print(("Features not in right order:\n"
            "* List of features before change:\t%s"
            "* List of features before change:\t%s") %
           (_array_to_string(names_before), _array_to_string(names_after)))
@@ -271,7 +271,7 @@ def _compare_action_configs(action_configs_before, action_configs_after):
     if not found_difference:
       print(diff_string)  # pylint: disable=superfluous-parens
       found_difference = True
-    print(("Action configs not in right order:\t"
+    print(("Action configs not in right order:\n"
            "* List of action configs before change:\t%s"
            "* List of action_configs before change:\t%s") %
           (_array_to_string(names_before), _array_to_string(names_after)))
@@ -513,3 +513,4 @@ def compare_ctoolchains(toolchain_before, toolchain_after):
       toolchain_after.artifact_name_pattern) or found_difference
   if not found_difference:
     print("No difference")  # pylint: disable=superfluous-parens
+  return found_difference
