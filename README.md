@@ -1,4 +1,4 @@
-# C++ rules for Bazel
+# C++ rules for Bazel.
 
 [![Build status](https://badge.buildkite.com/f03592ae2d7d25a2abc2a2ba776e704823fa17fd3e061f5103.svg)](https://buildkite.com/bazel/rules-cc)
 
