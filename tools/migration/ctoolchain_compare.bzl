@@ -1,7 +1,7 @@
 """A test rule that compares two CToolchains in proto format."""
 
 def _impl(ctx):
-    toolchain_config_proto = ctx.actions.declare_file(ctx.attr.toolchain_identifier + "_toolchain_config.proto")
+    toolchain_config_proto = ctx.actions.declare_file(ctx.label.name + "_toolchain_config.proto")
     ctx.actions.write(
         toolchain_config_proto,
         ctx.attr.toolchain_config[CcToolchainConfigInfo].proto,
