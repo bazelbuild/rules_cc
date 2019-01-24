@@ -14,6 +14,9 @@
 
 package(default_visibility = ["//visibility:public"])
 
+# Go rules
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
 licenses(["notice"])  # Apache 2.0
 
 py_binary(
@@ -80,5 +83,33 @@ py_test(
         ":ctoolchain_comparator_lib",
         "//third_party/com/github/bazelbuild/bazel/src/main/protobuf:crosstool_config_py_pb2",
         "@py_mock//py/mock",
+    ],
+)
+
+go_binary(
+    name = "convert_crosstool_to_starlark",
+    srcs = ["convert_crosstool_to_starlark.go"],
+    deps = [
+        ":crosstooltostarlarklib",
+        "//third_party/com/github/bazelbuild/bazel/src/main/protobuf:crosstool_config_go_proto",
+        "@com_github_golang_protobuf//proto:go_default_library",
+    ],
+)
+
+go_library(
+    name = "crosstooltostarlarklib",
+    srcs = ["crosstool_to_starlark_lib.go"],
+    importpath = "tools/migration/crosstooltostarlarklib",
+    deps = ["//third_party/com/github/bazelbuild/bazel/src/main/protobuf:crosstool_config_go_proto"],
+)
+
+go_test(
+    name = "crosstooltostarlarklib_test",
+    size = "small",
+    srcs = ["crosstool_to_starlark_lib_test.go"],
+    embed = [":crosstooltostarlarklib"],
+    deps = [
+        "//third_party/com/github/bazelbuild/bazel/src/main/protobuf:crosstool_config_go_proto",
+        "@com_github_golang_protobuf//proto:go_default_library",
     ],
 )

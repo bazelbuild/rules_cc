@@ -52,3 +52,16 @@ http_archive(
         """echo 'py_library(name = "mock", srcs = ["__init__.py"], visibility = ["//visibility:public"],)' > py/mock/BUILD""",
     ],
 )
+
+# Go rules and proto support
+http_archive(
+    name = "io_bazel_rules_go",
+    sha256 = "8be57ff66da79d9e4bd434c860dce589195b9101b2c187d144014bbca23b5166",
+    strip_prefix = "rules_go-0.16.3",
+    urls = [
+        "https://github.com/bazelbuild/rules_go/archive/0.16.3.tar.gz",
+    ],
+)
+load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
+go_rules_dependencies()
+go_register_toolchains()
