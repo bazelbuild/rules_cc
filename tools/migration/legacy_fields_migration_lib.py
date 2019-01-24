@@ -137,6 +137,7 @@ def migrate_legacy_fields(crosstool):
       # }
       feature = toolchain.feature.add()
       feature.name = "per_object_debug_info"
+      feature.enabled = True
       flag_set = feature.flag_set.add()
       flag_set.action[:] = [
           "c-compile", "c++-compile", "c++-module-codegen", "assemble",
