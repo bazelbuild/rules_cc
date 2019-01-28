@@ -113,3 +113,11 @@ go_test(
         "@com_github_golang_protobuf//proto:go_default_library",
     ],
 )
+
+filegroup(
+    name = "bazel_osx_p4deps",
+    srcs = [
+        "BUILD",
+        "ctoolchain_compare.bzl",
+    ],
+)
