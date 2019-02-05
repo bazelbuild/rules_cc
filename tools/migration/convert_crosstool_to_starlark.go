@@ -33,6 +33,7 @@ var (
 )
 
 func main() {
+	flag.Parse()
 
 	if *crosstoolLocation == "" {
 		log.Fatalf("Missing mandatory argument 'crosstool'")
