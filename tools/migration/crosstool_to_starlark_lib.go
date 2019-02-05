@@ -8,6 +8,7 @@ package crosstooltostarlarklib
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -352,7 +353,7 @@ func getStringStatement(crosstool *crosstoolpb.CrosstoolRelease,
 }
 
 func getFeatures(crosstool *crosstoolpb.CrosstoolRelease) (
-	map[string][]string, map[string]map[string][]string) {
+	map[string][]string, map[string]map[string][]string, error) {
 	featureNameToFeature := make(map[string]map[string][]string)
 	toolchainToFeatures := make(map[string][]string)
 	for _, toolchain := range crosstool.GetToolchain() {
@@ -364,7 +365,11 @@ func getFeatures(crosstool *crosstoolpb.CrosstoolRelease) (
 			featureName := strings.ToLower(feature.GetName()) + "_feature"
 			featureName = strings.Replace(featureName, "+", "p", -1)
 			featureName = strings.Replace(featureName, ".", "_", -1)
-			stringFeature := parseFeature(feature, 1)
+			stringFeature, err := parseFeature(feature, 1)
+			if err != nil {
+				return nil, nil, fmt.Errorf(
+					"Error in feature '%s': %v", feature.GetName(), err)
+			}
 			if _, ok := featureNameToFeature[featureName]; !ok {
 				featureNameToFeature[featureName] = make(map[string][]string)
 			}
@@ -373,7 +378,7 @@ func getFeatures(crosstool *crosstoolpb.CrosstoolRelease) (
 			toolchainToFeatures[id] = append(toolchainToFeatures[id], featureName)
 		}
 	}
-	return toolchainToFeatures, featureNameToFeature
+	return toolchainToFeatures, featureNameToFeature, nil
 }
 
 func getFeaturesDeclaration(crosstool *crosstoolpb.CrosstoolRelease,
@@ -412,7 +417,7 @@ func getFeaturesStmt(cToolchainIdentifiers map[string]CToolchainIdentifier,
 }
 
 func getActions(crosstool *crosstoolpb.CrosstoolRelease) (
-	map[string][]string, map[string]map[string][]string) {
+	map[string][]string, map[string]map[string][]string, error) {
 	actionNameToAction := make(map[string]map[string][]string)
 	toolchainToActions := make(map[string][]string)
 	for _, toolchain := range crosstool.GetToolchain() {
@@ -429,7 +434,11 @@ func getActions(crosstool *crosstoolpb.CrosstoolRelease) (
 				actionName = strings.Replace(actionName, "+", "p", -1)
 				actionName = strings.Replace(actionName, ".", "_", -1)
 			}
-			stringAction := parseAction(action, 1)
+			stringAction, err := parseAction(action, 1)
+			if err != nil {
+				return nil, nil, fmt.Errorf(
+					"Error in action_config '%s': %v", action.GetActionName(), err)
+			}
 			if _, ok := actionNameToAction[actionName]; !ok {
 				actionNameToAction[actionName] = make(map[string][]string)
 			}
@@ -440,7 +449,7 @@ func getActions(crosstool *crosstoolpb.CrosstoolRelease) (
 				strings.TrimPrefix(strings.ToLower(actionName), "action_names.")+"_action")
 		}
 	}
-	return toolchainToActions, actionNameToAction
+	return toolchainToActions, actionNameToAction, nil
 }
 
 func getActionConfigsDeclaration(
@@ -482,7 +491,7 @@ func getActionConfigsStmt(
 	return strings.Join(res, "\n")
 }
 
-func parseAction(action *crosstoolpb.CToolchain_ActionConfig, depth int) string {
+func parseAction(action *crosstoolpb.CToolchain_ActionConfig, depth int) (string, error) {
 	actionName := action.GetActionName()
 	aName := ""
 	if val, ok := actionNames[actionName]; ok {
@@ -496,9 +505,11 @@ func parseAction(action *crosstoolpb.CToolchain_ActionConfig, depth int) string 
 		fields = append(fields, "enabled = True")
 	}
 	if len(action.GetFlagSet()) != 0 {
-		flagSets := "flag_sets = " +
-			parseFlagSets(action.GetFlagSet(), depth+1)
-		fields = append(fields, flagSets)
+		flagSets, err := parseFlagSets(action.GetFlagSet(), depth+1)
+		if err != nil {
+			return "", err
+		}
+		fields = append(fields, "flag_sets = "+flagSets)
 	}
 	if len(action.GetImplies()) != 0 {
 		implies := "implies = " +
@@ -509,7 +520,7 @@ func parseAction(action *crosstoolpb.CToolchain_ActionConfig, depth int) string 
 		tools := "tools = " + parseTools(action.GetTool(), depth+1)
 		fields = append(fields, tools)
 	}
-	return createObject("action_config", fields, depth)
+	return createObject("action_config", fields, depth), nil
 }
 
 func getStringArrStatement(attr string, arrValToIds map[string][]string,
@@ -660,7 +671,7 @@ func parseArtifactNamePattern(
 	return createObject("artifact_name_pattern", fields, depth)
 }
 
-func parseFeature(feature *crosstoolpb.CToolchain_Feature, depth int) string {
+func parseFeature(feature *crosstoolpb.CToolchain_Feature, depth int) (string, error) {
 	name := fmt.Sprintf("name = \"%s\"", feature.GetName())
 
 	fields := []string{name}
@@ -669,9 +680,11 @@ func parseFeature(feature *crosstoolpb.CToolchain_Feature, depth int) string {
 	}
 
 	if len(feature.GetFlagSet()) > 0 {
-		flagSets := "flag_sets = " +
-			parseFlagSets(feature.GetFlagSet(), depth+1)
-		fields = append(fields, flagSets)
+		flagSets, err := parseFlagSets(feature.GetFlagSet(), depth+1)
+		if err != nil {
+			return "", err
+		}
+		fields = append(fields, "flag_sets = "+flagSets)
 	}
 	if len(feature.GetEnvSet()) > 0 {
 		envSets := "env_sets = " + parseEnvSets(feature.GetEnvSet(), depth+1)
@@ -691,19 +704,22 @@ func parseFeature(feature *crosstoolpb.CToolchain_Feature, depth int) string {
 			makeStringArr(feature.GetProvides(), depth+1 /* isPlainString= */, true)
 		fields = append(fields, provides)
 	}
-	return createObject("feature", fields, depth)
+	return createObject("feature", fields, depth), nil
 }
 
-func parseFlagSets(flagSets []*crosstoolpb.CToolchain_FlagSet, depth int) string {
+func parseFlagSets(flagSets []*crosstoolpb.CToolchain_FlagSet, depth int) (string, error) {
 	var res []string
 	for _, flagSet := range flagSets {
-		parsedFlagset := parseFlagSet(flagSet, depth+1)
+		parsedFlagset, err := parseFlagSet(flagSet, depth+1)
+		if err != nil {
+			return "", err
+		}
 		res = append(res, parsedFlagset)
 	}
-	return makeStringArr(res, depth /* isPlainString= */, false)
+	return makeStringArr(res, depth /* isPlainString= */, false), nil
 }
 
-func parseFlagSet(flagSet *crosstoolpb.CToolchain_FlagSet, depth int) string {
+func parseFlagSet(flagSet *crosstoolpb.CToolchain_FlagSet, depth int) (string, error) {
 	var fields []string
 	if len(flagSet.GetAction()) > 0 {
 		actionArr := processActions(flagSet.GetAction(), depth)
@@ -711,27 +727,33 @@ func parseFlagSet(flagSet *crosstoolpb.CToolchain_FlagSet, depth int) string {
 		fields = append(fields, actions)
 	}
 	if len(flagSet.GetFlagGroup()) > 0 {
-		flagGroups := "flag_groups = " +
-			parseFlagGroups(flagSet.GetFlagGroup(), depth+1)
-		fields = append(fields, flagGroups)
+		flagGroups, err := parseFlagGroups(flagSet.GetFlagGroup(), depth+1)
+		if err != nil {
+			return "", err
+		}
+		fields = append(fields, "flag_groups = "+flagGroups)
 	}
 	if len(flagSet.GetWithFeature()) > 0 {
 		withFeatures := "with_features = " +
 			parseWithFeatureSets(flagSet.GetWithFeature(), depth+1)
 		fields = append(fields, withFeatures)
 	}
-	return createObject("flag_set", fields, depth)
+	return createObject("flag_set", fields, depth), nil
 }
 
-func parseFlagGroups(flagGroups []*crosstoolpb.CToolchain_FlagGroup, depth int) string {
+func parseFlagGroups(flagGroups []*crosstoolpb.CToolchain_FlagGroup, depth int) (string, error) {
 	var res []string
 	for _, flagGroup := range flagGroups {
-		res = append(res, parseFlagGroup(flagGroup, depth+1))
+		flagGroupString, err := parseFlagGroup(flagGroup, depth+1)
+		if err != nil {
+			return "", err
+		}
+		res = append(res, flagGroupString)
 	}
-	return makeStringArr(res, depth /* isPlainString= */, false)
+	return makeStringArr(res, depth /* isPlainString= */, false), nil
 }
 
-func parseFlagGroup(flagGroup *crosstoolpb.CToolchain_FlagGroup, depth int) string {
+func parseFlagGroup(flagGroup *crosstoolpb.CToolchain_FlagGroup, depth int) (string, error) {
 	var res []string
 	if len(flagGroup.GetFlag()) != 0 {
 		res = append(res, "flags = "+makeStringArr(flagGroup.GetFlag(), depth+1, true))
@@ -740,13 +762,23 @@ func parseFlagGroup(flagGroup *crosstoolpb.CToolchain_FlagGroup, depth int) stri
 		res = append(res, fmt.Sprintf("iterate_over = \"%s\"", flagGroup.GetIterateOver()))
 	}
 	if len(flagGroup.GetFlagGroup()) != 0 {
-		res = append(res, "flag_groups = "+parseFlagGroups(flagGroup.GetFlagGroup(), depth+1))
+		flagGroupString, err := parseFlagGroups(flagGroup.GetFlagGroup(), depth+1)
+		if err != nil {
+			return "", err
+		}
+		res = append(res, "flag_groups = "+flagGroupString)
+	}
+	if len(flagGroup.GetExpandIfAllAvailable()) > 1 {
+		return "", errors.New("Flag group must not have more than one 'expand_if_all_available' field")
 	}
 	if len(flagGroup.GetExpandIfAllAvailable()) != 0 {
 		res = append(res,
 			fmt.Sprintf(
 				"expand_if_available = \"%s\"",
 				flagGroup.GetExpandIfAllAvailable()[0]))
+	}
+	if len(flagGroup.GetExpandIfNoneAvailable()) > 1 {
+		return "", errors.New("Flag group must not have more than one 'expand_if_none_available' field")
 	}
 	if len(flagGroup.GetExpandIfNoneAvailable()) != 0 {
 		res = append(res,
@@ -767,7 +799,7 @@ func parseFlagGroup(flagGroup *crosstoolpb.CToolchain_FlagGroup, depth int) stri
 			"expand_if_equal = "+parseVariableWithValue(
 				flagGroup.GetExpandIfEqual(), depth+1))
 	}
-	return createObject("flag_group", res, depth)
+	return createObject("flag_group", res, depth), nil
 }
 
 func parseVariableWithValue(variable *crosstoolpb.CToolchain_VariableWithValue, depth int) string {
@@ -1242,9 +1274,15 @@ func Transform(crosstool *crosstoolpb.CrosstoolRelease) (string, error) {
 
 	cToolchainIdentifiers := toolchainToCToolchainIdentifier(crosstool)
 
-	toolchainToFeatures, featureNameToFeature := getFeatures(crosstool)
+	toolchainToFeatures, featureNameToFeature, err := getFeatures(crosstool)
+	if err != nil {
+		return "", err
+	}
 
-	toolchainToActions, actionNameToAction := getActions(crosstool)
+	toolchainToActions, actionNameToAction, err := getActions(crosstool)
+	if err != nil {
+		return "", err
+	}
 
 	header := getCcToolchainConfigHeader()
 	if _, err := b.WriteString(header); err != nil {

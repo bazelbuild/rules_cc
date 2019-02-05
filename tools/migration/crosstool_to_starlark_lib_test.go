@@ -992,106 +992,90 @@ func TestActionConfigListAssignment(t *testing.T) {
 	}
 }
 
-func TestFeatureAssignment(t *testing.T) {
-	toolchainEmpty1 := getCToolchain("1", "cpuA", "compilerA", []string{})
-	toolchainEmpty2 := getCToolchain("2", "cpuB", "compilerA", []string{})
-	toolchainA1 := getCToolchain("3", "cpuC", "compilerA",
-		[]string{
-			getActionConfig([]string{"action_name: 'A'", "config_name: 'A'"}),
-		},
+func TestAllAndNoneAvailableErrorsWhenMoreThanOneElement(t *testing.T) {
+	toolchainFeatureAllAvailable := getCToolchain("1", "cpu", "compiler",
+		[]string{getFeature([]string{
+			"name: 'A'",
+			"flag_set {",
+			"  action: 'A'",
+			"  flag_group {",
+			"    flag: 'f'",
+			"    expand_if_all_available: 'e1'",
+			"    expand_if_all_available: 'e2'",
+			"  }",
+			"}",
+		})},
 	)
-	toolchainA2 := getCToolchain("4", "cpuC", "compilerB",
-		[]string{
-			getActionConfig([]string{"action_name: 'A'", "config_name: 'A'"}),
-		},
+	toolchainFeatureNoneAvailable := getCToolchain("1", "cpu", "compiler",
+		[]string{getFeature([]string{
+			"name: 'A'",
+			"flag_set {",
+			"  action: 'A'",
+			"  flag_group {",
+			"    flag: 'f'",
+			"    expand_if_none_available: 'e1'",
+			"    expand_if_none_available: 'e2'",
+			"  }",
+			"}",
+		})},
 	)
-	toolchainAB := getCToolchain("5", "cpuC", "compilerC",
-		[]string{
-			getActionConfig([]string{"action_name: 'A'", "config_name: 'A'"}),
-			getActionConfig([]string{"action_name: 'B'", "config_name: 'B'"}),
-		},
+	toolchainActionConfigAllAvailable := getCToolchain("1", "cpu", "compiler",
+		[]string{getActionConfig([]string{
+			"config_name: 'A'",
+			"action_name: 'A'",
+			"flag_set {",
+			"  action: 'A'",
+			"  flag_group {",
+			"    flag: 'f'",
+			"    expand_if_all_available: 'e1'",
+			"    expand_if_all_available: 'e2'",
+			"  }",
+			"}",
+		})},
 	)
-	toolchainBA := getCToolchain("6", "cpuD", "compilerA",
-		[]string{
-			getActionConfig([]string{"action_name: 'B'", "config_name: 'B'"}),
-			getActionConfig([]string{"action_name: 'A'", "config_name: 'A'"}),
-		},
+	toolchainActionConfigNoneAvailable := getCToolchain("1", "cpu", "compiler",
+		[]string{getActionConfig([]string{
+			"config_name: 'A'",
+			"action_name: 'A'",
+			"flag_set {",
+			"  action: 'A'",
+			"  flag_group {",
+			"    flag: 'f'",
+			"    expand_if_none_available: 'e1'",
+			"    expand_if_none_available: 'e2'",
+			"  }",
+			"}",
+		})},
 	)
-	toolchainsEmpty := []string{toolchainEmpty1, toolchainEmpty2}
-
-	toolchainsOneNonempty := []string{toolchainEmpty1, toolchainA1}
-
-	toolchainsSameNonempty := []string{toolchainA1, toolchainA2}
-
-	toolchainsDifferentOrder := []string{toolchainAB, toolchainBA}
-
-	allToolchains := []string{
-		toolchainEmpty1,
-		toolchainEmpty2,
-		toolchainA1,
-		toolchainA2,
-		toolchainAB,
-		toolchainBA,
-	}
 
 	testCases := []struct {
 		field        string
-		toolchains   []string
+		toolchain    string
 		expectedText string
 	}{
+		{field: "features",
+			toolchain: toolchainFeatureAllAvailable,
+			expectedText: "Error in feature 'A': Flag group must not have more " +
+				"than one 'expand_if_all_available' field"},
+		{field: "features",
+			toolchain: toolchainFeatureNoneAvailable,
+			expectedText: "Error in feature 'A': Flag group must not have more " +
+				"than one 'expand_if_none_available' field"},
 		{field: "action_configs",
-			toolchains: toolchainsEmpty,
-			expectedText: `
-    action_configs = []`},
+			toolchain: toolchainActionConfigAllAvailable,
+			expectedText: "Error in action_config 'A': Flag group must not have more " +
+				"than one 'expand_if_all_available' field"},
 		{field: "action_configs",
-			toolchains: toolchainsOneNonempty,
-			expectedText: `
-    if (ctx.attr.cpu == "cpuA"):
-        action_configs = []
-    elif (ctx.attr.cpu == "cpuC"):
-        action_configs = [a_action]
-    else:
-        fail("Unreachable")`},
-		{field: "action_configs",
-			toolchains: toolchainsSameNonempty,
-			expectedText: `
-    action_configs = [a_action]`},
-		{field: "action_configs",
-			toolchains: toolchainsDifferentOrder,
-			expectedText: `
-    if (ctx.attr.cpu == "cpuC"):
-        action_configs = [a_action, b_action]
-    elif (ctx.attr.cpu == "cpuD"):
-        action_configs = [b_action, a_action]
-    else:
-        fail("Unreachable")`},
-		{field: "action_configs",
-			toolchains: allToolchains,
-			expectedText: `
-    if (ctx.attr.cpu == "cpuA"
-        or ctx.attr.cpu == "cpuB"):
-        action_configs = []
-    elif (ctx.attr.cpu == "cpuC" and ctx.attr.compiler == "compilerA"
-        or ctx.attr.cpu == "cpuC" and ctx.attr.compiler == "compilerB"):
-        action_configs = [a_action]
-    elif (ctx.attr.cpu == "cpuC" and ctx.attr.compiler == "compilerC"):
-        action_configs = [a_action, b_action]
-    elif (ctx.attr.cpu == "cpuD"):
-        action_configs = [b_action, a_action]
-    else:
-        fail("Unreachable")`}}
+			toolchain: toolchainActionConfigNoneAvailable,
+			expectedText: "Error in action_config 'A': Flag group must not have more " +
+				"than one 'expand_if_none_available' field"},
+	}
 
 	for _, tc := range testCases {
-		crosstool := makeCrosstool(tc.toolchains)
-		got, err := Transform(crosstool)
-		if err != nil {
-			t.Fatalf("CROSSTOOL conversion failed: %v", err)
-		}
-		if !strings.Contains(got, tc.expectedText) {
-			t.Errorf("Failed to correctly convert '%s' field, expected to contain:\n%v\n",
-				tc.field, tc.expectedText)
-			t.Fatalf("Tested CROSSTOOL:\n%v\n\nGenerated rule:\n%v\n",
-				strings.Join(tc.toolchains, "\n"), got)
+		crosstool := makeCrosstool([]string{tc.toolchain})
+		_, err := Transform(crosstool)
+		if err == nil || !strings.Contains(err.Error(), tc.expectedText) {
+			t.Errorf("Expected error: %s, got: %v", tc.expectedText, err)
 		}
 	}
 }
