@@ -17,6 +17,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/user"
+	"path"
+	"strings"
 
 	"log"
 	"github.com/golang/protobuf/proto"
@@ -32,17 +35,45 @@ var (
 		"output_location", "", "Location of the output .bzl file")
 )
 
+func toAbsolutePath(pathString string) (string, error) {
+	usr, err := user.Current()
+	if err != nil {
+		return "", err
+	}
+	homeDir := usr.HomeDir
+
+	if strings.HasPrefix(pathString, "~") {
+		return path.Join(homeDir, pathString[1:]), nil
+	}
+
+	if path.IsAbs(pathString) {
+		return pathString, nil
+	}
+
+	workingDirectory := os.Getenv("BUILD_WORKING_DIRECTORY")
+	return path.Join(workingDirectory, pathString), nil
+}
+
 func main() {
 	flag.Parse()
 
 	if *crosstoolLocation == "" {
 		log.Fatalf("Missing mandatory argument 'crosstool'")
 	}
+	crosstoolPath, err := toAbsolutePath(*crosstoolLocation)
+	if err != nil {
+		log.Fatalf("Error while resolving CROSSTOOL location:", err)
+	}
+
 	if *outputLocation == "" {
 		log.Fatalf("Missing mandatory argument 'output_location'")
 	}
+	outputPath, err := toAbsolutePath(*outputLocation)
+	if err != nil {
+		log.Fatalf("Error resolving output location:", err)
+	}
 
-	in, err := ioutil.ReadFile(*crosstoolLocation)
+	in, err := ioutil.ReadFile(crosstoolPath)
 	if err != nil {
 		log.Fatalf("Error reading CROSSTOOL file:", err)
 	}
@@ -51,7 +82,7 @@ func main() {
 		log.Fatalf("Failed to parse CROSSTOOL:", err)
 	}
 
-	file, err := os.Create(*outputLocation)
+	file, err := os.Create(outputPath)
 	if err != nil {
 		log.Fatalf("Error creating output file:", err)
 	}
