@@ -113,8 +113,6 @@ var actionNames = map[string]string{
 	"objc-compile":                    "ACTION_NAMES.objc_compile",
 	"objc++-compile":                  "ACTION_NAMES.objcpp_compile",
 	"clif-match":                      "ACTION_NAMES.clif_match",
-	"objcopy_embed_data":              "ACTION_NAMES.objcopy_embed_data",
-	"ld_embed_data":                   "ACTION_NAMES.ld_embed_data",
 }
 
 func getLoadActionsStmt() string {
@@ -219,7 +217,7 @@ func getActionNames(actions []string) []string {
 		if name, ok := actionNames[el]; ok {
 			res = append(res, name)
 		} else {
-			res = append(res, el)
+			res = append(res, "\""+el+"\"")
 		}
 	}
 	return res
@@ -365,6 +363,7 @@ func getFeatures(crosstool *crosstoolpb.CrosstoolRelease) (
 			featureName := strings.ToLower(feature.GetName()) + "_feature"
 			featureName = strings.Replace(featureName, "+", "p", -1)
 			featureName = strings.Replace(featureName, ".", "_", -1)
+			featureName = strings.Replace(featureName, "-", "_", -1)
 			stringFeature, err := parseFeature(feature, 1)
 			if err != nil {
 				return nil, nil, fmt.Errorf(
@@ -433,6 +432,8 @@ func getActions(crosstool *crosstoolpb.CrosstoolRelease) (
 				actionName = strings.ToLower(action.GetActionName())
 				actionName = strings.Replace(actionName, "+", "p", -1)
 				actionName = strings.Replace(actionName, ".", "_", -1)
+				actionName = strings.Replace(actionName, "-", "_", -1)
+				actionNames[actionName] = actionName
 			}
 			stringAction, err := parseAction(action, 1)
 			if err != nil {

@@ -1079,3 +1079,182 @@ func TestAllAndNoneAvailableErrorsWhenMoreThanOneElement(t *testing.T) {
 		}
 	}
 }
+
+func TestActionConfigDeclaration(t *testing.T) {
+	toolchainEmpty1 := getCToolchain("1", "cpuA", "compilerA", []string{})
+	toolchainEmpty2 := getCToolchain("2", "cpuB", "compilerA", []string{})
+
+	toolchainNameNotInDict := getCToolchain("3", "cpBC", "compilerB",
+		[]string{
+			getActionConfig([]string{"action_name: 'A-B.C'", "config_name: 'A-B.C'"}),
+		},
+	)
+	toolchainNameInDictA := getCToolchain("4", "cpuC", "compilerA",
+		[]string{
+			getActionConfig([]string{"action_name: 'c++-executable'", "config_name: 'c++-executable'"}),
+		},
+	)
+	toolchainNameInDictB := getCToolchain("5", "cpuC", "compilerB",
+		[]string{
+			getActionConfig([]string{
+				"action_name: 'c++-executable'",
+				"config_name: 'c++-executable'",
+				"tool {",
+				"  tool_path: '/a/b/c'",
+				"}",
+			}),
+		},
+	)
+	toolchainComplexActionConfig := getCToolchain("6", "cpuC", "compilerC",
+		[]string{
+			getActionConfig([]string{
+				"action_name: 'action-complex'",
+				"config_name: 'action-complex'",
+				"enabled: true",
+				"tool {",
+				"  tool_path: '/a/b/c'",
+				"  with_feature {",
+				"    feature: 'a'",
+				"    feature: 'b'",
+				"    not_feature: 'c'",
+				"    not_feature: 'd'",
+				"  }",
+				"  with_feature{",
+				"    feature: 'e'",
+				"  }",
+				"  execution_requirement: 'a'",
+				"}",
+				"tool {",
+				"  tool_path: ''",
+				"}",
+				"flag_set {",
+				"  flag_group {",
+				"    flag: 'a'",
+				"    flag: '%b'",
+				"    iterate_over: 'c'",
+				"    expand_if_all_available: 'd'",
+				"    expand_if_none_available: 'e'",
+				"    expand_if_true: 'f'",
+				"    expand_if_false: 'g'",
+				"    expand_if_equal {",
+				"      variable: 'var'",
+				"      value: 'val'",
+				"    }",
+				"  }",
+				"  flag_group {",
+				"    flag_group {",
+				"      flag: 'a'",
+				"    }",
+				"  }",
+				"}",
+				"flag_set {",
+				"  with_feature {",
+				"    feature: 'a'",
+				"    feature: 'b'",
+				"    not_feature: 'c'",
+				"    not_feature: 'd'",
+				"  }",
+				"}",
+				"env_set {",
+				"  action: 'a'",
+				"  env_entry {",
+				"    key: 'k'",
+				"    value: 'v'",
+				"  }",
+				"  with_feature {",
+				"    feature: 'a'",
+				"  }",
+				"}",
+				"requires {",
+				"  feature: 'a'",
+				"  feature: 'b'",
+				"}",
+				"implies: 'a'",
+				"implies: 'b'",
+			}),
+		},
+	)
+
+	testCases := []struct {
+		toolchains   []string
+		expectedText string
+	}{
+		{
+			toolchains: []string{toolchainEmpty1, toolchainEmpty2},
+			expectedText: `
+    action_configs = []`},
+		{
+			toolchains: []string{toolchainEmpty1, toolchainNameNotInDict},
+			expectedText: `
+    a_b_c_action = action_config(action_name = "A-B.C")`},
+		{
+			toolchains: []string{toolchainNameInDictA, toolchainNameInDictB},
+			expectedText: `
+    if (ctx.attr.cpu == "cpuC" and ctx.attr.compiler == "compilerB"):
+        cpp_executable_action = action_config(
+            action_name = "c++-executable",
+            tools = [tool(path = "/a/b/c")],
+        )
+    elif (ctx.attr.cpu == "cpuC" and ctx.attr.compiler == "compilerA"):
+        cpp_executable_action = action_config(action_name = "c++-executable")`},
+		{
+			toolchains: []string{toolchainComplexActionConfig},
+			expectedText: `
+    action_complex_action = action_config(
+        action_name = "action-complex",
+        enabled = True,
+        flag_sets = [
+            flag_set(
+                flag_groups = [
+                    flag_group(
+                        flags = ["a", "%b"],
+                        iterate_over = "c",
+                        expand_if_available = "d",
+                        expand_if_not_available = "e",
+                        expand_if_true = "f",
+                        expand_if_false = "g",
+                        expand_if_equal = variable_with_value(name = "var", value = "val"),
+                    ),
+                    flag_group(flag_groups = [flag_group(flags = ["a"])]),
+                ],
+            ),
+            flag_set(
+                with_features = [
+                    with_feature_set(
+                        features = ["a", "b"],
+                        not_features = ["c", "d"],
+                    ),
+                ],
+            ),
+        ],
+        implies = ["a", "b"],
+        tools = [
+            tool(
+                path = "/a/b/c",
+                with_features = [
+                    with_feature_set(
+                        features = ["a", "b"],
+                        not_features = ["c", "d"],
+                    ),
+                    with_feature_set(features = ["e"]),
+                ],
+                execution_requirements = ["a"],
+            ),
+            tool(path = "NOT_USED"),
+        ],
+    )`}}
+
+	for _, tc := range testCases {
+		crosstool := makeCrosstool(tc.toolchains)
+		got, err := Transform(crosstool)
+		if err != nil {
+			t.Fatalf("CROSSTOOL conversion failed: %v", err)
+		}
+		if !strings.Contains(got, tc.expectedText) {
+			t.Errorf("Failed to correctly declare an action_config, expected to contain:\n%v\n",
+				tc.expectedText)
+			t.Fatalf("Tested CROSSTOOL:\n%v\n\nGenerated rule:\n%v\n",
+				strings.Join(tc.toolchains, "\n"), got)
+		}
+	}
+}
