@@ -1080,6 +1080,73 @@ func TestAllAndNoneAvailableErrorsWhenMoreThanOneElement(t *testing.T) {
 	}
 }
 
+func TestNoFailUnreachableInFeaturesAndActionConfigsDeclaration(t *testing.T) {
+	toolchainFeatureAEnabled := getCToolchain("1", "cpuA", "compilerA",
+		[]string{getFeature([]string{"name: 'A'", "enabled: true"})},
+	)
+	toolchainFeatureADisabled := getCToolchain("2", "cpuA", "compilerB",
+		[]string{getFeature([]string{"name: 'A'", "enabled: false"})},
+	)
+
+	toolchainWithoutFeatureA := getCToolchain("3", "cpuA", "compilerC", []string{})
+
+	toolchainActionConfigAEnabled := getCToolchain("4", "cpuA", "compilerD",
+		[]string{getActionConfig([]string{
+			"config_name: 'A'",
+			"action_name: 'A'",
+			"enabled: true",
+		})})
+
+	toolchainActionConfigADisabled := getCToolchain("5", "cpuA", "compilerE",
+		[]string{getActionConfig([]string{
+			"config_name: 'A'",
+			"action_name: 'A'",
+		})})
+
+	toolchainWithoutActionConfigA := getCToolchain("6", "cpuA", "compilerF", []string{})
+
+	testCases := []struct {
+		field        string
+		toolchains   []string
+		expectedText string
+	}{
+		{field: "features",
+			toolchains: []string{
+				toolchainFeatureAEnabled, toolchainFeatureADisabled, toolchainWithoutFeatureA},
+			expectedText: `
+    if (ctx.attr.cpu == "cpuA" and ctx.attr.compiler == "compilerB"):
+        a_feature = feature(name = "A")
+    elif (ctx.attr.cpu == "cpuA" and ctx.attr.compiler == "compilerA"):
+        a_feature = feature(name = "A", enabled = True)
+
+` /* empty line after the elif means there's no else statement */},
+		{field: "action_config",
+			toolchains: []string{
+				toolchainActionConfigAEnabled, toolchainActionConfigADisabled, toolchainWithoutActionConfigA},
+			expectedText: `
+    if (ctx.attr.cpu == "cpuA" and ctx.attr.compiler == "compilerE"):
+        a_action = action_config(action_name = "A")
+    elif (ctx.attr.cpu == "cpuA" and ctx.attr.compiler == "compilerD"):
+        a_action = action_config(action_name = "A", enabled = True)
+
+` /* empty line after the elif means there's no else statement */ },
+	}
+
+	for _, tc := range testCases {
+		crosstool := makeCrosstool(tc.toolchains)
+		got, err := Transform(crosstool)
+		if err != nil {
+			t.Fatalf("CROSSTOOL conversion failed: %v", err)
+		}
+		if !strings.Contains(got, tc.expectedText) {
+			t.Errorf("Failed to correctly convert '%s' field, expected to contain:\n%v\n",
+				tc.field, tc.expectedText)
+			t.Fatalf("Tested CROSSTOOL:\n%v\n\nGenerated rule:\n%v\n",
+				strings.Join(tc.toolchains, "\n"), got)
+		}
+	}
+}
+
 func TestActionConfigDeclaration(t *testing.T) {
 	toolchainEmpty1 := getCToolchain("1", "cpuA", "compilerA", []string{})
 	toolchainEmpty2 := getCToolchain("2", "cpuB", "compilerA", []string{})

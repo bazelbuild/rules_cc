@@ -347,7 +347,7 @@ func getStringStatement(crosstool *crosstoolpb.CrosstoolRelease,
 
 	mappedValuesToIds := getMappedStringValuesToIdentifiers(identifiers, fieldValues)
 	return getAssignmentStatement(field, mappedValuesToIds, crosstool,
-		cToolchainIdentifiers, depth /* isPlainString= */, true)
+		cToolchainIdentifiers, depth /* isPlainString= */, true, /* shouldFail= */ true)
 }
 
 func getFeatures(crosstool *crosstoolpb.CrosstoolRelease) (
@@ -392,7 +392,8 @@ func getFeaturesDeclaration(crosstool *crosstoolpb.CrosstoolRelease,
 				crosstool,
 				cToolchainIdentifiers,
 				depth,
-				/* isPlainString= */ false))
+				/* isPlainString= */ false,
+			  /* shouldFail= */ false))
 	}
 	return strings.Join(res, "")
 }
@@ -467,7 +468,8 @@ func getActionConfigsDeclaration(
 				crosstool,
 				cToolchainIdentifiers,
 				depth,
-				/* isPlainString= */ false))
+				/* isPlainString= */ false,
+			  /* shouldFail= */ false))
 	}
 	return strings.Join(res, "")
 }
@@ -650,7 +652,8 @@ func getArtifactNamePatterns(crosstool *crosstoolpb.CrosstoolRelease,
 			crosstool,
 			cToolchainIdentifiers,
 			depth,
-			/* isPlainString= */ false))
+			/* isPlainString= */ false,
+		  /* shouldFail= */ true))
 	return strings.Join(res, "\n")
 }
 
@@ -826,7 +829,8 @@ func getToolPaths(crosstool *crosstoolpb.CrosstoolRelease,
 			crosstool,
 			cToolchainIdentifiers,
 			depth,
-			/* isPlainString= */ false))
+			/* isPlainString= */ false,
+		  /* shouldFail= */ true))
 	return strings.Join(res, "\n")
 }
 
@@ -865,7 +869,8 @@ func getMakeVariables(crosstool *crosstoolpb.CrosstoolRelease,
 			crosstool,
 			cToolchainIdentifiers,
 			depth,
-			/* isPlainString= */ false))
+			/* isPlainString= */ false,
+		  /* shouldFail= */ true))
 	return strings.Join(res, "\n")
 }
 
@@ -1034,7 +1039,7 @@ func makeStringArr(arr []string, depth int, isPlainString bool) string {
 func getAssignmentStatement(field string, valToIds map[string][]string,
 	crosstool *crosstoolpb.CrosstoolRelease,
 	toCToolchainIdentifier map[string]CToolchainIdentifier,
-	depth int, isPlainString bool) string {
+	depth int, isPlainString, shouldFail bool) string {
 	var b bytes.Buffer
 	if len(valToIds) <= 1 {
 		// if there is only one possible value for this field, we don't need if statements
@@ -1063,10 +1068,12 @@ func getAssignmentStatement(field string, valToIds map[string][]string,
 					toCToolchainIdentifier, depth, isPlainString))
 			first = false
 		}
-		b.WriteString(
-			fmt.Sprintf(
-				"%selse:\n%sfail(\"Unreachable\")\n",
-				getTabs(depth), getTabs(depth+1)))
+		if shouldFail {
+			b.WriteString(
+				fmt.Sprintf(
+					"%selse:\n%sfail(\"Unreachable\")\n",
+					getTabs(depth), getTabs(depth+1)))
+		}
 	}
 	b.WriteString("\n")
 	return b.String()
