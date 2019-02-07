@@ -434,7 +434,6 @@ func getActions(crosstool *crosstoolpb.CrosstoolRelease) (
 				actionName = strings.Replace(actionName, "+", "p", -1)
 				actionName = strings.Replace(actionName, ".", "_", -1)
 				actionName = strings.Replace(actionName, "-", "_", -1)
-				actionNames[actionName] = actionName
 			}
 			stringAction, err := parseAction(action, 1)
 			if err != nil {

@@ -1158,14 +1158,14 @@ func TestActionConfigDeclaration(t *testing.T) {
 	)
 	toolchainNameInDictA := getCToolchain("4", "cpuC", "compilerA",
 		[]string{
-			getActionConfig([]string{"action_name: 'c++-executable'", "config_name: 'c++-executable'"}),
+			getActionConfig([]string{"action_name: 'c++-compile'", "config_name: 'c++-compile'"}),
 		},
 	)
 	toolchainNameInDictB := getCToolchain("5", "cpuC", "compilerB",
 		[]string{
 			getActionConfig([]string{
-				"action_name: 'c++-executable'",
-				"config_name: 'c++-executable'",
+				"action_name: 'c++-compile'",
+				"config_name: 'c++-compile'",
 				"tool {",
 				"  tool_path: '/a/b/c'",
 				"}",
@@ -1258,12 +1258,12 @@ func TestActionConfigDeclaration(t *testing.T) {
 			toolchains: []string{toolchainNameInDictA, toolchainNameInDictB},
 			expectedText: `
     if (ctx.attr.cpu == "cpuC" and ctx.attr.compiler == "compilerB"):
-        cpp_executable_action = action_config(
-            action_name = "c++-executable",
+        cpp_compile_action = action_config(
+            action_name = ACTION_NAMES.cpp_compile,
             tools = [tool(path = "/a/b/c")],
         )
     elif (ctx.attr.cpu == "cpuC" and ctx.attr.compiler == "compilerA"):
-        cpp_executable_action = action_config(action_name = "c++-executable")`},
+        cpp_compile_action = action_config(action_name = ACTION_NAMES.cpp_compile)`},
 		{
 			toolchains: []string{toolchainComplexActionConfig},
 			expectedText: `
@@ -1319,6 +1319,209 @@ func TestActionConfigDeclaration(t *testing.T) {
 		}
 		if !strings.Contains(got, tc.expectedText) {
 			t.Errorf("Failed to correctly declare an action_config, expected to contain:\n%v\n",
+				tc.expectedText)
+			t.Fatalf("Tested CROSSTOOL:\n%v\n\nGenerated rule:\n%v\n",
+				strings.Join(tc.toolchains, "\n"), got)
+		}
+	}
+}
+
+func TestFeatureDeclaration(t *testing.T) {
+	toolchainEmpty1 := getCToolchain("1", "cpuA", "compilerA", []string{})
+	toolchainEmpty2 := getCToolchain("2", "cpuB", "compilerA", []string{})
+
+	toolchainSimpleFeatureA1 := getCToolchain("3", "cpuB", "compilerB",
+		[]string{
+			getFeature([]string{"name: 'Feature-c++.a'", "enabled: true"}),
+		},
+	)
+	toolchainSimpleFeatureA2 := getCToolchain("4", "cpuC", "compilerA",
+		[]string{
+			getFeature([]string{"name: 'Feature-c++.a'"}),
+		},
+	)
+	toolchainComplexFeature := getCToolchain("5", "cpuC", "compilerC",
+		[]string{
+			getFeature([]string{
+				"name: 'complex-feature'",
+				"enabled: true",
+				"flag_set {",
+				"  action: 'c++-compile'",    // in ACTION_NAMES
+				"  action: 'something-else'", // not in ACTION_NAMES
+				"  flag_group {",
+				"    flag: 'a'",
+				"    flag: '%b'",
+				"    iterate_over: 'c'",
+				"    expand_if_all_available: 'd'",
+				"    expand_if_none_available: 'e'",
+				"    expand_if_true: 'f'",
+				"    expand_if_false: 'g'",
+				"    expand_if_equal {",
+				"      variable: 'var'",
+				"      value: 'val'",
+				"    }",
+				"  }",
+				"  flag_group {",
+				"    flag_group {",
+				"      flag: 'a'",
+				"    }",
+				"  }",
+				"}",
+				"flag_set {", // all_compile_actions
+				"  action: 'c-compile'",
+				"  action: 'c++-compile'",
+				"  action: 'linkstamp-compile'",
+				"  action: 'assemble'",
+				"  action: 'preprocess-assemble'",
+				"  action: 'c++-header-parsing'",
+				"  action: 'c++-module-compile'",
+				"  action: 'c++-module-codegen'",
+				"  action: 'clif-match'",
+				"  action: 'lto-backend'",
+				"}",
+				"flag_set {", // all_cpp_compile_actions
+				"  action: 'c++-compile'",
+				"  action: 'linkstamp-compile'",
+				"  action: 'c++-header-parsing'",
+				"  action: 'c++-module-compile'",
+				"  action: 'c++-module-codegen'",
+				"  action: 'clif-match'",
+				"}",
+				"flag_set {", // all_link_actions
+				"  action: 'c++-link-executable'",
+				"  action: 'c++-link-dynamic-library'",
+				"  action: 'c++-link-nodeps-dynamic-library'",
+				"}",
+				"flag_set {", // all_cpp_compile_actions + all_link_actions
+				"  action: 'c++-compile'",
+				"  action: 'linkstamp-compile'",
+				"  action: 'c++-header-parsing'",
+				"  action: 'c++-module-compile'",
+				"  action: 'c++-module-codegen'",
+				"  action: 'clif-match'",
+				"  action: 'c++-link-executable'",
+				"  action: 'c++-link-dynamic-library'",
+				"  action: 'c++-link-nodeps-dynamic-library'",
+				"}",
+				"flag_set {", // all_link_actions + something else
+				"  action: 'c++-link-executable'",
+				"  action: 'c++-link-dynamic-library'",
+				"  action: 'c++-link-nodeps-dynamic-library'",
+				"  action: 'some.unknown-c++.action'",
+				"}",
+				"env_set {",
+				"  action: 'a'",
+				"  env_entry {",
+				"    key: 'k'",
+				"    value: 'v'",
+				"  }",
+				"  with_feature {",
+				"    feature: 'a'",
+				"  }",
+				"}",
+				"env_set {",
+				"  action: 'c-compile'",
+				"}",
+				"env_set {", // all_compile_actions
+				"  action: 'c-compile'",
+				"  action: 'c++-compile'",
+				"  action: 'linkstamp-compile'",
+				"  action: 'assemble'",
+				"  action: 'preprocess-assemble'",
+				"  action: 'c++-header-parsing'",
+				"  action: 'c++-module-compile'",
+				"  action: 'c++-module-codegen'",
+				"  action: 'clif-match'",
+				"  action: 'lto-backend'",
+				"}",
+				"requires {",
+				"  feature: 'a'",
+				"  feature: 'b'",
+				"}",
+				"implies: 'a'",
+				"implies: 'b'",
+				"provides: 'c'",
+				"provides: 'd'",
+			}),
+		},
+	)
+
+	testCases := []struct {
+		toolchains   []string
+		expectedText string
+	}{
+		{
+			toolchains: []string{toolchainEmpty1, toolchainEmpty2},
+			expectedText: `
+    features = []
+`},
+		{
+			toolchains: []string{toolchainEmpty1, toolchainSimpleFeatureA1},
+			expectedText: `
+    feature_cpp_a_feature = feature(name = "Feature-c++.a", enabled = True)`},
+		{
+			toolchains: []string{toolchainSimpleFeatureA1, toolchainSimpleFeatureA2},
+			expectedText: `
+    if (ctx.attr.cpu == "cpuC"):
+        feature_cpp_a_feature = feature(name = "Feature-c++.a")
+    elif (ctx.attr.cpu == "cpuB"):
+        feature_cpp_a_feature = feature(name = "Feature-c++.a", enabled = True)`},
+		{
+			toolchains: []string{toolchainComplexFeature},
+			expectedText: `
+    complex_feature_feature = feature(
+        name = "complex-feature",
+        enabled = True,
+        flag_sets = [
+            flag_set(
+                actions = [ACTION_NAMES.cpp_compile, "something-else"],
+                flag_groups = [
+                    flag_group(
+                        flags = ["a", "%b"],
+                        iterate_over = "c",
+                        expand_if_available = "d",
+                        expand_if_not_available = "e",
+                        expand_if_true = "f",
+                        expand_if_false = "g",
+                        expand_if_equal = variable_with_value(name = "var", value = "val"),
+                    ),
+                    flag_group(flag_groups = [flag_group(flags = ["a"])]),
+                ],
+            ),
+            flag_set(actions = all_compile_actions),
+            flag_set(actions = all_cpp_compile_actions),
+            flag_set(actions = all_link_actions),
+            flag_set(
+                actions = all_cpp_compile_actions +
+                    all_link_actions,
+            ),
+            flag_set(
+                actions = all_link_actions +
+                    ["some.unknown-c++.action"],
+            ),
+        ],
+        env_sets = [
+            env_set(
+                actions = ["a"],
+                env_entries = [env_entry(key = "k", value = "v")],
+                with_features = [with_feature_set(features = ["a"])],
+            ),
+            env_set(actions = [ACTION_NAMES.c_compile]),
+            env_set(actions = all_compile_actions),
+        ],
+        requires = [feature_set(features = ["a", "b"])],
+        implies = ["a", "b"],
+        provides = ["c", "d"],
+    )`}}
+
+	for _, tc := range testCases {
+		crosstool := makeCrosstool(tc.toolchains)
+		got, err := Transform(crosstool)
+		if err != nil {
+			t.Fatalf("CROSSTOOL conversion failed: %v", err)
+		}
+		if !strings.Contains(got, tc.expectedText) {
+			t.Errorf("Failed to correctly declare a feature, expected to contain:\n%v\n",
 				tc.expectedText)
 			t.Fatalf("Tested CROSSTOOL:\n%v\n\nGenerated rule:\n%v\n",
 				strings.Join(tc.toolchains, "\n"), got)
