@@ -52,6 +52,11 @@ def _check_with_feature_set_equivalence(before, after):
 
 
 def _check_tool_equivalence(before, after):
+  """Compares two "CToolchain.Tool"s."""
+  if before.tool_path == "NOT_USED":
+    before.tool_path = ""
+  if after.tool_path == "NOT_USED":
+    after.tool_path = ""
   if before.tool_path != after.tool_path:
     return False
   if set(before.execution_requirement) != set(after.execution_requirement):
@@ -297,9 +302,11 @@ def _compare_tool_paths(tool_paths_before, tool_paths_after):
   tool_to_path_before = {}
   tool_to_path_after = {}
   for tool_path in tool_paths_before:
-    tool_to_path_before[tool_path.name] = tool_path.path
+    tool_to_path_before[tool_path.name] = (
+        tool_path.path if tool_path.path != "NOT_USED" else "")
   for tool_path in tool_paths_after:
-    tool_to_path_after[tool_path.name] = tool_path.path
+    tool_to_path_after[tool_path.name] = (
+        tool_path.path if tool_path.path != "NOT_USED" else "")
 
   tool_names_before = set(tool_to_path_before.keys())
   tool_names_after = set(tool_to_path_after.keys())

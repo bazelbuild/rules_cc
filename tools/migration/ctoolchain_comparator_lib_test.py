@@ -1665,6 +1665,45 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
       self.assertIn("* Action config 'config' differs before and after",
                     mock_stdout.getvalue())
 
+  def test_unused_tool_path(self):
+    first = make_toolchain("""
+        tool_path {
+          name: "empty"
+          path: ""
+        }
+    """)
+    second = make_toolchain("""
+        tool_path {
+          name: "empty"
+          path: "NOT_USED"
+        }
+    """)
+    mock_stdout = StringIO()
+    with mock.patch("sys.stdout", mock_stdout):
+      compare_ctoolchains(first, second)
+      self.assertIn("No difference", mock_stdout.getvalue())
+
+  def test_unused_tool_path_in_tool(self):
+    first = make_toolchain("""
+        action_config {
+          config_name: 'config'
+          tool {
+            tool_path: ''
+          }
+        }
+    """)
+    second = make_toolchain("""
+        action_config {
+          config_name: 'config'
+          tool {
+            tool_path: 'NOT_USED'
+          }
+        }
+    """)
+    mock_stdout = StringIO()
+    with mock.patch("sys.stdout", mock_stdout):
+      compare_ctoolchains(first, second)
+      self.assertIn("No difference", mock_stdout.getvalue())
 
 if __name__ == "__main__":
   unittest.main()
