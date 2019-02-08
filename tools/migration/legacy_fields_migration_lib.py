@@ -87,6 +87,8 @@ def migrate_legacy_fields(crosstool):
   for toolchain in crosstool.toolchain:
     _ = [_migrate_expand_if_all_available(f) for f in toolchain.feature]
     _ = [_migrate_expand_if_all_available(ac) for ac in toolchain.action_config]
+    _ = [_migrate_repeated_expands(f) for f in toolchain.feature]
+    _ = [_migrate_repeated_expands(ac) for ac in toolchain.action_config]
 
     if (toolchain.dynamic_library_linker_flag or
         _contains_dynamic_flags(toolchain)) and not _contains_feature(
@@ -437,7 +439,7 @@ def _contains_feature(toolchain, name):
 
 
 def _migrate_expand_if_all_available(message):
-  """Move expand_if_all_available fields to flag_groups."""
+  """Move expand_if_all_available field to flag_groups."""
   for flag_set in message.flag_set:
     if flag_set.expand_if_all_available:
       for flag_group in flag_set.flag_group:
@@ -446,6 +448,45 @@ def _migrate_expand_if_all_available(message):
             flag_set.expand_if_all_available[:])
         flag_group.expand_if_all_available[:] = new_vars
       flag_set.ClearField("expand_if_all_available")
+
+
+def _migrate_repeated_expands(message):
+  """Replace repeated legacy fields with nesting."""
+  todo_queue = []
+  for flag_set in message.flag_set:
+    todo_queue.extend(flag_set.flag_group)
+  while todo_queue:
+    flag_group = todo_queue.pop()
+    todo_queue.extend(flag_group.flag_group)
+    if len(flag_group.expand_if_all_available) <= 1 and len(
+        flag_group.expand_if_none_available) <= 1:
+      continue
+
+    current_children = flag_group.flag_group
+    current_flags = flag_group.flag
+    flag_group.ClearField("flag_group")
+    flag_group.ClearField("flag")
+
+    new_flag_group = flag_group.flag_group.add()
+    new_flag_group.flag_group.extend(current_children)
+    new_flag_group.flag.extend(current_flags)
+
+    if len(flag_group.expand_if_all_available) > 1:
+      expands_to_move = flag_group.expand_if_all_available[1:]
+      flag_group.expand_if_all_available[:] = [
+          flag_group.expand_if_all_available[0]
+      ]
+      new_flag_group.expand_if_all_available.extend(expands_to_move)
+
+    if len(flag_group.expand_if_none_available) > 1:
+      expands_to_move = flag_group.expand_if_none_available[1:]
+      flag_group.expand_if_none_available[:] = [
+          flag_group.expand_if_none_available[0]
+      ]
+      new_flag_group.expand_if_none_available.extend(expands_to_move)
+
+    todo_queue.append(new_flag_group)
+    todo_queue.append(flag_group)
 
 
 def _contains_dynamic_flags(toolchain):

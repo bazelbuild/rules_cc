@@ -1023,8 +1023,7 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
             flag_group {
               flag: '%{foo}'
             }
-            flag_group {
-              expand_if_all_available: 'bar'
+            flag_group {              
               flag: 'bar'
             }
           }
@@ -1038,7 +1037,6 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
               flag: '%{foo}'
             }
             flag_group {
-              expand_if_all_available: 'bar'
               flag: 'bar'
             }
           }
@@ -1056,7 +1054,7 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
         .expand_if_all_available, ["foo"])
     self.assertEqual(
         output.action_config[0].flag_set[0].flag_group[1]
-        .expand_if_all_available, ["bar", "foo"])
+        .expand_if_all_available, ["foo"])
 
     self.assertEqual(output.feature[0].name, "something_else")
     self.assertEqual(len(output.feature[0].flag_set), 1)
@@ -1068,7 +1066,139 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
         ["foo"])
     self.assertEqual(
         output.feature[0].flag_set[0].flag_group[1].expand_if_all_available,
-        ["bar", "foo"])
+        ["foo"])
+
+  def test_migrate_repeated_expand_if_all_available_from_flag_groups(self):
+    crosstool = make_crosstool("""
+          action_config {
+            action_name: 'something'
+            config_name: 'something'
+            flag_set {
+              flag_group {
+                expand_if_all_available: 'foo'
+                expand_if_all_available: 'bar'
+                flag: '%{foo}'
+              }
+              flag_group {
+                expand_if_none_available: 'foo'
+                expand_if_none_available: 'bar'
+                flag: 'bar'
+              }
+            }
+          }
+          feature {
+            name: 'something_else'
+            flag_set {
+              action: 'c-compile'
+              flag_group {
+                expand_if_all_available: 'foo'
+                expand_if_all_available: 'bar'
+                flag: '%{foo}'
+              }
+              flag_group {
+                expand_if_none_available: 'foo'
+                expand_if_none_available: 'bar'
+                flag: 'bar'
+              }
+            }
+          }
+          """)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    self.assertEqual(output.action_config[0].action_name, "something")
+    self.assertEqual(len(output.action_config[0].flag_set), 1)
+    self.assertEqual(
+        len(output.action_config[0].flag_set[0].expand_if_all_available), 0)
+    self.assertEqual(len(output.action_config[0].flag_set[0].flag_group), 2)
+    self.assertEqual(
+        output.action_config[0].flag_set[0].flag_group[0]
+        .expand_if_all_available, ["foo"])
+    self.assertEqual(
+        output.action_config[0].flag_set[0].flag_group[0].flag_group[0]
+        .expand_if_all_available, ["bar"])
+    self.assertEqual(
+        output.action_config[0].flag_set[0].flag_group[1]
+        .expand_if_none_available, ["foo"])
+    self.assertEqual(
+        output.action_config[0].flag_set[0].flag_group[1].flag_group[0]
+        .expand_if_none_available, ["bar"])
+
+    self.assertEqual(output.feature[0].name, "something_else")
+    self.assertEqual(len(output.feature[0].flag_set), 1)
+    self.assertEqual(
+        len(output.feature[0].flag_set[0].expand_if_all_available), 0)
+    self.assertEqual(len(output.feature[0].flag_set[0].flag_group), 2)
+    self.assertEqual(
+        output.feature[0].flag_set[0].flag_group[0].expand_if_all_available,
+        ["foo"])
+    self.assertEqual(
+        output.feature[0].flag_set[0].flag_group[0].flag_group[0]
+        .expand_if_all_available, ["bar"])
+    self.assertEqual(
+        output.feature[0].flag_set[0].flag_group[1].expand_if_none_available,
+        ["foo"])
+    self.assertEqual(
+        output.feature[0].flag_set[0].flag_group[1].flag_group[0]
+        .expand_if_none_available, ["bar"])
+
+  def test_migrate_repeated_expands_from_nested_flag_groups(self):
+    crosstool = make_crosstool("""
+          feature {
+            name: 'something'
+            flag_set {
+              action: 'c-compile'
+              flag_group {
+                flag_group {
+                  expand_if_all_available: 'foo'
+                  expand_if_all_available: 'bar'
+                  flag: '%{foo}'
+                }
+              }
+              flag_group {
+                flag_group {
+                  expand_if_all_available: 'foo'
+                  expand_if_all_available: 'bar'
+                  expand_if_none_available: 'foo'
+                  expand_if_none_available: 'bar'
+                  flag: '%{foo}'
+                }
+              }
+            }
+          }
+          """)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+
+    self.assertEqual(output.feature[0].name, "something")
+    self.assertEqual(len(output.feature[0].flag_set[0].flag_group), 2)
+    self.assertEqual(
+        len(output.feature[0].flag_set[0].flag_group[0].expand_if_all_available
+           ), 0)
+    self.assertEqual(
+        output.feature[0].flag_set[0].flag_group[0].flag_group[0]
+        .expand_if_all_available, ["foo"])
+    self.assertEqual(
+        output.feature[0].flag_set[0].flag_group[0].flag_group[0].flag_group[0]
+        .expand_if_all_available, ["bar"])
+    self.assertEqual(
+        output.feature[0].flag_set[0].flag_group[0].flag_group[0].flag_group[0]
+        .flag, ["%{foo}"])
+
+    self.assertEqual(
+        output.feature[0].flag_set[0].flag_group[1].flag_group[0]
+        .expand_if_all_available, ["foo"])
+    self.assertEqual(
+        output.feature[0].flag_set[0].flag_group[1].flag_group[0]
+        .expand_if_none_available, ["foo"])
+    self.assertEqual(
+        output.feature[0].flag_set[0].flag_group[1].flag_group[0].flag_group[0]
+        .expand_if_none_available, ["bar"])
+    self.assertEqual(
+        output.feature[0].flag_set[0].flag_group[1].flag_group[0].flag_group[0]
+        .expand_if_all_available, ["bar"])
+    self.assertEqual(
+        output.feature[0].flag_set[0].flag_group[1].flag_group[0].flag_group[0]
+        .flag, ["%{foo}"])
 
 
 if __name__ == "__main__":
