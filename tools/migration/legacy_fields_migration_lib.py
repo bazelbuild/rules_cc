@@ -46,6 +46,8 @@ NODEPS_DYNAMIC_LIBRARY_LINK_ACTIONS = ["c++-link-nodeps-dynamic-library"]
 
 TRANSITIVE_LINK_ACTIONS = ["c++-link-executable", "c++-link-dynamic-library"]
 
+CC_LINK_EXECUTABLE = ["c++-link-executable"]
+
 
 def compile_actions(toolchain):
   """Returns compile actions for cc or objc rules."""
@@ -403,8 +405,12 @@ def _extract_legacy_link_flag_sets_for(toolchain):
             feature_name,
             transitive_link_actions(toolchain), lmf.linker_flag, []
         ])
-      else:
+      elif mode == "MOSTLY_STATIC":
         result.append(
+            [feature_name,
+             CC_LINK_EXECUTABLE, lmf.linker_flag, []])
+      else:
+         result.append(
             [feature_name,
              link_actions(toolchain), lmf.linker_flag, []])
 

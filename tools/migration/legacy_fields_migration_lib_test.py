@@ -9,6 +9,7 @@ from tools.migration.legacy_fields_migration_lib import ALL_OBJC_LINK_ACTIONS
 from tools.migration.legacy_fields_migration_lib import DYNAMIC_LIBRARY_LINK_ACTIONS
 from tools.migration.legacy_fields_migration_lib import NODEPS_DYNAMIC_LIBRARY_LINK_ACTIONS
 from tools.migration.legacy_fields_migration_lib import TRANSITIVE_LINK_ACTIONS
+from tools.migration.legacy_fields_migration_lib import CC_LINK_EXECUTABLE
 from tools.migration.legacy_fields_migration_lib import migrate_legacy_fields
 
 
@@ -412,6 +413,7 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
 
     # flag set for linking_mode_flags
     self.assertEqual(len(output.feature[0].flag_set[2].with_feature), 1)
+    self.assertEqual(output.feature[0].flag_set[2].action, CC_LINK_EXECUTABLE)
     self.assertEqual(output.feature[0].flag_set[2].with_feature[0].feature[0],
                      "static_linking_mode")
     self.assertEqual(output.feature[0].flag_set[2].flag_group[0].flag,
@@ -496,7 +498,7 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
     self.assertEqual(output.feature[0].flag_set[1].flag_group[0].flag,
                      ["cmf-flag-2"])
 
-    self.assertEqual(output.feature[0].flag_set[2].action, ALL_CC_LINK_ACTIONS)
+    self.assertEqual(output.feature[0].flag_set[2].action, CC_LINK_EXECUTABLE)
     self.assertEqual(output.feature[0].flag_set[2].with_feature[0].feature[0],
                      "static_linking_mode")
     self.assertEqual(output.feature[0].flag_set[2].flag_group[0].flag,
@@ -550,7 +552,7 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
     self.assertEqual(output.feature[0].flag_set[1].action[:],
                      ALL_CC_LINK_ACTIONS + ALL_OBJC_LINK_ACTIONS)
     self.assertEqual(output.feature[0].flag_set[2].action[:],
-                     ALL_CC_LINK_ACTIONS + ALL_OBJC_LINK_ACTIONS)
+                     CC_LINK_EXECUTABLE)
     self.assertEqual(output.feature[0].flag_set[3].action[:],
                      DYNAMIC_LIBRARY_LINK_ACTIONS)
     self.assertEqual(output.feature[0].flag_set[4].action[:],
