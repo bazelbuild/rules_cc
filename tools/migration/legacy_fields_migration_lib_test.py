@@ -1070,6 +1070,27 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
         output.feature[0].flag_set[0].flag_group[1].expand_if_all_available,
         ["foo"])
 
+  def test_enable_previously_default_features(self):
+    default_features = [
+        "dependency_file", "random_seed", "module_maps", "module_map_home_cwd",
+        "header_module_compile", "include_paths", "pic", "preprocessor_define"
+    ]
+    crosstool = make_crosstool("""
+          feature { name: "dependency_file" }
+          feature { name: "random_seed" }
+          feature { name: "module_maps" }
+          feature { name: "module_map_home_cwd" }
+          feature { name: "header_module_compile" }
+          feature { name: "include_paths" }
+          feature { name: "pic" }
+          feature { name: "preprocessor_define" }
+          """)
+    migrate_legacy_fields(crosstool)
+    output = crosstool.toolchain[0]
+    for i in range(0, 8):
+      self.assertEqual(output.feature[i].name, default_features[i])
+      self.assertTrue(output.feature[i].enabled)
+
   def test_migrate_repeated_expand_if_all_available_from_flag_groups(self):
     crosstool = make_crosstool("""
           action_config {

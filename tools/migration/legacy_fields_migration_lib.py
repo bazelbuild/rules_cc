@@ -93,36 +93,36 @@ def migrate_legacy_fields(crosstool):
     _ = [_migrate_repeated_expands(ac) for ac in toolchain.action_config]
 
     if (toolchain.dynamic_library_linker_flag or
-        _contains_dynamic_flags(toolchain)) and not _contains_feature(
+        _contains_dynamic_flags(toolchain)) and not _get_feature(
             toolchain, "supports_dynamic_linker"):
       feature = toolchain.feature.add()
       feature.name = "supports_dynamic_linker"
       feature.enabled = True
 
-    if toolchain.supports_start_end_lib and not _contains_feature(
+    if toolchain.supports_start_end_lib and not _get_feature(
         toolchain, "supports_start_end_lib"):
       feature = toolchain.feature.add()
       feature.name = "supports_start_end_lib"
       feature.enabled = True
 
-    if toolchain.supports_interface_shared_objects and not _contains_feature(
+    if toolchain.supports_interface_shared_objects and not _get_feature(
         toolchain, "supports_interface_shared_libraries"):
       feature = toolchain.feature.add()
       feature.name = "supports_interface_shared_libraries"
       feature.enabled = True
 
-    if toolchain.supports_embedded_runtimes and not _contains_feature(
+    if toolchain.supports_embedded_runtimes and not _get_feature(
         toolchain, "static_link_cpp_runtimes"):
       feature = toolchain.feature.add()
       feature.name = "static_link_cpp_runtimes"
       feature.enabled = True
 
-    if toolchain.needsPic and not _contains_feature(toolchain, "supports_pic"):
+    if toolchain.needsPic and not _get_feature(toolchain, "supports_pic"):
       feature = toolchain.feature.add()
       feature.name = "supports_pic"
       feature.enabled = True
 
-    if toolchain.supports_fission and not _contains_feature(
+    if toolchain.supports_fission and not _get_feature(
         toolchain, "per_object_debug_info"):
       # feature {
       #   name: "per_object_debug_info"
@@ -151,7 +151,7 @@ def migrate_legacy_fields(crosstool):
       flag_group.expand_if_all_available[:] = ["per_object_debug_info_file"]
       flag_group.flag[:] = ["-gsplit-dwarf"]
 
-    if toolchain.objcopy_embed_flag and not _contains_feature(
+    if toolchain.objcopy_embed_flag and not _get_feature(
         toolchain, "objcopy_embed_flags"):
       feature = toolchain.feature.add()
       feature.name = "objcopy_embed_flags"
@@ -168,7 +168,7 @@ def migrate_legacy_fields(crosstool):
       tool = action_config.tool.add()
       tool.tool_path = _find_tool_path(toolchain, "objcopy")
 
-    if toolchain.ld_embed_flag and not _contains_feature(
+    if toolchain.ld_embed_flag and not _get_feature(
         toolchain, "ld_embed_flags"):
       feature = toolchain.feature.add()
       feature.name = "ld_embed_flags"
@@ -189,9 +189,9 @@ def migrate_legacy_fields(crosstool):
     # Create default_link_flags feature for linker_flag
     flag_sets = _extract_legacy_link_flag_sets_for(toolchain)
     if flag_sets:
-      if _contains_feature(toolchain, "default_link_flags"):
+      if _get_feature(toolchain, "default_link_flags"):
         continue
-      if _contains_feature(toolchain, "legacy_link_flags"):
+      if _get_feature(toolchain, "legacy_link_flags"):
         for f in toolchain.feature:
           if f.name == "legacy_link_flags":
             f.ClearField("flag_set")
@@ -207,8 +207,8 @@ def migrate_legacy_fields(crosstool):
 
     # Create default_compile_flags feature for compiler_flag, cxx_flag
     flag_sets = _extract_legacy_compile_flag_sets_for(toolchain)
-    if flag_sets and not _contains_feature(toolchain, "default_compile_flags"):
-      if _contains_feature(toolchain, "legacy_compile_flags"):
+    if flag_sets and not _get_feature(toolchain, "default_compile_flags"):
+      if _get_feature(toolchain, "legacy_compile_flags"):
         for f in toolchain.feature:
           if f.name == "legacy_compile_flags":
             f.ClearField("flag_set")
@@ -228,7 +228,7 @@ def migrate_legacy_fields(crosstool):
     if toolchain.unfiltered_cxx_flag:
       # If there already is a feature named unfiltered_compile_flags, the
       # crosstool is already migrated for unfiltered_compile_flags
-      if _contains_feature(toolchain, "unfiltered_compile_flags"):
+      if _get_feature(toolchain, "unfiltered_compile_flags"):
         for f in toolchain.feature:
           if f.name == "unfiltered_compile_flags":
             for flag_set in f.flag_set:
@@ -239,7 +239,7 @@ def migrate_legacy_fields(crosstool):
                   flag_group.ClearField("flag")
                   flag_group.flag[:] = toolchain.unfiltered_cxx_flag
       else:
-        if not _contains_feature(toolchain, "user_compile_flags"):
+        if not _get_feature(toolchain, "user_compile_flags"):
           feature = toolchain.feature.add()
           feature.name = "user_compile_flags"
           feature.enabled = True
@@ -250,7 +250,7 @@ def migrate_legacy_fields(crosstool):
           flag_group.iterate_over = "user_compile_flags"
           flag_group.flag[:] = ["%{user_compile_flags}"]
 
-        if not _contains_feature(toolchain, "sysroot"):
+        if not _get_feature(toolchain, "sysroot"):
           sysroot_actions = compile_actions(toolchain) + link_actions(toolchain)
           sysroot_actions.remove("assemble")
           feature = toolchain.feature.add()
@@ -301,6 +301,16 @@ def migrate_legacy_fields(crosstool):
     toolchain.ClearField("static_runtimes_filegroup")
     toolchain.ClearField("dynamic_runtimes_filegroup")
 
+    # Enable features that were previously enabled by Bazel
+    default_features = [
+        "dependency_file", "random_seed", "module_maps", "module_map_home_cwd",
+        "header_module_compile", "include_paths", "pic", "preprocessor_define"
+    ]
+    for feature_name in default_features:
+      feature = _get_feature(toolchain, feature_name)
+      if feature:
+        feature.enabled = True
+
 
 def _find_tool_path(toolchain, tool_name):
   """Returns the tool path of the tool with the given name."""
@@ -342,7 +352,7 @@ def _extract_legacy_compile_flag_sets_for(toolchain):
       continue
 
     if (cmf.compiler_flag or
-        cmf.cxx_flag) and not _contains_feature(toolchain, mode):
+        cmf.cxx_flag) and not _get_feature(toolchain, mode):
       feature = toolchain.feature.add()
       feature.name = mode
 
@@ -380,7 +390,7 @@ def _extract_legacy_link_flag_sets_for(toolchain):
     if mode == "coverage":
       continue
 
-    if cmf.linker_flag and not _contains_feature(toolchain, mode):
+    if cmf.linker_flag and not _get_feature(toolchain, mode):
       feature = toolchain.feature.add()
       feature.name = mode
 
@@ -392,7 +402,7 @@ def _extract_legacy_link_flag_sets_for(toolchain):
     mode = crosstool_config_pb2.LinkingMode.Name(lmf.mode)
     feature_name = LINKING_MODE_TO_FEATURE_NAME.get(mode)
     # if the feature is already there, we don't migrate, lmf is not used
-    if _contains_feature(toolchain, feature_name):
+    if _get_feature(toolchain, feature_name):
       continue
 
     if lmf.linker_flag:
@@ -410,9 +420,9 @@ def _extract_legacy_link_flag_sets_for(toolchain):
             [feature_name,
              CC_LINK_EXECUTABLE, lmf.linker_flag, []])
       else:
-         result.append(
-            [feature_name,
-             link_actions(toolchain), lmf.linker_flag, []])
+        result.append(
+           [feature_name,
+            link_actions(toolchain), lmf.linker_flag, []])
 
   if toolchain.dynamic_library_linker_flag:
     result.append([
@@ -439,9 +449,12 @@ def _prepend_feature(toolchain):
   return new_feature
 
 
-def _contains_feature(toolchain, name):
-  """Returns True when toolchain contains a feature with a given name."""
-  return any(feature.name == name for feature in toolchain.feature)
+def _get_feature(toolchain, name):
+  """Returns feature with a given name or None."""
+  for feature in toolchain.feature:
+    if feature.name == name:
+      return feature
+  return None
 
 
 def _migrate_expand_if_all_available(message):
