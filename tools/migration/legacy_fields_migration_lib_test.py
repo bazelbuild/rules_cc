@@ -318,7 +318,7 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
     """)
     migrate_legacy_fields(crosstool)
     output = crosstool.toolchain[0]
-    self.assertEqual(len(output.linker_flag), 0)
+    self.assertEqual(len(output.dynamic_library_linker_flag), 0)
     self.assertEqual(output.feature[0].name, "default_link_flags")
     self.assertEqual(output.feature[0].flag_set[0].action,
                      DYNAMIC_LIBRARY_LINK_ACTIONS)

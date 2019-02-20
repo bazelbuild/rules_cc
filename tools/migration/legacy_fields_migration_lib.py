@@ -298,6 +298,7 @@ def migrate_legacy_fields(crosstool):
     toolchain.ClearField("compiler_flag")
     toolchain.ClearField("cxx_flag")
     toolchain.ClearField("linker_flag")
+    toolchain.ClearField("dynamic_library_linker_flag")
     toolchain.ClearField("static_runtimes_filegroup")
     toolchain.ClearField("dynamic_runtimes_filegroup")
 
