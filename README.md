@@ -48,3 +48,16 @@ TLDR:
     bazel run @rules_cc//tools/migration:legacy_fields_migrator -- \
       --input=my_toolchain/CROSSTOOL \
       --inline
+
+# Contributing
+
+Bazel and rules_cc are the work of many contributors. We appreciate your help!
+
+To contribute, please read the contribution guidelines: [CONTRIBUTING.md](https://github.com/bazelbuild/rules_cc/blob/master/CONTRIBUTING.md).
+
+Note that the rules_cc use the GitHub issue tracker for bug reports and feature requests only.
+For asking questions see:
+
+* [Stack Overflow](https://stackoverflow.com/questions/tagged/bazel)
+* [rules_cc mailing list](https://groups.google.com/forum/#!forum/cc-bazel-discuss)
+* Slack channel `#cc` on [bazelbuild.slack.com](https://bazelbuild.slack.com) (use [bazel-slackin](https://bazel-slackin.herokuapp.com) to join).
