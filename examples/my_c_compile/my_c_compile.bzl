@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Example about how to create a custom Starlark rule that just compiles C sources."""
+"""Example showing how to create a rule that just compiles C sources."""
 
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "C_COMPILE_ACTION_NAME")
+
+MyCCompileInfo = provider(doc = "", fields = ["object"])
 
 DISABLED_FEATURES = [
 ]
@@ -36,6 +38,7 @@ def _my_c_compile_impl(ctx):
     c_compile_variables = cc_common.create_compile_variables(
         feature_configuration = feature_configuration,
         cc_toolchain = cc_toolchain,
+        user_compile_flags = ctx.fragments.cpp.copts + ctx.fragments.cpp.conlyopts,
         source_file = source_file.path,
         output_file = output_file.path,
     )
@@ -62,13 +65,16 @@ def _my_c_compile_impl(ctx):
         ),
         outputs = [output_file],
     )
-    return [DefaultInfo(files = depset(items = [output_file]))]
+    return [
+        DefaultInfo(files = depset(items = [output_file])),
+        MyCCompileInfo(object = output_file),
+    ]
 
-# This rule does nothing, just propagates all cc_toolchain files.
 my_c_compile = rule(
     implementation = _my_c_compile_impl,
     attrs = {
         "src": attr.label(mandatory = True, allow_single_file = True),
         "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
     },
+    fragments = ["cpp"],
 )

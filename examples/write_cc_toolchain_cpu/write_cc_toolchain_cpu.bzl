@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Example about how to get CcToolchainInfo in a custom starlark rule."""
+"""Example showing how to get CcToolchainInfo in a custom rule."""
 
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
