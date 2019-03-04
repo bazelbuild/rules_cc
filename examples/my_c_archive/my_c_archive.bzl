@@ -38,11 +38,6 @@ def _my_c_archive_impl(ctx):
     compilation_context = cc_common.create_compilation_context()
     linking_context = cc_common.create_linking_context(libraries_to_link = [library_to_link])
 
-    feature_configuration = cc_common.configure_features(
-        cc_toolchain = cc_toolchain,
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
-    )
     archiver_path = cc_common.get_tool_for_action(
         feature_configuration = feature_configuration,
         action_name = CPP_LINK_STATIC_LIBRARY_ACTION_NAME,
