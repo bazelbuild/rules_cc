@@ -941,6 +941,9 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
     output = crosstool.toolchain[0]
     self.assertEqual(output.feature[0].name, "per_object_debug_info")
     self.assertEqual(output.feature[0].enabled, True)
+    self.assertEqual(
+        output.feature[0].flag_set[0].flag_group[0].expand_if_all_available,
+        ["is_using_fission"])
 
   def test_supports_fission_not_migrated_on_false(self):
     crosstool = make_crosstool("supports_fission: false")
@@ -1025,7 +1028,7 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
             flag_group {
               flag: '%{foo}'
             }
-            flag_group {              
+            flag_group {
               flag: 'bar'
             }
           }

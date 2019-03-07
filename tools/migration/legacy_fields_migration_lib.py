@@ -126,6 +126,7 @@ def migrate_legacy_fields(crosstool):
         toolchain, "per_object_debug_info"):
       # feature {
       #   name: "per_object_debug_info"
+      #   enabled: true
       #   flag_set {
       #     action: "assemble"
       #     action: "preprocess-assemble"
@@ -134,7 +135,7 @@ def migrate_legacy_fields(crosstool):
       #     action: "c++-module-codegen"
       #     action: "lto-backend"
       #     flag_group {
-      #       expand_if_all_available: 'per_object_debug_info_file'",
+      #       expand_if_all_available: 'is_using_fission'",
       #       flag: "-gsplit-dwarf"
       #     }
       #   }
@@ -148,7 +149,7 @@ def migrate_legacy_fields(crosstool):
           "preprocess-assemble", "lto-backend"
       ]
       flag_group = flag_set.flag_group.add()
-      flag_group.expand_if_all_available[:] = ["per_object_debug_info_file"]
+      flag_group.expand_if_all_available[:] = ["is_using_fission"]
       flag_group.flag[:] = ["-gsplit-dwarf"]
 
     if toolchain.objcopy_embed_flag and not _get_feature(
