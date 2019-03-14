@@ -113,6 +113,8 @@ var actionNames = map[string]string{
 	"objc-compile":                    "ACTION_NAMES.objc_compile",
 	"objc++-compile":                  "ACTION_NAMES.objcpp_compile",
 	"clif-match":                      "ACTION_NAMES.clif_match",
+// 	"objcopy_embed_data":              "ACTION_NAMES.objcopy_embed_data", // copybara-comment-this-out-please
+// 	"ld_embed_data":                   "ACTION_NAMES.ld_embed_data",      // copybara-comment-this-out-please
 }
 
 func getLoadActionsStmt() string {
@@ -347,7 +349,7 @@ func getStringStatement(crosstool *crosstoolpb.CrosstoolRelease,
 
 	mappedValuesToIds := getMappedStringValuesToIdentifiers(identifiers, fieldValues)
 	return getAssignmentStatement(field, mappedValuesToIds, crosstool,
-		cToolchainIdentifiers, depth /* isPlainString= */, true, /* shouldFail= */ true)
+		cToolchainIdentifiers, depth /* isPlainString= */, true /* shouldFail= */, true)
 }
 
 func getFeatures(crosstool *crosstoolpb.CrosstoolRelease) (
@@ -393,7 +395,7 @@ func getFeaturesDeclaration(crosstool *crosstoolpb.CrosstoolRelease,
 				cToolchainIdentifiers,
 				depth,
 				/* isPlainString= */ false,
-			  /* shouldFail= */ false))
+				/* shouldFail= */ false))
 	}
 	return strings.Join(res, "")
 }
@@ -468,7 +470,7 @@ func getActionConfigsDeclaration(
 				cToolchainIdentifiers,
 				depth,
 				/* isPlainString= */ false,
-			  /* shouldFail= */ false))
+				/* shouldFail= */ false))
 	}
 	return strings.Join(res, "")
 }
@@ -652,7 +654,7 @@ func getArtifactNamePatterns(crosstool *crosstoolpb.CrosstoolRelease,
 			cToolchainIdentifiers,
 			depth,
 			/* isPlainString= */ false,
-		  /* shouldFail= */ true))
+			/* shouldFail= */ true))
 	return strings.Join(res, "\n")
 }
 
@@ -829,7 +831,7 @@ func getToolPaths(crosstool *crosstoolpb.CrosstoolRelease,
 			cToolchainIdentifiers,
 			depth,
 			/* isPlainString= */ false,
-		  /* shouldFail= */ true))
+			/* shouldFail= */ true))
 	return strings.Join(res, "\n")
 }
 
@@ -869,7 +871,7 @@ func getMakeVariables(crosstool *crosstoolpb.CrosstoolRelease,
 			cToolchainIdentifiers,
 			depth,
 			/* isPlainString= */ false,
-		  /* shouldFail= */ true))
+			/* shouldFail= */ true))
 	return strings.Join(res, "\n")
 }
 

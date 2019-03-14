@@ -20,6 +20,7 @@ load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "C_COMPILE_ACTION_NAM
 MyCCompileInfo = provider(doc = "", fields = ["object"])
 
 DISABLED_FEATURES = [
+#     "module_maps",  # copybara-comment-this-out-please
 ]
 
 def _my_c_compile_impl(ctx):
