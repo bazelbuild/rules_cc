@@ -44,6 +44,8 @@ DYNAMIC_LIBRARY_LINK_ACTIONS = [
 
 NODEPS_DYNAMIC_LIBRARY_LINK_ACTIONS = ["c++-link-nodeps-dynamic-library"]
 
+TRANSITIVE_DYNAMIC_LIBRARY_LINK_ACTIONS = ["c++-link-dynamic-library"]
+
 TRANSITIVE_LINK_ACTIONS = ["c++-link-executable", "c++-link-dynamic-library"]
 
 CC_LINK_EXECUTABLE = ["c++-link-executable"]
@@ -329,9 +331,14 @@ def _add_flag_sets(feature, flag_sets):
     actions = flag_set[1]
     flags = flag_set[2]
     expand_if_all_available = flag_set[3]
+    not_feature = None
+    if len(flag_set) >= 5:
+      not_feature = flag_set[4]
     flag_set = feature.flag_set.add()
     if with_feature is not None:
       flag_set.with_feature.add().feature[:] = [with_feature]
+    if not_feature is not None:
+      flag_set.with_feature.add().not_feature[:] = [not_feature]
     flag_set.action[:] = actions
     flag_group = flag_set.flag_group.add()
     flag_group.expand_if_all_available[:] = expand_if_all_available
@@ -413,6 +420,13 @@ def _extract_legacy_link_flag_sets_for(toolchain):
       if mode == "DYNAMIC":
         result.append(
             [None, NODEPS_DYNAMIC_LIBRARY_LINK_ACTIONS, lmf.linker_flag, []])
+        result.append([
+            None,
+            TRANSITIVE_DYNAMIC_LIBRARY_LINK_ACTIONS,
+            lmf.linker_flag,
+            [],
+            "static_link_cpp_runtimes",
+        ])
         result.append([
             feature_name,
             transitive_link_actions(toolchain), lmf.linker_flag, []

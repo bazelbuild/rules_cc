@@ -9,6 +9,7 @@ from tools.migration.legacy_fields_migration_lib import ALL_OBJC_LINK_ACTIONS
 from tools.migration.legacy_fields_migration_lib import DYNAMIC_LIBRARY_LINK_ACTIONS
 from tools.migration.legacy_fields_migration_lib import NODEPS_DYNAMIC_LIBRARY_LINK_ACTIONS
 from tools.migration.legacy_fields_migration_lib import TRANSITIVE_LINK_ACTIONS
+from tools.migration.legacy_fields_migration_lib import TRANSITIVE_DYNAMIC_LIBRARY_LINK_ACTIONS
 from tools.migration.legacy_fields_migration_lib import CC_LINK_EXECUTABLE
 from tools.migration.legacy_fields_migration_lib import migrate_legacy_fields
 
@@ -510,23 +511,31 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
     self.assertEqual(output.feature[0].flag_set[3].action,
                      NODEPS_DYNAMIC_LIBRARY_LINK_ACTIONS)
 
-    self.assertEqual(output.feature[0].flag_set[4].with_feature[0].feature[0],
-                     "dynamic_linking_mode")
+    self.assertEqual(
+        output.feature[0].flag_set[4].with_feature[0].not_feature[0],
+        "static_link_cpp_runtimes")
     self.assertEqual(output.feature[0].flag_set[4].flag_group[0].flag,
                      ["lmf-dynamic-flag-4"])
     self.assertEqual(output.feature[0].flag_set[4].action,
+                     TRANSITIVE_DYNAMIC_LIBRARY_LINK_ACTIONS)
+
+    self.assertEqual(output.feature[0].flag_set[5].with_feature[0].feature[0],
+                     "dynamic_linking_mode")
+    self.assertEqual(output.feature[0].flag_set[5].flag_group[0].flag,
+                     ["lmf-dynamic-flag-4"])
+    self.assertEqual(output.feature[0].flag_set[5].action,
                      TRANSITIVE_LINK_ACTIONS)
 
-    self.assertEqual(output.feature[0].flag_set[5].flag_group[0].flag,
+    self.assertEqual(output.feature[0].flag_set[6].flag_group[0].flag,
                      ["dl-flag-5"])
-    self.assertEqual(output.feature[0].flag_set[5].action,
+    self.assertEqual(output.feature[0].flag_set[6].action,
                      DYNAMIC_LIBRARY_LINK_ACTIONS)
 
-    self.assertEqual(output.feature[0].flag_set[6].flag_group[0].flag,
+    self.assertEqual(output.feature[0].flag_set[7].flag_group[0].flag,
                      ["to-flag-6"])
-    self.assertEqual(output.feature[0].flag_set[6].action, ALL_CC_LINK_ACTIONS)
+    self.assertEqual(output.feature[0].flag_set[7].action, ALL_CC_LINK_ACTIONS)
     self.assertEqual(
-        output.feature[0].flag_set[6].flag_group[0].expand_if_all_available,
+        output.feature[0].flag_set[7].flag_group[0].expand_if_all_available,
         ["is_cc_test"])
 
   def test_all_linker_flag_objc_actions(self):
