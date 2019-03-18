@@ -524,7 +524,7 @@ class LegacyFieldsMigrationLibTest(unittest.TestCase):
     self.assertEqual(output.feature[0].flag_set[5].flag_group[0].flag,
                      ["lmf-dynamic-flag-4"])
     self.assertEqual(output.feature[0].flag_set[5].action,
-                     TRANSITIVE_LINK_ACTIONS)
+                     CC_LINK_EXECUTABLE)
 
     self.assertEqual(output.feature[0].flag_set[6].flag_group[0].flag,
                      ["dl-flag-5"])

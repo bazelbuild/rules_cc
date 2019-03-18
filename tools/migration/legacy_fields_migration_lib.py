@@ -66,12 +66,12 @@ def link_actions(toolchain):
     return ALL_CC_LINK_ACTIONS
 
 
-def transitive_link_actions(toolchain):
+def executable_link_actions(toolchain):
   """Returns transitive link actions for cc or objc rules."""
   if _is_objc_toolchain(toolchain):
-    return TRANSITIVE_LINK_ACTIONS + ALL_OBJC_LINK_ACTIONS
+    return CC_LINK_EXECUTABLE + ALL_OBJC_LINK_ACTIONS
   else:
-    return TRANSITIVE_LINK_ACTIONS
+    return CC_LINK_EXECUTABLE
 
 
 def _is_objc_toolchain(toolchain):
@@ -429,7 +429,7 @@ def _extract_legacy_link_flag_sets_for(toolchain):
         ])
         result.append([
             feature_name,
-            transitive_link_actions(toolchain), lmf.linker_flag, []
+            executable_link_actions(toolchain), lmf.linker_flag, []
         ])
       elif mode == "MOSTLY_STATIC":
         result.append(
