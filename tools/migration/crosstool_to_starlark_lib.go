@@ -304,7 +304,7 @@ func getRule(cToolchainIdentifiers map[string]CToolchainIdentifier) string {
 			fmt.Sprintf(`"compiler": attr.string(values=["%s"]),`,
 				strings.Join(compilerValues, "\", \"")))
 	}
-	return fmt.Sprintf(`cc_toolchain_config_rule =  rule(
+	return fmt.Sprintf(`cc_toolchain_config =  rule(
     implementation = _impl,
     attrs = {
         %s
@@ -1074,6 +1074,11 @@ func getAssignmentStatement(field string, valToIds map[string][]string,
 				fmt.Sprintf(
 					"%selse:\n%sfail(\"Unreachable\")\n",
 					getTabs(depth), getTabs(depth+1)))
+		} else {
+			b.WriteString(
+				fmt.Sprintf(
+					"%selse:\n%s%s = None\n",
+					getTabs(depth), getTabs(depth+1), field))
 		}
 	}
 	b.WriteString("\n")

@@ -1080,7 +1080,7 @@ func TestAllAndNoneAvailableErrorsWhenMoreThanOneElement(t *testing.T) {
 	}
 }
 
-func TestNoFailUnreachableInFeaturesAndActionConfigsDeclaration(t *testing.T) {
+func TestFeaturesAndActionConfigsSetToNoneWhenAllOptionsAreExausted(t *testing.T) {
 	toolchainFeatureAEnabled := getCToolchain("1", "cpuA", "compilerA",
 		[]string{getFeature([]string{"name: 'A'", "enabled: true"})},
 	)
@@ -1118,8 +1118,9 @@ func TestNoFailUnreachableInFeaturesAndActionConfigsDeclaration(t *testing.T) {
         a_feature = feature(name = "A")
     elif (ctx.attr.cpu == "cpuA" and ctx.attr.compiler == "compilerA"):
         a_feature = feature(name = "A", enabled = True)
-
-` /* empty line after the elif means there's no else statement */},
+    else:
+        a_feature = None
+`},
 		{field: "action_config",
 			toolchains: []string{
 				toolchainActionConfigAEnabled, toolchainActionConfigADisabled, toolchainWithoutActionConfigA},
@@ -1128,8 +1129,9 @@ func TestNoFailUnreachableInFeaturesAndActionConfigsDeclaration(t *testing.T) {
         a_action = action_config(action_name = "A")
     elif (ctx.attr.cpu == "cpuA" and ctx.attr.compiler == "compilerD"):
         a_action = action_config(action_name = "A", enabled = True)
-
-` /* empty line after the elif means there's no else statement */ },
+    else:
+        a_action = None
+`},
 	}
 
 	for _, tc := range testCases {
