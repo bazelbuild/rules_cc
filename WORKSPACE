@@ -18,11 +18,11 @@ bind(
 
 http_archive(
     name = "com_google_protobuf",
-    sha256 = "2244b0308846bb22b4ff0bcc675e99290ff9f1115553ae9671eba1030af31bc0",
-    strip_prefix = "protobuf-3.6.1.2",
+    sha256 = "3e933375ecc58d01e52705479b82f155aea2d02cc55d833f8773213e74f88363",
+    strip_prefix = "protobuf-3.7.0",
     urls = [
-        "https://mirror.bazel.build/github.com/google/protobuf/archive/v3.6.1.2.tar.gz",
-        "https://github.com/google/protobuf/archive/v3.6.1.2.tar.gz",
+        "https://mirror.bazel.build/github.com/protocolbuffers/protobuf/archive/protobuf-all-3.7.0.tar.gz",
+        "https://github.com/protocolbuffers/protobuf/releases/download/v3.7.0/protobuf-all-3.7.0.tar.gz",
     ],
 )
 
@@ -51,6 +51,19 @@ http_archive(
         "touch py/BUILD",
         """echo 'py_library(name = "mock", srcs = ["__init__.py"], visibility = ["//visibility:public"],)' > py/mock/BUILD""",
     ],
+)
+
+http_archive(
+    name = "net_zlib",
+    build_file = "@com_google_protobuf//examples:third_party/zlib.BUILD",
+    sha256 = "c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1",
+    strip_prefix = "zlib-1.2.11",
+    urls = ["https://zlib.net/zlib-1.2.11.tar.gz"],
+)
+
+bind(
+    name = "zlib",
+    actual = "@net_zlib//:zlib"
 )
 
 # Go rules and proto support
