@@ -1677,3 +1677,80 @@ cc_toolchain_config =  rule(
 			expected, got, simpleToolchain)
 	}
 }
+
+func TestAllowedCompilerValues(t *testing.T) {
+	toolchainAA := getCToolchain("1", "cpuA", "compilerA", []string{})
+	toolchainBA := getCToolchain("2", "cpuB", "compilerA", []string{})
+	toolchainBB := getCToolchain("3", "cpuB", "compilerB", []string{})
+	toolchainCC := getCToolchain("4", "cpuC", "compilerC", []string{})
+
+	testCases := []struct {
+		toolchains   []string
+		expectedText string
+	}{
+		{
+			toolchains: []string{toolchainAA, toolchainBA},
+			expectedText: `
+cc_toolchain_config =  rule(
+    implementation = _impl,
+    attrs = {
+        "cpu": attr.string(mandatory=True, values=["cpuA", "cpuB"]),
+    },
+    provides = [CcToolchainConfigInfo],
+    executable = True,
+)
+`},
+		{
+			toolchains: []string{toolchainBA, toolchainBB},
+			expectedText: `
+cc_toolchain_config =  rule(
+    implementation = _impl,
+    attrs = {
+        "cpu": attr.string(mandatory=True, values=["cpuB"]),
+        "compiler": attr.string(mandatory=True, values=["compilerA", "compilerB"]),
+    },
+    provides = [CcToolchainConfigInfo],
+    executable = True,
+)
+`},
+		{
+			toolchains: []string{toolchainAA, toolchainBA, toolchainBB},
+			expectedText: `
+cc_toolchain_config =  rule(
+    implementation = _impl,
+    attrs = {
+        "cpu": attr.string(mandatory=True, values=["cpuA", "cpuB"]),
+        "compiler": attr.string(mandatory=True, values=["compilerA", "compilerB"]),
+    },
+    provides = [CcToolchainConfigInfo],
+    executable = True,
+)
+`},
+		{
+			toolchains: []string{toolchainAA, toolchainBA, toolchainBB, toolchainCC},
+			expectedText: `
+cc_toolchain_config =  rule(
+    implementation = _impl,
+    attrs = {
+        "cpu": attr.string(mandatory=True, values=["cpuA", "cpuB", "cpuC"]),
+        "compiler": attr.string(mandatory=True, values=["compilerA", "compilerB", "compilerC"]),
+    },
+    provides = [CcToolchainConfigInfo],
+    executable = True,
+)
+`}}
+
+	for _, tc := range testCases {
+		crosstool := makeCrosstool(tc.toolchains)
+		got, err := Transform(crosstool)
+		if err != nil {
+			t.Fatalf("CROSSTOOL conversion failed: %v", err)
+		}
+		if !strings.Contains(got, tc.expectedText) {
+			t.Errorf("Failed to correctly declare the rule, expected to contain:\n%v\n",
+				tc.expectedText)
+			t.Fatalf("Tested CROSSTOOL:\n%v\n\nGenerated rule:\n%v\n",
+				strings.Join(tc.toolchains, "\n"), got)
+		}
+	}
+}

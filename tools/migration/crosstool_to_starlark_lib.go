@@ -273,13 +273,27 @@ func processActions(actions []string, depth int) []string {
 	return res
 }
 
-func getRule(cToolchainIdentifiers map[string]CToolchainIdentifier) string {
+func getUniqueValues(arr []string) []string {
+	valuesSet := make(map[string]bool)
+	for _, val := range arr {
+		valuesSet[val] = true
+	}
+	var uniques []string
+	for val, _ := range valuesSet {
+		uniques = append(uniques, val)
+	}
+	sort.Strings(uniques)
+	return uniques
+}
+
+func getRule(cToolchainIdentifiers map[string]CToolchainIdentifier,
+	allowedCompilers []string) string {
 	cpus := make(map[string]bool)
-	compilers := make(map[string]bool)
+	shouldUseCompilerAttribute := false
 	for _, val := range cToolchainIdentifiers {
 		cpus[val.cpu] = true
 		if val.compiler != "" {
-			compilers[val.compiler] = true
+			shouldUseCompilerAttribute = true
 		}
 	}
 
@@ -288,21 +302,19 @@ func getRule(cToolchainIdentifiers map[string]CToolchainIdentifier) string {
 		cpuValues = append(cpuValues, cpu)
 	}
 
-	var compilerValues []string
-	for compiler := range compilers {
-		compilerValues = append(compilerValues, compiler)
-	}
 	var args []string
 	sort.Strings(cpuValues)
 	args = append(args,
 		fmt.Sprintf(
 			`"cpu": attr.string(mandatory=True, values=["%s"]),`,
 			strings.Join(cpuValues, "\", \"")))
-	if len(compilerValues) != 0 {
-		sort.Strings(compilerValues)
+	if shouldUseCompilerAttribute {
+		// If there are two CToolchains that share the cpu we need the compiler attribute
+		// for our cc_toolchain_config rule.
+		allowedCompilers = getUniqueValues(allowedCompilers)
 		args = append(args,
-			fmt.Sprintf(`"compiler": attr.string(values=["%s"]),`,
-				strings.Join(compilerValues, "\", \"")))
+			fmt.Sprintf(`"compiler": attr.string(mandatory=True, values=["%s"]),`,
+				strings.Join(allowedCompilers, "\", \"")))
 	}
 	return fmt.Sprintf(`cc_toolchain_config =  rule(
     implementation = _impl,
@@ -1398,7 +1410,7 @@ func Transform(crosstool *crosstoolpb.CrosstoolRelease) (string, error) {
 		return "", err
 	}
 
-	rule := getRule(cToolchainIdentifiers)
+	rule := getRule(cToolchainIdentifiers, getCompilers(crosstool))
 	if _, err := b.WriteString(rule); err != nil {
 		return "", err
 	}
