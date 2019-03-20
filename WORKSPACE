@@ -53,6 +53,7 @@ http_archive(
     ],
 )
 
+# TODO(https://github.com/protocolbuffers/protobuf/issues/5918: Remove when protobuf releases protobuf_deps.bzl)
 http_archive(
     name = "net_zlib",
     build_file = "@com_google_protobuf//examples:third_party/zlib.BUILD",
