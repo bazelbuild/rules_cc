@@ -80,3 +80,6 @@ http_archive(
 load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
 go_rules_dependencies()
 go_register_toolchains()
+
+load("//cc:deps.bzl", "rules_cc_deps")
+rules_cc_deps()
