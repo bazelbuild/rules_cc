@@ -9,7 +9,7 @@ def rules_cc_deps():
         urls = [
             "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/archive/0.8.0.tar.gz",
             "https://github.com/bazelbuild/bazel-skylib/archive/0.8.0.tar.gz",
-            ],
+        ],
     )
 
 def _maybe(repo_rule, name, **kwargs):
