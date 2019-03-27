@@ -18,11 +18,11 @@ bind(
 
 http_archive(
     name = "com_google_protobuf",
-    sha256 = "3e933375ecc58d01e52705479b82f155aea2d02cc55d833f8773213e74f88363",
+    sha256 = "f1748989842b46fa208b2a6e4e2785133cfcc3e4d43c17fecb023733f0f5443f",
     strip_prefix = "protobuf-3.7.0",
     urls = [
         "https://mirror.bazel.build/github.com/protocolbuffers/protobuf/archive/protobuf-all-3.7.0.tar.gz",
-        "https://github.com/protocolbuffers/protobuf/releases/download/v3.7.0/protobuf-all-3.7.0.tar.gz",
+        "https://github.com/protocolbuffers/protobuf/releases/download/v3.7.1/protobuf-all-3.7.0.tar.gz",
     ],
 )
 
