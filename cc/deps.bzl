@@ -13,5 +13,5 @@ def rules_cc_deps():
     )
 
 def _maybe(repo_rule, name, **kwargs):
-    if name not in native.existing_rules():
+    if not native.existing_rule(name):
         repo_rule(name = name, **kwargs)
