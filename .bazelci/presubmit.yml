@@ -19,12 +19,12 @@ platforms:
   ubuntu1804_nojava:
     run_targets:
     build_flags:
-    - "--javabase=@openjdk_linux_archive//:runtime"
+    - "--javabase=@openjdk11_linux_archive//:runtime"
     build_targets:
     - "..."
     test_flags:
     - "--test_timeout=300"
-    - "--javabase=@openjdk_linux_archive//:runtime"
+    - "--javabase=@openjdk11_linux_archive//:runtime"
     test_targets:
     - "..."
   macos:
