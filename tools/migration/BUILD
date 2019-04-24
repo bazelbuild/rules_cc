@@ -22,6 +22,7 @@ licenses(["notice"])  # Apache 2.0
 py_binary(
     name = "legacy_fields_migrator",
     srcs = ["legacy_fields_migrator.py"],
+    python_version = "PY2",
     deps = [
         ":legacy_fields_migration_lib",
         "//third_party/com/github/bazelbuild/bazel/src/main/protobuf:crosstool_config_py_pb2",
@@ -41,6 +42,7 @@ py_library(
 py_test(
     name = "legacy_fields_migration_lib_test",
     srcs = ["legacy_fields_migration_lib_test.py"],
+    python_version = "PY2",
     deps = [
         ":legacy_fields_migration_lib",
         "//third_party/com/github/bazelbuild/bazel/src/main/protobuf:crosstool_config_py_pb2",
@@ -50,6 +52,7 @@ py_test(
 py_binary(
     name = "crosstool_query",
     srcs = ["crosstool_query.py"],
+    python_version = "PY2",
     deps = [
         "//third_party/com/github/bazelbuild/bazel/src/main/protobuf:crosstool_config_py_pb2",
         "@io_abseil_py//absl:app",
@@ -60,6 +63,7 @@ py_binary(
 py_binary(
     name = "ctoolchain_comparator",
     srcs = ["ctoolchain_comparator.py"],
+    python_version = "PY2",
     deps = [
         ":ctoolchain_comparator_lib",
         "//third_party/com/github/bazelbuild/bazel/src/main/protobuf:crosstool_config_py_pb2",
@@ -79,6 +83,7 @@ py_library(
 py_test(
     name = "ctoolchain_comparator_lib_test",
     srcs = ["ctoolchain_comparator_lib_test.py"],
+    python_version = "PY2",
     deps = [
         ":ctoolchain_comparator_lib",
         "//third_party/com/github/bazelbuild/bazel/src/main/protobuf:crosstool_config_py_pb2",
