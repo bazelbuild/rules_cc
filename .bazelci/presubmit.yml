@@ -1,13 +1,5 @@
 ---
 platforms:
-  ubuntu1404:
-    run_targets:
-    build_targets:
-    - "..."
-    test_flags:
-    - "--test_timeout=300"
-    test_targets:
-    - "..."
   ubuntu1604:
     run_targets:
     build_targets:
