@@ -24,6 +24,7 @@ def _my_c_archive_impl(ctx):
     output_file = ctx.actions.declare_file(ctx.label.name + ".a")
 
     feature_configuration = cc_common.configure_features(
+        ctx = ctx,
         cc_toolchain = cc_toolchain,
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
@@ -90,4 +91,5 @@ my_c_archive = rule(
         "deps": attr.label_list(providers = [CcInfo]),
         "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
     },
+    fragments = ["cpp"],
 )
