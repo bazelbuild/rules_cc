@@ -71,9 +71,7 @@ def _my_c_archive_impl(ctx):
         inputs = depset(
             direct = [object_file],
             transitive = [
-                # TODO: Use CcToolchainInfo getters when available
-                # See https://github.com/bazelbuild/bazel/issues/7427.
-                ctx.attr._cc_toolchain.files,
+                cc_toolchain.all_files,
             ],
         ),
         outputs = [output_file],

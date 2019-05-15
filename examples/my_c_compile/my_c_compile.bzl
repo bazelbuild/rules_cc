@@ -61,9 +61,7 @@ def _my_c_compile_impl(ctx):
         env = env,
         inputs = depset(
             items = [source_file],
-            # TODO: Use CcToolchainInfo getters when available
-            # See https://github.com/bazelbuild/bazel/issues/7427.
-            transitive = [ctx.attr._cc_toolchain.files],
+            transitive = [cc_toolchain.all_files],
         ),
         outputs = [output_file],
     )
@@ -78,5 +76,6 @@ my_c_compile = rule(
         "src": attr.label(mandatory = True, allow_single_file = True),
         "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
     },
+    toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
     fragments = ["cpp"],
 )
