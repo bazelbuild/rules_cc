@@ -90,4 +90,5 @@ my_c_archive = rule(
         "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
     },
     fragments = ["cpp"],
+    toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
 )
