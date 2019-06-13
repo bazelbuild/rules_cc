@@ -11,7 +11,6 @@ cc_bin(
     dynamic_deps = [":libA_shared.so"],
 )
 
-# FIX: add cc_binary to test
 cc_shared_library(
     name = "libA_shared.so",
     of = "A",
