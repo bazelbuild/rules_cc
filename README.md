@@ -60,4 +60,4 @@ For asking questions see:
 
 * [Stack Overflow](https://stackoverflow.com/questions/tagged/bazel)
 * [rules_cc mailing list](https://groups.google.com/forum/#!forum/cc-bazel-discuss)
-* Slack channel `#cc` on [bazelbuild.slack.com](https://bazelbuild.slack.com) (use [bazel-slackin](https://bazel-slackin.herokuapp.com) to join).
+* Slack channel `#cc` on [slack.bazel.build](https://slack.bazel.build)
