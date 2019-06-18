@@ -17,7 +17,7 @@ licenses(["notice"])
 
 load("//examples/my_c_compile:my_c_compile.bzl", "my_c_compile")
 load("//examples/my_c_archive:my_c_archive.bzl", "my_c_archive")
-load("//cc:rules.bzl", "cc_binary")
+load("//cc:defs.bzl", "cc_binary")
 
 cc_binary(
     name = "main",

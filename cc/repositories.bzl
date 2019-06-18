@@ -1,6 +1,8 @@
+"""Repository rules entry point module for rules_cc."""
+
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-def rules_cc_deps():
+def rules_cc_dependencies():
     _maybe(
         http_archive,
         name = "bazel_skylib",

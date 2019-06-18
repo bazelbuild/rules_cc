@@ -81,5 +81,5 @@ load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_to
 go_rules_dependencies()
 go_register_toolchains()
 
-load("//cc:deps.bzl", "rules_cc_deps")
-rules_cc_deps()
+load("//cc:repositories.bzl", "rules_cc_dependencies")
+rules_cc_dependencies()

@@ -26,7 +26,7 @@ http_archive(
 Then, in your BUILD files, import and use the rules:
 
 ```
-load("@rules_cc//cc:rules.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library")
 cc_library(
     ...
 )
