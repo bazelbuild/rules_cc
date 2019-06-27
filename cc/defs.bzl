@@ -14,6 +14,15 @@
 
 """Starlark rules for building C++ projects."""
 
+_MIGRATION_TAG = "__CC_RULES_MIGRATION_DO_NOT_USE_WILL_BREAK__"
+
+def _add_tags(attrs):
+    if "tags" in attrs and attrs["tags"] != None:
+        attrs["tags"] += [_MIGRATION_TAG]
+    else:
+        attrs["tags"] = [_MIGRATION_TAG]
+    return attrs
+
 def cc_binary(**attrs):
     """Bazel cc_binary rule.
 
@@ -22,7 +31,7 @@ def cc_binary(**attrs):
     Args:
       **attrs: Rule attributes
     """
-    native.cc_binary(**attrs)
+    native.cc_binary(**_add_tags(attrs))
 
 def cc_test(**attrs):
     """Bazel cc_test rule.
@@ -32,7 +41,7 @@ def cc_test(**attrs):
     Args:
       **attrs: Rule attributes
     """
-    native.cc_test(**attrs)
+    native.cc_test(**_add_tags(attrs))
 
 def cc_library(**attrs):
     """Bazel cc_library rule.
@@ -42,7 +51,7 @@ def cc_library(**attrs):
     Args:
       **attrs: Rule attributes
     """
-    native.cc_library(**attrs)
+    native.cc_library(**_add_tags(attrs))
 
 def cc_import(**attrs):
     """Bazel cc_import rule.
@@ -52,7 +61,7 @@ def cc_import(**attrs):
     Args:
       **attrs: Rule attributes
     """
-    native.cc_import(**attrs)
+    native.cc_import(**_add_tags(attrs))
 
 def cc_proto_library(**attrs):
     """Bazel cc_proto_library rule.
@@ -62,7 +71,7 @@ def cc_proto_library(**attrs):
     Args:
       **attrs: Rule attributes
     """
-    native.cc_proto_library(**attrs)
+    native.cc_proto_library(**_add_tags(attrs))
 
 def fdo_prefetch_hints(**attrs):
     """Bazel fdo_prefetch_hints rule.
@@ -72,7 +81,7 @@ def fdo_prefetch_hints(**attrs):
     Args:
       **attrs: Rule attributes
     """
-    native.fdo_prefetch_hints(**attrs)
+    native.fdo_prefetch_hints(**_add_tags(attrs))
 
 def fdo_profile(**attrs):
     """Bazel fdo_profile rule.
@@ -82,4 +91,44 @@ def fdo_profile(**attrs):
     Args:
       **attrs: Rule attributes
     """
-    native.fdo_profile(**attrs)
+    native.fdo_profile(**_add_tags(attrs))
+
+def cc_toolchain(**attrs):
+    """Bazel cc_toolchain rule.
+
+    https://docs.bazel.build/versions/master/be/c-cpp.html#cc_toolchain
+
+    Args:
+      **attrs: Rule attributes
+    """
+    native.cc_toolchain(**_add_tags(attrs))
+
+def cc_toolchain_suite(**attrs):
+    """Bazel cc_toolchain_suite rule.
+
+    https://docs.bazel.build/versions/master/be/c-cpp.html#cc_toolchain_suite
+
+    Args:
+      **attrs: Rule attributes
+    """
+    native.cc_toolchain_suite(**_add_tags(attrs))
+
+def objc_library(**attrs):
+    """Bazel objc_library rule.
+
+    https://docs.bazel.build/versions/master/be/objective-c.html#objc_library
+
+    Args:
+      **attrs: Rule attributes
+    """
+    native.objc_library(**_add_tags(attrs))
+
+def objc_import(**attrs):
+    """Bazel objc_import rule.
+
+    https://docs.bazel.build/versions/master/be/objective-c.html#objc_import
+
+    Args:
+      **attrs: Rule attributes
+    """
+    native.objc_import(**_add_tags(attrs))
