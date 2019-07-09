@@ -12,14 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-package(default_visibility = ["//visibility:public"])
+"""Rule that allows select() to differentiate between compilers."""
 
-licenses(["notice"])  # Apache 2.0
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
-exports_files([
-    "defs.bzl",
-    "action_names.bzl",
-])
+def _compiler_flag_impl(ctx):
+    toolchain = find_cpp_toolchain(ctx)
+    return [config_common.FeatureFlagInfo(value = toolchain.compiler)]
 
-# The toolchain type used to distinguish cc toolchains.
-toolchain_type(name = "toolchain_type")
+compiler_flag = rule(
+    implementation = _compiler_flag_impl,
+    attrs = {
+        "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
+    },
+    toolchains = ["//cc:toolchain_type"],
+)
