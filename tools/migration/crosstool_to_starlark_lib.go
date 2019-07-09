@@ -27,7 +27,7 @@ type CToolchainIdentifier struct {
 
 // Writes the load statement for the cc_toolchain_config_lib
 func getCcToolchainConfigHeader() string {
-	return `load("@bazel_tools//tools/cpp:cc_toolchain_config_lib.bzl",
+	return `load("@rules_cc//cc:cc_toolchain_config_lib.bzl",
     "action_config",
     "artifact_name_pattern",
     "env_entry",

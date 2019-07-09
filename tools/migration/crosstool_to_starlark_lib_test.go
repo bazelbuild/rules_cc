@@ -1533,7 +1533,7 @@ func TestFeatureDeclaration(t *testing.T) {
 
 func TestRule(t *testing.T) {
 	simpleToolchain := getSimpleCToolchain("simple")
-	expected := `load("@bazel_tools//tools/cpp:cc_toolchain_config_lib.bzl",
+	expected := `load("@rules_cc//cc:cc_toolchain_config_lib.bzl",
     "action_config",
     "artifact_name_pattern",
     "env_entry",
