@@ -1,4 +1,6 @@
-# Copyright 2018 The Bazel Authors. All rights reserved.
+#!/bin/bash
+#
+# Copyright 2015 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,28 +13,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+# Ship the environment to the C++ action
+#
+set -eu
 
-package(default_visibility = ["//visibility:public"])
+# Set-up the environment
+%{env}
 
-licenses(["notice"])  # Apache 2.0
-
-exports_files([
-    "defs.bzl",
-    "action_names.bzl",
-])
-
-# The toolchain type used to distinguish cc toolchains.
-alias(
-    name = "toolchain_type",
-    actual = "@bazel_tools//tools/cpp:toolchain_type",
-)
-
-filegroup(
-    name = "action_names_test_files",
-    testonly = True,
-    srcs = [
-        "BUILD",
-        "action_names.bzl",
-    ],
-    visibility = ["//visibility:public"],
-)
+# Call the C++ compiler
+%{cc} "$@"
