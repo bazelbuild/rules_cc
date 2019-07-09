@@ -24,7 +24,7 @@ Returns the current `CcToolchainInfo`.
 foo = rule(
     implementation = _foo_impl,
     attrs = {
-        "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
+        "_cc_toolchain": attr.label(default = Label("//tools/cpp:current_cc_toolchain")),
     },
 )
 * When https://github.com/bazelbuild/bazel/issues/7260 **is** flipped, current
@@ -34,14 +34,14 @@ foo = rule(
 
     foo = rule(
         implementation = _foo_impl,
-        toolchains = ["@rules_cc//cc:toolchain_type"],
+        toolchains = ["//cc:toolchain_type"],
     )
 
 We advise to depend on both `_cc_toolchain` attr and
-`@rules_cc//cc:toolchain_type` for the duration of the migration. After
+`//cc:toolchain_type` for the duration of the migration. After
 https://github.com/bazelbuild/bazel/issues/7260 is flipped (and support for old
 Bazel version is not needed), it's enough to only keep the
-`@rules_cc//cc:toolchain_type`.
+`//cc:toolchain_type`.
 """
 
 def find_cc_toolchain(ctx):
@@ -59,7 +59,7 @@ Returns the current `CcToolchainInfo`.
     if hasattr(cc_common, "is_cc_toolchain_resolution_enabled_do_not_use") and cc_common.is_cc_toolchain_resolution_enabled_do_not_use(ctx = ctx):
         if "//cc:toolchain_type" in ctx.toolchains:
             return ctx.toolchains["//cc:toolchain_type"]
-        fail("In order to use find_cc_toolchain, you must include the '@rules_cc//cc:toolchain_type' in the toolchains argument to your rule.")
+        fail("In order to use find_cc_toolchain, you must include the '//cc:toolchain_type' in the toolchains argument to your rule.")
 
     # Fall back to the legacy implicit attribute lookup.
     if hasattr(ctx.attr, "_cc_toolchain"):
