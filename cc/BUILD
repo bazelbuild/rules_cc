@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Just adding a comment see what happens
 package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])  # Apache 2.0
