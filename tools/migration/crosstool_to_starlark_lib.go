@@ -118,7 +118,7 @@ var actionNames = map[string]string{
 }
 
 func getLoadActionsStmt() string {
-	return "load(\"@bazel_tools//tools/build_defs/cc:action_names.bzl\", \"ACTION_NAMES\")\n\n"
+	return "load(\"@rules_cc//cc:action_names.bzl\", \"ACTION_NAMES\")\n\n"
 }
 
 // Returns a map {toolchain_identifier : CToolchainIdentifier}

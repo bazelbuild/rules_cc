@@ -15,7 +15,7 @@
 """Example showing how to create a rule that rules_cc can depend on."""
 
 load("@rules_cc//cc:toolchain_utils.bzl", "find_cpp_toolchain")
-load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "CPP_LINK_STATIC_LIBRARY_ACTION_NAME")
+load("@rules_cc//cc:action_names.bzl", "CPP_LINK_STATIC_LIBRARY_ACTION_NAME")
 load("//examples/my_c_compile:my_c_compile.bzl", "MyCCompileInfo")
 
 def _my_c_archive_impl(ctx):

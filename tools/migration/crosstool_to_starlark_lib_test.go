@@ -1548,7 +1548,7 @@ func TestRule(t *testing.T) {
     "variable_with_value",
     "with_feature_set",
 )
-load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
+load("@rules_cc//cc:action_names.bzl", "ACTION_NAMES")
 
 def _impl(ctx):
     toolchain_identifier = "id-simple"
