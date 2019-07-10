@@ -31,7 +31,7 @@ load(
     "with_feature_set",
 )
 load(
-    "@bazel_tools//tools/build_defs/cc:action_names.bzl",
+    "@rules_cc//cc:action_names.bzl",
     _ASSEMBLE_ACTION_NAME = "ASSEMBLE_ACTION_NAME",
     _CLIF_MATCH_ACTION_NAME = "CLIF_MATCH_ACTION_NAME",
     _CPP_COMPILE_ACTION_NAME = "CPP_COMPILE_ACTION_NAME",

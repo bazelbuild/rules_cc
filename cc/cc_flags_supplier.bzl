@@ -13,7 +13,7 @@
 # limitations under the License.
 """Rule that provides the CC_FLAGS Make variable."""
 
-load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "CC_FLAGS_MAKE_VARIABLE_ACTION_NAME")
+load("@rules_cc//cc:action_names.bzl", "CC_FLAGS_MAKE_VARIABLE_ACTION_NAME")
 load("@rules_cc//cc:cc_flags_supplier_lib.bzl", "build_cc_flags")
 load("@rules_cc//cc:toolchain_utils.bzl", "find_cpp_toolchain")
 
