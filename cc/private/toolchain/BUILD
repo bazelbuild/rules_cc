@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+package(default_visibility = ["//visibility:public"])
+
+licenses(["notice"])  # Apache 2.0
+
 load(":cc_toolchain_config.bzl", "cc_toolchain_config")
 load("//cc:defs.bzl", "cc_library", "cc_toolchain", "cc_toolchain_suite")
 
