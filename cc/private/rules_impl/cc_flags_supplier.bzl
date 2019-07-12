@@ -28,7 +28,7 @@ def _cc_flags_supplier_impl(ctx):
 cc_flags_supplier = rule(
     implementation = _cc_flags_supplier_impl,
     attrs = {
-        "_cc_toolchain": attr.label(default = Label("//cc:current_cc_toolchain")),
+        "_cc_toolchain": attr.label(default = Label("//cc/private/toolchain:current_cc_toolchain")),
     },
     toolchains = ["//cc:toolchain_type"],
     fragments = ["cpp"],

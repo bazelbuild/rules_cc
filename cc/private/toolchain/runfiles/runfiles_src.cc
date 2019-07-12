@@ -14,7 +14,7 @@
 
 // The "srcs_for_embedded_tools" rule in the same package sets the line below to
 // include runfiles.h from the correct path. Do not modify the line below.
-#include "third_party/bazel_rules/rules_cc/cc/private/toolchain/runfiles/runfiles_src.h"
+#include "cc/private/toolchain/runfiles/runfiles_src.h"
 
 #ifdef _WIN32
 #include <windows.h>

@@ -74,6 +74,19 @@ config_setting(
     },
 )
 
+# This is the entry point for --crosstool_top.  Toolchains are found
+# by lopping off the name of --crosstool_top and searching for
+# "cc-compiler-${CPU}" in this BUILD file, where CPU is the target CPU
+# specified in --cpu.
+#
+# This file group should include
+#   * all cc_toolchain targets supported
+#   * all file groups that said cc_toolchain might refer to
+alias(
+    name = "toolchain",
+    actual = "//external:cc_toolchain",
+)
+
 # Hardcoded toolchain, legacy behaviour.
 cc_toolchain_suite(
     name = "default-toolchain",
@@ -406,14 +419,14 @@ toolchain(
 filegroup(
     name = "srcs",
     srcs = glob(["**"]) + [
-        "@bazel_tools//tools/cpp/runfiles:srcs",
+        "//cc/private/toolchain/runfiles:srcs",
     ],
 )
 
 filegroup(
     name = "embedded_tools",
     srcs = glob(["**"]) + [
-        "@bazel_tools//tools/cpp/runfiles:embedded_tools",
+        "//cc/private/toolchain/runfiles:embedded_tools",
     ],
 )
 
@@ -446,26 +459,3 @@ compiler_flag(name = "compiler")
 load("//cc:defs.bzl", "cc_flags_supplier")
 
 cc_flags_supplier(name = "cc_flags")
-
-filegroup(
-    name = "action_names_test_files",
-    testonly = True,
-    srcs = [
-        "BUILD",
-        "action_names.bzl",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-# This is the entry point for --crosstool_top.  Toolchains are found
-# by lopping off the name of --crosstool_top and searching for
-# "cc-compiler-${CPU}" in this BUILD file, where CPU is the target CPU
-# specified in --cpu.
-#
-# This file group should include
-#   * all cc_toolchain targets supported
-#   * all file groups that said cc_toolchain might refer to
-alias(
-    name = "toolchain",
-    actual = "//external:cc_toolchain",
-)

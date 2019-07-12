@@ -22,4 +22,18 @@ exports_files([
 ])
 
 # The toolchain type used to distinguish cc toolchains.
-toolchain_type(name = "toolchain_type")
+alias(
+    name = "toolchain_type",
+    actual = "@bazel_tools//tools/cpp:toolchain_type",
+)
+
+filegroup(
+    name = "action_names_test_files",
+    testonly = True,
+    srcs = [
+        "BUILD",
+        "action_names.bzl",
+    ],
+    visibility = ["//visibility:public"],
+)
+#toolchain_type(name = "toolchain_type")

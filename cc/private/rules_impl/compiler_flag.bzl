@@ -14,7 +14,7 @@
 
 """Rule that allows select() to differentiate between compilers."""
 
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
+load("//cc:toolchain_utils.bzl", "find_cpp_toolchain")
 
 def _compiler_flag_impl(ctx):
     toolchain = find_cpp_toolchain(ctx)
@@ -23,7 +23,7 @@ def _compiler_flag_impl(ctx):
 compiler_flag = rule(
     implementation = _compiler_flag_impl,
     attrs = {
-        "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
+        "_cc_toolchain": attr.label(default = Label("//cc/private/toolchain:current_cc_toolchain")),
     },
     toolchains = ["//cc:toolchain_type"],
 )

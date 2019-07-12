@@ -1,6 +1,6 @@
 package(default_visibility = ["//visibility:private"])
 
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("//cc:defs.bzl", "cc_library", "cc_test")
 
 filegroup(
     name = "srcs",
@@ -11,7 +11,7 @@ filegroup(
             "*~",
         ],
     ),
-    visibility = ["@rules_cc//cc:__pkg__"],
+    visibility = ["//cc/private/toolchain:__pkg__"],
 )
 
 filegroup(
@@ -20,7 +20,7 @@ filegroup(
         "BUILD.tools",
         ":srcs_for_embedded_tools",
     ],
-    visibility = ["@rules_cc//cc:__pkg__"],
+    visibility = ["//cc/private/toolchain:__pkg__"],
 )
 
 # Rewrite the include path for runfiles.h in runfiles_src.cc, and create
@@ -29,9 +29,9 @@ filegroup(
 #
 # We cannot just check in runfiles_src.{h,cc} as runfiles.{h,cc}, because it'd
 # cause a header check failure on Windows when building targets in the Bazel
-# source tree, if those targets depend on @bazel_tools@bazel_tools//tools/cpp/runfiles,
+# source tree, if those targets depend on @bazel_tools//tools/cpp/runfiles,
 # because due to lack of sandboxing they would accidentally pick up runfiles.h
-# from @bazel_tools//tools/cpp/runfiles.
+# from //tools/cpp/runfiles.
 genrule(
     name = "srcs_for_embedded_tools",
     srcs = [

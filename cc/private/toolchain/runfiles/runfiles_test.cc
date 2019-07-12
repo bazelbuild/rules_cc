@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "third_party/bazel_rules/rules_cc/cc/private/toolchain/runfiles/runfiles_src.h"
+#include "cc/private/toolchain/runfiles/runfiles_src.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -24,8 +24,6 @@
 #include <vector>
 
 #include "gtest/gtest.h"
-#include "src/main/cpp/util/file.h"
-#include "src/main/cpp/util/path.h"
 
 #define RUNFILES_TEST_TOSTRING_HELPER(x) #x
 #define RUNFILES_TEST_TOSTRING(x) RUNFILES_TEST_TOSTRING_HELPER(x)
@@ -99,14 +97,14 @@ string RunfilesTest::GetTemp() {
 #ifdef _WIN32
   DWORD size = ::GetEnvironmentVariableA("TEST_TMPDIR", NULL, 0);
   if (size == 0) {
-    return std::move(string());  // unset or empty envvar
+    return string();  // unset or empty envvar
   }
   unique_ptr<char[]> value(new char[size]);
   ::GetEnvironmentVariableA("TEST_TMPDIR", value.get(), size);
-  return std::move(string(value.get()));
+  return value.get();
 #else
   char* result = getenv("TEST_TMPDIR");
-  return result != NULL ? std::move(string(result)) : std::move(string());
+  return result != NULL ? string(result) : string();
 #endif
 }
 
@@ -122,19 +120,15 @@ RunfilesTest::MockFile* RunfilesTest::MockFile::Create(
     return nullptr;
   }
 
-  string tmp(std::move(RunfilesTest::GetTemp()));
+  string tmp(RunfilesTest::GetTemp());
   if (tmp.empty()) {
     cerr << "WARNING: " << __FILE__ << "(" << __LINE__
          << "): $TEST_TMPDIR is empty" << endl;
     return nullptr;
   }
   string path(tmp + "/" + name);
-  string dirname = blaze_util::Dirname(path);
-  if (!blaze_util::MakeDirectories(dirname, 0777)) {
-    cerr << "WARNING: " << __FILE__ << "(" << __LINE__ << "): MakeDirectories("
-         << dirname << ") failed" << endl;
-    return nullptr;
-  }
+
+  string::size_type i = 0;
 
   auto stm = std::ofstream(path);
   for (auto i : lines) {
