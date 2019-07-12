@@ -14,8 +14,8 @@
 
 """Starlark rules for building C++ projects."""
 
-load("//cc/private/rules_impl:cc_flags_supplier.bzl", "cc_flags_supplier")
-load("//cc/private/rules_impl:compiler_flag.bzl", "compiler_flag")
+load("//cc/private/rules_impl:cc_flags_supplier.bzl", _cc_flags_supplier = "cc_flags_supplier")
+load("//cc/private/rules_impl:compiler_flag.bzl", _compiler_flag = "compiler_flag")
 
 _MIGRATION_TAG = "__CC_RULES_MIGRATION_DO_NOT_USE_WILL_BREAK__"
 
@@ -142,7 +142,7 @@ def cc_flags_supplier(**attrs):
     Args:
       **attrs: Rule attributes
     """
-    cc_flags_supplier(**_add_tags(attrs))
+    _cc_flags_supplier(**_add_tags(attrs))
 
 def compiler_flag(**attrs):
     """Bazel compiler_flag rule.
@@ -150,4 +150,4 @@ def compiler_flag(**attrs):
     Args:
       **attrs: Rule attributes
     """
-    compiler_flag(**_add_tags(attrs))
+    _compiler_flag(**_add_tags(attrs))
