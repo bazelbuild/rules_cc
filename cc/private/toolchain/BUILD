@@ -432,7 +432,7 @@ filegroup(
     srcs = ["lib_cc_configure.bzl"],
 )
 
-load(":compiler_flag.bzl", "compiler_flag")
+load("//cc:defs.bzl", "compiler_flag")
 
 compiler_flag(name = "compiler")
 
