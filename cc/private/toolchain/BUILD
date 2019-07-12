@@ -438,7 +438,7 @@ compiler_flag(name = "compiler")
 
 # Target that can provide the CC_FLAGS variable based on the current
 # cc_toolchain.
-load(":cc_flags_supplier.bzl", "cc_flags_supplier")
+load("//cc:defs.bzl", "cc_flags_supplier")
 
 cc_flags_supplier(name = "cc_flags")
 
