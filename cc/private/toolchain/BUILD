@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+load(":cc_toolchain_config.bzl", "cc_toolchain_config")
 load("//cc:defs.bzl", "cc_library", "cc_toolchain", "cc_toolchain_suite")
 
 # It is frequently necessary to constrain platforms based on the cc compiler type.
