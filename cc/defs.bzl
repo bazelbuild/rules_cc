@@ -14,6 +14,9 @@
 
 """Starlark rules for building C++ projects."""
 
+load("//cc/private/rules_impl:cc_flags_supplier.bzl", "cc_flags_supplier")
+load("//cc/private/rules_impl:compiler_flag.bzl", "compiler_flag")
+
 _MIGRATION_TAG = "__CC_RULES_MIGRATION_DO_NOT_USE_WILL_BREAK__"
 
 def _add_tags(attrs):
@@ -132,3 +135,19 @@ def objc_import(**attrs):
       **attrs: Rule attributes
     """
     native.objc_import(**_add_tags(attrs))
+
+def cc_flags_supplier(**attrs):
+    """Bazel cc_flags_supplier rule.
+
+    Args:
+      **attrs: Rule attributes
+    """
+    cc_flags_supplier(**_add_tags(attrs))
+
+def compiler_flag(**attrs):
+    """Bazel compiler_flag rule.
+
+    Args:
+      **attrs: Rule attributes
+    """
+    compiler_flag(**_add_tags(attrs))
