@@ -1,4 +1,4 @@
-# Copyright 2019 The Bazel Authors. All rights reserved.
+# Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,19 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Example showing how to get CcToolchainInfo in a custom rule."""
+"""Rule that allows select() to differentiate between compilers."""
 
 load("@rules_cc//cc:toolchain_utils.bzl", "find_cpp_toolchain")
 
-def _write_cc_toolchain_cpu_impl(ctx):
-    cc_toolchain = find_cpp_toolchain(ctx)
-    output = ctx.actions.declare_file(ctx.label.name + "_cpu")
-    ctx.actions.write(output, cc_toolchain.cpu)
-    return [DefaultInfo(files = depset([output]))]
+def _compiler_flag_impl(ctx):
+    toolchain = find_cpp_toolchain(ctx)
+    return [config_common.FeatureFlagInfo(value = toolchain.compiler)]
 
-# This rule does nothing, just writes the target_cpu from the cc_toolchain used for this build.
-write_cc_toolchain_cpu = rule(
-    implementation = _write_cc_toolchain_cpu_impl,
+compiler_flag = rule(
+    implementation = _compiler_flag_impl,
     attrs = {
         "_cc_toolchain": attr.label(default = Label("@rules_cc//cc:current_cc_toolchain")),
     },
