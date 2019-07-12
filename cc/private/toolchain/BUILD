@@ -17,7 +17,7 @@ package(default_visibility = ["//visibility:public"])
 licenses(["notice"])  # Apache 2.0
 
 load(":cc_toolchain_config.bzl", "cc_toolchain_config")
-load("//cc:defs.bzl", "cc_library", "cc_toolchain", "cc_toolchain_suite")
+load("//cc:defs.bzl", "cc_flags_supplier", "cc_library", "cc_toolchain", "cc_toolchain_suite", "compiler_flag")
 
 # It is frequently necessary to constrain platforms based on the cc compiler type.
 constraint_setting(name = "cc_compiler")
@@ -450,12 +450,6 @@ filegroup(
     srcs = ["lib_cc_configure.bzl"],
 )
 
-load("//cc:defs.bzl", "compiler_flag")
-
 compiler_flag(name = "compiler")
-
-# Target that can provide the CC_FLAGS variable based on the current
-# cc_toolchain.
-load("//cc:defs.bzl", "cc_flags_supplier")
 
 cc_flags_supplier(name = "cc_flags")

@@ -36,4 +36,3 @@ filegroup(
     ],
     visibility = ["//visibility:public"],
 )
-#toolchain_type(name = "toolchain_type")

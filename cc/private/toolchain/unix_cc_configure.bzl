@@ -152,7 +152,7 @@ def _is_compiler_option_supported(repository_ctx, cc, option):
         "-o",
         "/dev/null",
         "-c",
-        str(repository_ctx.path("tools/cpp/empty.cc")),
+        str(repository_ctx.path("cc/private/toolchain/empty.cc")),
     ])
     return result.stderr.find(option) == -1
 
@@ -163,7 +163,7 @@ def _is_linker_option_supported(repository_ctx, cc, option, pattern):
         option,
         "-o",
         "/dev/null",
-        str(repository_ctx.path("tools/cpp/empty.cc")),
+        str(repository_ctx.path("cc/private/toolchain/empty.cc")),
     ])
     return result.stderr.find(pattern) == -1
 
@@ -179,7 +179,7 @@ def _find_gold_linker_path(repository_ctx, cc):
     """
     result = repository_ctx.execute([
         cc,
-        str(repository_ctx.path("tools/cpp/empty.cc")),
+        str(repository_ctx.path("cc/private/toolchain/empty.cc")),
         "-o",
         "/dev/null",
         # Some macos clang versions don't fail when setting -fuse-ld=gold, adding
@@ -322,7 +322,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overriden_tools):
         "armeabi_cc_toolchain_config.bzl",
     )
 
-    repository_ctx.file("tools/cpp/empty.cc", "int main() {}")
+    repository_ctx.file("cc/private/toolchain/empty.cc", "int main() {}")
     darwin = cpu_value == "darwin"
 
     cc = _find_generic(repository_ctx, "gcc", "CC", overriden_tools)

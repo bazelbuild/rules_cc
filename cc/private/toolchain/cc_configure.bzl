@@ -62,7 +62,7 @@ def cc_autoconf_toolchains_impl(repository_ctx):
         # Only detect xcode if the user didn't tell us it will be there.
         if not should_use_xcode:
             # TODO(#6926): Unify C++ and ObjC toolchains so we don't have to run xcode locator to generate toolchain targets.
-            # And also so we don't have to keep this code in sync with //tools/cpp:osx_cc_configure.bzl.
+            # And also so we don't have to keep this code in sync with //cc/private/toolchain:osx_cc_configure.bzl.
             (xcode_toolchains, _xcodeloc_err) = run_xcode_locator(
                 repository_ctx,
                 paths["@bazel_tools//tools/osx:xcode_locator.m"],
