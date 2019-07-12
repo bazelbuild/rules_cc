@@ -23,16 +23,3 @@ exports_files([
 
 # The toolchain type used to distinguish cc toolchains.
 toolchain_type(name = "toolchain_type")
-
-# This is the entry point for --crosstool_top.  Toolchains are found
-# by lopping off the name of --crosstool_top and searching for
-# "cc-compiler-${CPU}" in this BUILD file, where CPU is the target CPU
-# specified in --cpu.
-#
-# This file group should include
-#   * all cc_toolchain targets supported
-#   * all file groups that said cc_toolchain might refer to
-alias(
-    name = "toolchain",
-    actual = "//external:cc_toolchain",
-)
