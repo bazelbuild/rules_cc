@@ -24,7 +24,8 @@ Returns the current `CcToolchainInfo`.
 foo = rule(
     implementation = _foo_impl,
     attrs = {
-        "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
+      "_cc_toolchain": attr.label(
+        default = Label("@rules_cc//cc/private/toolchain:current_cc_toolchain")),
     },
 )
 * When https://github.com/bazelbuild/bazel/issues/7260 **is** flipped, current
