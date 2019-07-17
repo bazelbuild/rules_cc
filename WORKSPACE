@@ -81,11 +81,11 @@ http_archive(
 # Nothing special about this commit, though.
 http_archive(
     name = "com_google_googletest",
-    sha256 = "0fb00ff413f6b9b80ccee44a374ca7a18af7315aea72a43c62f2acd1ca74e9b5",
-    strip_prefix = "googletest-f13bbe2992d188e834339abe6f715b2b2f840a77",
+    sha256 = "4dee7d35f8bfc09316fa882c1aad45d22413f1bd4228d09da2962171a8883c87",
+    strip_prefix = "googletest-2ef13f524b837a68bae27ae1123da0400dff6285",
     urls = [
-        "https://mirror.bazel.build/github.com/google/googletest/archive/f13bbe2992d188e834339abe6f715b2b2f840a77.tar.gz",
-        "https://github.com/google/googletest/archive/f13bbe2992d188e834339abe6f715b2b2f840a77.tar.gz",
+        "https://mirror.bazel.build/github.com/google/googletest/archive/2ef13f524b837a68bae27ae1123da0400dff6285.tar.gz",
+        "https://github.com/google/googletest/archive/2ef13f524b837a68bae27ae1123da0400dff6285.tar.gz",
     ],
 )
 
