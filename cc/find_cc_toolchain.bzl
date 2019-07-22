@@ -57,8 +57,8 @@ Returns the current `CcToolchainInfo`.
 
     # Check the incompatible flag for toolchain resolution.
     if hasattr(cc_common, "is_cc_toolchain_resolution_enabled_do_not_use") and cc_common.is_cc_toolchain_resolution_enabled_do_not_use(ctx = ctx):
-        if "//cc:toolchain_type" in ctx.toolchains:
-            return ctx.toolchains["//cc:toolchain_type"]
+        if "@rules_cc//cc:toolchain_type" in ctx.toolchains:
+            return ctx.toolchains["@rules_cc//cc:toolchain_type"]
         fail("In order to use find_cc_toolchain, you must include the '@rules_cc//cc:toolchain_type' in the toolchains argument to your rule.")
 
     # Fall back to the legacy implicit attribute lookup.
