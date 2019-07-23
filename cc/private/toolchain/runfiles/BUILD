@@ -20,7 +20,7 @@ filegroup(
         "BUILD.tools",
         ":srcs_for_embedded_tools",
     ],
-    visibility = ["@bazel_tools//tools/cpp:__pkg__"],
+    visibility = ["@rules_cc//cc/private/toolchain:__pkg__"],
 )
 
 # Rewrite the include path for runfiles.h in runfiles_src.cc, and create
