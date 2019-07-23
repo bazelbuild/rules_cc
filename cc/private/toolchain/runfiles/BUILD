@@ -11,7 +11,7 @@ filegroup(
             "*~",
         ],
     ),
-    visibility = ["@bazel_tools//tools/cpp:__pkg__"],
+    visibility = ["@rules_cc//cc/private/toolchain:__pkg__"],
 )
 
 filegroup(
