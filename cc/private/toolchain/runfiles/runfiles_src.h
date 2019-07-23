@@ -20,7 +20,7 @@
 //       cc_binary(
 //           name = "my_binary",
 //           ...
-//           deps = ["@bazel_tools@bazel_tools//tools/cpp/runfiles"],
+//           deps = ["@bazel_tools//tools/cpp/runfiles"],
 //       )
 //
 // 2.  Include the runfiles library.

@@ -15,7 +15,7 @@
 """A Starlark cc_toolchain configuration rule"""
 
 load(
-    "@bazel_tools@bazel_tools//tools/cpp:cc_toolchain_config_lib.bzl",
+    "@bazel_tools//tools/cpp:cc_toolchain_config_lib.bzl",
     "action_config",
     "artifact_name_pattern",
     "env_entry",
@@ -31,7 +31,7 @@ load(
     "with_feature_set",
 )
 load(
-    "@bazel_tools@bazel_tools//tools/build_defs/cc:action_names.bzl",
+    "@bazel_tools//tools/build_defs/cc:action_names.bzl",
     _ASSEMBLE_ACTION_NAME = "ASSEMBLE_ACTION_NAME",
     _CLIF_MATCH_ACTION_NAME = "CLIF_MATCH_ACTION_NAME",
     _CPP_COMPILE_ACTION_NAME = "CPP_COMPILE_ACTION_NAME",
@@ -100,7 +100,7 @@ all_link_actions = [
 
 def _impl(ctx):
     if ctx.attr.disable_static_cc_toolchains:
-        fail("@bazel_tools@bazel_tools//tools/cpp:default-toolchain, as well as the cc_toolchains it points " +
+        fail("@bazel_tools//tools/cpp:default-toolchain, as well as the cc_toolchains it points " +
              "to have been removed. See https://github.com/bazelbuild/bazel/issues/8546.")
 
     if (ctx.attr.cpu == "darwin"):

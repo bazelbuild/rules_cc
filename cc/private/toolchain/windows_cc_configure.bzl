@@ -15,7 +15,7 @@
 """Configuring the C++ toolchain on Windows."""
 
 load(
-    "@bazel_tools@bazel_tools//tools/cpp:lib_cc_configure.bzl",
+    "@bazel_tools//tools/cpp:lib_cc_configure.bzl",
     "auto_configure_fail",
     "auto_configure_warning",
     "auto_configure_warning_maybe",
@@ -494,7 +494,7 @@ def _get_msvc_vars(repository_ctx, paths):
     if not vc_path:
         repository_ctx.template(
             "vc_installation_error.bat",
-            paths["@bazel_tools@bazel_tools//tools/cpp:vc_installation_error.bat.tpl"],
+            paths["@bazel_tools//tools/cpp:vc_installation_error.bat.tpl"],
             {"%{vc_error_message}": ""},
         )
     else:
@@ -509,7 +509,7 @@ def _get_msvc_vars(repository_ctx, paths):
             ])
             repository_ctx.template(
                 "vc_installation_error.bat",
-                paths["@bazel_tools@bazel_tools//tools/cpp:vc_installation_error.bat.tpl"],
+                paths["@bazel_tools//tools/cpp:vc_installation_error.bat.tpl"],
                 {"%{vc_error_message}": message},
             )
 
@@ -593,7 +593,7 @@ def _get_clang_cl_vars(repository_ctx, paths, msvc_vars):
     elif not llvm_path:
         repository_ctx.template(
             "clang_installation_error.bat",
-            paths["@bazel_tools@bazel_tools//tools/cpp:clang_installation_error.bat.tpl"],
+            paths["@bazel_tools//tools/cpp:clang_installation_error.bat.tpl"],
             {"%{clang_error_message}": ""},
         )
         error_script = "clang_installation_error.bat"
@@ -609,7 +609,7 @@ def _get_clang_cl_vars(repository_ctx, paths, msvc_vars):
             ])
             repository_ctx.template(
                 "clang_installation_error.bat",
-                paths["@bazel_tools@bazel_tools//tools/cpp:clang_installation_error.bat.tpl"],
+                paths["@bazel_tools//tools/cpp:clang_installation_error.bat.tpl"],
                 {"%{clang_error_message}": message},
             )
             error_script = "clang_installation_error.bat"
@@ -658,24 +658,24 @@ def _get_clang_cl_vars(repository_ctx, paths, msvc_vars):
 def configure_windows_toolchain(repository_ctx):
     """Configure C++ toolchain on Windows."""
     paths = resolve_labels(repository_ctx, [
-        "@bazel_tools@bazel_tools//tools/cpp:BUILD.windows.tpl",
-        "@bazel_tools@bazel_tools//tools/cpp:windows_cc_toolchain_config.bzl",
-        "@bazel_tools@bazel_tools//tools/cpp:armeabi_cc_toolchain_config.bzl",
-        "@bazel_tools@bazel_tools//tools/cpp:vc_installation_error.bat.tpl",
-        "@bazel_tools@bazel_tools//tools/cpp:msys_gcc_installation_error.bat",
-        "@bazel_tools@bazel_tools//tools/cpp:clang_installation_error.bat.tpl",
+        "@bazel_tools//tools/cpp:BUILD.windows.tpl",
+        "@bazel_tools//tools/cpp:windows_cc_toolchain_config.bzl",
+        "@bazel_tools//tools/cpp:armeabi_cc_toolchain_config.bzl",
+        "@bazel_tools//tools/cpp:vc_installation_error.bat.tpl",
+        "@bazel_tools//tools/cpp:msys_gcc_installation_error.bat",
+        "@bazel_tools//tools/cpp:clang_installation_error.bat.tpl",
     ])
 
     repository_ctx.symlink(
-        paths["@bazel_tools@bazel_tools//tools/cpp:windows_cc_toolchain_config.bzl"],
+        paths["@bazel_tools//tools/cpp:windows_cc_toolchain_config.bzl"],
         "windows_cc_toolchain_config.bzl",
     )
     repository_ctx.symlink(
-        paths["@bazel_tools@bazel_tools//tools/cpp:armeabi_cc_toolchain_config.bzl"],
+        paths["@bazel_tools//tools/cpp:armeabi_cc_toolchain_config.bzl"],
         "armeabi_cc_toolchain_config.bzl",
     )
     repository_ctx.symlink(
-        paths["@bazel_tools@bazel_tools//tools/cpp:msys_gcc_installation_error.bat"],
+        paths["@bazel_tools//tools/cpp:msys_gcc_installation_error.bat"],
         "msys_gcc_installation_error.bat",
     )
 
@@ -687,6 +687,6 @@ def configure_windows_toolchain(repository_ctx):
 
     repository_ctx.template(
         "BUILD",
-        paths["@bazel_tools@bazel_tools//tools/cpp:BUILD.windows.tpl"],
+        paths["@bazel_tools//tools/cpp:BUILD.windows.tpl"],
         template_vars,
     )

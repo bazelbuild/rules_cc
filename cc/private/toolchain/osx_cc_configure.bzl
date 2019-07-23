@@ -16,12 +16,12 @@
 
 load("@bazel_tools//tools/osx:xcode_configure.bzl", "run_xcode_locator")
 load(
-    "@bazel_tools@bazel_tools//tools/cpp:lib_cc_configure.bzl",
+    "@bazel_tools//tools/cpp:lib_cc_configure.bzl",
     "escape_string",
     "resolve_labels",
 )
 load(
-    "@bazel_tools@bazel_tools//tools/cpp:unix_cc_configure.bzl",
+    "@bazel_tools//tools/cpp:unix_cc_configure.bzl",
     "configure_unix_toolchain",
     "find_cc",
     "get_env",
@@ -52,7 +52,7 @@ def _get_escaped_xcode_cxx_inc_directories(repository_ctx, cc, xcode_toolchains)
 def configure_osx_toolchain(repository_ctx, overriden_tools):
     """Configure C++ toolchain on macOS."""
     paths = resolve_labels(repository_ctx, [
-        "@bazel_tools@bazel_tools//tools/cpp:osx_cc_wrapper.sh.tpl",
+        "@bazel_tools//tools/cpp:osx_cc_wrapper.sh.tpl",
         "@bazel_tools//tools/objc:libtool.sh",
         "@bazel_tools//tools/objc:make_hashed_objlist.py",
         "@bazel_tools//tools/objc:xcrunwrapper.sh",
@@ -79,7 +79,7 @@ def configure_osx_toolchain(repository_ctx, overriden_tools):
         cc = find_cc(repository_ctx, overriden_tools = {})
         repository_ctx.template(
             "cc_wrapper.sh",
-            paths["@bazel_tools@bazel_tools//tools/cpp:osx_cc_wrapper.sh.tpl"],
+            paths["@bazel_tools//tools/cpp:osx_cc_wrapper.sh.tpl"],
             {
                 "%{cc}": escape_string(str(cc)),
                 "%{env}": escape_string(get_env(repository_ctx)),

@@ -24,7 +24,7 @@ exports_files([
 # The toolchain type used to distinguish cc toolchains.
 alias(
     name = "toolchain_type",
-    actual = "@bazel_tools@bazel_tools//tools/cpp:toolchain_type",
+    actual = "@bazel_tools//tools/cpp:toolchain_type",
 )
 
 filegroup(

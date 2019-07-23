@@ -13,11 +13,11 @@
 # limitations under the License.
 """Rules for configuring the C++ toolchain (experimental)."""
 
-load("@bazel_tools@bazel_tools//tools/cpp:windows_cc_configure.bzl", "configure_windows_toolchain")
-load("@bazel_tools@bazel_tools//tools/cpp:osx_cc_configure.bzl", "configure_osx_toolchain")
-load("@bazel_tools@bazel_tools//tools/cpp:unix_cc_configure.bzl", "configure_unix_toolchain")
+load("@bazel_tools//tools/cpp:windows_cc_configure.bzl", "configure_windows_toolchain")
+load("@bazel_tools//tools/cpp:osx_cc_configure.bzl", "configure_osx_toolchain")
+load("@bazel_tools//tools/cpp:unix_cc_configure.bzl", "configure_unix_toolchain")
 load(
-    "@bazel_tools@bazel_tools//tools/cpp:lib_cc_configure.bzl",
+    "@bazel_tools//tools/cpp:lib_cc_configure.bzl",
     "get_cpu_value",
     "resolve_labels",
 )
@@ -26,7 +26,7 @@ load("@bazel_tools//tools/osx:xcode_configure.bzl", "run_xcode_locator")
 def _generate_cpp_only_build_file(repository_ctx, cpu_value, paths):
     repository_ctx.template(
         "BUILD",
-        paths["@bazel_tools@bazel_tools//tools/cpp:BUILD.toolchains.tpl"],
+        paths["@bazel_tools//tools/cpp:BUILD.toolchains.tpl"],
         {"%{name}": cpu_value},
     )
 
@@ -37,7 +37,7 @@ def cc_autoconf_toolchains_impl(repository_ctx):
       repository_ctx: repository context
     """
     paths = resolve_labels(repository_ctx, [
-        "@bazel_tools@bazel_tools//tools/cpp:BUILD.toolchains.tpl",
+        "@bazel_tools//tools/cpp:BUILD.toolchains.tpl",
         "@bazel_tools//tools/osx/crosstool:BUILD.toolchains",
         "@bazel_tools//tools/osx/crosstool:osx_archs.bzl",
         "@bazel_tools//tools/osx:xcode_locator.m",
@@ -92,22 +92,22 @@ def cc_autoconf_impl(repository_ctx, overriden_tools = dict()):
        overriden_tools: dict of tool paths to use instead of autoconfigured tools
     """
     paths = resolve_labels(repository_ctx, [
-        "@bazel_tools@bazel_tools//tools/cpp:BUILD.static.freebsd",
-        "@bazel_tools@bazel_tools//tools/cpp:cc_toolchain_config.bzl",
+        "@bazel_tools//tools/cpp:BUILD.static.freebsd",
+        "@bazel_tools//tools/cpp:cc_toolchain_config.bzl",
     ])
 
     env = repository_ctx.os.environ
     cpu_value = get_cpu_value(repository_ctx)
     if "BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN" in env and env["BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN"] == "1":
-        repository_ctx.symlink(paths["@bazel_tools@bazel_tools//tools/cpp:cc_toolchain_config.bzl"], "cc_toolchain_config.bzl")
-        repository_ctx.symlink(Label("@bazel_tools@bazel_tools//tools/cpp:BUILD.empty"), "BUILD")
+        repository_ctx.symlink(paths["@bazel_tools//tools/cpp:cc_toolchain_config.bzl"], "cc_toolchain_config.bzl")
+        repository_ctx.symlink(Label("@bazel_tools//tools/cpp:BUILD.empty"), "BUILD")
     elif cpu_value == "freebsd":
         # This is defaulting to the static crosstool, we should eventually
         # autoconfigure this platform too.  Theorically, FreeBSD should be
         # straightforward to add but we cannot run it in a docker container so
         # skipping until we have proper tests for FreeBSD.
-        repository_ctx.symlink(paths["@bazel_tools@bazel_tools//tools/cpp:cc_toolchain_config.bzl"], "cc_toolchain_config.bzl")
-        repository_ctx.symlink(paths["@bazel_tools@bazel_tools//tools/cpp:BUILD.static.freebsd"], "BUILD")
+        repository_ctx.symlink(paths["@bazel_tools//tools/cpp:cc_toolchain_config.bzl"], "cc_toolchain_config.bzl")
+        repository_ctx.symlink(paths["@bazel_tools//tools/cpp:BUILD.static.freebsd"], "BUILD")
     elif cpu_value == "x64_windows":
         # TODO(ibiryukov): overriden_tools are only supported in configure_unix_toolchain.
         # We might want to add that to Windows too(at least for msys toolchain).
