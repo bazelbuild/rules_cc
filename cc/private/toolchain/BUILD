@@ -426,6 +426,7 @@ filegroup(
 filegroup(
     name = "embedded_tools",
     srcs = glob(["**"]) + [
+        "@bazel_tools//tools/cpp:embedded_tools_toolchain_type",
         "//cc/private/toolchain/runfiles:embedded_tools",
     ],
 )
