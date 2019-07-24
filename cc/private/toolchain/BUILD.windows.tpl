@@ -79,14 +79,14 @@ toolchain(
     exec_compatible_with = [
         "@platforms//cpu:x86_64",
         "@platforms//os:windows",
-        "@bazel_tools//tools/cpp:msys",
+        "@rules_cc//cc/private/toolchain:msys",
     ],
     target_compatible_with = [
         "@platforms//cpu:x86_64",
         "@platforms//os:windows",
     ],
     toolchain = ":cc-compiler-x64_windows_msys",
-    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+    toolchain_type = "@rules_cc//cc/private/toolchain:toolchain_type",
 )
 
 cc_toolchain(
@@ -125,14 +125,14 @@ toolchain(
     exec_compatible_with = [
         "@platforms//cpu:x86_64",
         "@platforms//os:windows",
-        "@bazel_tools//tools/cpp:mingw",
+        "@rules_cc//cc/private/toolchain:mingw",
     ],
     target_compatible_with = [
         "@platforms//cpu:x86_64",
         "@platforms//os:windows",
     ],
     toolchain = ":cc-compiler-x64_windows_mingw",
-    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+    toolchain_type = "@rules_cc//cc/private/toolchain:toolchain_type",
 )
 
 cc_toolchain(
@@ -197,7 +197,7 @@ toolchain(
         "@platforms//os:windows",
     ],
     toolchain = ":cc-compiler-x64_windows",
-    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+    toolchain_type = "@rules_cc//cc/private/toolchain:toolchain_type",
 )
 
 cc_toolchain(
@@ -256,14 +256,14 @@ toolchain(
     exec_compatible_with = [
         "@platforms//cpu:x86_64",
         "@platforms//os:windows",
-        "@bazel_tools//tools/cpp:clang-cl",
+        "@rules_cc//cc/private/toolchain:clang-cl",
     ],
     target_compatible_with = [
         "@platforms//cpu:x86_64",
         "@platforms//os:windows",
     ],
     toolchain = ":cc-compiler-x64_windows-clang-cl",
-    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+    toolchain_type = "@rules_cc//cc/private/toolchain:toolchain_type",
 )
 
 cc_toolchain(
@@ -292,7 +292,7 @@ toolchain(
         "@platforms//os:android",
     ],
     toolchain = ":cc-compiler-armeabi-v7a",
-    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+    toolchain_type = "@rules_cc//cc/private/toolchain:toolchain_type",
 )
 
 filegroup(

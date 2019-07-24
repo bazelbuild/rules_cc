@@ -16,7 +16,7 @@
 
 package(default_visibility = ["//visibility:public"])
 
-load("@bazel_tools//tools/cpp:cc_toolchain_config.bzl", "cc_toolchain_config")
+load("@rules_cc//cc/private/toolchain:cc_toolchain_config.bzl", "cc_toolchain_config")
 load("@rules_cc//cc:defs.bzl", "cc_toolchain_suite", "cc_toolchain", "cc_library")
 
 cc_library(
@@ -71,7 +71,7 @@ toolchain(
         "@platforms//os:freebsd",
     ],
     toolchain = ":cc-compiler-freebsd",
-    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+    toolchain_type = "@rules_cc//cc/private/toolchain:toolchain_type",
 )
 
 cc_toolchain(
@@ -105,7 +105,7 @@ toolchain(
         "@platforms//os:android",
     ],
     toolchain = ":cc-compiler-armeabi-v7a",
-    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+    toolchain_type = "@rules_cc//cc/private/toolchain:toolchain_type",
 )
 
 filegroup(

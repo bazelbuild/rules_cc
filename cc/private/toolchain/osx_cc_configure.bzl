@@ -16,12 +16,12 @@
 
 load("@bazel_tools//tools/osx:xcode_configure.bzl", "run_xcode_locator")
 load(
-    "@bazel_tools//tools/cpp:lib_cc_configure.bzl",
+    "@rules_cc//cc/private/toolchain:lib_cc_configure.bzl",
     "escape_string",
     "resolve_labels",
 )
 load(
-    "@bazel_tools//tools/cpp:unix_cc_configure.bzl",
+    "@rules_cc//cc/private/toolchain:unix_cc_configure.bzl",
     "configure_unix_toolchain",
     "find_cc",
     "get_env",
@@ -52,7 +52,7 @@ def _get_escaped_xcode_cxx_inc_directories(repository_ctx, cc, xcode_toolchains)
 def configure_osx_toolchain(repository_ctx, overriden_tools):
     """Configure C++ toolchain on macOS."""
     paths = resolve_labels(repository_ctx, [
-        "@bazel_tools//tools/cpp:osx_cc_wrapper.sh.tpl",
+        "@rules_cc//cc/private/toolchain:osx_cc_wrapper.sh.tpl",
         "@bazel_tools//tools/objc:libtool.sh",
         "@bazel_tools//tools/objc:make_hashed_objlist.py",
         "@bazel_tools//tools/objc:xcrunwrapper.sh",
@@ -67,7 +67,7 @@ def configure_osx_toolchain(repository_ctx, overriden_tools):
     should_use_xcode = "BAZEL_USE_XCODE_TOOLCHAIN" in env and env["BAZEL_USE_XCODE_TOOLCHAIN"] == "1"
     xcode_toolchains = []
 
-    # Make the following logic in sync with @bazel_tools//tools/cpp:cc_configure.bzl#cc_autoconf_toolchains_impl
+    # Make the following logic in sync with @rules_cc//cc/private/toolchain:cc_configure.bzl#cc_autoconf_toolchains_impl
     (xcode_toolchains, xcodeloc_err) = run_xcode_locator(
         repository_ctx,
         paths["@bazel_tools//tools/osx:xcode_locator.m"],
@@ -79,7 +79,7 @@ def configure_osx_toolchain(repository_ctx, overriden_tools):
         cc = find_cc(repository_ctx, overriden_tools = {})
         repository_ctx.template(
             "cc_wrapper.sh",
-            paths["@bazel_tools//tools/cpp:osx_cc_wrapper.sh.tpl"],
+            paths["@rules_cc//cc/private/toolchain:osx_cc_wrapper.sh.tpl"],
             {
                 "%{cc}": escape_string(str(cc)),
                 "%{env}": escape_string(get_env(repository_ctx)),

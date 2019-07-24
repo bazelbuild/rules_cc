@@ -11,19 +11,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Rule that provides the CC_FLAGS Make variable."""
 
-"""Rule that allows select() to differentiate between compilers."""
-
+load("@rules_cc//cc:action_names.bzl", "CC_FLAGS_MAKE_VARIABLE_ACTION_NAME")
+load("@rules_cc//cc/private/rules_impl:cc_flags_supplier_lib.bzl", "build_cc_flags")
 load("@rules_cc//cc:toolchain_utils.bzl", "find_cpp_toolchain")
 
-def _compiler_flag_impl(ctx):
-    toolchain = find_cpp_toolchain(ctx)
-    return [config_common.FeatureFlagInfo(value = toolchain.compiler)]
+def _cc_flags_supplier_impl(ctx):
+    cc_toolchain = find_cpp_toolchain(ctx)
+    cc_flags = build_cc_flags(ctx, cc_toolchain, CC_FLAGS_MAKE_VARIABLE_ACTION_NAME)
+    variables = platform_common.TemplateVariableInfo({
+        "CC_FLAGS": cc_flags,
+    })
+    return [variables]
 
-compiler_flag = rule(
-    implementation = _compiler_flag_impl,
+cc_flags_supplier = rule(
+    implementation = _cc_flags_supplier_impl,
     attrs = {
         "_cc_toolchain": attr.label(default = Label("@rules_cc//cc/private/toolchain:current_cc_toolchain")),
     },
     toolchains = ["@rules_cc//cc:toolchain_type"],
+    fragments = ["cpp"],
 )

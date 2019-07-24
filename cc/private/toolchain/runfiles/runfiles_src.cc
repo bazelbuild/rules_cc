@@ -14,7 +14,7 @@
 
 // The "srcs_for_embedded_tools" rule in the same package sets the line below to
 // include runfiles.h from the correct path. Do not modify the line below.
-#include "tools/cpp/runfiles/runfiles_src.h"
+#include "cc/private/toolchain/runfiles/runfiles_src.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -252,10 +252,10 @@ namespace {
 
 bool PathsFrom(const string& argv0, string mf, string dir, string* out_manifest,
                string* out_directory) {
-  return PathsFrom(argv0, mf, dir,
-                   [](const string& path) { return IsReadableFile(path); },
-                   [](const string& path) { return IsDirectory(path); },
-                   out_manifest, out_directory);
+  return PathsFrom(
+      argv0, mf, dir, [](const string& path) { return IsReadableFile(path); },
+      [](const string& path) { return IsDirectory(path); }, out_manifest,
+      out_directory);
 }
 
 bool PathsFrom(const string& argv0, string mf, string dir,

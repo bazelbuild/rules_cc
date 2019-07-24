@@ -15,7 +15,7 @@
 """A Starlark cc_toolchain configuration rule for Windows"""
 
 load(
-    "@bazel_tools//tools/cpp:cc_toolchain_config_lib.bzl",
+    "@rules_cc//cc/private/toolchain:cc_toolchain_config_lib.bzl",
     "action_config",
     "artifact_name_pattern",
     "env_entry",
