@@ -86,7 +86,7 @@ toolchain(
         "@platforms//os:windows",
     ],
     toolchain = ":cc-compiler-x64_windows_msys",
-    toolchain_type = "@rules_cc//cc/private/toolchain:toolchain_type",
+    toolchain_type = "@rules_cc//cc:toolchain_type",
 )
 
 cc_toolchain(
@@ -132,7 +132,7 @@ toolchain(
         "@platforms//os:windows",
     ],
     toolchain = ":cc-compiler-x64_windows_mingw",
-    toolchain_type = "@rules_cc//cc/private/toolchain:toolchain_type",
+    toolchain_type = "@rules_cc//cc:toolchain_type",
 )
 
 cc_toolchain(
@@ -197,7 +197,7 @@ toolchain(
         "@platforms//os:windows",
     ],
     toolchain = ":cc-compiler-x64_windows",
-    toolchain_type = "@rules_cc//cc/private/toolchain:toolchain_type",
+    toolchain_type = "@rules_cc//cc:toolchain_type",
 )
 
 cc_toolchain(
@@ -263,7 +263,7 @@ toolchain(
         "@platforms//os:windows",
     ],
     toolchain = ":cc-compiler-x64_windows-clang-cl",
-    toolchain_type = "@rules_cc//cc/private/toolchain:toolchain_type",
+    toolchain_type = "@rules_cc//cc:toolchain_type",
 )
 
 cc_toolchain(
@@ -292,7 +292,7 @@ toolchain(
         "@platforms//os:android",
     ],
     toolchain = ":cc-compiler-armeabi-v7a",
-    toolchain_type = "@rules_cc//cc/private/toolchain:toolchain_type",
+    toolchain_type = "@rules_cc//cc:toolchain_type",
 )
 
 filegroup(
