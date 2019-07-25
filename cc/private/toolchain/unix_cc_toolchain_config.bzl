@@ -15,7 +15,7 @@
 """A Starlark cc_toolchain configuration rule"""
 
 load(
-    "//cc/private/toolchain:cc_toolchain_config_lib.bzl",
+    "@rules_cc//cc/private/toolchain:cc_toolchain_config_lib.bzl",
     "feature",
     "feature_set",
     "flag_group",
@@ -24,7 +24,7 @@ load(
     "variable_with_value",
     "with_feature_set",
 )
-load("//cc:action_names.bzl", "ACTION_NAMES")
+load("@rules_cc//cc:action_names.bzl", "ACTION_NAMES")
 
 all_compile_actions = [
     ACTION_NAMES.c_compile,

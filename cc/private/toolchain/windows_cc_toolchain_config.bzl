@@ -15,7 +15,7 @@
 """A Starlark cc_toolchain configuration rule for Windows"""
 
 load(
-    "//cc/private/toolchain:cc_toolchain_config_lib.bzl",
+    "@rules_cc//cc/private/toolchain:cc_toolchain_config_lib.bzl",
     "action_config",
     "artifact_name_pattern",
     "env_entry",
@@ -29,7 +29,7 @@ load(
     "variable_with_value",
     "with_feature_set",
 )
-load("//cc:action_names.bzl", "ACTION_NAMES")
+load("@rules_cc//cc:action_names.bzl", "ACTION_NAMES")
 
 all_compile_actions = [
     ACTION_NAMES.c_compile,
