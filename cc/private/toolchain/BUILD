@@ -426,6 +426,7 @@ filegroup(
 filegroup(
     name = "embedded_tools",
     srcs = glob(["**"]) + [
+        "//cc:action_names.bzl",
         "//cc/private/toolchain/runfiles:embedded_tools",
     ],
 )
