@@ -16,6 +16,11 @@ package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])  # Apache 2.0
 
+filegroup(
+    name = "all_files_for_testing",
+    srcs = glob(["**/*"]),
+)
+
 exports_files([
     "defs.bzl",
     "action_names.bzl",
