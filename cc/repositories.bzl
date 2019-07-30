@@ -14,6 +14,10 @@ def rules_cc_dependencies():
         ],
     )
 
+def rules_cc_toolchains():
+    # Nothing to do here (yet).
+    pass
+
 def _maybe(repo_rule, name, **kwargs):
     if not native.existing_rule(name):
         repo_rule(name = name, **kwargs)

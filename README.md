@@ -11,8 +11,7 @@ For the list of C++ rules, see the Bazel
 
 # Getting Started
 
-There is no need to use rules from this repository just yet. If you want to use
-rules\_cc anyway, add the following to your WORKSPACE file:
+To get started with rules\_cc, add the following to your WORKSPACE file:
 
 ```
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
@@ -21,6 +20,9 @@ http_archive(
     urls = ["https://github.com/bazelbuild/rules_cc/archive/TODO"],
     sha256 = "TODO",
 )
+load("@rules_cc//cc:repositories.bzl", "rules_cc_dependencies", "rules_cc_toolchains")
+rules_cc_dependencies()
+rules_cc_toolchains()
 ```
 
 Then, in your BUILD files, import and use the rules:
@@ -40,7 +42,7 @@ project for Bazel incompatible changes.
 ## Legacy fields migrator
 
 Script that migrates legacy crosstool fields into features
-([incompatible flag](https://github.com/bazelbuild/bazel/issues/6861), 
+([incompatible flag](https://github.com/bazelbuild/bazel/issues/6861),
 [tracking issue](https://github.com/bazelbuild/bazel/issues/5883)).
 
 TLDR:
