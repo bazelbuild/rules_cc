@@ -91,6 +91,16 @@ http_archive(
     ],
 )
 
+http_archive(
+    name = "com_google_googletest",
+    sha256 = "0fb00ff413f6b9b80ccee44a374ca7a18af7315aea72a43c62f2acd1ca74e9b5",
+    strip_prefix = "googletest-f13bbe2992d188e834339abe6f715b2b2f840a77",
+    urls = [
+        "https://mirror.bazel.build/github.com/google/googletest/archive/f13bbe2992d188e834339abe6f715b2b2f840a77.tar.gz",
+        "https://github.com/google/googletest/archive/f13bbe2992d188e834339abe6f715b2b2f840a77.tar.gz",
+    ],
+)
+
 load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
 
 go_rules_dependencies()
