@@ -46,7 +46,6 @@ flags.DEFINE_string("toolchain_identifier", None,
                     "The identifier of the CToolchain that is being compared.")
 flags.mark_flag_as_required("before")
 flags.mark_flag_as_required("after")
-flags.mark_flag_as_required("toolchain_identifier")
 
 
 def _to_absolute_path(path):
@@ -67,7 +66,7 @@ def _find_toolchain(crosstool, toolchain_identifier):
   return None
 
 
-def _read_crosstool_or_ctoolchain_proto(input_file, toolchain_identifier):
+def _read_crosstool_or_ctoolchain_proto(input_file, toolchain_identifier=None):
   """Reads a proto file and finds the CToolchain with the given identifier."""
   with open(input_file, "r") as f:
     text = f.read()
@@ -75,6 +74,10 @@ def _read_crosstool_or_ctoolchain_proto(input_file, toolchain_identifier):
   c_toolchain = crosstool_config_pb2.CToolchain()
   try:
     text_format.Merge(text, crosstool_release)
+    if toolchain_identifier is None:
+      print("CROSSTOOL proto needs a 'toolchain_identifier' specified in "
+            "order to be able to select the right toolchain for comparison.")
+      return None
     toolchain = _find_toolchain(crosstool_release, toolchain_identifier)
     if toolchain is None:
       print(("Cannot find a CToolchain with an identifier '%s' in CROSSTOOL "
@@ -84,7 +87,8 @@ def _read_crosstool_or_ctoolchain_proto(input_file, toolchain_identifier):
   except text_format.ParseError as crosstool_error:
     try:
       text_format.Merge(text, c_toolchain)
-      if c_toolchain.toolchain_identifier != toolchain_identifier:
+      if (toolchain_identifier is not None and
+          c_toolchain.toolchain_identifier != toolchain_identifier):
         print(("Expected CToolchain with identifier '%s', got CToolchain with "
                "identifier '%s'" % (toolchain_identifier,
                                     c_toolchain.toolchain_identifier)))
