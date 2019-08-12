@@ -148,7 +148,7 @@ RunfilesTest::MockFile* RunfilesTest::MockFile::Create(
   }
 #endif
 
-  auto stm = std::ofstream(path);
+  std::ofstream stm(path);
   for (auto i : lines) {
     stm << i << std::endl;
   }
