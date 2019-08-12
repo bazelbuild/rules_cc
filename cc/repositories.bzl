@@ -1,5 +1,13 @@
 """Repository rules entry point module for rules_cc."""
 
+# WARNING: This file only exists for backwards-compatibility.
+# rules_cc uses the Bazel federation, so please add any new dependencies to
+# rules_cc_deps() in
+# https://github.com/bazelbuild/bazel-federation/blob/master/repositories.bzl
+# Third party dependencies can be added to
+# https://github.com/bazelbuild/bazel-federation/blob/master/third_party_repositories.bzl
+# Ideally we'd delete this entire file.
+
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 def rules_cc_dependencies():
