@@ -4,9 +4,9 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "bazel_federation",
-    url = "https://github.com/bazelbuild/bazel-federation/archive/01dc3f937696174c9764e23978f9d2e7105fd855.zip",
-    sha256 = "64229f859bb0465fcdb654b31b3e547bbd5462005beaebbc09eb0ec735044cdd",
-    strip_prefix = "bazel-federation-01dc3f937696174c9764e23978f9d2e7105fd855",
+    url = "https://github.com/bazelbuild/bazel-federation/archive/a3e140a91ea9ea25b01ad0cc6fbfcaf74f65498f.zip",
+    sha256 = "026149d1273a87c634d2270004865fd7474420f88d5bd6ea8d8cd71f4b0f0542",
+    strip_prefix = "bazel-federation-a3e140a91ea9ea25b01ad0cc6fbfcaf74f65498f",
     type = "zip",
 )
 
