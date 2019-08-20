@@ -14,7 +14,6 @@ toolchain(
         "@platforms//cpu:arm",
         "@platforms//os:android",
     ],
-    toolchain = "@local_config_cc//:cc-compiler-armabi-v7a",
+    toolchain = "@local_config_cc//:cc-compiler-armeabi-v7a",
     toolchain_type = "@rules_cc//cc:toolchain_type",
 )
-
