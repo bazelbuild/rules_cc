@@ -14,7 +14,7 @@
 
 """Example showing how to get CcToolchainInfo in a custom rule."""
 
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
+load("@rules_cc//cc:toolchain_utils.bzl", "find_cpp_toolchain")
 
 def _write_cc_toolchain_cpu_impl(ctx):
     cc_toolchain = find_cpp_toolchain(ctx)

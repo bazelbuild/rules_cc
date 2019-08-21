@@ -14,8 +14,8 @@
 
 """Starlark rules for building C++ projects."""
 
-load("@bazel_tools//tools/cpp:cc_flags_supplier.bzl", _cc_flags_supplier = "cc_flags_supplier")
-load("@bazel_tools//tools/cpp:compiler_flag.bzl", _compiler_flag = "compiler_flag")
+load("@rules_cc//cc/private/rules_impl:cc_flags_supplier.bzl", _cc_flags_supplier = "cc_flags_supplier")
+load("@rules_cc//cc/private/rules_impl:compiler_flag.bzl", _compiler_flag = "compiler_flag")
 
 _MIGRATION_TAG = "__CC_RULES_MIGRATION_DO_NOT_USE_WILL_BREAK__"
 
