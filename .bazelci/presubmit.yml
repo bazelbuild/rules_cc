@@ -1,5 +1,4 @@
 ---
-buildifier: latest
 platforms:
   ubuntu1604:
     run_targets:
