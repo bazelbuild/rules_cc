@@ -613,7 +613,7 @@ def _get_clang_cl_vars(repository_ctx, paths, msvc_vars):
             ])
             repository_ctx.template(
                 "clang_installation_error.bat",
-                paths["@bazel_tools//tools/cpp:clang_installation_error.bat.tpl"],
+                paths["@rules_cc//cc/private/toolchain:clang_installation_error.bat.tpl"],
                 {"%{clang_error_message}": message},
             )
             error_script = "clang_installation_error.bat"
