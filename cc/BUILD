@@ -44,3 +44,14 @@ filegroup(
     ],
     visibility = ["//visibility:public"],
 )
+
+# TODO(aiuto): Find a way to strip this rule from the distribution tarball.
+filegroup(
+    name = "distribution",
+    srcs = glob([
+        "**",
+    ]),
+    visibility = [
+        "//distro:__pkg__",
+    ],
+)

@@ -19,6 +19,8 @@ load("@rules_cc//cc/private/rules_impl:compiler_flag.bzl", _compiler_flag = "com
 
 _MIGRATION_TAG = "__CC_RULES_MIGRATION_DO_NOT_USE_WILL_BREAK__"
 
+version = "0.0.1"
+
 def _add_tags(attrs):
     if "tags" in attrs and attrs["tags"] != None:
         attrs["tags"] += [_MIGRATION_TAG]
