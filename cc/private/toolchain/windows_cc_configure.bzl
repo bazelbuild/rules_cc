@@ -58,23 +58,24 @@ def _get_temp_env(repository_ctx):
 def _get_escaped_windows_msys_starlark_content(repository_ctx, use_mingw = False):
     """Return the content of msys cc toolchain rule."""
     msys_root = ""
+    prefix = ""
     bazel_sh = _get_path_env_var(repository_ctx, "BAZEL_SH")
     if bazel_sh:
         bazel_sh = bazel_sh.replace("\\", "/").lower()
         tokens = bazel_sh.rsplit("/", 1)
         if tokens[0].endswith("/usr/bin"):
-            msys_root = tokens[0][:len(tokens[0]) - len("usr/bin")]
+            msys_root = tokens[0][:len(tokens[0]) - len("/usr/bin")]
+            prefix = "/mingw64" if use_mingw else "/usr"
         elif tokens[0].endswith("/bin"):
-            msys_root = tokens[0][:len(tokens[0]) - len("bin")]
+            msys_root = tokens[0][:len(tokens[0]) - len("/bin")]
 
-    prefix = "mingw64" if use_mingw else "usr"
     tool_path_prefix = escape_string(msys_root) + prefix
     tool_bin_path = tool_path_prefix + "/bin"
     tool_path = {}
 
     for tool in ["ar", "compat-ld", "cpp", "dwp", "gcc", "gcov", "ld", "nm", "objcopy", "objdump", "strip"]:
         if msys_root:
-            tool_path[tool] = tool_bin_path + "/" + tool
+            tool_path[tool] = tool_bin_path + "/" + tool + ".exe"
         else:
             tool_path[tool] = "msys_gcc_installation_error.bat"
     tool_paths = ",\n        ".join(['"%s": "%s"' % (k, v) for k, v in tool_path.items()])
