@@ -6,8 +6,8 @@ exports_files(["LICENSE"])
 
 filegroup(
     name = "distribution",
-    srcs = glob([
+    srcs = [
         "LICENSE",
-    ]),
+    ],
     visibility = ["@//distro:__pkg__"],
 )
