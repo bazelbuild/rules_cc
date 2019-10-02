@@ -2,7 +2,7 @@ package(
     default_visibility = ["//visibility:private"],
 )
 
-load("@rules_cc//cc:defs.bzl", "version")
+load("@rules_cc//cc:version.bzl", "version")
 load("@rules_pkg//:pkg.bzl", "pkg_tar")
 load("@rules_pkg//releasing:defs.bzl", "print_rel_notes")
 
