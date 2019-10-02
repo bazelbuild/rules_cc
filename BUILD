@@ -8,6 +8,8 @@ filegroup(
     name = "distribution",
     srcs = [
         "LICENSE",
+        "internal_deps.bzl",
+        "internal_setup.bzl",
     ],
     visibility = ["@//distro:__pkg__"],
 )
