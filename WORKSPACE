@@ -27,10 +27,10 @@ rules_cc_internal_setup()
 
 http_archive(
     name = "com_google_googletest",
-    sha256 = "4d7cd95cdb0ef420eed163696a906cccd70964801ea611b2020f31177432c27d",
-    strip_prefix = "googletest-1.10.x",
+    sha256 = "9dc9157a9a1551ec7a7e43daea9a694a0bb5fb8bec81235d8a1e6ef64c716dcb",
+    strip_prefix = "googletest-release-1.10.0",
     urls = [
-        "https://mirror.bazel.build/github.com/google/googletest/archive/v1.10.x.tar.gz",
-        "https://github.com/google/googletest/archive/v1.10.x.tar.gz",
+        "https://mirror.bazel.build/github.com/google/googletest/archive/release-1.10.0.tar.gz",
+        "https://github.com/google/googletest/archive/release-1.10.0.tar.gz",
     ],
 )
