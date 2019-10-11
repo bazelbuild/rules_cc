@@ -29,10 +29,10 @@ rules_cc_internal_setup()
 # Nothing special about this commit, though.
 http_archive(
     name = "com_google_googletest",
-    sha256 = "0fb00ff413f6b9b80ccee44a374ca7a18af7315aea72a43c62f2acd1ca74e9b5",
-    strip_prefix = "googletest-f13bbe2992d188e834339abe6f715b2b2f840a77",
+    sha256 = "15e558e199cc51b813d44c2e8c08e5c608828b8a40632a544dcc4baaa5fc8750",
+    strip_prefix = "googletest-ba513d2c9525a7c986c115ed5d603f2cf17c6016",
     urls = [
-        "https://mirror.bazel.build/github.com/google/googletest/archive/f13bbe2992d188e834339abe6f715b2b2f840a77.tar.gz",
-        "https://github.com/google/googletest/archive/f13bbe2992d188e834339abe6f715b2b2f840a77.tar.gz",
+        "https://mirror.bazel.build/github.com/google/googletest/archive/ba513d2c9525a7c986c115ed5d603f2cf17c6016.tar.gz",
+        "https://github.com/google/googletest/archive/ba513d2c9525a7c986c115ed5d603f2cf17c6016.tar.gz",
     ],
 )
