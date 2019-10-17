@@ -7,6 +7,7 @@ exports_files(["LICENSE"])
 filegroup(
     name = "distribution",
     srcs = [
+        "BUILD",
         "LICENSE",
         "internal_deps.bzl",
         "internal_setup.bzl",
