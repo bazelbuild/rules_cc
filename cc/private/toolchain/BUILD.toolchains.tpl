@@ -1,4 +1,5 @@
 load("@local_config_platform//:constraints.bzl", "HOST_CONSTRAINTS")
+
 toolchain(
     name = "cc-toolchain-%{name}",
     exec_compatible_with = HOST_CONSTRAINTS,

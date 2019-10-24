@@ -13,15 +13,15 @@
 # limitations under the License.
 """Rules for configuring the C++ toolchain (experimental)."""
 
-load("@rules_cc//cc/private/toolchain:windows_cc_configure.bzl", "configure_windows_toolchain")
-load("@rules_cc//cc/private/toolchain:osx_cc_configure.bzl", "configure_osx_toolchain")
-load("@rules_cc//cc/private/toolchain:unix_cc_configure.bzl", "configure_unix_toolchain")
+load("@bazel_tools//tools/osx:xcode_configure.bzl", "run_xcode_locator")
 load(
-    "@rules_cc//cc/private/toolchain:lib_cc_configure.bzl",
+    ":lib_cc_configure.bzl",
     "get_cpu_value",
     "resolve_labels",
 )
-load("@bazel_tools//tools/osx:xcode_configure.bzl", "run_xcode_locator")
+load(":osx_cc_configure.bzl", "configure_osx_toolchain")
+load(":unix_cc_configure.bzl", "configure_unix_toolchain")
+load(":windows_cc_configure.bzl", "configure_windows_toolchain")
 
 def _generate_cpp_only_build_file(repository_ctx, cpu_value, paths):
     repository_ctx.template(

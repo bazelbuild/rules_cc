@@ -15,7 +15,15 @@
 
 # This should match the logic in CcCommon.computeCcFlags:
 def build_cc_flags(ctx, cc_toolchain, action_name):
-    """Determine the value for CC_FLAGS based on the given toolchain."""
+    """Determine the value for CC_FLAGS based on the given toolchain.
+
+    Args:
+      ctx: The rule context.
+      cc_toolchain: CcToolchainInfo instance.
+      action_name: Name of the action.
+    Returns:
+      string containing flags separated by a space.
+    """
 
     # Get default cc flags from toolchain's make_variables.
     legacy_cc_flags = cc_common.legacy_cc_flags_make_variable_do_not_use(

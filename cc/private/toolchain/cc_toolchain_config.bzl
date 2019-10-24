@@ -15,16 +15,6 @@
 """A Starlark cc_toolchain configuration rule"""
 
 load(
-    "@rules_cc//cc/private/toolchain:cc_toolchain_config_lib.bzl",
-    "action_config",
-    "feature",
-    "flag_group",
-    "flag_set",
-    "tool",
-    "tool_path",
-    "with_feature_set",
-)
-load(
     "@rules_cc//cc:action_names.bzl",
     _ASSEMBLE_ACTION_NAME = "ASSEMBLE_ACTION_NAME",
     _CLIF_MATCH_ACTION_NAME = "CLIF_MATCH_ACTION_NAME",
@@ -39,6 +29,16 @@ load(
     _LINKSTAMP_COMPILE_ACTION_NAME = "LINKSTAMP_COMPILE_ACTION_NAME",
     _LTO_BACKEND_ACTION_NAME = "LTO_BACKEND_ACTION_NAME",
     _PREPROCESS_ASSEMBLE_ACTION_NAME = "PREPROCESS_ASSEMBLE_ACTION_NAME",
+)
+load(
+    "@rules_cc//cc:cc_toolchain_config_lib.bzl",
+    "action_config",
+    "feature",
+    "flag_group",
+    "flag_set",
+    "tool",
+    "tool_path",
+    "with_feature_set",
 )
 
 all_compile_actions = [
@@ -209,6 +209,7 @@ def _impl(ctx):
 
     builtin_sysroot = None
 
+    objcopy_embed_data_action = None
     if (ctx.attr.cpu == "darwin" or
         ctx.attr.cpu == "freebsd" or
         ctx.attr.cpu == "local"):
@@ -323,6 +324,7 @@ def _impl(ctx):
         ],
     )
 
+    default_link_flags_feature = None
     if (ctx.attr.cpu == "local"):
         default_link_flags_feature = feature(
             name = "default_link_flags",
@@ -416,6 +418,7 @@ def _impl(ctx):
             ],
         )
 
+    unfiltered_compile_flags_feature = None
     if (ctx.attr.cpu == "darwin" or
         ctx.attr.cpu == "freebsd"):
         unfiltered_compile_flags_feature = feature(
@@ -509,6 +512,7 @@ def _impl(ctx):
 
     supports_pic_feature = feature(name = "supports_pic", enabled = True)
 
+    default_compile_flags_feature = None
     if (ctx.attr.cpu == "darwin"):
         default_compile_flags_feature = feature(
             name = "default_compile_flags",
@@ -939,6 +943,7 @@ def _impl(ctx):
 
     dbg_feature = feature(name = "dbg")
 
+    user_compile_flags_feature = None
     if (ctx.attr.cpu == "darwin" or
         ctx.attr.cpu == "freebsd" or
         ctx.attr.cpu == "local"):
@@ -994,6 +999,7 @@ def _impl(ctx):
             ],
         )
 
+    sysroot_feature = None
     if (ctx.attr.cpu == "darwin" or
         ctx.attr.cpu == "freebsd" or
         ctx.attr.cpu == "local"):
@@ -1131,6 +1137,7 @@ def _impl(ctx):
 
     fastbuild_feature = feature(name = "fastbuild")
 
+    features = None
     if (ctx.attr.cpu == "x64_windows" and ctx.attr.compiler == "windows_msys64"):
         features = [
             default_compile_flags_feature,
@@ -1475,8 +1482,8 @@ def _impl(ctx):
 cc_toolchain_config = rule(
     implementation = _impl,
     attrs = {
-        "cpu": attr.string(mandatory = True),
         "compiler": attr.string(),
+        "cpu": attr.string(mandatory = True),
         "disable_static_cc_toolchains": attr.bool(),
     },
     provides = [CcToolchainConfigInfo],

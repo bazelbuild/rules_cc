@@ -15,7 +15,7 @@
 """Configuring the C++ toolchain on Windows."""
 
 load(
-    "@rules_cc//cc/private/toolchain:lib_cc_configure.bzl",
+    ":lib_cc_configure.bzl",
     "auto_configure_fail",
     "auto_configure_warning",
     "auto_configure_warning_maybe",
@@ -99,7 +99,7 @@ def _add_system_root(repository_ctx, env):
     env["PATH"] = env["PATH"] + ";" + _get_system_root(repository_ctx) + "\\system32"
     return env
 
-def find_vc_path(repository_ctx):
+def _find_vc_path(repository_ctx):
     """Find Visual C++ build tools install path. Doesn't %-escape the result."""
 
     # 1. Check if BAZEL_VC or BAZEL_VS is already set by user.
@@ -360,7 +360,7 @@ def _get_winsdk_full_version(repository_ctx):
     """Return the value of BAZEL_WINSDK_FULL_VERSION if defined, otherwise an empty string."""
     return repository_ctx.os.environ.get("BAZEL_WINSDK_FULL_VERSION", default = "")
 
-def find_msvc_tool(repository_ctx, vc_path, tool):
+def _find_msvc_tool(repository_ctx, vc_path, tool):
     """Find the exact path of a specific build tool in MSVC. Doesn't %-escape the result."""
     tool_path = None
     if _is_vs_2017_or_2019(vc_path):
@@ -384,7 +384,7 @@ def _find_missing_vc_tools(repository_ctx, vc_path):
         missing_tools.append("VCVARSALL.BAT")
 
     for tool in ["cl.exe", "link.exe", "lib.exe", "ml64.exe"]:
-        if not find_msvc_tool(repository_ctx, vc_path, tool):
+        if not _find_msvc_tool(repository_ctx, vc_path, tool):
             missing_tools.append(tool)
 
     return missing_tools
@@ -397,7 +397,7 @@ def _is_support_debug_fastlink(repository_ctx, linker):
     result = execute(repository_ctx, [linker], expect_failure = True)
     return result.find("/DEBUG[:{FASTLINK|FULL|NONE}]") != -1
 
-def find_llvm_path(repository_ctx):
+def _find_llvm_path(repository_ctx):
     """Find LLVM install path."""
 
     # 1. Check if BAZEL_LLVM is already set by user.
@@ -443,7 +443,7 @@ def find_llvm_path(repository_ctx):
     auto_configure_warning_maybe(repository_ctx, "LLVM installation found at %s" % llvm_dir)
     return llvm_dir
 
-def find_llvm_tool(repository_ctx, llvm_path, tool):
+def _find_llvm_tool(repository_ctx, llvm_path, tool):
     """Find the exact path of a specific build tool in LLVM. Doesn't %-escape the result."""
     tool_path = llvm_path + "\\bin\\" + tool
 
@@ -460,7 +460,7 @@ def _find_missing_llvm_tools(repository_ctx, llvm_path):
     """Check if any required tool is missing under given LLVM path."""
     missing_tools = []
     for tool in ["clang-cl.exe", "lld-link.exe", "llvm-lib.exe"]:
-        if not find_llvm_tool(repository_ctx, llvm_path, tool):
+        if not _find_llvm_tool(repository_ctx, llvm_path, tool):
             missing_tools.append(tool)
 
     return missing_tools
@@ -481,17 +481,17 @@ def _get_msys_mingw_vars(repository_ctx):
     msys_mingw_vars = {
         "%{cxx_builtin_include_directories}": inc_dir_msys,
         "%{mingw_cxx_builtin_include_directories}": inc_dir_mingw,
-        "%{tool_paths}": tool_paths,
+        "%{mingw_tool_bin_path}": tool_bin_path_mingw,
         "%{mingw_tool_paths}": tool_paths_mingw,
         "%{tool_bin_path}": tool_bin_path,
-        "%{mingw_tool_bin_path}": tool_bin_path_mingw,
+        "%{tool_paths}": tool_paths,
     }
     return msys_mingw_vars
 
 def _get_msvc_vars(repository_ctx, paths):
     """Get the variables we need to populate the MSVC toolchains."""
     msvc_vars = dict()
-    vc_path = find_vc_path(repository_ctx)
+    vc_path = _find_vc_path(repository_ctx)
     missing_tools = None
     if not vc_path:
         repository_ctx.template(
@@ -518,17 +518,17 @@ def _get_msvc_vars(repository_ctx, paths):
     if not vc_path or missing_tools:
         write_builtin_include_directory_paths(repository_ctx, "msvc", [], file_suffix = "_msvc")
         msvc_vars = {
-            "%{msvc_env_tmp}": "msvc_not_found",
-            "%{msvc_env_path}": "msvc_not_found",
-            "%{msvc_env_include}": "msvc_not_found",
-            "%{msvc_env_lib}": "msvc_not_found",
-            "%{msvc_cl_path}": "vc_installation_error.bat",
-            "%{msvc_ml_path}": "vc_installation_error.bat",
-            "%{msvc_link_path}": "vc_installation_error.bat",
-            "%{msvc_lib_path}": "vc_installation_error.bat",
             "%{dbg_mode_debug_flag}": "/DEBUG",
             "%{fastbuild_mode_debug_flag}": "/DEBUG",
+            "%{msvc_cl_path}": "vc_installation_error.bat",
             "%{msvc_cxx_builtin_include_directories}": "",
+            "%{msvc_env_include}": "msvc_not_found",
+            "%{msvc_env_lib}": "msvc_not_found",
+            "%{msvc_env_path}": "msvc_not_found",
+            "%{msvc_env_tmp}": "msvc_not_found",
+            "%{msvc_lib_path}": "vc_installation_error.bat",
+            "%{msvc_link_path}": "vc_installation_error.bat",
+            "%{msvc_ml_path}": "vc_installation_error.bat",
         }
         return msvc_vars
 
@@ -540,23 +540,23 @@ def _get_msvc_vars(repository_ctx, paths):
 
     llvm_path = ""
     if _use_clang_cl(repository_ctx):
-        llvm_path = find_llvm_path(repository_ctx)
+        llvm_path = _find_llvm_path(repository_ctx)
         if not llvm_path:
             auto_configure_fail("\nUSE_CLANG_CL is set to 1, but Bazel cannot find Clang installation on your system.\n" +
                                 "Please install Clang via http://releases.llvm.org/download.html\n")
-        cl_path = find_llvm_tool(repository_ctx, llvm_path, "clang-cl.exe")
-        link_path = find_llvm_tool(repository_ctx, llvm_path, "lld-link.exe")
+        cl_path = _find_llvm_tool(repository_ctx, llvm_path, "clang-cl.exe")
+        link_path = _find_llvm_tool(repository_ctx, llvm_path, "lld-link.exe")
         if not link_path:
-            link_path = find_msvc_tool(repository_ctx, vc_path, "link.exe")
-        lib_path = find_llvm_tool(repository_ctx, llvm_path, "llvm-lib.exe")
+            link_path = _find_msvc_tool(repository_ctx, vc_path, "link.exe")
+        lib_path = _find_llvm_tool(repository_ctx, llvm_path, "llvm-lib.exe")
         if not lib_path:
-            lib_path = find_msvc_tool(repository_ctx, vc_path, "lib.exe")
+            lib_path = _find_msvc_tool(repository_ctx, vc_path, "lib.exe")
     else:
-        cl_path = find_msvc_tool(repository_ctx, vc_path, "cl.exe")
-        link_path = find_msvc_tool(repository_ctx, vc_path, "link.exe")
-        lib_path = find_msvc_tool(repository_ctx, vc_path, "lib.exe")
+        cl_path = _find_msvc_tool(repository_ctx, vc_path, "cl.exe")
+        link_path = _find_msvc_tool(repository_ctx, vc_path, "link.exe")
+        lib_path = _find_msvc_tool(repository_ctx, vc_path, "lib.exe")
 
-    msvc_ml_path = find_msvc_tool(repository_ctx, vc_path, "ml64.exe")
+    msvc_ml_path = _find_msvc_tool(repository_ctx, vc_path, "ml64.exe")
     escaped_cxx_include_directories = []
 
     for path in escaped_include_paths.split(";"):
@@ -574,23 +574,23 @@ def _get_msvc_vars(repository_ctx, paths):
 
     write_builtin_include_directory_paths(repository_ctx, "msvc", escaped_cxx_include_directories, file_suffix = "_msvc")
     msvc_vars = {
-        "%{msvc_env_tmp}": escaped_tmp_dir,
-        "%{msvc_env_path}": escaped_paths,
-        "%{msvc_env_include}": escaped_include_paths,
-        "%{msvc_env_lib}": escaped_lib_paths,
-        "%{msvc_cl_path}": cl_path,
-        "%{msvc_ml_path}": msvc_ml_path,
-        "%{msvc_link_path}": link_path,
-        "%{msvc_lib_path}": lib_path,
         "%{dbg_mode_debug_flag}": "/DEBUG:FULL" if support_debug_fastlink else "/DEBUG",
         "%{fastbuild_mode_debug_flag}": "/DEBUG:FASTLINK" if support_debug_fastlink else "/DEBUG",
+        "%{msvc_cl_path}": cl_path,
         "%{msvc_cxx_builtin_include_directories}": "        " + ",\n        ".join(escaped_cxx_include_directories),
+        "%{msvc_env_include}": escaped_include_paths,
+        "%{msvc_env_lib}": escaped_lib_paths,
+        "%{msvc_env_path}": escaped_paths,
+        "%{msvc_env_tmp}": escaped_tmp_dir,
+        "%{msvc_lib_path}": lib_path,
+        "%{msvc_link_path}": link_path,
+        "%{msvc_ml_path}": msvc_ml_path,
     }
     return msvc_vars
 
 def _get_clang_cl_vars(repository_ctx, paths, msvc_vars):
     """Get the variables we need to populate the clang-cl toolchains."""
-    llvm_path = find_llvm_path(repository_ctx)
+    llvm_path = _find_llvm_path(repository_ctx)
     error_script = None
     if msvc_vars["%{msvc_cl_path}"] == "vc_installation_error.bat":
         error_script = "vc_installation_error.bat"
@@ -621,23 +621,23 @@ def _get_clang_cl_vars(repository_ctx, paths, msvc_vars):
     if error_script:
         write_builtin_include_directory_paths(repository_ctx, "clang-cl", [], file_suffix = "_clangcl")
         clang_cl_vars = {
-            "%{clang_cl_env_tmp}": "clang_cl_not_found",
-            "%{clang_cl_env_path}": "clang_cl_not_found",
+            "%{clang_cl_cl_path}": error_script,
+            "%{clang_cl_cxx_builtin_include_directories}": "",
+            "%{clang_cl_dbg_mode_debug_flag}": "/DEBUG",
             "%{clang_cl_env_include}": "clang_cl_not_found",
             "%{clang_cl_env_lib}": "clang_cl_not_found",
-            "%{clang_cl_cl_path}": error_script,
-            "%{clang_cl_link_path}": error_script,
-            "%{clang_cl_lib_path}": error_script,
-            "%{clang_cl_ml_path}": error_script,
-            "%{clang_cl_dbg_mode_debug_flag}": "/DEBUG",
+            "%{clang_cl_env_path}": "clang_cl_not_found",
+            "%{clang_cl_env_tmp}": "clang_cl_not_found",
             "%{clang_cl_fastbuild_mode_debug_flag}": "/DEBUG",
-            "%{clang_cl_cxx_builtin_include_directories}": "",
+            "%{clang_cl_lib_path}": error_script,
+            "%{clang_cl_link_path}": error_script,
+            "%{clang_cl_ml_path}": error_script,
         }
         return clang_cl_vars
 
-    clang_cl_path = find_llvm_tool(repository_ctx, llvm_path, "clang-cl.exe")
-    lld_link_path = find_llvm_tool(repository_ctx, llvm_path, "lld-link.exe")
-    llvm_lib_path = find_llvm_tool(repository_ctx, llvm_path, "llvm-lib.exe")
+    clang_cl_path = _find_llvm_tool(repository_ctx, llvm_path, "clang-cl.exe")
+    lld_link_path = _find_llvm_tool(repository_ctx, llvm_path, "lld-link.exe")
+    llvm_lib_path = _find_llvm_tool(repository_ctx, llvm_path, "llvm-lib.exe")
 
     clang_version = _get_clang_version(repository_ctx, clang_cl_path)
     clang_dir = llvm_path + "\\lib\\clang\\" + clang_version
@@ -647,23 +647,27 @@ def _get_clang_cl_vars(repository_ctx, paths, msvc_vars):
     clang_cl_include_directories = msvc_vars["%{msvc_cxx_builtin_include_directories}"] + (",\n        \"%s\"" % clang_include_path)
     write_builtin_include_directory_paths(repository_ctx, "clang-cl", [clang_cl_include_directories], file_suffix = "_clangcl")
     clang_cl_vars = {
-        "%{clang_cl_env_tmp}": msvc_vars["%{msvc_env_tmp}"],
-        "%{clang_cl_env_path}": msvc_vars["%{msvc_env_path}"],
-        "%{clang_cl_env_include}": msvc_vars["%{msvc_env_include}"] + ";" + clang_include_path,
-        "%{clang_cl_env_lib}": msvc_vars["%{msvc_env_lib}"] + ";" + clang_lib_path,
-        "%{clang_cl_cxx_builtin_include_directories}": clang_cl_include_directories,
         "%{clang_cl_cl_path}": clang_cl_path,
-        "%{clang_cl_link_path}": lld_link_path,
-        "%{clang_cl_lib_path}": llvm_lib_path,
-        "%{clang_cl_ml_path}": msvc_vars["%{msvc_ml_path}"],
+        "%{clang_cl_cxx_builtin_include_directories}": clang_cl_include_directories,
         # LLVM's lld-link.exe doesn't support /DEBUG:FASTLINK.
         "%{clang_cl_dbg_mode_debug_flag}": "/DEBUG",
+        "%{clang_cl_env_include}": msvc_vars["%{msvc_env_include}"] + ";" + clang_include_path,
+        "%{clang_cl_env_lib}": msvc_vars["%{msvc_env_lib}"] + ";" + clang_lib_path,
+        "%{clang_cl_env_path}": msvc_vars["%{msvc_env_path}"],
+        "%{clang_cl_env_tmp}": msvc_vars["%{msvc_env_tmp}"],
         "%{clang_cl_fastbuild_mode_debug_flag}": "/DEBUG",
+        "%{clang_cl_lib_path}": llvm_lib_path,
+        "%{clang_cl_link_path}": lld_link_path,
+        "%{clang_cl_ml_path}": msvc_vars["%{msvc_ml_path}"],
     }
     return clang_cl_vars
 
 def configure_windows_toolchain(repository_ctx):
-    """Configure C++ toolchain on Windows."""
+    """Configure C++ toolchain on Windows.
+
+    Args:
+      repository_ctx: The repository context.
+    """
     paths = resolve_labels(repository_ctx, [
         "@rules_cc//cc/private/toolchain:BUILD.windows.tpl",
         "@rules_cc//cc/private/toolchain:windows_cc_toolchain_config.bzl",

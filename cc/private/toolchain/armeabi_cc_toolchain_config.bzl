@@ -15,7 +15,7 @@
 """A Starlark cc_toolchain configuration rule"""
 
 load(
-    "@rules_cc//cc/private/toolchain:cc_toolchain_config_lib.bzl",
+    "@rules_cc//cc:cc_toolchain_config_lib.bzl",
     "feature",
     "tool_path",
 )

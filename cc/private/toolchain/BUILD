@@ -51,12 +51,6 @@ constraint_value(
     constraint_setting = ":cc_compiler",
 )
 
-cc_toolchain_alias(name = "current_cc_toolchain")
-
-cc_host_toolchain_alias(name = "current_cc_host_toolchain")
-
-cc_libc_top_alias(name = "current_libc_top")
-
 cc_library(
     name = "malloc",
 )
@@ -86,17 +80,7 @@ alias(
 
 filegroup(
     name = "srcs",
-    srcs = glob(["**"]) + [
-        "//cc/private/toolchain/runfiles:srcs",
-    ],
-)
-
-filegroup(
-    name = "embedded_tools",
-    srcs = glob(["**"]) + [
-        "//cc:action_names.bzl",
-        "//cc/private/toolchain/runfiles:embedded_tools",
-    ],
+    srcs = glob(["**"])
 )
 
 filegroup(

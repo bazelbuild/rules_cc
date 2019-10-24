@@ -14,8 +14,9 @@
 
 """A Starlark cc_toolchain configuration rule for freebsd."""
 
+load("@rules_cc//cc:action_names.bzl", "ACTION_NAMES")
 load(
-    "@rules_cc//cc/private/toolchain:cc_toolchain_config_lib.bzl",
+    "@rules_cc//cc:cc_toolchain_config_lib.bzl",
     "action_config",
     "feature",
     "flag_group",
@@ -24,7 +25,6 @@ load(
     "tool_path",
     "with_feature_set",
 )
-load("@rules_cc//cc:action_names.bzl", "ACTION_NAMES")
 
 all_compile_actions = [
     ACTION_NAMES.c_compile,

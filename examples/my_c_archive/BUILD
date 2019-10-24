@@ -13,11 +13,12 @@
 # limitations under the License.
 
 # Example showing how to create a custom Starlark rule that rules_cc can depend on
-licenses(["notice"])
 
-load("//examples/my_c_compile:my_c_compile.bzl", "my_c_compile")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("//examples/my_c_archive:my_c_archive.bzl", "my_c_archive")
-load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("//examples/my_c_compile:my_c_compile.bzl", "my_c_compile")
+
+licenses(["notice"])
 
 cc_binary(
     name = "main",

@@ -14,11 +14,11 @@
 """Rule that provides the CC_FLAGS Make variable."""
 
 load("//cc:action_names.bzl", "CC_FLAGS_MAKE_VARIABLE_ACTION_NAME")
+load("//cc:find_cc_toolchain.bzl", "find_cc_toolchain")
 load("//cc/private/rules_impl:cc_flags_supplier_lib.bzl", "build_cc_flags")
-load("//cc:toolchain_utils.bzl", "find_cpp_toolchain")
 
 def _cc_flags_supplier_impl(ctx):
-    cc_toolchain = find_cpp_toolchain(ctx)
+    cc_toolchain = find_cc_toolchain(ctx)
     cc_flags = build_cc_flags(ctx, cc_toolchain, CC_FLAGS_MAKE_VARIABLE_ACTION_NAME)
     variables = platform_common.TemplateVariableInfo({
         "CC_FLAGS": cc_flags,
@@ -28,7 +28,7 @@ def _cc_flags_supplier_impl(ctx):
 cc_flags_supplier = rule(
     implementation = _cc_flags_supplier_impl,
     attrs = {
-        "_cc_toolchain": attr.label(default = Label("@rules_cc//cc/private/toolchain:current_cc_toolchain")),
+        "_cc_toolchain": attr.label(default = Label("@rules_cc//cc:current_cc_toolchain")),
     },
     toolchains = ["@rules_cc//cc:toolchain_type"],
     fragments = ["cpp"],

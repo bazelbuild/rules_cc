@@ -14,8 +14,9 @@
 
 """A Starlark cc_toolchain configuration rule"""
 
+load("@rules_cc//cc:action_names.bzl", "ACTION_NAMES")
 load(
-    "@rules_cc//cc/private/toolchain:cc_toolchain_config_lib.bzl",
+    "@rules_cc//cc:cc_toolchain_config_lib.bzl",
     "feature",
     "feature_set",
     "flag_group",
@@ -24,7 +25,6 @@ load(
     "variable_with_value",
     "with_feature_set",
 )
-load("@rules_cc//cc:action_names.bzl", "ACTION_NAMES")
 
 all_compile_actions = [
     ACTION_NAMES.c_compile,
@@ -1171,27 +1171,27 @@ def _impl(ctx):
 cc_toolchain_config = rule(
     implementation = _impl,
     attrs = {
-        "cpu": attr.string(mandatory = True),
-        "compiler": attr.string(mandatory = True),
-        "toolchain_identifier": attr.string(mandatory = True),
-        "host_system_name": attr.string(mandatory = True),
-        "target_system_name": attr.string(mandatory = True),
-        "target_libc": attr.string(mandatory = True),
-        "abi_version": attr.string(mandatory = True),
         "abi_libc_version": attr.string(mandatory = True),
-        "cxx_builtin_include_directories": attr.string_list(),
-        "tool_paths": attr.string_dict(),
+        "abi_version": attr.string(mandatory = True),
         "compile_flags": attr.string_list(),
-        "dbg_compile_flags": attr.string_list(),
-        "opt_compile_flags": attr.string_list(),
-        "cxx_flags": attr.string_list(),
-        "link_flags": attr.string_list(),
-        "link_libs": attr.string_list(),
-        "opt_link_flags": attr.string_list(),
-        "unfiltered_compile_flags": attr.string_list(),
+        "compiler": attr.string(mandatory = True),
         "coverage_compile_flags": attr.string_list(),
         "coverage_link_flags": attr.string_list(),
+        "cpu": attr.string(mandatory = True),
+        "cxx_builtin_include_directories": attr.string_list(),
+        "cxx_flags": attr.string_list(),
+        "dbg_compile_flags": attr.string_list(),
+        "host_system_name": attr.string(mandatory = True),
+        "link_flags": attr.string_list(),
+        "link_libs": attr.string_list(),
+        "opt_compile_flags": attr.string_list(),
+        "opt_link_flags": attr.string_list(),
         "supports_start_end_lib": attr.bool(),
+        "target_libc": attr.string(mandatory = True),
+        "target_system_name": attr.string(mandatory = True),
+        "tool_paths": attr.string_dict(),
+        "toolchain_identifier": attr.string(mandatory = True),
+        "unfiltered_compile_flags": attr.string_list(),
     },
     provides = [CcToolchainConfigInfo],
 )

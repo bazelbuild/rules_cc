@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_toolchain", "cc_toolchain_suite")
+
 package(default_visibility = ["//visibility:public"])
 
 load(":cc_toolchain_config.bzl", "cc_toolchain_config")
@@ -28,15 +30,13 @@ filegroup(
 cc_toolchain_suite(
     name = "toolchain",
     toolchains = {
-        "local|local": ":local",
         "local": ":local",
+        "local|local": ":local",
     },
 )
 
 cc_toolchain(
     name = "local",
-    toolchain_identifier = "local",
-    toolchain_config = ":local_config",
     all_files = ":empty",
     ar_files = ":empty",
     as_files = ":empty",
@@ -45,6 +45,8 @@ cc_toolchain(
     linker_files = ":empty",
     objcopy_files = ":empty",
     strip_files = ":empty",
+    toolchain_config = ":local_config",
+    toolchain_identifier = "local",
 )
 
 cc_toolchain_config(name = "local_config")

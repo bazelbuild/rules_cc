@@ -16,8 +16,8 @@
 
 package(default_visibility = ["//visibility:public"])
 
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_toolchain", "cc_toolchain_suite")
 load(":cc_toolchain_config.bzl", "cc_toolchain_config")
-load("@rules_cc//cc:defs.bzl", "cc_toolchain_suite", "cc_toolchain", "cc_library")
 
 cc_library(
     name = "malloc",
@@ -32,17 +32,15 @@ filegroup(
 cc_toolchain_suite(
     name = "toolchain",
     toolchains = {
-        "armeabi-v7a|compiler": ":cc-compiler-armeabi-v7a",
-        "freebsd|compiler": ":cc-compiler-freebsd",
         "armeabi-v7a": ":cc-compiler-armeabi-v7a",
+        "armeabi-v7a|compiler": ":cc-compiler-armeabi-v7a",
         "freebsd": ":cc-compiler-freebsd",
+        "freebsd|compiler": ":cc-compiler-freebsd",
     },
 )
 
 cc_toolchain(
     name = "cc-compiler-freebsd",
-    toolchain_identifier = "local_freebsd",
-    toolchain_config = ":local_freebsd",
     all_files = ":empty",
     ar_files = ":empty",
     as_files = ":empty",
@@ -52,6 +50,8 @@ cc_toolchain(
     objcopy_files = ":empty",
     strip_files = ":empty",
     supports_param_files = 0,
+    toolchain_config = ":local_freebsd",
+    toolchain_identifier = "local_freebsd",
 )
 
 cc_toolchain_config(
@@ -75,8 +75,6 @@ toolchain(
 
 cc_toolchain(
     name = "cc-compiler-armeabi-v7a",
-    toolchain_identifier = "stub_armeabi-v7a",
-    toolchain_config = ":stub_armeabi-v7a",
     all_files = ":empty",
     ar_files = ":empty",
     as_files = ":empty",
@@ -86,6 +84,8 @@ cc_toolchain(
     objcopy_files = ":empty",
     strip_files = ":empty",
     supports_param_files = 0,
+    toolchain_config = ":stub_armeabi-v7a",
+    toolchain_identifier = "stub_armeabi-v7a",
 )
 
 cc_toolchain_config(

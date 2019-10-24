@@ -1,4 +1,7 @@
 ---
+buildifier:
+  version: latest
+  warnings: "all"
 platforms:
   ubuntu1604:
     run_targets:

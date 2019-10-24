@@ -115,25 +115,53 @@ def auto_configure_warning(msg):
     """Output warning message during auto configuration."""
     yellow = "\033[1;33m"
     no_color = "\033[0m"
+
+    # buildifier: disable=print
     print("\n%sAuto-Configuration Warning:%s %s\n" % (yellow, no_color, msg))
 
 def get_env_var(repository_ctx, name, default = None, enable_warning = True):
-    """Find an environment variable in system path. Doesn't %-escape the value!"""
+    """Find an environment variable in system path. Doesn't %-escape the value!
+
+    Args:
+      repository_ctx: The repository context.
+      name: Name of the environment variable.
+      default: Default value to be used when such environment variable is not present.
+      enable_warning: Show warning if the variable is not present.
+    Returns:
+      value of the environment variable or default.
+    """
+
     if name in repository_ctx.os.environ:
         return repository_ctx.os.environ[name]
     if default != None:
         if enable_warning:
             auto_configure_warning("'%s' environment variable is not set, using '%s' as default" % (name, default))
         return default
-    auto_configure_fail("'%s' environment variable is not set" % name)
+    return auto_configure_fail("'%s' environment variable is not set" % name)
 
 def which(repository_ctx, cmd, default = None):
-    """A wrapper around repository_ctx.which() to provide a fallback value. Doesn't %-escape the value!"""
+    """A wrapper around repository_ctx.which() to provide a fallback value. Doesn't %-escape the value!
+
+    Args:
+      repository_ctx: The repository context.
+      cmd: name of the executable to resolve.
+      default: Value to be returned when such executable couldn't be found.
+    Returns:
+      absolute path to the cmd or default when not found.
+    """
     result = repository_ctx.which(cmd)
     return default if result == None else str(result)
 
 def which_cmd(repository_ctx, cmd, default = None):
-    """Find cmd in PATH using repository_ctx.which() and fail if cannot find it. Doesn't %-escape the cmd!"""
+    """Find cmd in PATH using repository_ctx.which() and fail if cannot find it. Doesn't %-escape the cmd!
+
+    Args:
+      repository_ctx: The repository context.
+      cmd: name of the executable to resolve.
+      default: Value to be returned when such executable couldn't be found.
+    Returns:
+      absolute path to the cmd or default when not found.
+    """
     result = repository_ctx.which(cmd)
     if result != None:
         return str(result)
@@ -149,7 +177,16 @@ def execute(
         command,
         environment = None,
         expect_failure = False):
-    """Execute a command, return stdout if succeed and throw an error if it fails. Doesn't %-escape the result!"""
+    """Execute a command, return stdout if succeed and throw an error if it fails. Doesn't %-escape the result!
+
+    Args:
+      repository_ctx: The repository context.
+      command: command to execute.
+      environment: dictionary with environment variables to set for the command.
+      expect_failure: True if the command is expected to fail.
+    Returns:
+      stdout of the executed command.
+    """
     if environment:
         result = repository_ctx.execute(command, environment = environment)
     else:
@@ -178,7 +215,13 @@ def execute(
     return stripped_stdout
 
 def get_cpu_value(repository_ctx):
-    """Compute the cpu_value based on the OS name. Doesn't %-escape the result!"""
+    """Compute the cpu_value based on the OS name. Doesn't %-escape the result!
+
+    Args:
+      repository_ctx: The repository context.
+    Returns:
+      One of (darwin, freebsd, x64_windows, ppc, s390x, arm, aarch64, k8, piii)
+    """
     os_name = repository_ctx.os.name.lower()
     if os_name.startswith("mac os"):
         return "darwin"

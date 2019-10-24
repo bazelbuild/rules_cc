@@ -16,13 +16,13 @@
 
 load("@bazel_tools//tools/osx:xcode_configure.bzl", "run_xcode_locator")
 load(
-    "@rules_cc//cc/private/toolchain:lib_cc_configure.bzl",
+    ":lib_cc_configure.bzl",
     "escape_string",
     "resolve_labels",
     "write_builtin_include_directory_paths",
 )
 load(
-    "@rules_cc//cc/private/toolchain:unix_cc_configure.bzl",
+    ":unix_cc_configure.bzl",
     "configure_unix_toolchain",
     "find_cc",
     "get_env",
@@ -51,7 +51,12 @@ def _get_escaped_xcode_cxx_inc_directories(repository_ctx, cc, xcode_toolchains)
     return include_dirs
 
 def configure_osx_toolchain(repository_ctx, overriden_tools):
-    """Configure C++ toolchain on macOS."""
+    """Configure C++ toolchain on macOS.
+
+    Args:
+      repository_ctx: The repository context.
+      overriden_tools: dictionary of overriden tools.
+    """
     paths = resolve_labels(repository_ctx, [
         "@rules_cc//cc/private/toolchain:osx_cc_wrapper.sh.tpl",
         "@bazel_tools//tools/objc:libtool.sh",

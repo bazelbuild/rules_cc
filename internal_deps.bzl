@@ -14,15 +14,16 @@
 
 """Dependencies that are needed for rules_cc tests and tools."""
 
-load("@bazel_federation//:repositories.bzl", "bazel_skylib", "protobuf", "rules_go", "rules_pkg")
+load("@bazel_federation//:repositories.bzl", "bazel_skylib", "protobuf", "rules_go", "rules_pkg", "rules_python")
 load("@bazel_federation//:third_party_repositories.bzl", "abseil_py", "py_mock", "six", "zlib")
 
 def rules_cc_internal_deps():
-    """Fetches all required dependencies for rules_cc tests and tools."""
+    """Fetches all dependencies for rules_cc tests and tools."""
     bazel_skylib()
     protobuf()
     rules_go()
     rules_pkg()
+    rules_python()
 
     abseil_py()
     py_mock()

@@ -14,8 +14,8 @@
 
 """Starlark rules for building C++ projects."""
 
-load("@rules_cc//cc/private/rules_impl:cc_flags_supplier.bzl", _cc_flags_supplier = "cc_flags_supplier")
-load("@rules_cc//cc/private/rules_impl:compiler_flag.bzl", _compiler_flag = "compiler_flag")
+load("//cc/private/rules_impl:cc_flags_supplier.bzl", _cc_flags_supplier = "cc_flags_supplier")
+load("//cc/private/rules_impl:compiler_flag.bzl", _compiler_flag = "compiler_flag")
 
 _MIGRATION_TAG = "__CC_RULES_MIGRATION_DO_NOT_USE_WILL_BREAK__"
 
@@ -34,6 +34,8 @@ def cc_binary(**attrs):
     Args:
       **attrs: Rule attributes
     """
+
+    # buildifier: disable=native-cc
     native.cc_binary(**_add_tags(attrs))
 
 def cc_test(**attrs):
@@ -44,6 +46,8 @@ def cc_test(**attrs):
     Args:
       **attrs: Rule attributes
     """
+
+    # buildifier: disable=native-cc
     native.cc_test(**_add_tags(attrs))
 
 def cc_library(**attrs):
@@ -54,6 +58,8 @@ def cc_library(**attrs):
     Args:
       **attrs: Rule attributes
     """
+
+    # buildifier: disable=native-cc
     native.cc_library(**_add_tags(attrs))
 
 def cc_import(**attrs):
@@ -64,6 +70,8 @@ def cc_import(**attrs):
     Args:
       **attrs: Rule attributes
     """
+
+    # buildifier: disable=native-cc
     native.cc_import(**_add_tags(attrs))
 
 def cc_proto_library(**attrs):
@@ -74,6 +82,8 @@ def cc_proto_library(**attrs):
     Args:
       **attrs: Rule attributes
     """
+
+    # buildifier: disable=native-cc
     native.cc_proto_library(**_add_tags(attrs))
 
 def fdo_prefetch_hints(**attrs):
@@ -84,6 +94,8 @@ def fdo_prefetch_hints(**attrs):
     Args:
       **attrs: Rule attributes
     """
+
+    # buildifier: disable=native-cc
     native.fdo_prefetch_hints(**_add_tags(attrs))
 
 def fdo_profile(**attrs):
@@ -94,6 +106,8 @@ def fdo_profile(**attrs):
     Args:
       **attrs: Rule attributes
     """
+
+    # buildifier: disable=native-cc
     native.fdo_profile(**_add_tags(attrs))
 
 def cc_toolchain(**attrs):
@@ -104,6 +118,8 @@ def cc_toolchain(**attrs):
     Args:
       **attrs: Rule attributes
     """
+
+    # buildifier: disable=native-cc
     native.cc_toolchain(**_add_tags(attrs))
 
 def cc_toolchain_suite(**attrs):
@@ -114,6 +130,8 @@ def cc_toolchain_suite(**attrs):
     Args:
       **attrs: Rule attributes
     """
+
+    # buildifier: disable=native-cc
     native.cc_toolchain_suite(**_add_tags(attrs))
 
 def objc_library(**attrs):
@@ -124,6 +142,8 @@ def objc_library(**attrs):
     Args:
       **attrs: Rule attributes
     """
+
+    # buildifier: disable=native-cc
     native.objc_library(**_add_tags(attrs))
 
 def objc_import(**attrs):
@@ -134,6 +154,8 @@ def objc_import(**attrs):
     Args:
       **attrs: Rule attributes
     """
+
+    # buildifier: disable=native-cc
     native.objc_import(**_add_tags(attrs))
 
 def cc_flags_supplier(**attrs):

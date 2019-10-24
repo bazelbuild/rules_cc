@@ -14,35 +14,18 @@
 # limitations under the License.
 
 """
-Finds the c++ toolchain.
-
-Returns the toolchain if enabled, and falls back to a toolchain constructed from
-the CppConfiguration.
+Deprecated, use find_cc_toolchain.bzl
 """
 
-def find_cpp_toolchain(ctx):
-    """
-    Finds the c++ toolchain.
+load(":find_cc_toolchain.bzl", "find_cc_toolchain")
 
-    If the c++ toolchain is in use, returns it.  Otherwise, returns a c++
-    toolchain derived from legacy toolchain selection.
+def find_cpp_toolchain(ctx):
+    """Deprecated, use `find_cc_toolchain` instead.
 
     Args:
-      ctx: The rule context for which to find a toolchain.
+      ctx: See `find_cc_toolchain`.
 
     Returns:
-      A CcToolchainProvider.
+      A CcToolchainInfo.
     """
-
-    # Check the incompatible flag for toolchain resolution.
-    if hasattr(cc_common, "is_cc_toolchain_resolution_enabled_do_not_use") and cc_common.is_cc_toolchain_resolution_enabled_do_not_use(ctx = ctx):
-        if "@rules_cc//cc:toolchain_type" in ctx.toolchains:
-            return ctx.toolchains["@rules_cc//cc:toolchain_type"]
-        fail("In order to use find_cpp_toolchain, you must include the '@rules_cc//cc:toolchain_type' in the toolchains argument to your rule.")
-
-    # Fall back to the legacy implicit attribute lookup.
-    if hasattr(ctx.attr, "_cc_toolchain"):
-        return ctx.attr._cc_toolchain[cc_common.CcToolchainInfo]
-
-    # We didn't find anything.
-    fail("In order to use find_cpp_toolchain, you must define the '_cc_toolchain' attribute on your rule or aspect.")
+    return find_cc_toolchain(ctx)

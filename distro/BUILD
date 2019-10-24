@@ -1,10 +1,10 @@
+load("@rules_pkg//:pkg.bzl", "pkg_tar")
+load("@rules_pkg//releasing:defs.bzl", "print_rel_notes")
+load("//cc:version.bzl", "version")
+
 package(
     default_visibility = ["//visibility:private"],
 )
-
-load("@rules_cc//cc:version.bzl", "version")
-load("@rules_pkg//:pkg.bzl", "pkg_tar")
-load("@rules_pkg//releasing:defs.bzl", "print_rel_notes")
 
 # Build the artifact to put on the github release page.
 pkg_tar(

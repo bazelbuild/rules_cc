@@ -21,12 +21,17 @@ Returns the current `CcToolchainInfo`.
   `--cpu`, `--compiler`). For that to work the rule needs to declare an
   `_cc_toolchain` attribute, e.g.
 
-foo = rule(
-    implementation = _foo_impl,
-    attrs = {
-        "_cc_toolchain": attr.label(default = Label("@rules_cc//cc/private/toolchain:current_cc_toolchain")),
-    },
-)
+    foo = rule(
+        implementation = _foo_impl,
+        attrs = {
+            "_cc_toolchain": attr.label(
+                default = Label(
+                    "@rules_cc//cc/:current_cc_toolchain", # copybara-use-repo-external-label
+                ),
+            ),
+        },
+    )
+
 * When https://github.com/bazelbuild/bazel/issues/7260 **is** flipped, current
   C++ toolchain is selected using the toolchain resolution mechanism
   (`--platforms`). For that to work the rule needs to declare a dependency on
@@ -34,14 +39,15 @@ foo = rule(
 
     foo = rule(
         implementation = _foo_impl,
-        toolchains = ["@rules_cc//cc:toolchain_type"],
+        toolchains = [
+            "@rules_cc//cc:toolchain_type", # copybara-use-repo-external-label
+        ],
     )
 
-We advise to depend on both `_cc_toolchain` attr and
-`@rules_cc//cc:toolchain_type` for the duration of the migration. After
+We advise to depend on both `_cc_toolchain` attr and on the toolchain type for
+the duration of the migration. After
 https://github.com/bazelbuild/bazel/issues/7260 is flipped (and support for old
-Bazel version is not needed), it's enough to only keep the
-`@rules_cc//cc:toolchain_type`.
+Bazel version is not needed), it's enough to only keep the toolchain type.
 """
 
 def find_cc_toolchain(ctx):
@@ -57,13 +63,24 @@ Returns the current `CcToolchainInfo`.
 
     # Check the incompatible flag for toolchain resolution.
     if hasattr(cc_common, "is_cc_toolchain_resolution_enabled_do_not_use") and cc_common.is_cc_toolchain_resolution_enabled_do_not_use(ctx = ctx):
-        if "@rules_cc//cc:toolchain_type" in ctx.toolchains:
-            return ctx.toolchains["@rules_cc//cc:toolchain_type"]
-        fail("In order to use find_cc_toolchain, you must include the '@rules_cc//cc:toolchain_type' in the toolchains argument to your rule.")
+        if "//cc:toolchain_type" in ctx.toolchains:
+            return ctx.toolchains["//cc:toolchain_type"]
+        fail("In order to use find_cc_toolchain, your rule has to depend on C++ toolchain. See find_cc_toolchain.bzl docs for details.")
 
     # Fall back to the legacy implicit attribute lookup.
     if hasattr(ctx.attr, "_cc_toolchain"):
         return ctx.attr._cc_toolchain[cc_common.CcToolchainInfo]
 
     # We didn't find anything.
-    fail("In order to use find_ccc_toolchain, you must define the '_cc_toolchain' attribute on your rule or aspect.")
+    fail("In order to use find_cc_toolchain, your rule has to depend on C++ toolchain. See find_cc_toolchain.bzl docs for details.")
+
+def find_cpp_toolchain(ctx):
+    """Deprecated, use `find_cc_toolchain` instead.
+
+    Args:
+      ctx: See `find_cc_toolchain`.
+
+    Returns:
+      A CcToolchainInfo.
+    """
+    return find_cc_toolchain(ctx)

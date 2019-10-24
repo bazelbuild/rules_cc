@@ -15,7 +15,7 @@
 """Configuring the C++ toolchain on Unix platforms."""
 
 load(
-    "@rules_cc//cc/private/toolchain:lib_cc_configure.bzl",
+    ":lib_cc_configure.bzl",
     "auto_configure_fail",
     "auto_configure_warning",
     "auto_configure_warning_maybe",
@@ -123,7 +123,16 @@ def _cxx_inc_convert(path):
     return path
 
 def get_escaped_cxx_inc_directories(repository_ctx, cc, lang_flag, additional_flags = []):
-    """Compute the list of default %-escaped C++ include directories."""
+    """Compute the list of default %-escaped C++ include directories.
+
+    Args:
+      repository_ctx: The repository context.
+      cc: path to the C compiler.
+      lang_flag: value for the language flag (c, c++).
+      additional_flags: additional flags to pass to cc.
+    Returns:
+      a list of escaped system include directories.
+    """
     result = repository_ctx.execute([cc, "-E", lang_flag, "-", "-v"] + additional_flags)
     index1 = result.stderr.find(_INC_DIR_MARKER_BEGIN)
     if index1 == -1:
@@ -243,8 +252,14 @@ def _get_no_canonical_prefixes_opt(repository_ctx, cc):
         )
     return opt
 
-def get_env(repository_ctx):
-    """Convert the environment in a list of export if in Homebrew. Doesn't %-escape the result!"""
+def _get_env(repository_ctx):
+    """Convert the environment in a list of export if in Homebrew. Doesn't %-escape the result!
+
+    Args:
+      repository_ctx: The repository context.
+    Returns:
+      empty string or a list of exports in case we're running with homebrew. Don't ask me why.
+    """
     env = repository_ctx.os.environ
     if "HOMEBREW_RUBY_PATH" in env:
         return "\n".join([
@@ -304,7 +319,13 @@ def find_cc(repository_ctx, overriden_tools):
     return _find_generic(repository_ctx, "gcc", "CC", overriden_tools)
 
 def configure_unix_toolchain(repository_ctx, cpu_value, overriden_tools):
-    """Configure C++ toolchain on Unix platforms."""
+    """Configure C++ toolchain on Unix platforms.
+
+    Args:
+      repository_ctx: The repository context.
+      cpu_value: current cpu name.
+      overriden_tools: overriden tools.
+    """
     paths = resolve_labels(repository_ctx, [
         "@rules_cc//cc/private/toolchain:BUILD.tpl",
         "@rules_cc//cc/private/toolchain:armeabi_cc_toolchain_config.bzl",
@@ -411,16 +432,10 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overriden_tools):
         "BUILD",
         paths["@rules_cc//cc/private/toolchain:BUILD.tpl"],
         {
-            "%{cc_toolchain_identifier}": cc_toolchain_identifier,
-            "%{name}": cpu_value,
-            "%{supports_param_files}": "0" if darwin else "1",
-            "%{cc_compiler_deps}": get_starlark_list([":builtin_include_directory_paths"] + (
-                [":cc_wrapper"] if darwin else []
-            )),
-            "%{compiler}": escape_string(get_env_var(
+            "%{abi_libc_version}": escape_string(get_env_var(
                 repository_ctx,
-                "BAZEL_COMPILER",
-                "compiler",
+                "ABI_LIBC_VERSION",
+                "local",
                 False,
             )),
             "%{abi_version}": escape_string(get_env_var(
@@ -429,40 +444,10 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overriden_tools):
                 "local",
                 False,
             )),
-            "%{abi_libc_version}": escape_string(get_env_var(
-                repository_ctx,
-                "ABI_LIBC_VERSION",
-                "local",
-                False,
+            "%{cc_compiler_deps}": get_starlark_list([":builtin_include_directory_paths"] + (
+                [":cc_wrapper"] if darwin else []
             )),
-            "%{host_system_name}": escape_string(get_env_var(
-                repository_ctx,
-                "BAZEL_HOST_SYSTEM",
-                "local",
-                False,
-            )),
-            "%{target_libc}": "macosx" if darwin else escape_string(get_env_var(
-                repository_ctx,
-                "BAZEL_TARGET_LIBC",
-                "local",
-                False,
-            )),
-            "%{target_cpu}": escape_string(get_env_var(
-                repository_ctx,
-                "BAZEL_TARGET_CPU",
-                cpu_value,
-                False,
-            )),
-            "%{target_system_name}": escape_string(get_env_var(
-                repository_ctx,
-                "BAZEL_TARGET_SYSTEM",
-                "local",
-                False,
-            )),
-            "%{tool_paths}": ",\n        ".join(
-                ['"%s": "%s"' % (k, v) for k, v in tool_paths.items()],
-            ),
-            "%{cxx_builtin_include_directories}": get_starlark_list(builtin_include_directories),
+            "%{cc_toolchain_identifier}": cc_toolchain_identifier,
             "%{compile_flags}": get_starlark_list(
                 [
                     # Security hardening requires optimization.
@@ -488,7 +473,23 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overriden_tools):
                     "-fno-omit-frame-pointer",
                 ],
             ),
+            "%{compiler}": escape_string(get_env_var(
+                repository_ctx,
+                "BAZEL_COMPILER",
+                "compiler",
+                False,
+            )),
+            "%{coverage_compile_flags}": coverage_compile_flags,
+            "%{coverage_link_flags}": coverage_link_flags,
+            "%{cxx_builtin_include_directories}": get_starlark_list(builtin_include_directories),
             "%{cxx_flags}": get_starlark_list(cxx_opts + _escaped_cplus_include_paths(repository_ctx)),
+            "%{dbg_compile_flags}": get_starlark_list(["-g"]),
+            "%{host_system_name}": escape_string(get_env_var(
+                repository_ctx,
+                "BAZEL_HOST_SYSTEM",
+                "local",
+                False,
+            )),
             "%{link_flags}": get_starlark_list((
                 ["-fuse-ld=" + gold_linker_path] if gold_linker_path else []
             ) + _add_linker_option_if_supported(
@@ -518,6 +519,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overriden_tools):
                 )
             ) + link_opts),
             "%{link_libs}": get_starlark_list(link_libs),
+            "%{name}": cpu_value,
             "%{opt_compile_flags}": get_starlark_list(
                 [
                     # No debug symbols.
@@ -552,6 +554,29 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overriden_tools):
                     "-gc-sections",
                 ),
             ),
+            "%{supports_param_files}": "0" if darwin else "1",
+            "%{supports_start_end_lib}": "True" if gold_linker_path else "False",
+            "%{target_cpu}": escape_string(get_env_var(
+                repository_ctx,
+                "BAZEL_TARGET_CPU",
+                cpu_value,
+                False,
+            )),
+            "%{target_libc}": "macosx" if darwin else escape_string(get_env_var(
+                repository_ctx,
+                "BAZEL_TARGET_LIBC",
+                "local",
+                False,
+            )),
+            "%{target_system_name}": escape_string(get_env_var(
+                repository_ctx,
+                "BAZEL_TARGET_SYSTEM",
+                "local",
+                False,
+            )),
+            "%{tool_paths}": ",\n        ".join(
+                ['"%s": "%s"' % (k, v) for k, v in tool_paths.items()],
+            ),
             "%{unfiltered_compile_flags}": get_starlark_list(
                 _get_no_canonical_prefixes_opt(repository_ctx, cc) + [
                     # Make C++ compilation deterministic. Use linkstamping instead of these
@@ -562,9 +587,5 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overriden_tools):
                     "-D__TIME__=\\\"redacted\\\"",
                 ],
             ),
-            "%{dbg_compile_flags}": get_starlark_list(["-g"]),
-            "%{coverage_compile_flags}": coverage_compile_flags,
-            "%{coverage_link_flags}": coverage_link_flags,
-            "%{supports_start_end_lib}": "True" if gold_linker_path else "False",
         },
     )
