@@ -24,7 +24,6 @@ load(
 load(
     ":unix_cc_configure.bzl",
     "configure_unix_toolchain",
-    "find_cc",
     "get_env",
     "get_escaped_cxx_inc_directories",
 )
@@ -64,7 +63,6 @@ def configure_osx_toolchain(repository_ctx, overriden_tools):
         "@bazel_tools//tools/objc:xcrunwrapper.sh",
         "@bazel_tools//tools/osx/crosstool:BUILD.tpl",
         "@bazel_tools//tools/osx/crosstool:cc_toolchain_config.bzl",
-        "@bazel_tools//tools/osx/crosstool:wrapped_ar.tpl",
         "@bazel_tools//tools/osx/crosstool:wrapped_clang.cc",
         "@bazel_tools//tools/osx:xcode_locator.m",
     ])
@@ -82,7 +80,13 @@ def configure_osx_toolchain(repository_ctx, overriden_tools):
         fail("BAZEL_USE_XCODE_TOOLCHAIN is set to 1 but Bazel couldn't find Xcode installed on the " +
              "system. Verify that 'xcode-select -p' is correct.")
     if xcode_toolchains:
-        cc = find_cc(repository_ctx, overriden_tools = {})
+        # For Xcode toolchains, there's no reason to use anything other than
+        # wrapped_clang, so that we still get the Bazel Xcode placeholder
+        # substitution and other behavior for actions that invoke this
+        # cc_wrapper.sh script. The wrapped_clang binary is already hardcoded
+        # into the Objective-C crosstool actions, anyway, so this ensures that
+        # the C++ actions behave consistently.
+        cc = repository_ctx.path("wrapped_clang")
         repository_ctx.template(
             "cc_wrapper.sh",
             paths["@rules_cc//cc/private/toolchain:osx_cc_wrapper.sh.tpl"],
@@ -104,10 +108,6 @@ def configure_osx_toolchain(repository_ctx, overriden_tools):
             "make_hashed_objlist.py",
         )
         repository_ctx.symlink(
-            paths["@bazel_tools//tools/osx/crosstool:wrapped_ar.tpl"],
-            "wrapped_ar",
-        )
-        repository_ctx.symlink(
             paths["@bazel_tools//tools/osx/crosstool:cc_toolchain_config.bzl"],
             "cc_toolchain_config.bzl",
         )
@@ -118,7 +118,10 @@ def configure_osx_toolchain(repository_ctx, overriden_tools):
             "env",
             "-i",
             "xcrun",
+            "--sdk",
+            "macosx",
             "clang",
+            "-mmacosx-version-min=10.9",
             "-std=c++11",
             "-lc++",
             "-o",
