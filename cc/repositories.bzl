@@ -9,6 +9,7 @@
 # Ideally we'd delete this entire file.
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("//cc/private/toolchain:cc_configure.bzl", "cc_configure")
 
 def rules_cc_dependencies():
     _maybe(
@@ -21,6 +22,9 @@ def rules_cc_dependencies():
             "https://github.com/bazelbuild/bazel-skylib/archive/0.8.0.tar.gz",
         ],
     )
+
+def rules_cc_toolchains(*args):
+  cc_configure(*args)
 
 def _maybe(repo_rule, name, **kwargs):
     if not native.existing_rule(name):

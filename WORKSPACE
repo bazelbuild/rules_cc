@@ -54,3 +54,6 @@ load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_
 rules_proto_dependencies()
 
 rules_proto_toolchains()
+
+load("//cc:repositories.bzl", "rules_cc_toolchains")
+rules_proto_toolchains()
