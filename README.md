@@ -1,6 +1,7 @@
 # C++ rules for Bazel
 
-[![Build status](https://badge.buildkite.com/f03592ae2d7d25a2abc2a2ba776e704823fa17fd3e061f5103.svg?branch=master)](https://buildkite.com/bazel/rules-cc)
+* Postsubmit [![Build status](https://badge.buildkite.com/f03592ae2d7d25a2abc2a2ba776e704823fa17fd3e061f5103.svg?branch=master)](https://buildkite.com/bazel/rules-cc)
+* Postsubmit + Current Bazel Incompatible flags [![Build status](https://badge.buildkite.com/5ba709cc33e5855078a1f8570adcf8e0a78ea93591bc0b4e81.svg?branch=master)](https://buildkite.com/bazel/rules-cc-plus-bazelisk-migrate)
 
 This repository contains Starlark implementation of C++ rules in Bazel.
 
