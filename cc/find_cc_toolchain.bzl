@@ -26,7 +26,7 @@ Returns the current `CcToolchainInfo`.
         attrs = {
             "_cc_toolchain": attr.label(
                 default = Label(
-                    "@rules_cc//cc/:current_cc_toolchain", # copybara-use-repo-external-label
+                    "@rules_cc//cc:current_cc_toolchain", # copybara-use-repo-external-label
                 ),
             ),
         },
