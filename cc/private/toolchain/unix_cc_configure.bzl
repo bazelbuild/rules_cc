@@ -256,7 +256,7 @@ def _get_no_canonical_prefixes_opt(repository_ctx, cc):
         )
     return opt
 
-def _get_env(repository_ctx):
+def get_env(repository_ctx):
     """Convert the environment in a list of export if in Homebrew. Doesn't %-escape the result!
 
     Args:
