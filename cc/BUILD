@@ -45,6 +45,18 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "srcs",
+    srcs = glob([
+        "**/*.bzl",
+        "**/BUILD",
+    ]) + [
+        "//cc/private/rules_impl:srcs",
+        "//cc/private/toolchain:srcs",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 # TODO(aiuto): Find a way to strip this rule from the distribution tarball.
 filegroup(
     name = "distribution",

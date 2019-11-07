@@ -4,11 +4,8 @@ licenses(["notice"])  # Apache 2.0
 
 filegroup(
     name = "srcs",
-    srcs = glob(
-        ["**"],
-        exclude = [
-            ".*",
-            "*~",
-        ],
-    ),
+    srcs = glob([
+        "**/*.bzl",
+        "**/BUILD",
+    ]),
 )
