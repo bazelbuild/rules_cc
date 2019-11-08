@@ -25,5 +25,7 @@ compiler_flag = rule(
     attrs = {
         "_cc_toolchain": attr.label(default = Label("//cc:current_cc_toolchain")),
     },
-    toolchains = ["//cc:toolchain_type"],
+    toolchains = [
+        "@rules_cc//cc:toolchain_type",  # copybara-use-repo-external-label
+    ],
 )
