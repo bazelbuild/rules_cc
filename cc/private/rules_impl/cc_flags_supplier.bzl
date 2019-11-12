@@ -28,8 +28,8 @@ def _cc_flags_supplier_impl(ctx):
 cc_flags_supplier = rule(
     implementation = _cc_flags_supplier_impl,
     attrs = {
-        "_cc_toolchain": attr.label(default = Label("@rules_cc//cc:current_cc_toolchain")),
+        "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
     },
-    toolchains = ["@rules_cc//cc:toolchain_type"],
+    toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
     fragments = ["cpp"],
 )
