@@ -129,3 +129,5 @@ filegroup(
         "ctoolchain_compare.bzl",
     ],
 )
+
+exports_files(["ctoolchain_compare.bzl"])
