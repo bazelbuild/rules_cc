@@ -1,6 +1,7 @@
-""" This is an experimental implementation of cc_shared_library. We may change
-the implementation at any moment or even delete this file. Do not rely on this.
-It requires bazel >1.2  and passing the flag
+"""This is an experimental implementation of cc_shared_library.
+
+We may change the implementation at any moment or even delete this file. Do not
+rely on this. It requires bazel >1.2  and passing the flag
 --experimental_cc_shared_library
 """
 
@@ -179,7 +180,10 @@ def _cc_shared_library_impl(ctx):
         CcSharedLibraryInfo(
             dynamic_deps = merged_cc_shared_library_info,
             exports = ctx.attr.exports,
-            linker_input = cc_common.create_linker_input(owner = ctx.label, libraries = depset([linking_outputs.library_to_link])),
+            linker_input = cc_common.create_linker_input(
+                owner = ctx.label,
+                libraries = depset([linking_outputs.library_to_link]),
+            ),
         ),
     ]
 
