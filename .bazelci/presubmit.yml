@@ -19,7 +19,7 @@ x_defaults:
     - "//tools/migration:all"
     - "//tools/runfiles:all"
     test_flags:
-    - "--test_timeout=300"
+    - "--test_timeout=120"
     test_targets:
     - "//:all"
     - "//cc:all"
@@ -53,3 +53,8 @@ tasks:
     - "//examples/test_cc_shared_library/..."
     build_flags:
     - "--experimental_cc_shared_library"
+    test_flags:
+    - "--test_timeout=120"
+    - "--experimental_cc_shared_library"
+    test_targets:
+    - "//examples/test_cc_shared_library/..."

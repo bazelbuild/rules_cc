@@ -93,3 +93,12 @@ cc_library(
         "//examples/test_cc_shared_library:foo_so",
     ],
 )
+
+sh_test(
+    name = "cc_shared_library_integration_test",
+    srcs = ["cc_shared_library_integration_test.sh"],
+    data = [
+        ":bar_so",
+        ":foo_so",
+    ],
+)
