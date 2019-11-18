@@ -71,13 +71,12 @@ def _build_exports_map_from_only_dynamic_deps(merged_shared_library_infos):
         exports = entry[0]
         linker_input = entry[1]
         for export in exports:
-            str_export_label = str(export.label)
-            if str_export_label in exports_map:
+            if export in exports_map:
                 fail("Two shared libraries in dependencies export the same symbols. Both " +
-                     exports_map[str_export_label].libraries[0].dynamic_library.short_path +
+                     exports_map[export].libraries[0].dynamic_library.short_path +
                      " and " + linker_input.dynamic_library.short_path +
-                     " export " + str_export_label)
-            exports_map[str(export.label)] = linker_input
+                     " export " + export)
+            exports_map[export] = linker_input
     return exports_map
 
 def _wrap_static_library_with_alwayslink(ctx, feature_configuration, cc_toolchain, linker_input):
@@ -166,7 +165,7 @@ def _filter_inputs(ctx, feature_configuration, cc_toolchain, transitive_exports)
     for dep in ctx.attr.dynamic_deps:
         has_a_used_export = False
         for export in dep[CcSharedLibraryInfo].exports:
-            if str(export.label) in link_dynamically_labels:
+            if export in link_dynamically_labels:
                 has_a_used_export = True
                 break
         if not has_a_used_export:
@@ -224,6 +223,10 @@ def _cc_shared_library_impl(ctx):
     for dep in ctx.attr.dynamic_deps:
         runfiles = runfiles.merge(dep[DefaultInfo].data_runfiles)
 
+    exports = []
+    for export in ctx.attr.exports:
+        exports.append(str(export.label))
+
     return [
         DefaultInfo(
             files = depset([linking_outputs.library_to_link.resolved_symlink_dynamic_library]),
@@ -231,7 +234,7 @@ def _cc_shared_library_impl(ctx):
         ),
         CcSharedLibraryInfo(
             dynamic_deps = merged_cc_shared_library_info,
-            exports = ctx.attr.exports,
+            exports = exports,
             linker_input = cc_common.create_linker_input(
                 owner = ctx.label,
                 libraries = depset([linking_outputs.library_to_link]),
