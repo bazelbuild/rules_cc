@@ -273,6 +273,6 @@ cc_shared_library = rule(
         "exports": attr.label_list(aspects = [graph_structure_aspect]),
         "_cc_toolchain": attr.label(default = "@bazel_tools//tools/cpp:current_cc_toolchain"),
     },
-    toolchains = ["//cc:toolchain_type"],
+    toolchains = ["@rules_cc//cc:toolchain_type"],  # copybara-use-repo-external-label
     fragments = ["cpp"],
 )
