@@ -49,7 +49,7 @@ def _create_linker_context(ctx, static_linker_inputs, dynamic_linker_inputs):
     linker_inputs.extend(static_linker_inputs)
 
     return cc_common.create_linking_context(
-        linker_inputs = depset(linker_inputs),
+        linker_inputs = depset(linker_inputs, order = "topological"),
     )
 
 def _merge_cc_shared_library_infos(ctx):
@@ -155,8 +155,6 @@ def _filter_inputs(ctx, feature_configuration, cc_toolchain, transitive_exports)
             if not can_be_linked_statically:
                 fail("We can't link " +
                      str(owner) + " either statically or dynamically")
-        else:
-            fail("Implementation error, this should not happen")
 
     # Every direct dynamic_dep of this rule will be linked dynamically even if we
     # didn't reach a cc_library exported by one of these dynamic_deps. In other
