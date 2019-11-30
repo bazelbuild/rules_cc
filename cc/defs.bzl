@@ -14,10 +14,13 @@
 
 """Starlark rules for building C++ projects."""
 
+load("//cc:action_names.bzl", _ACTION_NAMES = "ACTION_NAMES")
 load("//cc/private/rules_impl:cc_flags_supplier.bzl", _cc_flags_supplier = "cc_flags_supplier")
 load("//cc/private/rules_impl:compiler_flag.bzl", _compiler_flag = "compiler_flag")
 
 _MIGRATION_TAG = "__CC_RULES_MIGRATION_DO_NOT_USE_WILL_BREAK__"
+
+ACTION_NAMES = _ACTION_NAMES
 
 def _add_tags(attrs):
     if "tags" in attrs and attrs["tags"] != None:
