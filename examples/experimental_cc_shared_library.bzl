@@ -20,11 +20,17 @@ CcSharedLibraryInfo = provider(
     fields = {
         "dynamic_deps": "All shared libraries depended on transitively",
         "linker_input": "the resulting linker input artifact for the shared library",
+        "preloaded_deps": "cc_libraries needed by this cc_shared_library that should" +
+                          " be linked the binary. If this is set, this cc_shared_library has to " +
+                          " be a direct dependency of the cc_binary",
         "exports": "cc_libraries that are linked statically and exported",
     },
 )
 
-def _separate_static_and_dynamic_link_libraries(direct_children, can_be_linked_dynamically):
+def _separate_static_and_dynamic_link_libraries(
+        direct_children,
+        can_be_linked_dynamically,
+        preloaded_deps_direct_labels):
     node = None
     all_children = list(direct_children)
     link_statically_labels = {}
@@ -38,7 +44,7 @@ def _separate_static_and_dynamic_link_libraries(direct_children, can_be_linked_d
 
         if node.label in can_be_linked_dynamically:
             link_dynamically_labels[node.label] = None
-        else:
+        elif node.label not in preloaded_deps_direct_labels:
             link_statically_labels[node.label] = node.linked_statically_by
             all_children.extend(node.children)
     return (link_statically_labels, link_dynamically_labels)
@@ -56,6 +62,10 @@ def _merge_cc_shared_library_infos(ctx):
     dynamic_deps = []
     transitive_dynamic_deps = []
     for dep in ctx.attr.dynamic_deps:
+        if dep[CcSharedLibraryInfo].preloaded_deps != None:
+            fail("{} can only be a direct dependency of a " +
+                 " cc_binary because it has " +
+                 "preloaded_deps".format(str(dep.label)))
         dynamic_dep_entry = (
             dep[CcSharedLibraryInfo].exports,
             dep[CcSharedLibraryInfo].linker_input,
@@ -102,7 +112,12 @@ def _wrap_static_library_with_alwayslink(ctx, feature_configuration, cc_toolchai
         additional_inputs = depset(direct = linker_input.additional_inputs),
     )
 
-def _filter_inputs(ctx, feature_configuration, cc_toolchain, transitive_exports):
+def _filter_inputs(
+        ctx,
+        feature_configuration,
+        cc_toolchain,
+        transitive_exports,
+        preloaded_deps_direct_labels):
     static_linker_inputs = []
     dynamic_linker_inputs = []
 
@@ -123,6 +138,7 @@ def _filter_inputs(ctx, feature_configuration, cc_toolchain, transitive_exports)
     (link_statically_labels, link_dynamically_labels) = _separate_static_and_dynamic_link_libraries(
         graph_structure_aspect_nodes,
         can_be_linked_dynamically,
+        preloaded_deps_direct_labels,
     )
 
     already_linked_dynamically = {}
@@ -186,11 +202,23 @@ def _cc_shared_library_impl(ctx):
         if str(export.label) in exports_map:
             fail("Trying to export a library already exported by a different shared library: " +
                  str(export.label))
+
+    preloaded_deps_direct_labels = {}
+    preloaded_dep_merged_cc_info = None
+    if len(ctx.attr.preloaded_deps) != 0:
+        preloaded_deps_cc_infos = []
+        for preloaded_dep in ctx.attr.preloaded_deps:
+            preloaded_deps_direct_labels[str(preloaded_dep.label)] = True
+            preloaded_deps_cc_infos.append(preloaded_dep[CcInfo])
+
+        preloaded_dep_merged_cc_info = cc_common.merge_cc_infos(cc_infos = preloaded_deps_cc_infos)
+
     (static_linker_inputs, dynamic_linker_inputs) = _filter_inputs(
         ctx,
         feature_configuration,
         cc_toolchain,
         exports_map,
+        preloaded_deps_direct_labels,
     )
 
     linking_context = _create_linker_context(ctx, static_linker_inputs, dynamic_linker_inputs)
@@ -237,6 +265,7 @@ def _cc_shared_library_impl(ctx):
                 owner = ctx.label,
                 libraries = depset([linking_outputs.library_to_link]),
             ),
+            preloaded_deps = preloaded_dep_merged_cc_info,
         ),
     ]
 
@@ -267,8 +296,9 @@ cc_shared_library = rule(
     implementation = _cc_shared_library_impl,
     attrs = {
         "dynamic_deps": attr.label_list(providers = [CcSharedLibraryInfo]),
+        "preloaded_deps": attr.label_list(providers = [CcInfo]),
         "visibility_file": attr.label(allow_single_file = True),
-        "exports": attr.label_list(aspects = [graph_structure_aspect]),
+        "exports": attr.label_list(providers = [CcInfo], aspects = [graph_structure_aspect]),
         "_cc_toolchain": attr.label(default = "@bazel_tools//tools/cpp:current_cc_toolchain"),
     },
     toolchains = ["@rules_cc//cc:toolchain_type"],  # copybara-use-repo-external-label
