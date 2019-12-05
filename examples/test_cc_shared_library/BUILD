@@ -1,9 +1,17 @@
-load("//cc:defs.bzl", "cc_library")
+load("//cc:defs.bzl", "cc_binary", "cc_library")
 load("//examples:experimental_cc_shared_library.bzl", "cc_shared_library")
+
+cc_binary(
+    name = "binary",
+    srcs = ["main.cc"],
+    dynamic_deps = ["foo_so"],
+    deps = ["foo"],
+)
 
 cc_shared_library(
     name = "foo_so",
     dynamic_deps = ["bar_so"],
+    preloaded_deps = ["preloaded_dep"],
     visibility_file = "foo.lds",
     exports = [
         "foo",
@@ -26,10 +34,18 @@ cc_shared_library(
 )
 
 cc_library(
+    name = "preloaded_dep",
+    srcs = ["preloaded_dep.cc"],
+    hdrs = ["preloaded_dep.h"],
+)
+
+cc_library(
     name = "foo",
     srcs = ["foo.cc"],
+    hdrs = ["foo.h"],
     linked_statically_by = ["//examples/test_cc_shared_library:foo_so"],
     deps = [
+        "preloaded_dep",
         "bar",
         "baz",
         # Not exported.
@@ -40,12 +56,14 @@ cc_library(
 cc_library(
     name = "baz",
     srcs = ["baz.cc"],
+    hdrs = ["baz.h"],
     linked_statically_by = ["//examples/test_cc_shared_library:foo_so"],
 )
 
 cc_library(
     name = "qux",
     srcs = ["qux.cc"],
+    hdrs = ["qux.h"],
     linked_statically_by = ["//examples/test_cc_shared_library:foo_so"],
 )
 
@@ -70,6 +88,7 @@ cc_library(
 cc_library(
     name = "bar2",
     srcs = ["bar2.cc"],
+    hdrs = ["bar2.h"],
     linked_statically_by = [
         "//examples/test_cc_shared_library:bar_so",
         "//examples/test_cc_shared_library:foo_so",
@@ -79,6 +98,7 @@ cc_library(
 cc_library(
     name = "bar3",
     srcs = ["bar3.cc"],
+    hdrs = ["bar3.h"],
     linked_statically_by = [
         "//examples/test_cc_shared_library:bar_so",
         "//examples/test_cc_shared_library:foo_so",
@@ -88,6 +108,7 @@ cc_library(
 cc_library(
     name = "bar4",
     srcs = ["bar4.cc"],
+    hdrs = ["bar4.h"],
     linked_statically_by = [
         "//examples/test_cc_shared_library:bar_so",
         "//examples/test_cc_shared_library:foo_so",
@@ -99,6 +120,7 @@ sh_test(
     srcs = ["cc_shared_library_integration_test.sh"],
     data = [
         ":bar_so",
+        ":binary",
         ":foo_so",
     ],
 )

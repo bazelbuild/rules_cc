@@ -227,7 +227,6 @@ def _cc_shared_library_impl(ctx):
     additional_inputs = []
     if ctx.file.visibility_file != None:
         user_link_flags = [
-            "-Wl,--no-undefined",  # Just here for testing.
             "-Wl,--version-script=" + ctx.file.visibility_file.path,
         ]
         additional_inputs = [ctx.file.visibility_file]

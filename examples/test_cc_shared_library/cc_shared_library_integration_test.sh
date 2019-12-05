@@ -29,18 +29,27 @@ function check_symbol_absent() {
   fi
 }
 
-function test_output {
+function test_shared_library_symbols() {
   foo_so=$(find . -name libfoo_so.so)
   symbols=$(nm -D $foo_so)
   check_symbol_present "$symbols" "U _Z3barv"
   check_symbol_present "$symbols" "T _Z3bazv"
   check_symbol_present "$symbols" "T _Z3foov"
+  # Check that the preloaded dep symbol is not present
+  check_symbol_present "$symbols" "U _Z13preloaded_depv"
 
   check_symbol_absent "$symbols" "_Z3quxv"
   check_symbol_absent "$symbols" "_Z4bar3v"
   check_symbol_absent "$symbols" "_Z4bar4v"
-
-  exit 0
 }
 
-test_output
+function test_binary() {
+  binary=$(find . -name binary)
+  symbols=$(nm -D $binary)
+  check_symbol_present "$symbols" "T _Z13preloaded_depv"
+  check_symbol_present "$symbols" "U _Z3foov"
+  $binary | (grep -q "hello 42" || (echo "Expected 'hello 42'" && exit 1))
+}
+
+test_shared_library_symbols
+test_binary
