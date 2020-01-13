@@ -43,6 +43,13 @@ function test_shared_library_symbols() {
   check_symbol_absent "$symbols" "_Z4bar4v"
 }
 
+function test_shared_library_user_link_flags() {
+  foo_so=$(find . -name libfoo_so.so)
+  objdump -x $foo_so | grep RUNPATH | grep "kittens" > /dev/null \
+      || (echo "Expected to have RUNPATH contain 'kittens' (set by user_link_flags)" \
+          && exit 1)
+}
+
 function test_binary() {
   binary=$(find . -name binary)
   symbols=$(nm -D $binary)
@@ -51,5 +58,6 @@ function test_binary() {
   $binary | (grep -q "hello 42" || (echo "Expected 'hello 42'" && exit 1))
 }
 
+test_shared_library_user_link_flags
 test_shared_library_symbols
 test_binary

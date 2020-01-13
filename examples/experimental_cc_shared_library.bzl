@@ -223,13 +223,17 @@ def _cc_shared_library_impl(ctx):
 
     linking_context = _create_linker_context(ctx, static_linker_inputs, dynamic_linker_inputs)
 
+    # TODO(plf): Decide whether ctx.attr.user_link_flags should come before or after options
+    # added by the rule logic.
     user_link_flags = []
     additional_inputs = []
     if ctx.file.visibility_file != None:
-        user_link_flags = [
+        user_link_flags.append(
             "-Wl,--version-script=" + ctx.file.visibility_file.path,
-        ]
+        )
         additional_inputs = [ctx.file.visibility_file]
+
+    user_link_flags.extend(ctx.attr.user_link_flags)
 
     linking_outputs = cc_common.link(
         actions = ctx.actions,
@@ -296,6 +300,7 @@ cc_shared_library = rule(
     attrs = {
         "dynamic_deps": attr.label_list(providers = [CcSharedLibraryInfo]),
         "preloaded_deps": attr.label_list(providers = [CcInfo]),
+        "user_link_flags": attr.string_list(),
         "visibility_file": attr.label(allow_single_file = True),
         "exports": attr.label_list(providers = [CcInfo], aspects = [graph_structure_aspect]),
         "_cc_toolchain": attr.label(default = "@bazel_tools//tools/cpp:current_cc_toolchain"),

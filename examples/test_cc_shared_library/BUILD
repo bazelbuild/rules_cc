@@ -31,6 +31,7 @@ cc_shared_library(
         # changed, the symbols from bar4 won't be exported.
         "bar4",
     ],
+    user_link_flags = ["-Wl,-rpath,kittens"],
 )
 
 cc_library(
