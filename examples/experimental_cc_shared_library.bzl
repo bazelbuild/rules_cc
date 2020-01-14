@@ -282,7 +282,7 @@ def _graph_structure_aspect_impl(target, ctx):
 
     linked_statically_by = []
     if hasattr(ctx.rule.attr, "linked_statically_by"):
-        linked_statically_by = ctx.rule.attr.linked_statically_by
+        linked_statically_by = [str(label) for label in ctx.rule.attr.linked_statically_by]
 
     return [GraphNodeInfo(
         label = str(ctx.label),
