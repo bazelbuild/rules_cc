@@ -1,5 +1,12 @@
-load("//cc:defs.bzl", "cc_binary", "cc_library")
+load("//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 load("//examples:experimental_cc_shared_library.bzl", "cc_shared_library")
+
+cc_test(
+    name = "cc_test",
+    srcs = ["main.cc"],
+    dynamic_deps = ["foo_so"],
+    deps = ["foo"],
+)
 
 cc_binary(
     name = "binary",
@@ -12,6 +19,7 @@ cc_shared_library(
     name = "foo_so",
     dynamic_deps = ["bar_so"],
     preloaded_deps = ["preloaded_dep"],
+    user_link_flags = ["-Wl,-rpath,kittens"],
     visibility_file = "foo.lds",
     exports = [
         "foo",
@@ -31,7 +39,6 @@ cc_shared_library(
         # changed, the symbols from bar4 won't be exported.
         "bar4",
     ],
-    user_link_flags = ["-Wl,-rpath,kittens"],
 )
 
 cc_library(
@@ -122,6 +129,7 @@ sh_test(
     data = [
         ":bar_so",
         ":binary",
+        ":cc_test",
         ":foo_so",
     ],
 )
