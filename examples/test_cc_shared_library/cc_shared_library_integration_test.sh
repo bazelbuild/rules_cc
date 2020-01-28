@@ -43,13 +43,33 @@ function test_shared_library_symbols() {
   check_symbol_absent "$symbols" "_Z4bar4v"
 }
 
-function test_binary() {
-  binary=$(find . -name binary)
-  symbols=$(nm -D $binary)
-  check_symbol_present "$symbols" "T _Z13preloaded_depv"
-  check_symbol_present "$symbols" "U _Z3foov"
-  $binary | (grep -q "hello 42" || (echo "Expected 'hello 42'" && exit 1))
+function test_shared_library_user_link_flags() {
+  foo_so=$(find . -name libfoo_so.so)
+  objdump -x $foo_so | grep RUNPATH | grep "kittens" > /dev/null \
+      || (echo "Expected to have RUNPATH contain 'kittens' (set by user_link_flags)" \
+          && exit 1)
 }
 
+function do_test_binary() {
+  symbols=$(nm -D $1)
+  check_symbol_present "$symbols" "U _Z3foov"
+  $1 | (grep -q "hello 42" || (echo "Expected 'hello 42'" && exit 1))
+}
+
+function test_binary() {
+  binary=$(find . -name binary)
+  do_test_binary $binary
+  check_symbol_present "$symbols" "T _Z13preloaded_depv"
+}
+
+function test_cc_test() {
+  cc_test=$(find . -name cc_test)
+  do_test_binary $cc_test
+  check_symbol_absent "$symbols" "_Z13preloaded_depv"
+  ldd $cc_test | (grep -q "preloaded_Udep.so" || (echo "Expected '"preloaded_Udep.so"'" && exit 1))
+}
+
+test_shared_library_user_link_flags
 test_shared_library_symbols
 test_binary
+test_cc_test
