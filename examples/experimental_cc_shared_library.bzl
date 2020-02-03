@@ -51,8 +51,10 @@ def _separate_static_and_dynamic_link_libraries(
 
 def _create_linker_context(ctx, static_linker_inputs, dynamic_linker_inputs):
     linker_inputs = []
-    linker_inputs.extend(dynamic_linker_inputs)
+
+    # Statically linked symbols should take precedence over dynamically linked.
     linker_inputs.extend(static_linker_inputs)
+    linker_inputs.extend(dynamic_linker_inputs)
 
     return cc_common.create_linking_context(
         linker_inputs = depset(linker_inputs, order = "topological"),
