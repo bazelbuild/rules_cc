@@ -13,10 +13,11 @@ For the list of C++ rules, see the Bazel
 # Getting Started
 
 There is no need to use rules from this repository just yet. If you want to use
-rules\_cc anyway, add the following to your WORKSPACE file:
+`rules_cc` anyway, add the following to your `WORKSPACE` file:
 
-```
+```starlark
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
 http_archive(
     name = "rules_cc",
     urls = ["https://github.com/bazelbuild/rules_cc/archive/TODO"],
@@ -24,10 +25,11 @@ http_archive(
 )
 ```
 
-Then, in your BUILD files, import and use the rules:
+Then, in your `BUILD` files, import and use the rules:
 
-```
+```starlark
 load("@rules_cc//cc:defs.bzl", "cc_library")
+
 cc_library(
     ...
 )
@@ -46,19 +48,21 @@ Script that migrates legacy crosstool fields into features
 
 TLDR:
 
-    bazel run @rules_cc//tools/migration:legacy_fields_migrator -- \
-      --input=my_toolchain/CROSSTOOL \
-      --inline
+```
+bazel run @rules_cc//tools/migration:legacy_fields_migrator -- \
+  --input=my_toolchain/CROSSTOOL \
+  --inline
+```
 
 # Contributing
 
-Bazel and rules_cc are the work of many contributors. We appreciate your help!
+Bazel and `rules_cc` are the work of many contributors. We appreciate your help!
 
 To contribute, please read the contribution guidelines: [CONTRIBUTING.md](https://github.com/bazelbuild/rules_cc/blob/master/CONTRIBUTING.md).
 
-Note that the rules_cc use the GitHub issue tracker for bug reports and feature requests only.
+Note that the `rules_cc` use the GitHub issue tracker for bug reports and feature requests only.
 For asking questions see:
 
 * [Stack Overflow](https://stackoverflow.com/questions/tagged/bazel)
-* [rules_cc mailing list](https://groups.google.com/forum/#!forum/cc-bazel-discuss)
+* [`rules_cc` mailing list](https://groups.google.com/forum/#!forum/cc-bazel-discuss)
 * Slack channel `#cc` on [slack.bazel.build](https://slack.bazel.build)
