@@ -19,6 +19,9 @@ cc_shared_library(
     name = "foo_so",
     dynamic_deps = ["bar_so"],
     preloaded_deps = ["preloaded_dep"],
+    static_deps = [
+        "//examples/test_cc_shared_library:qux",
+    ],
     user_link_flags = ["-Wl,-rpath,kittens"],
     visibility_file = "foo.lds",
     exports = [
@@ -51,7 +54,6 @@ cc_library(
     name = "foo",
     srcs = ["foo.cc"],
     hdrs = ["foo.h"],
-    linked_statically_by = ["//examples/test_cc_shared_library:foo_so"],
     deps = [
         "preloaded_dep",
         "bar",
@@ -72,7 +74,6 @@ cc_library(
     name = "qux",
     srcs = ["qux.cc"],
     hdrs = ["qux.h"],
-    linked_statically_by = ["//examples/test_cc_shared_library:foo_so"],
 )
 
 cc_shared_library(
@@ -88,39 +89,24 @@ cc_library(
     name = "bar",
     srcs = ["bar.cc"],
     hdrs = ["bar.h"],
-    linked_statically_by = [
-        "//examples/test_cc_shared_library:bar_so",
-    ],
 )
 
 cc_library(
     name = "bar2",
     srcs = ["bar2.cc"],
     hdrs = ["bar2.h"],
-    linked_statically_by = [
-        "//examples/test_cc_shared_library:bar_so",
-        "//examples/test_cc_shared_library:foo_so",
-    ],
 )
 
 cc_library(
     name = "bar3",
     srcs = ["bar3.cc"],
     hdrs = ["bar3.h"],
-    linked_statically_by = [
-        "//examples/test_cc_shared_library:bar_so",
-        "//examples/test_cc_shared_library:foo_so",
-    ],
 )
 
 cc_library(
     name = "bar4",
     srcs = ["bar4.cc"],
     hdrs = ["bar4.h"],
-    linked_statically_by = [
-        "//examples/test_cc_shared_library:bar_so",
-        "//examples/test_cc_shared_library:foo_so",
-    ],
 )
 
 sh_test(
