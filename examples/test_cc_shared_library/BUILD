@@ -67,7 +67,6 @@ cc_library(
     name = "baz",
     srcs = ["baz.cc"],
     hdrs = ["baz.h"],
-    linked_statically_by = ["//examples/test_cc_shared_library:foo_so"],
 )
 
 cc_library(
