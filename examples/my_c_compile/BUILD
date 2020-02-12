@@ -1,3 +1,5 @@
+load("//examples/my_c_compile:my_c_compile.bzl", "my_c_compile")
+
 # Copyright 2019 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,8 +16,6 @@
 
 # Example showing how to create a custom Starlark rule that just compiles C sources
 licenses(["notice"])
-
-load("//examples/my_c_compile:my_c_compile.bzl", "my_c_compile")
 
 my_c_compile(
     name = "foo",

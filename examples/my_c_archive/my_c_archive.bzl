@@ -85,8 +85,8 @@ def _my_c_archive_impl(ctx):
 my_c_archive = rule(
     implementation = _my_c_archive_impl,
     attrs = {
-        "object": attr.label(mandatory = True, providers = [MyCCompileInfo]),
         "deps": attr.label_list(providers = [CcInfo]),
+        "object": attr.label(mandatory = True, providers = [MyCCompileInfo]),
         "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
     },
     fragments = ["cpp"],

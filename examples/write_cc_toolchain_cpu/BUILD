@@ -1,3 +1,5 @@
+load("//examples/write_cc_toolchain_cpu:write_cc_toolchain_cpu.bzl", "write_cc_toolchain_cpu")
+
 # Copyright 2019 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +16,5 @@
 
 # Example showing how to get CcToolchainInfo in a custom starlark rule
 licenses(["notice"])
-
-load("//examples/write_cc_toolchain_cpu:write_cc_toolchain_cpu.bzl", "write_cc_toolchain_cpu")
 
 write_cc_toolchain_cpu(name = "write_me_the_cpu")

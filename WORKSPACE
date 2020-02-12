@@ -56,4 +56,10 @@ rules_proto_dependencies()
 rules_proto_toolchains()
 
 load("//cc:repositories.bzl", "rules_cc_toolchains")
+
 rules_cc_toolchains()
+
+local_repository(
+    name = "test_repo",
+    path = "examples/test_cc_shared_library2",
+)

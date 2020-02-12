@@ -77,6 +77,10 @@ cc_library(
 
 cc_shared_library(
     name = "bar_so",
+    static_deps = [
+        "//examples/test_cc_shared_library:barX",
+        "@test_repo//:bar",
+    ],
     visibility_file = "bar.lds",
     exports = [
         "bar",
@@ -85,9 +89,21 @@ cc_shared_library(
 )
 
 cc_library(
+    name = "barX",
+    srcs = ["bar.cc"],
+    hdrs = ["bar.h"],
+    deps = [
+        "@test_repo//:bar",
+    ],
+)
+
+cc_library(
     name = "bar",
     srcs = ["bar.cc"],
     hdrs = ["bar.h"],
+    deps = [
+        "barX",
+    ],
 )
 
 cc_library(

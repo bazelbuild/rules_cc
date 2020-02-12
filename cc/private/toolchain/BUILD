@@ -1,3 +1,5 @@
+load("//cc:defs.bzl", "cc_flags_supplier", "cc_library", "compiler_flag")
+
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +17,6 @@
 package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])  # Apache 2.0
-
-load("//cc:defs.bzl", "cc_flags_supplier", "cc_library", "compiler_flag")
 
 # It is frequently necessary to constrain platforms based on the cc compiler type.
 constraint_setting(name = "cc_compiler")
@@ -80,7 +80,7 @@ alias(
 
 filegroup(
     name = "srcs",
-    srcs = glob(["**"])
+    srcs = glob(["**"]),
 )
 
 filegroup(

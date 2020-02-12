@@ -1,8 +1,8 @@
-licenses(["notice"])  # Apache 2.0
-
 load("@com_google_protobuf//:protobuf.bzl", "py_proto_library")
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("@rules_proto//proto:defs.bzl", "proto_library")
+
+licenses(["notice"])  # Apache 2.0
 
 py_proto_library(
     name = "crosstool_config_py_pb2",
