@@ -85,6 +85,7 @@ cc_shared_library(
     exports = [
         "bar",
         "bar2",
+        "@test_repo//:bar",
     ],
 )
 

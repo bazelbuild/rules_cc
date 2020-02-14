@@ -12,6 +12,7 @@ load("//cc:find_cc_toolchain.bzl", "find_cc_toolchain")
 GraphNodeInfo = provider(
     fields = {
         "children": "Other GraphNodeInfo from dependencies of this target",
+        "exported_by": "Labels of targets that can export the library of this node",
         "label": "Label of the target visited",
     },
 )
@@ -259,10 +260,19 @@ def _cc_shared_library_impl(ctx):
             fail("Trying to export a library already exported by a different shared library: " +
                  str(export.label))
 
-        if not _same_package_or_above(ctx.label, export[GraphNodeInfo].label):
+        can_be_exported = _same_package_or_above(ctx.label, export.label)
+
+        if not can_be_exported:
+            for exported_by in export[GraphNodeInfo].exported_by:
+                target_specified = _is_target_specified(exported_by)
+                exported_by_label = Label(exported_by)
+                if _check_if_target_under_path(ctx.label, exported_by_label, target_specified):
+                    can_be_exported = True
+                    break
+        if not can_be_exported:
             fail(str(export.label) + " cannot be exported from " + str(ctx.label) +
-                 " because " + str(export.label) + " is not in the same package " +
-                 " or a sub-package")
+                 " because it's not in the same package/subpackage or the library " +
+                 "to be exported doesn't have this cc_shared_library in the exported_by tag.")
 
     preloaded_deps_direct_labels = {}
     preloaded_dep_merged_cc_info = None
@@ -348,9 +358,24 @@ def _graph_structure_aspect_impl(target, ctx):
             if GraphNodeInfo in dep:
                 children.append(dep[GraphNodeInfo])
 
+    exported_by = []
+    if hasattr(ctx.rule.attr, "tags"):
+        for tag in ctx.rule.attr.tags:
+            if tag.startswith("exported_by=") and len(tag) > 12:
+                for target in tag[12:].split(","):
+                    # Only absolute labels allowed. Targets in same package
+                    # or subpackage can be exported anyway.
+                    if not target.startswith("//") and not target.startswith("@"):
+                        fail("Labels in exported_by of " + str(target) +
+                             " must be absolute.")
+
+                    Label(target)  # Checking synthax is ok.
+                exported_by.append(target)
+
     return [GraphNodeInfo(
         label = ctx.label,
         children = children,
+        exported_by = exported_by,
     )]
 
 graph_structure_aspect = aspect(
