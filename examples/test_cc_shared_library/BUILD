@@ -1,5 +1,6 @@
 load("//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 load("//examples:experimental_cc_shared_library.bzl", "cc_shared_library")
+load(":starlark_tests.bzl", "linking_suffix_test")
 
 cc_test(
     name = "cc_test",
@@ -134,4 +135,9 @@ sh_test(
         ":cc_test",
         ":foo_so",
     ],
+)
+
+linking_suffix_test(
+    name = "linking_action_test",
+    target_under_test = ":foo_so",
 )
