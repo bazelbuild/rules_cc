@@ -1,6 +1,6 @@
 load("//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 load("//examples:experimental_cc_shared_library.bzl", "cc_shared_library")
-load(":starlark_tests.bzl", "linking_suffix_test")
+load(":starlark_tests.bzl", "additional_inputs_test", "linking_suffix_test")
 
 cc_test(
     name = "cc_test",
@@ -18,12 +18,16 @@ cc_binary(
 
 cc_shared_library(
     name = "foo_so",
+    additional_linker_inputs = [":additional_script.txt"],
     dynamic_deps = ["bar_so"],
     preloaded_deps = ["preloaded_dep"],
     static_deps = [
         "//examples/test_cc_shared_library:qux",
     ],
-    user_link_flags = ["-Wl,-rpath,kittens"],
+    user_link_flags = [
+        "-Wl,-rpath,kittens",
+        "-Wl,--script=$(location :additional_script.txt)",
+    ],
     visibility_file = "foo.lds",
     exports = [
         "foo",
@@ -139,5 +143,10 @@ sh_test(
 
 linking_suffix_test(
     name = "linking_action_test",
+    target_under_test = ":foo_so",
+)
+
+additional_inputs_test(
+    name = "additional_inputs_test",
     target_under_test = ":foo_so",
 )

@@ -289,7 +289,10 @@ def _cc_shared_library_impl(ctx):
         )
         additional_inputs = [ctx.file.visibility_file]
 
-    user_link_flags.extend(ctx.attr.user_link_flags)
+    for user_link_flag in ctx.attr.user_link_flags:
+        user_link_flags.append(ctx.expand_location(user_link_flag, targets = ctx.attr.additional_linker_inputs))
+
+    additional_inputs.extend(ctx.files.additional_linker_inputs)
 
     linking_outputs = cc_common.link(
         actions = ctx.actions,
@@ -365,6 +368,7 @@ graph_structure_aspect = aspect(
 cc_shared_library = rule(
     implementation = _cc_shared_library_impl,
     attrs = {
+        "additional_linker_inputs": attr.label_list(allow_files = True),
         "dynamic_deps": attr.label_list(providers = [CcSharedLibraryInfo]),
         "exports": attr.label_list(providers = [CcInfo], aspects = [graph_structure_aspect]),
         "preloaded_deps": attr.label_list(providers = [CcInfo]),
