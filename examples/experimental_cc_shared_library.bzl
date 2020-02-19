@@ -279,20 +279,9 @@ def _cc_shared_library_impl(ctx):
 
     linking_context = _create_linker_context(ctx, linker_inputs)
 
-    # TODO(plf): Decide whether ctx.attr.user_link_flags should come before or after options
-    # added by the rule logic.
     user_link_flags = []
-    additional_inputs = []
-    if ctx.file.visibility_file != None:
-        user_link_flags.append(
-            "-Wl,--version-script=" + ctx.file.visibility_file.path,
-        )
-        additional_inputs = [ctx.file.visibility_file]
-
     for user_link_flag in ctx.attr.user_link_flags:
         user_link_flags.append(ctx.expand_location(user_link_flag, targets = ctx.attr.additional_linker_inputs))
-
-    additional_inputs.extend(ctx.files.additional_linker_inputs)
 
     linking_outputs = cc_common.link(
         actions = ctx.actions,
@@ -300,7 +289,7 @@ def _cc_shared_library_impl(ctx):
         cc_toolchain = cc_toolchain,
         linking_contexts = [linking_context],
         user_link_flags = user_link_flags,
-        additional_inputs = additional_inputs,
+        additional_inputs = ctx.files.additional_linker_inputs,
         name = ctx.label.name,
         output_type = "dynamic_library",
     )
@@ -374,7 +363,6 @@ cc_shared_library = rule(
         "preloaded_deps": attr.label_list(providers = [CcInfo]),
         "static_deps": attr.string_list(),
         "user_link_flags": attr.string_list(),
-        "visibility_file": attr.label(allow_single_file = True),
         "_cc_toolchain": attr.label(default = "@bazel_tools//tools/cpp:current_cc_toolchain"),
     },
     toolchains = ["@rules_cc//cc:toolchain_type"],  # copybara-use-repo-external-label

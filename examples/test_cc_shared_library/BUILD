@@ -18,7 +18,10 @@ cc_binary(
 
 cc_shared_library(
     name = "foo_so",
-    additional_linker_inputs = [":additional_script.txt"],
+    additional_linker_inputs = [
+        ":foo.lds",
+        ":additional_script.txt",
+    ],
     dynamic_deps = ["bar_so"],
     preloaded_deps = ["preloaded_dep"],
     static_deps = [
@@ -26,9 +29,9 @@ cc_shared_library(
     ],
     user_link_flags = [
         "-Wl,-rpath,kittens",
+        "-Wl,--version-script=$(location :foo.lds)",
         "-Wl,--script=$(location :additional_script.txt)",
     ],
-    visibility_file = "foo.lds",
     exports = [
         "foo",
         # Not a problem to export "baz" which is depended on by foo
@@ -82,11 +85,16 @@ cc_library(
 
 cc_shared_library(
     name = "bar_so",
+    additional_linker_inputs = [
+        ":bar.lds",
+    ],
     static_deps = [
         "//examples/test_cc_shared_library:barX",
         "@test_repo//:bar",
     ],
-    visibility_file = "bar.lds",
+    user_link_flags = [
+        "-Wl,--version-script=$(location :bar.lds)",
+    ],
     exports = [
         "bar",
         "bar2",
