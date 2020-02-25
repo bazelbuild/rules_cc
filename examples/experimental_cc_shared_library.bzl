@@ -227,6 +227,7 @@ def _same_package_or_above(label_a, label_b):
     return True
 
 def _cc_shared_library_impl(ctx):
+    cc_common.check_experimental_cc_shared_library()
     cc_toolchain = find_cc_toolchain(ctx)
     feature_configuration = cc_common.configure_features(
         ctx = ctx,
