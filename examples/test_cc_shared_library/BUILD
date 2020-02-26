@@ -1,5 +1,5 @@
 load("//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
-load("//examples:experimental_cc_shared_library.bzl", "cc_shared_library")
+load("//examples:experimental_cc_shared_library.bzl", "LINKABLE_MORE_THAN_ONCE", "cc_shared_library")
 load(":starlark_tests.bzl", "additional_inputs_test", "linking_suffix_test")
 
 cc_test(
@@ -26,6 +26,7 @@ cc_shared_library(
     preloaded_deps = ["preloaded_dep"],
     static_deps = [
         "//examples/test_cc_shared_library:qux",
+        "//examples/test_cc_shared_library:qux2",
     ],
     user_link_flags = [
         "-Wl,-rpath,kittens",
@@ -68,6 +69,7 @@ cc_library(
         "baz",
         # Not exported.
         "qux",
+        "qux2",
     ],
 )
 
@@ -83,6 +85,13 @@ cc_library(
     hdrs = ["qux.h"],
 )
 
+cc_library(
+    name = "qux2",
+    srcs = ["qux2.cc"],
+    hdrs = ["qux2.h"],
+    tags = [LINKABLE_MORE_THAN_ONCE],
+)
+
 cc_shared_library(
     name = "bar_so",
     additional_linker_inputs = [
@@ -91,6 +100,7 @@ cc_shared_library(
     static_deps = [
         "//examples/test_cc_shared_library:barX",
         "@test_repo//:bar",
+        "//examples/test_cc_shared_library:qux2",
     ],
     user_link_flags = [
         "-Wl,--version-script=$(location :bar.lds)",
@@ -117,6 +127,7 @@ cc_library(
     hdrs = ["bar.h"],
     deps = [
         "barX",
+        "qux2",
     ],
 )
 
