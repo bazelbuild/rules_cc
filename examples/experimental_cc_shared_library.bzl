@@ -15,6 +15,14 @@ load("//cc:find_cc_toolchain.bzl", "find_cc_toolchain")
 # used sparingly after making sure it's safe to use.
 LINKABLE_MORE_THAN_ONCE = "LINKABLE_MORE_THAN_ONCE"
 
+_EXPORTED_BY_TAG_BEGINNING = "exported_by="
+
+def exported_by(labels):
+    str_builder = []
+    for label in labels:
+        str_builder.append(label)
+    return _EXPORTED_BY_TAG_BEGINNING + ",".join(str_builder)
+
 GraphNodeInfo = provider(
     fields = {
         "children": "Other GraphNodeInfo from dependencies of this target",
@@ -346,8 +354,8 @@ def _graph_structure_aspect_impl(target, ctx):
     linkable_more_than_once = False
     if hasattr(ctx.rule.attr, "tags"):
         for tag in ctx.rule.attr.tags:
-            if tag.startswith("exported_by=") and len(tag) > 12:
-                for target in tag[12:].split(","):
+            if tag.startswith(_EXPORTED_BY_TAG_BEGINNING) and len(tag) > len(_EXPORTED_BY_TAG_BEGINNING):
+                for target in tag[len(_EXPORTED_BY_TAG_BEGINNING):].split(","):
                     # Only absolute labels allowed. Targets in same package
                     # or subpackage can be exported anyway.
                     if not target.startswith("//") and not target.startswith("@"):
