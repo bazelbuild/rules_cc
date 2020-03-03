@@ -143,21 +143,15 @@ def _wrap_static_library_with_alwayslink(ctx, feature_configuration, cc_toolchai
         additional_inputs = depset(direct = linker_input.additional_inputs),
     )
 
-def _check_if_target_under_path(path, target, target_specified):
-    if not _same_package_or_above(path, target):
+def _check_if_target_under_path(value, pattern):
+    if pattern.workspace_name != value.workspace_name:
         return False
-    if target_specified:
-        return path.name == target.name
-    return True
+    if pattern.name == "__pkg__":
+        return pattern.package == value.package
+    if pattern.name == "__subpackages__":
+        return _same_package_or_above(pattern, value)
 
-def _is_target_specified(path):
-    if path.startswith("//") or path.startswith("@"):
-        if path.find(":") != -1:
-            return True
-        else:
-            return False
-    else:
-        return True
+    return pattern.package == value.package and pattern.name == value.name
 
 def _filter_inputs(
         ctx,
@@ -218,10 +212,9 @@ def _filter_inputs(
                 can_be_linked_statically = False
 
                 for static_dep_path in ctx.attr.static_deps:
-                    target_specified = _is_target_specified(static_dep_path)
                     static_dep_path_label = ctx.label.relative(static_dep_path)
                     owner_label = linker_input.owner
-                    if _check_if_target_under_path(linker_input.owner, static_dep_path_label, target_specified):
+                    if _check_if_target_under_path(linker_input.owner, static_dep_path_label):
                         can_be_linked_statically = True
                         break
                 if can_be_linked_statically:
@@ -267,9 +260,8 @@ def _cc_shared_library_impl(ctx):
 
         if not can_be_exported:
             for exported_by in export[GraphNodeInfo].exported_by:
-                target_specified = _is_target_specified(exported_by)
                 exported_by_label = Label(exported_by)
-                if _check_if_target_under_path(ctx.label, exported_by_label, target_specified):
+                if _check_if_target_under_path(ctx.label, exported_by_label):
                     can_be_exported = True
                     break
         if not can_be_exported:
@@ -393,3 +385,5 @@ cc_shared_library = rule(
     toolchains = ["@rules_cc//cc:toolchain_type"],  # copybara-use-repo-external-label
     fragments = ["cpp"],
 )
+
+for_testing_dont_use_check_if_target_under_path = _check_if_target_under_path

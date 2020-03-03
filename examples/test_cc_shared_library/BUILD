@@ -1,6 +1,6 @@
 load("//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 load("//examples:experimental_cc_shared_library.bzl", "LINKABLE_MORE_THAN_ONCE", "cc_shared_library")
-load(":starlark_tests.bzl", "additional_inputs_test", "link_once_repeated_test", "linking_suffix_test")
+load(":starlark_tests.bzl", "additional_inputs_test", "link_once_repeated_test", "linking_suffix_test", "paths_test")
 
 package(
     default_visibility = ["//examples/test_cc_shared_library:__subpackages__"],
@@ -177,4 +177,8 @@ additional_inputs_test(
 link_once_repeated_test(
     name = "link_once_repeated_test",
     target_under_test = "//examples/test_cc_shared_library/failing_targets:should_fail_binary",
+)
+
+paths_test(
+    name = "path_matching_test",
 )

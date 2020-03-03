@@ -1,6 +1,7 @@
 """Starlark tests for cc_shared_library"""
 
-load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts")
+load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts", "unittest")
+load("//examples:experimental_cc_shared_library.bzl", "for_testing_dont_use_check_if_target_under_path")
 
 def _linking_suffix_test_impl(ctx):
     env = analysistest.begin(ctx)
@@ -43,3 +44,25 @@ def _link_once_repeated_test_impl(ctx):
     return analysistest.end(env)
 
 link_once_repeated_test = analysistest.make(_link_once_repeated_test_impl, expect_failure = True)
+
+def _paths_test_impl(ctx):
+    env = unittest.begin(ctx)
+
+    asserts.false(env, for_testing_dont_use_check_if_target_under_path(Label("//foo"), Label("//bar")))
+    asserts.false(env, for_testing_dont_use_check_if_target_under_path(Label("@foo//foo"), Label("@bar//bar")))
+    asserts.false(env, for_testing_dont_use_check_if_target_under_path(Label("//bar"), Label("@foo//bar")))
+    asserts.true(env, for_testing_dont_use_check_if_target_under_path(Label("@foo//bar"), Label("@foo//bar")))
+    asserts.true(env, for_testing_dont_use_check_if_target_under_path(Label("@foo//bar:bar"), Label("@foo//bar")))
+    asserts.true(env, for_testing_dont_use_check_if_target_under_path(Label("//bar:bar"), Label("//bar")))
+
+    asserts.false(env, for_testing_dont_use_check_if_target_under_path(Label("@foo//bar/baz"), Label("@foo//bar")))
+    asserts.false(env, for_testing_dont_use_check_if_target_under_path(Label("@foo//bar/baz"), Label("@foo//bar:__pkg__")))
+    asserts.true(env, for_testing_dont_use_check_if_target_under_path(Label("@foo//bar/baz"), Label("@foo//bar:__subpackages__")))
+    asserts.true(env, for_testing_dont_use_check_if_target_under_path(Label("@foo//bar:qux"), Label("@foo//bar:__pkg__")))
+
+    asserts.false(env, for_testing_dont_use_check_if_target_under_path(Label("@foo//bar"), Label("@foo//bar/baz:__subpackages__")))
+    asserts.false(env, for_testing_dont_use_check_if_target_under_path(Label("//bar"), Label("//bar/baz:__pkg__")))
+
+    return unittest.end(env)
+
+paths_test = unittest.make(_paths_test_impl)
