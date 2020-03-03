@@ -34,3 +34,12 @@ def _additional_inputs_test_impl(ctx):
     return analysistest.end(env)
 
 additional_inputs_test = analysistest.make(_additional_inputs_test_impl)
+
+def _link_once_repeated_test_impl(ctx):
+    env = analysistest.begin(ctx)
+
+    asserts.expect_failure(env, "already linked statically")
+
+    return analysistest.end(env)
+
+link_once_repeated_test = analysistest.make(_link_once_repeated_test_impl, expect_failure = True)
