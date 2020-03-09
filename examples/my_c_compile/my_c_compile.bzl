@@ -66,7 +66,7 @@ def _my_c_compile_impl(ctx):
         outputs = [output_file],
     )
     return [
-        DefaultInfo(files = depset(items = [output_file])),
+        DefaultInfo(files = depset([output_file])),
         MyCCompileInfo(object = output_file),
     ]
 
