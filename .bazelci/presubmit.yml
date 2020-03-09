@@ -48,7 +48,7 @@ tasks:
     <<: *common
   examples:
     platform: ubuntu1804
-    bazel: last_green
+    bazel: last_downstream_green
     build_targets:
     - "//examples/test_cc_shared_library/..."
     build_flags:
