@@ -23,8 +23,8 @@ import (
 
 	// Google internal base/go package, commented out by copybara
 	"log"
-	"github.com/golang/protobuf/proto"
 	crosstoolpb "third_party/com/github/bazelbuild/bazel/src/main/protobuf/crosstool_config_go_proto"
+	"github.com/golang/protobuf/proto"
 
 	"tools/migration/crosstooltostarlarklib"
 )

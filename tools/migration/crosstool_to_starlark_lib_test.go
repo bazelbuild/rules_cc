@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"log"
-	"github.com/golang/protobuf/proto"
 	crosstoolpb "third_party/com/github/bazelbuild/bazel/src/main/protobuf/crosstool_config_go_proto"
+	"github.com/golang/protobuf/proto"
 )
 
 func makeCToolchainString(lines []string) string {
