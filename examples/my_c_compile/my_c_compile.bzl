@@ -60,7 +60,7 @@ def _my_c_compile_impl(ctx):
         arguments = command_line,
         env = env,
         inputs = depset(
-            items = [source_file],
+            [source_file],
             transitive = [cc_toolchain.all_files],
         ),
         outputs = [output_file],
