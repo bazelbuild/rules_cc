@@ -55,18 +55,26 @@ def _separate_static_and_dynamic_link_libraries(
     link_statically_labels = {}
     link_dynamically_labels = {}
 
-    # Horrible I know. Perhaps Starlark team gives me a way to prune a tree.
-    for i in range(1, 2147483647):
-        if len(all_children) == 0:
-            break
-        node = all_children.pop(0)
+    seen_labels = {}
 
+    # Horrible I know. Perhaps Starlark team gives me a way to prune a tree.
+    for i in range(2147483647):
+        if i == len(all_children):
+            break
+
+        node = all_children[i]
         node_label = str(node.label)
+
+        if node_label in seen_labels:
+            continue
+        seen_labels[node_label] = True
+
         if node_label in can_be_linked_dynamically:
             link_dynamically_labels[node_label] = True
         elif node_label not in preloaded_deps_direct_labels:
             link_statically_labels[node_label] = node.linkable_more_than_once
             all_children.extend(node.children)
+
     return (link_statically_labels, link_dynamically_labels)
 
 def _create_linker_context(ctx, linker_inputs):
