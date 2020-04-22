@@ -242,9 +242,12 @@ def _same_package_or_above(label_a, label_b):
     package_b_tokenized = label_b.package.split("/")
     if len(package_b_tokenized) < len(package_a_tokenized):
         return False
-    for i in range(len(package_a_tokenized)):
-        if package_a_tokenized[i] != package_b_tokenized[i]:
-            return False
+
+    if package_a_tokenized[0] != "":
+        for i in range(len(package_a_tokenized)):
+            if package_a_tokenized[i] != package_b_tokenized[i]:
+                return False
+
     return True
 
 def _cc_shared_library_impl(ctx):

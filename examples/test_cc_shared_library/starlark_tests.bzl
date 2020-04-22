@@ -63,6 +63,8 @@ def _paths_test_impl(ctx):
     asserts.false(env, for_testing_dont_use_check_if_target_under_path(Label("@foo//bar"), Label("@foo//bar/baz:__subpackages__")))
     asserts.false(env, for_testing_dont_use_check_if_target_under_path(Label("//bar"), Label("//bar/baz:__pkg__")))
 
+    asserts.true(env, for_testing_dont_use_check_if_target_under_path(Label("//foo/bar:baz"), Label("//:__subpackages__")))
+
     return unittest.end(env)
 
 paths_test = unittest.make(_paths_test_impl)
