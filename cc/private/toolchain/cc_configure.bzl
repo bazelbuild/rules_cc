@@ -173,13 +173,17 @@ cc_autoconf = repository_rule(
     configure = True,
 )
 
-# buildifier: disable=unnamed-macro
-def cc_configure():
-    """A C++ configuration rules that generate the crosstool file."""
-    cc_autoconf_toolchains(name = "local_config_cc_toolchains")
-    cc_autoconf(name = "local_config_cc")
-    native.bind(name = "cc_toolchain", actual = "@local_config_cc//:toolchain")
+def cc_configure(name = "local_config_cc"):
+    """A C++ configuration rules that generate the crosstool file.
+
+    Args:
+      name: name of the repository
+    """
+    cc_autoconf_toolchains(name = name + "_toolchains")
+    cc_autoconf(name = name)
+    if name == "local_config_cc":
+        native.bind(name = "cc_toolchain", actual = "@local_config_cc//:toolchain")
     native.register_toolchains(
         # Use register_toolchain's target pattern expansion to register all toolchains in the package.
-        "@local_config_cc_toolchains//:all",
+        "@" + name + "_toolchains//:all",
     )
