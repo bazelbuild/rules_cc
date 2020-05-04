@@ -23,8 +23,8 @@ def rules_cc_dependencies():
         ],
     )
 
-def rules_cc_toolchains(*args):
-    cc_configure(*args)
+def rules_cc_toolchains(name, *args):
+    cc_configure(name, *args)
 
 def _maybe(repo_rule, name, **kwargs):
     if not native.existing_rule(name):
