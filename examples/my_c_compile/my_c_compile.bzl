@@ -60,13 +60,13 @@ def _my_c_compile_impl(ctx):
         arguments = command_line,
         env = env,
         inputs = depset(
-            items = [source_file],
+            direct = [source_file],
             transitive = [cc_toolchain.all_files],
         ),
         outputs = [output_file],
     )
     return [
-        DefaultInfo(files = depset(items = [output_file])),
+        DefaultInfo(files = depset(direct = [output_file])),
         MyCCompileInfo(object = output_file),
     ]
 
