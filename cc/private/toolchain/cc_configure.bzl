@@ -173,6 +173,7 @@ cc_autoconf = repository_rule(
     configure = True,
 )
 
+# buildifier: disable=unnamed-macro
 def cc_configure():
     """A C++ configuration rules that generate the crosstool file."""
     cc_autoconf_toolchains(name = "local_config_cc_toolchains")

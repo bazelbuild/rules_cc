@@ -23,6 +23,7 @@ def rules_cc_dependencies():
         ],
     )
 
+# buildifier: disable=unnamed-macro
 def rules_cc_toolchains(*args):
     cc_configure(*args)
 
