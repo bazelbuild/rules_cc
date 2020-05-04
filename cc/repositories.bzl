@@ -23,8 +23,9 @@ def rules_cc_dependencies():
         ],
     )
 
-def rules_cc_toolchains(name = "local_config_cc", *args):
-    cc_configure(name, *args)
+# buildifier: disable=unnamed-macro
+def rules_cc_toolchains(*args):
+    cc_configure(*args)
 
 def _maybe(repo_rule, name, **kwargs):
     if not native.existing_rule(name):
