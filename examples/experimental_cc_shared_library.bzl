@@ -15,18 +15,14 @@ load("//cc:find_cc_toolchain.bzl", "find_cc_toolchain")
 # used sparingly after making sure it's safe to use.
 LINKABLE_MORE_THAN_ONCE = "LINKABLE_MORE_THAN_ONCE"
 
-_EXPORTED_BY_TAG_BEGINNING = "exported_by="
-
-def exported_by(labels):
-    str_builder = []
-    for label in labels:
-        str_builder.append(label)
-    return _EXPORTED_BY_TAG_BEGINNING + ",".join(str_builder)
-
+CcSharedLibraryPermissionsInfo = provider(
+    fields = {
+        "targets": "Matches targets that can be exported.",
+    },
+)
 GraphNodeInfo = provider(
     fields = {
         "children": "Other GraphNodeInfo from dependencies of this target",
-        "exported_by": "Labels of targets that can export the library of this node",
         "label": "Label of the target visited",
         "linkable_more_than_once": "Linkable into more than a single cc_shared_library",
     },
@@ -161,6 +157,47 @@ def _check_if_target_under_path(value, pattern):
 
     return pattern.package == value.package and pattern.name == value.name
 
+def _check_if_target_can_be_exported(target, current_label, permissions):
+    if (target.workspace_name != current_label.workspace_name or
+        _same_package_or_above(current_label, target)):
+        return True
+
+    matched_by_target = False
+    for permission in permissions:
+        for permission_target in permission[CcSharedLibraryPermissionsInfo].targets:
+            if _check_if_target_under_path(target, permission_target):
+                return True
+
+    return False
+
+def _check_if_target_should_be_exported_without_filter(target, current_label, permissions):
+    return _check_if_target_should_be_exported_with_filter(target, current_label, None, permissions)
+
+def _check_if_target_should_be_exported_with_filter(target, current_label, exports_filter, permissions):
+    should_be_exported = False
+    if exports_filter == None:
+        should_be_exported = True
+    else:
+        for export_filter in exports_filter:
+            export_filter_label = current_label.relative(export_filter)
+            if _check_if_target_under_path(target, export_filter_label):
+                should_be_exported = True
+                break
+
+    if should_be_exported:
+        if _check_if_target_can_be_exported(target, current_label, permissions):
+            return True
+        else:
+            matched_by_filter_text = ""
+            if exports_filter:
+                matched_by_filter_text = " (matched by filter) "
+            fail(str(target) + matched_by_filter_text +
+                 " cannot be exported from " + str(current_label) +
+                 " because it's not in the same package/subpackage and the library " +
+                 "doesn't have the necessary permissions. Use cc_shared_library_permissions.")
+
+    return False
+
 def _filter_inputs(
         ctx,
         feature_configuration,
@@ -174,7 +211,7 @@ def _filter_inputs(
     graph_structure_aspect_nodes = []
     dependency_linker_inputs = []
     direct_exports = {}
-    for export in ctx.attr.exports:
+    for export in ctx.attr.roots:
         direct_exports[str(export.label)] = True
         dependency_linker_inputs.extend(export[CcInfo].linking_context.linker_inputs.to_list())
         graph_structure_aspect_nodes.append(export[GraphNodeInfo])
@@ -191,6 +228,7 @@ def _filter_inputs(
         preloaded_deps_direct_labels,
     )
 
+    exports = {}
     owners_seen = {}
     for linker_input in dependency_linker_inputs:
         owner = str(linker_input.owner)
@@ -221,10 +259,19 @@ def _filter_inputs(
 
                 for static_dep_path in ctx.attr.static_deps:
                     static_dep_path_label = ctx.label.relative(static_dep_path)
-                    owner_label = linker_input.owner
                     if _check_if_target_under_path(linker_input.owner, static_dep_path_label):
                         can_be_linked_statically = True
                         break
+
+                if _check_if_target_should_be_exported_with_filter(
+                    linker_input.owner,
+                    ctx.label,
+                    ctx.attr.exports_filter,
+                    ctx.attr.permissions,
+                ):
+                    exports[owner] = True
+                    can_be_linked_statically = True
+
                 if can_be_linked_statically:
                     if not link_statically_labels[owner]:
                         link_once_static_libs.append(owner)
@@ -233,7 +280,7 @@ def _filter_inputs(
                     fail("We can't link " +
                          str(owner) + " either statically or dynamically")
 
-    return (linker_inputs, link_once_static_libs)
+    return (exports, linker_inputs, link_once_static_libs)
 
 def _same_package_or_above(label_a, label_b):
     if label_a.workspace_name != label_b.workspace_name:
@@ -262,23 +309,12 @@ def _cc_shared_library_impl(ctx):
 
     merged_cc_shared_library_info = _merge_cc_shared_library_infos(ctx)
     exports_map = _build_exports_map_from_only_dynamic_deps(merged_cc_shared_library_info)
-    for export in ctx.attr.exports:
+    for export in ctx.attr.roots:
         if str(export.label) in exports_map:
             fail("Trying to export a library already exported by a different shared library: " +
                  str(export.label))
 
-        can_be_exported = _same_package_or_above(ctx.label, export.label)
-
-        if not can_be_exported:
-            for exported_by in export[GraphNodeInfo].exported_by:
-                exported_by_label = Label(exported_by)
-                if _check_if_target_under_path(ctx.label, exported_by_label):
-                    can_be_exported = True
-                    break
-        if not can_be_exported:
-            fail(str(export.label) + " cannot be exported from " + str(ctx.label) +
-                 " because it's not in the same package/subpackage or the library " +
-                 "to be exported doesn't have this cc_shared_library in the exported_by tag.")
+        _check_if_target_should_be_exported_without_filter(export.label, ctx.label, ctx.attr.permissions)
 
     preloaded_deps_direct_labels = {}
     preloaded_dep_merged_cc_info = None
@@ -292,7 +328,7 @@ def _cc_shared_library_impl(ctx):
 
     link_once_static_libs_map = _build_link_once_static_libs_map(merged_cc_shared_library_info)
 
-    (linker_inputs, link_once_static_libs) = _filter_inputs(
+    (exports, linker_inputs, link_once_static_libs) = _filter_inputs(
         ctx,
         feature_configuration,
         cc_toolchain,
@@ -324,9 +360,8 @@ def _cc_shared_library_impl(ctx):
     for dep in ctx.attr.dynamic_deps:
         runfiles = runfiles.merge(dep[DefaultInfo].data_runfiles)
 
-    exports = []
-    for export in ctx.attr.exports:
-        exports.append(str(export.label))
+    for export in ctx.attr.roots:
+        exports[str(export.label)] = True
 
     return [
         DefaultInfo(
@@ -335,7 +370,7 @@ def _cc_shared_library_impl(ctx):
         ),
         CcSharedLibraryInfo(
             dynamic_deps = merged_cc_shared_library_info,
-            exports = exports,
+            exports = exports.keys(),
             link_once_static_libs = link_once_static_libs,
             linker_input = cc_common.create_linker_input(
                 owner = ctx.label,
@@ -353,28 +388,31 @@ def _graph_structure_aspect_impl(target, ctx):
             if GraphNodeInfo in dep:
                 children.append(dep[GraphNodeInfo])
 
-    exported_by = []
+    # TODO(bazel-team): Add flag to Bazel that can toggle the initialization of
+    # linkable_more_than_once.
     linkable_more_than_once = False
     if hasattr(ctx.rule.attr, "tags"):
         for tag in ctx.rule.attr.tags:
-            if tag.startswith(_EXPORTED_BY_TAG_BEGINNING) and len(tag) > len(_EXPORTED_BY_TAG_BEGINNING):
-                for target in tag[len(_EXPORTED_BY_TAG_BEGINNING):].split(","):
-                    # Only absolute labels allowed. Targets in same package
-                    # or subpackage can be exported anyway.
-                    if not target.startswith("//") and not target.startswith("@"):
-                        fail("Labels in exported_by of " + str(target) +
-                             " must be absolute.")
-
-                    Label(target)  # Checking synthax is ok.
-                exported_by.append(target)
-            elif tag == LINKABLE_MORE_THAN_ONCE:
+            if tag == LINKABLE_MORE_THAN_ONCE:
                 linkable_more_than_once = True
 
     return [GraphNodeInfo(
         label = ctx.label,
         children = children,
-        exported_by = exported_by,
         linkable_more_than_once = linkable_more_than_once,
+    )]
+
+def _cc_shared_library_permissions_impl(ctx):
+    targets = []
+    for target_filter in ctx.attr.targets:
+        target_filter_label = ctx.label.relative(target_filter)
+        if not _check_if_target_under_path(target_filter_label, ctx.label.relative(":__subpackages__")):
+            fail("A cc_shared_library_permissions rule can only list " +
+                 "targets that are in the same package or a sub-package")
+        targets.append(target_filter_label)
+
+    return [CcSharedLibraryPermissionsInfo(
+        targets = targets,
     )]
 
 graph_structure_aspect = aspect(
@@ -382,13 +420,22 @@ graph_structure_aspect = aspect(
     implementation = _graph_structure_aspect_impl,
 )
 
+cc_shared_library_permissions = rule(
+    implementation = _cc_shared_library_permissions_impl,
+    attrs = {
+        "targets": attr.string_list(),
+    },
+)
+
 cc_shared_library = rule(
     implementation = _cc_shared_library_impl,
     attrs = {
         "additional_linker_inputs": attr.label_list(allow_files = True),
         "dynamic_deps": attr.label_list(providers = [CcSharedLibraryInfo]),
-        "exports": attr.label_list(providers = [CcInfo], aspects = [graph_structure_aspect]),
+        "exports_filter": attr.string_list(),
+        "permissions": attr.label_list(providers = [CcSharedLibraryPermissionsInfo]),
         "preloaded_deps": attr.label_list(providers = [CcInfo]),
+        "roots": attr.label_list(providers = [CcInfo], aspects = [graph_structure_aspect]),
         "static_deps": attr.string_list(),
         "user_link_flags": attr.string_list(),
         "_cc_toolchain": attr.label(default = "@bazel_tools//tools/cpp:current_cc_toolchain"),

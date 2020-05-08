@@ -11,7 +11,7 @@ def _linking_suffix_test_impl(ctx):
 
     for arg in reversed(actions[1].argv):
         if arg.find(".a") != -1 or arg.find("-l") != -1:
-            asserts.equals(env, "libbar4.a", arg[arg.rindex("/") + 1:])
+            asserts.equals(env, "liba_suffix.a", arg[arg.rindex("/") + 1:])
             break
 
     return analysistest.end(env)
@@ -36,14 +36,18 @@ def _additional_inputs_test_impl(ctx):
 
 additional_inputs_test = analysistest.make(_additional_inputs_test_impl)
 
-def _link_once_repeated_test_impl(ctx):
+def _build_failure_test_impl(ctx):
     env = analysistest.begin(ctx)
 
-    asserts.expect_failure(env, "already linked statically")
+    asserts.expect_failure(env, ctx.attr.message)
 
     return analysistest.end(env)
 
-link_once_repeated_test = analysistest.make(_link_once_repeated_test_impl, expect_failure = True)
+build_failure_test = analysistest.make(
+    _build_failure_test_impl,
+    expect_failure = True,
+    attrs = {"message": attr.string()},
+)
 
 def _paths_test_impl(ctx):
     env = unittest.begin(ctx)
