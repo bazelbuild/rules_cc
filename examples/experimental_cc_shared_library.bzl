@@ -5,6 +5,7 @@ rely on this. It requires bazel >1.2  and passing the flag
 --experimental_cc_shared_library
 """
 
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("//cc:find_cc_toolchain.bzl", "find_cc_toolchain")
 
 # TODO(#5200): Add export_define to library_to_link and cc_library
@@ -363,9 +364,23 @@ def _cc_shared_library_impl(ctx):
     for export in ctx.attr.roots:
         exports[str(export.label)] = True
 
+    debug_files = []
+    if ctx.attr._experimental_debug[BuildSettingInfo].value:
+        exports_debug_file = ctx.actions.declare_file(ctx.label.name + "_exports.txt")
+        ctx.actions.write(content = "\n".join(exports.keys()), output = exports_debug_file)
+
+        link_once_static_libs_debug_file = ctx.actions.declare_file(ctx.label.name + "_link_once_static_libs.txt")
+        ctx.actions.write(content = "\n".join(link_once_static_libs), output = link_once_static_libs_debug_file)
+
+        debug_files.append(exports_debug_file)
+        debug_files.append(link_once_static_libs_debug_file)
+
+    if not ctx.attr._incompatible_link_once[BuildSettingInfo].value:
+        link_once_static_libs = []
+
     return [
         DefaultInfo(
-            files = depset([linking_outputs.library_to_link.resolved_symlink_dynamic_library]),
+            files = depset([linking_outputs.library_to_link.resolved_symlink_dynamic_library] + debug_files),
             runfiles = runfiles,
         ),
         CcSharedLibraryInfo(
@@ -439,6 +454,8 @@ cc_shared_library = rule(
         "static_deps": attr.string_list(),
         "user_link_flags": attr.string_list(),
         "_cc_toolchain": attr.label(default = "@bazel_tools//tools/cpp:current_cc_toolchain"),
+        "_experimental_debug": attr.label(default = "//examples:experimental_debug"),
+        "_incompatible_link_once": attr.label(default = "//examples:incompatible_link_once"),
     },
     toolchains = ["@rules_cc//cc:toolchain_type"],  # copybara-use-repo-external-label
     fragments = ["cpp"],
