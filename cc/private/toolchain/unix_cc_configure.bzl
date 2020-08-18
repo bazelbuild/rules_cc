@@ -474,10 +474,10 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overriden_tools):
                     # All warnings are enabled. Maybe enable -Werror as well?
                     "-Wall",
                     # Enable a few more warnings that aren't part of -Wall.
-                ] + ((
+                ] + (
                     _add_compiler_option_if_supported(repository_ctx, cc, "-Wthread-safety") +
                     _add_compiler_option_if_supported(repository_ctx, cc, "-Wself-assign")
-                )) + (
+                ) + (
                     # Disable problematic warnings.
                     _add_compiler_option_if_supported(repository_ctx, cc, "-Wunused-but-set-parameter") +
                     # has false positives
