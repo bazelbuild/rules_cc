@@ -195,6 +195,7 @@ cc_toolchain_config(
         "objcopy": "wrapper/bin/msvc_nop.bat",
         "objdump": "wrapper/bin/msvc_nop.bat",
         "strip": "wrapper/bin/msvc_nop.bat",
+        "dwp": "wrapper/bin/msvc_nop.bat",
     },
     default_link_flags = ["/MACHINE:X64"],
     dbg_mode_debug_flag = "%{dbg_mode_debug_flag}",

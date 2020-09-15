@@ -533,6 +533,47 @@ def _impl(ctx):
             requires = [feature_set(features = ["dbg"])],
         )
 
+        fission_support_feature = feature(
+            name = "fission_support",
+            flag_sets = [
+                flag_set(
+                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                    flag_groups = [
+                        flag_group(
+                            flags = ["/Zi"],
+                            expand_if_available = "is_using_fission",
+                        ),
+                        flag_group(
+                            flags = ["/Fd%{per_object_debug_info_file}"],
+                            expand_if_available = "per_object_debug_info_file",
+                        ),
+                    ],
+                ),
+            ],
+        )
+
+        per_object_debug_info_feature = feature(
+            name = "per_object_debug_info",
+            flag_sets = [
+                flag_set(
+                    actions = [
+                        ACTION_NAMES.c_compile,
+                        ACTION_NAMES.cpp_compile,
+                    ],
+                    flag_groups = [
+                        flag_group(
+                            flags = ["/Zi"],
+                            expand_if_available = "is_using_fission",
+                        ),
+                        flag_group(
+                            flags = ["/Fd%{per_object_debug_info_file}"],
+                            expand_if_available = "per_object_debug_info_file",
+                        ),
+                    ],
+                ),
+            ],
+        )
+
         dbg_feature = feature(
             name = "dbg",
             flag_sets = [
@@ -549,7 +590,7 @@ def _impl(ctx):
                     ],
                 ),
             ],
-            implies = ["generate_pdb_file"],
+            implies = ["generate_pdb_file", "fission_support", "per_object_debug_info"],
         )
 
         opt_feature = feature(
@@ -1101,6 +1142,8 @@ def _impl(ctx):
             no_windows_export_all_symbols_feature,
             supports_dynamic_linker_feature,
             supports_interface_shared_libraries_feature,
+            fission_support_feature,
+            per_object_debug_info_feature,
         ]
     else:
         targets_windows_feature = feature(
