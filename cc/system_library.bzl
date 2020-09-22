@@ -21,7 +21,8 @@ def _split_env_var(repo_ctx, var_name):
             pair = assignment.split(ENV_VAR_ASSIGNMENT)
             if len(pair) != 2:
                 fail(
-                    "Assignments should have form 'name=value', but encountered {} in env variable {}"
+                    "Assignments should have form 'name=value', " +
+                    "but encountered {} in env variable {}"
                         .format(assignment, var_name),
                 )
             key, value = pair[0], pair[1]
@@ -59,11 +60,22 @@ def _find_compiler(repo_ctx):
         fail("No compiler found")
 
 def _find_lib_path(repo_ctx, lib_name, archive_names, lib_path_hints):
-    override_paths = _get_list_from_env_var(repo_ctx, BAZEL_LIB_OVERRIDE_PATHS_ENV_VAR, lib_name)
-    additional_paths = _get_list_from_env_var(repo_ctx, BAZEL_LIB_ADDITIONAL_PATHS_ENV_VAR, lib_name)
+    override_paths = _get_list_from_env_var(
+        repo_ctx,
+        BAZEL_LIB_OVERRIDE_PATHS_ENV_VAR,
+        lib_name,
+    )
+    additional_paths = _get_list_from_env_var(
+        repo_ctx,
+        BAZEL_LIB_ADDITIONAL_PATHS_ENV_VAR,
+        lib_name,
+    )
 
     # Directories will be searched in order
-    path_flags = _make_flags(override_paths + lib_path_hints + additional_paths, "-L")
+    path_flags = _make_flags(
+        override_paths + lib_path_hints + additional_paths,
+        "-L",
+    )
     linker = _find_linker(repo_ctx)
     for archive_name in archive_names:
         cmd = """
@@ -82,8 +94,16 @@ def _find_lib_path(repo_ctx, lib_name, archive_names, lib_path_hints):
     return ("", "")
 
 def _find_header_path(repo_ctx, lib_name, header_name, includes):
-    override_paths = _get_list_from_env_var(repo_ctx, BAZEL_INCLUDE_OVERRIDE_PATHS_ENV_VAR, lib_name)
-    additional_paths = _get_list_from_env_var(repo_ctx, BAZEL_INCLUDE_ADDITIONAL_PATHS_ENV_VAR, lib_name)
+    override_paths = _get_list_from_env_var(
+        repo_ctx,
+        BAZEL_INCLUDE_OVERRIDE_PATHS_ENV_VAR,
+        lib_name,
+    )
+    additional_paths = _get_list_from_env_var(
+        repo_ctx,
+        BAZEL_INCLUDE_ADDITIONAL_PATHS_ENV_VAR,
+        lib_name,
+    )
 
     # See https://gcc.gnu.org/onlinedocs/gcc/Directory-Options.html
     override_include_flags = _make_flags(override_paths, "-I")
@@ -123,8 +143,10 @@ def system_library_impl(repo_ctx):
     static_lib_names = repo_ctx.attr.static_lib_names
     shared_lib_names = repo_ctx.attr.shared_lib_names
 
-    static_lib_name, static_lib_path = _find_lib_path(repo_ctx, repo_name, static_lib_names, lib_path_hints)
-    shared_lib_name, shared_lib_path = _find_lib_path(repo_ctx, repo_name, shared_lib_names, lib_path_hints)
+    static_lib_name, static_lib_path = \
+        _find_lib_path(repo_ctx, repo_name, static_lib_names, lib_path_hints)
+    shared_lib_name, shared_lib_path = \
+        _find_lib_path(repo_ctx, repo_name, shared_lib_names, lib_path_hints)
 
     if not static_lib_path and not shared_lib_path:
         fail("Library {} could not be found".format(repo_name))
@@ -149,10 +171,13 @@ def system_library_impl(repo_ctx):
 
     hdrs_param = "hdrs = {},".format(str(hdr_names))
 
-    # This is needed for the case when quote-includes and system-includes alternate in the include chain, i.e.
-    # #include <SDL2/SDL.h> -> #include "SDL_main.h" -> #include <SDL2/_real_SDL_config.h> -> #include "SDL_platform.h"
+    # This is needed for the case when quote-includes and system-includes
+    # alternate in the include chain, i.e.
+    # #include <SDL2/SDL.h> -> #include "SDL_main.h"
+    # -> #include <SDL2/_real_SDL_config.h> -> #include "SDL_platform.h"
     # The problem is that the quote-includes are assumed to be
-    # in the same directory as the header they are included from - they have no subdir prefix ("SDL2/") in their paths
+    # in the same directory as the header they are included from -
+    # they have no subdir prefix ("SDL2/") in their paths
     include_subdirs = {}
     for hdr in hdr_names:
         path_segments = hdr.split("/")
@@ -181,8 +206,8 @@ def system_library_impl(repo_ctx):
             hdr = remote_hdr,
         )
 
-    link_remote_static_library_genrule = ""
-    link_remote_shared_library_genrule = ""
+    link_remote_static_lib_genrule = ""
+    link_remote_shared_lib_genrule = ""
     remote_static_library_param = ""
     remote_shared_library_param = ""
     static_library_param = ""
@@ -190,14 +215,18 @@ def system_library_impl(repo_ctx):
 
     if static_lib_path:
         repo_ctx.symlink(static_lib_path, static_lib_name)
-        static_library_param = "static_library = \"{}\",".format(static_lib_name)
-        remote_static_library = "remote/" + static_lib_name
-        link_library_command = "mkdir -p $(RULEDIR)/remote && cp {path} $(RULEDIR)/{lib}".format(
-            path = static_lib_path,
-            lib = remote_static_library,
+        static_library_param = "static_library = \"{}\",".format(
+            static_lib_name,
         )
-        remote_static_library_param = "static_library = \"remote_link_static_library\","
-        link_remote_static_library_genrule = \
+        remote_static_library = "remote/" + static_lib_name
+        link_library_command = \
+            "mkdir -p $(RULEDIR)/remote && cp {path} $(RULEDIR)/{lib}".format(
+                path = static_lib_path,
+                lib = remote_static_library,
+            )
+        remote_static_library_param = \
+            "static_library = \"remote_link_static_library\","
+        link_remote_static_lib_genrule = \
             """
 genrule(
      name = "remote_link_static_library",
@@ -211,14 +240,17 @@ genrule(
 
     if shared_lib_path:
         repo_ctx.symlink(shared_lib_path, shared_lib_name)
-        shared_library_param = "shared_library = \"{}\",".format(shared_lib_name)
+        shared_library_param = \
+            "shared_library = \"{}\",".format(shared_lib_name)
         remote_shared_library = "remote/" + shared_lib_name
-        link_library_command = "mkdir -p $(RULEDIR)/remote && cp {path} $(RULEDIR)/{lib}".format(
-            path = shared_lib_path,
-            lib = remote_shared_library,
-        )
-        remote_shared_library_param = "shared_library = \"remote_link_shared_library\","
-        link_remote_shared_library_genrule = \
+        link_library_command = \
+            "mkdir -p $(RULEDIR)/remote && cp {path} $(RULEDIR)/{lib}".format(
+                path = shared_lib_path,
+                lib = remote_shared_library,
+            )
+        remote_shared_library_param = \
+            "shared_library = \"remote_link_shared_library\","
+        link_remote_shared_lib_genrule = \
             """
 genrule(
         name = "remote_link_shared_library",
@@ -251,9 +283,9 @@ genrule(
     cmd = {link_hdrs_command}
 )
 
-{link_remote_static_library_genrule}
+{link_remote_static_lib_genrule}
 
-{link_remote_shared_library_genrule}
+{link_remote_shared_lib_genrule}
 
 cc_import(
     name = "remote_includes",
@@ -279,12 +311,11 @@ alias(
                 deps = deps_param,
                 hdr_names = str(hdr_names),
                 link_hdrs_command = repr(link_hdrs_command),
-                link_library_command = repr(link_library_command),
                 name = repo_name,
                 includes = includes_param,
                 remote_hdrs = remote_hdrs,
-                link_remote_static_library_genrule = link_remote_static_library_genrule,
-                link_remote_shared_library_genrule = link_remote_shared_library_genrule,
+                link_remote_static_lib_genrule = link_remote_static_lib_genrule,
+                link_remote_shared_lib_genrule = link_remote_shared_lib_genrule,
                 remote_static_library = remote_static_library_param,
                 remote_shared_library = remote_shared_library_param,
             ),
