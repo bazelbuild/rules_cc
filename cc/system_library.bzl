@@ -145,10 +145,10 @@ def _system_library_impl(repo_ctx):
     static_lib_names = repo_ctx.attr.static_lib_names
     shared_lib_names = repo_ctx.attr.shared_lib_names
 
-    static_lib_name, static_lib_path = \
-        _find_lib_path(repo_ctx, repo_name, static_lib_names, lib_path_hints)
-    shared_lib_name, shared_lib_path = \
-        _find_lib_path(repo_ctx, repo_name, shared_lib_names, lib_path_hints)
+    static_lib_name, static_lib_path = _find_lib_path(
+        repo_ctx, repo_name, static_lib_names, lib_path_hints)
+    shared_lib_name, shared_lib_path = _find_lib_path(
+        repo_ctx, repo_name, shared_lib_names, lib_path_hints)
 
     if not static_lib_path and not shared_lib_path:
         fail("Library {} could not be found".format(repo_name))
@@ -221,15 +221,14 @@ def _system_library_impl(repo_ctx):
             static_lib_name,
         )
         remote_static_library = "remote/" + static_lib_name
-        link_library_command = \
-            "mkdir -p $(RULEDIR)/remote && cp {path} $(RULEDIR)/{lib}".format(
+        link_library_command = """
+mkdir -p $(RULEDIR)/remote && cp {path} $(RULEDIR)/{lib}""".format(
                 path = static_lib_path,
                 lib = remote_static_library,
             )
-        remote_static_library_param = \
-            "static_library = \"remote_link_static_library\","
-        link_remote_static_lib_genrule = \
-            """
+        remote_static_library_param = """
+static_library = "remote_link_static_library","""
+        link_remote_static_lib_genrule = """
 genrule(
      name = "remote_link_static_library",
      outs = ["{remote_static_library}"],
@@ -242,18 +241,18 @@ genrule(
 
     if shared_lib_path:
         repo_ctx.symlink(shared_lib_path, shared_lib_name)
-        shared_library_param = \
-            "shared_library = \"{}\",".format(shared_lib_name)
+        shared_library_param = "shared_library = \"{}\",".format(
+            shared_lib_name
+            )
         remote_shared_library = "remote/" + shared_lib_name
-        link_library_command = \
-            "mkdir -p $(RULEDIR)/remote && cp {path} $(RULEDIR)/{lib}".format(
+        link_library_command = """
+mkdir -p $(RULEDIR)/remote && cp {path} $(RULEDIR)/{lib}""".format(
                 path = shared_lib_path,
                 lib = remote_shared_library,
             )
-        remote_shared_library_param = \
-            "shared_library = \"remote_link_shared_library\","
-        link_remote_shared_lib_genrule = \
-            """
+        remote_shared_library_param = """
+shared_library = "remote_link_shared_library","""
+        link_remote_shared_lib_genrule = """
 genrule(
         name = "remote_link_shared_library",
         outs = ["{remote_shared_library}"],
