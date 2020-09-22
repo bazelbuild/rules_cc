@@ -1,107 +1,4 @@
-"""system_library is a repository rule for importing system libraries
-
-`system_library` is a repository rule for safely depending on system-provided
-libraries on Linux. It can be used with remote caching and remote execution.
-Under the hood it uses gcc/clang for finding the library files and headers
-and symlinks them into the build directory. Symlinking allows Bazel to take
-these files into account when it calculates a checksum of the project.
-This prevents cache poisoning from happening.
-
-Currently `system_library` requires two exeperimental flags:
---experimental_starlark_cc_import
---experimental_repo_remote_exec
-
-A typical usage looks like this:
-WORKSPACE
-```
-system_library(
-    name = "jpeg",
-    hdrs = [
-        "jpeglib.h",
-    ],
-    shared_lib_names = ["libjpeg.so, libjpeg.so.62"],
-    static_lib_names = ["libjpeg.a"],
-    includes = ["/usr/additional_includes"],
-    lib_path_hints = ["/usr/additional_libs", "/usr/some/other_path"]
-    optional_hdrs = [
-        "jconfig.h",
-        "jmorecfg.h",
-    ],
-)
-```
-
-BUILD
-```
-cc_binary(
-    name = "foo",
-    srcs = ["foo.cc"],
-    deps = ["@jpeg"]
-)
-```
-
-foo.cc
-```
-#include "jpeglib.h"
-
-[code using symbols from jpeglib]
-```
-
-`system_library` requires users to specify at least one header
-(as it makes no sense to import a library without headers).
-Public headers of a library (i.e. those included in the user-written code,
-like `jpeglib.h` in the example above) should be put in `hdrs` param, as they
-are required for the library to work. However, some libraries may use more
-"private" headers. They should be imported as well, but their names may differ
-from system to system. They should be specified in the `optional_hdrs` param.
-The build will not fail if some of them are not found, so it's safe to put a
-superset there, containing all possible combinations of names for different
-versions/distributions. It's up to the user to determine which headers are
-required for the library to work.
-
-One `system_library` target always imports exactly one library.
-Users can specify many potential names for the library file,
-as these names can differ from system to system. The order of names establishes
-the order of preference. As some libraries can be linked both statically
-and dynamically, the names of files of each kind can be specified separately.
-`system_library` rule will try to find library archives of both kinds, but it's
-up to the top-level target (for example, `cc_binary`) to decide which kind of
-linking will be used.
-
-`system_library` rule depends on gcc/clang (whichever is installed) for
-finding the actual locations of library archives and headers.
-Libraries installed in a standard way by a package manager
-(`sudo apt install libjpeg-dev`) are usually placed in one of directories
-searched by the compiler/linker by default - on Ubuntu library most archives
-are stored in `/usr/lib/x86_64-linux-gnu/` and their headers in
-`/usr/include/`. If the maintainer of a project expects the files
-to be installed in a non-standard location, they can use the `includes`
-parameter to add directories to the search path for headers
-and `lib_path_hints` to add directories to the search path for library
-archives.
-
-User building the project can override or extend these search paths by
-providing these environment variables to the build:
-BAZEL_INCLUDE_ADDITIONAL_PATHS, BAZEL_INCLUDE_OVERRIDE_PATHS,
-BAZEL_LIB_ADDITIONAL_PATHS, BAZEL_LIB_OVERRIDE_PATHS.
-The syntax for setting the env variables is:
-`<library>=<path>,<library>=<path2>`.
-Users can provide multiple paths for one library by repeating this segment:
-`<library>=<path>`.
-
-So in order to build the example presented above but with custom paths for the
-jpeg lib, one would use the following command:
-
-```
-bazel build //:foo \
-  --experimental_starlark_cc_import \
-  --experimental_repo_remote_exec \
-  --action_env=BAZEL_LIB_OVERRIDE_PATHS=jpeg=/custom/libraries/path \
-  --action_env=BAZEL_INCLUDE_OVERRIDE_PATHS=jpeg=/custom/include/path,jpeg=/inc
-```
-
-Some libraries can depend on other libraries. `system_library` rule provides
-a `deps` parameter for specifying such relationships.
-"""
+"""system_library is a repository rule for importing system libraries"""
 
 BAZEL_LIB_ADDITIONAL_PATHS_ENV_VAR = "BAZEL_LIB_ADDITIONAL_PATHS"
 BAZEL_LIB_OVERRIDE_PATHS_ENV_VAR = "BAZEL_LIB_OVERRIDE_PATHS"
@@ -437,12 +334,143 @@ system_library = repository_rule(
         BAZEL_LIB_OVERRIDE_PATHS_ENV_VAR,
     ],
     attrs = {
-        "deps": attr.string_list(),
-        "hdrs": attr.string_list(mandatory = True, allow_empty = False),
-        "includes": attr.string_list(),
-        "lib_path_hints": attr.string_list(),
-        "optional_hdrs": attr.string_list(),
-        "shared_lib_names": attr.string_list(),
-        "static_lib_names": attr.string_list(),
+        "deps": attr.string_list(doc = """
+List of names of system libraries this target depends upon.
+"""),
+        "hdrs": attr.string_list(
+            mandatory = True,
+            allow_empty = False,
+            doc = """
+List of the library's public headers which must be imported.
+""",
+        ),
+        "includes": attr.string_list(doc = """
+List of directories that should be browsed when looking for headers.
+"""),
+        "lib_path_hints": attr.string_list(doc = """
+List of directories that should be browsed when looking for library archives.
+"""),
+        "optional_hdrs": attr.string_list(doc = """
+List of library's private headers.
+"""),
+        "shared_lib_names": attr.string_list(doc = """
+List of possible shared library names in order of preference.
+"""),
+        "static_lib_names": attr.string_list(doc = """
+List of possible static library names in order of preference.
+"""),
     },
+    doc =
+        """system_library is a repository rule for importing system libraries
+
+`system_library` is a repository rule for safely depending on system-provided
+libraries on Linux. It can be used with remote caching and remote execution.
+Under the hood it uses gcc/clang for finding the library files and headers
+and symlinks them into the build directory. Symlinking allows Bazel to take
+these files into account when it calculates a checksum of the project.
+This prevents cache poisoning from happening.
+
+Currently `system_library` requires two exeperimental flags:
+--experimental_starlark_cc_import
+--experimental_repo_remote_exec
+
+A typical usage looks like this:
+WORKSPACE
+```
+system_library(
+    name = "jpeg",
+    hdrs = ["jpeglib.h"],
+    shared_lib_names = ["libjpeg.so, libjpeg.so.62"],
+    static_lib_names = ["libjpeg.a"],
+    includes = ["/usr/additional_includes"],
+    lib_path_hints = ["/usr/additional_libs", "/usr/some/other_path"]
+    optional_hdrs = [
+        "jconfig.h",
+        "jmorecfg.h",
+    ],
+)
+
+system_library(
+    name = "bar",
+    hdrs = ["bar.h"],
+    shared_lib_names = ["libbar.so"],
+    deps = ["jpeg"]
+
+)
+```
+
+BUILD
+```
+cc_binary(
+    name = "foo",
+    srcs = ["foo.cc"],
+    deps = ["@bar"]
+)
+```
+
+foo.cc
+```
+#include "jpeglib.h"
+#include "bar.h"
+
+[code using symbols from jpeglib and bar]
+```
+
+`system_library` requires users to specify at least one header
+(as it makes no sense to import a library without headers).
+Public headers of a library (i.e. those included in the user-written code,
+like `jpeglib.h` in the example above) should be put in `hdrs` param, as they
+are required for the library to work. However, some libraries may use more
+"private" headers. They should be imported as well, but their names may differ
+from system to system. They should be specified in the `optional_hdrs` param.
+The build will not fail if some of them are not found, so it's safe to put a
+superset there, containing all possible combinations of names for different
+versions/distributions. It's up to the user to determine which headers are
+required for the library to work.
+
+One `system_library` target always imports exactly one library.
+Users can specify many potential names for the library file,
+as these names can differ from system to system. The order of names establishes
+the order of preference. As some libraries can be linked both statically
+and dynamically, the names of files of each kind can be specified separately.
+`system_library` rule will try to find library archives of both kinds, but it's
+up to the top-level target (for example, `cc_binary`) to decide which kind of
+linking will be used.
+
+`system_library` rule depends on gcc/clang (whichever is installed) for
+finding the actual locations of library archives and headers.
+Libraries installed in a standard way by a package manager
+(`sudo apt install libjpeg-dev`) are usually placed in one of directories
+searched by the compiler/linker by default - on Ubuntu library most archives
+are stored in `/usr/lib/x86_64-linux-gnu/` and their headers in
+`/usr/include/`. If the maintainer of a project expects the files
+to be installed in a non-standard location, they can use the `includes`
+parameter to add directories to the search path for headers
+and `lib_path_hints` to add directories to the search path for library
+archives.
+
+User building the project can override or extend these search paths by
+providing these environment variables to the build:
+BAZEL_INCLUDE_ADDITIONAL_PATHS, BAZEL_INCLUDE_OVERRIDE_PATHS,
+BAZEL_LIB_ADDITIONAL_PATHS, BAZEL_LIB_OVERRIDE_PATHS.
+The syntax for setting the env variables is:
+`<library>=<path>,<library>=<path2>`.
+Users can provide multiple paths for one library by repeating this segment:
+`<library>=<path>`.
+
+So in order to build the example presented above but with custom paths for the
+jpeg lib, one would use the following command:
+
+```
+bazel build //:foo \
+  --experimental_starlark_cc_import \
+  --experimental_repo_remote_exec \
+  --action_env=BAZEL_LIB_OVERRIDE_PATHS=jpeg=/custom/libraries/path \
+  --action_env=BAZEL_INCLUDE_OVERRIDE_PATHS=jpeg=/custom/include/path,jpeg=/inc
+```
+
+Some libraries can depend on other libraries. `system_library` rule provides
+a `deps` parameter for specifying such relationships. `system_library` targets
+can depend only on other system libraries.
+""",
 )
