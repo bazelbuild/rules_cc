@@ -162,4 +162,32 @@ EOF
   || fail "Expected test_static_hardcoded_path to run successfully"
 }
 
+function test_system_library_no_lib_names() {
+  cat << EOF > WORKSPACE
+load("//:cc/system_library.bzl", "system_library")
+system_library(
+    name = "foo",
+    hdrs = [
+        "foo.h",
+    ]
+)
+EOF
+
+  cat << EOF > BUILD
+cc_binary(
+    name = "test",
+    srcs = ["test.cc"],
+    deps = ["@foo"]
+)
+EOF
+
+  # It should fail when no static_lib_names and static_lib_names are given
+  bazel run //:test \
+  --experimental_starlark_cc_import \
+  --experimental_repo_remote_exec \
+  &> $TEST_log \
+  || true
+  expect_log "Library foo could not be found"
+}
+
 run_suite "Integration tests for system_library."
