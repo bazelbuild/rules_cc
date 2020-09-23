@@ -49,16 +49,39 @@ def _get_escaped_xcode_cxx_inc_directories(repository_ctx, cc, xcode_toolchains)
     include_dirs.append("/Applications/")
     return include_dirs
 
-def configure_osx_toolchain(repository_ctx, overriden_tools):
-    """Configure C++ toolchain on macOS.
+def compile_cc_file(repository_ctx, src_name, out_name):
+    xcrun_result = repository_ctx.execute([
+        "env",
+        "-i",
+        "xcrun",
+        "--sdk",
+        "macosx",
+        "clang",
+        "-mmacosx-version-min=10.9",
+        "-std=c++11",
+        "-lc++",
+        "-o",
+        out_name,
+        src_name,
+    ], 30)
+    if (xcrun_result.return_code != 0):
+        error_msg = (
+            "return code {code}, stderr: {err}, stdout: {out}"
+        ).format(
+            code = xcrun_result.return_code,
+            err = xcrun_result.stderr,
+            out = xcrun_result.stdout,
+        )
+        fail(out_name + " failed to generate. Please file an issue at " +
+             "https://github.com/bazelbuild/bazel/issues with the following:\n" +
+             error_msg)
 
-    Args:
-      repository_ctx: The repository context.
-      overriden_tools: dictionary of overriden tools.
-    """
+def configure_osx_toolchain(repository_ctx, overriden_tools):
+    """Configure C++ toolchain on macOS."""
     paths = resolve_labels(repository_ctx, [
         "@rules_cc//cc/private/toolchain:osx_cc_wrapper.sh.tpl",
         "@bazel_tools//tools/objc:libtool.sh",
+        "@bazel_tools//tools/objc:libtool_check_unique.cc",
         "@bazel_tools//tools/objc:make_hashed_objlist.py",
         "@bazel_tools//tools/objc:xcrunwrapper.sh",
         "@bazel_tools//tools/osx/crosstool:BUILD.tpl",
@@ -87,11 +110,13 @@ def configure_osx_toolchain(repository_ctx, overriden_tools):
         # into the Objective-C crosstool actions, anyway, so this ensures that
         # the C++ actions behave consistently.
         cc = repository_ctx.path("wrapped_clang")
+
+        cc_path = '"$(/usr/bin/dirname "$0")"/wrapped_clang'
         repository_ctx.template(
             "cc_wrapper.sh",
             paths["@rules_cc//cc/private/toolchain:osx_cc_wrapper.sh.tpl"],
             {
-                "%{cc}": escape_string(str(cc)),
+                "%{cc}": escape_string(cc_path),
                 "%{env}": escape_string(get_env(repository_ctx)),
             },
         )
@@ -111,36 +136,15 @@ def configure_osx_toolchain(repository_ctx, overriden_tools):
             paths["@bazel_tools//tools/osx/crosstool:cc_toolchain_config.bzl"],
             "cc_toolchain_config.bzl",
         )
+        libtool_check_unique_src_path = str(repository_ctx.path(
+            paths["@bazel_tools//tools/objc:libtool_check_unique.cc"],
+        ))
+        compile_cc_file(repository_ctx, libtool_check_unique_src_path, "libtool_check_unique")
         wrapped_clang_src_path = str(repository_ctx.path(
             paths["@bazel_tools//tools/osx/crosstool:wrapped_clang.cc"],
         ))
-        xcrun_result = repository_ctx.execute([
-            "env",
-            "-i",
-            "xcrun",
-            "--sdk",
-            "macosx",
-            "clang",
-            "-mmacosx-version-min=10.9",
-            "-std=c++11",
-            "-lc++",
-            "-o",
-            "wrapped_clang",
-            wrapped_clang_src_path,
-        ], 30)
-        if (xcrun_result.return_code == 0):
-            repository_ctx.symlink("wrapped_clang", "wrapped_clang_pp")
-        else:
-            error_msg = (
-                "return code {code}, stderr: {err}, stdout: {out}"
-            ).format(
-                code = xcrun_result.return_code,
-                err = xcrun_result.stderr,
-                out = xcrun_result.stdout,
-            )
-            fail("wrapped_clang failed to generate. Please file an issue at " +
-                 "https://github.com/bazelbuild/bazel/issues with the following:\n" +
-                 error_msg)
+        compile_cc_file(repository_ctx, wrapped_clang_src_path, "wrapped_clang")
+        repository_ctx.symlink("wrapped_clang", "wrapped_clang_pp")
 
         tool_paths = {}
         gcov_path = repository_ctx.os.environ.get("GCOV")
