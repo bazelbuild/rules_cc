@@ -23,8 +23,8 @@ fi
 source "$(rlocation rules_cc/tests/system_library/unittest.bash)" \
   || { echo "Could not rules_cc/source tests/system_library/unittest.bash" >&2; exit 1; }
 
-#### TESTS #############################################################
-function test_system_library() {
+
+function setup_system_library() {
   mkdir -p systemlib
 
   cat << EOF > systemlib/foo.cc
@@ -95,6 +95,12 @@ cc_binary(
     deps = ["@foo_hardcoded_path"],
     linkstatic = True
 )
+
+cc_binary(
+    name = "fake_rbe",
+    srcs = ["test.cc"],
+    deps = ["@foo_hardcoded_path"]
+)
 EOF
 
   cat << EOF > test.cc
@@ -104,8 +110,13 @@ int main() {
   return 42 - bar();
 }
 EOF
+}
+#### TESTS #############################################################
 
-  # Make sure it fails with a correct message when no library is found
+# Make sure it fails with a correct message when no library is found
+function test_system_library_not_found() {
+  setup_system_library
+
   bazel run //:test \
   --experimental_starlark_cc_import \
   --experimental_repo_remote_exec \
@@ -119,8 +130,11 @@ EOF
   &> $TEST_log \
   || true
   expect_log "Library foo could not be found"
+  }
 
-  # Test override paths
+function test_override_paths() {
+  setup_system_library
+
   bazel run //:test \
   --experimental_starlark_cc_import \
   --experimental_repo_remote_exec \
@@ -134,8 +148,11 @@ EOF
   --action_env=BAZEL_LIB_OVERRIDE_PATHS=foo="${PWD}"/systemlib \
   --action_env=BAZEL_INCLUDE_OVERRIDE_PATHS=foo="${PWD}"/systemlib \
   || fail "Expected test_static to run successfully"
+}
 
-  # Test additional paths
+function test_additional_paths() {
+  setup_system_library
+
   bazel run //:test \
   --experimental_starlark_cc_import \
   --experimental_repo_remote_exec \
@@ -149,8 +166,11 @@ EOF
   --action_env=BAZEL_LIB_ADDITIONAL_PATHS=foo="${PWD}"/systemlib \
   --action_env=BAZEL_INCLUDE_ADDITIONAL_PATHS=foo="${PWD}"/systemlib \
   || fail "Expected test_static to run successfully"
+}
 
-  # Test hardcoded paths
+function test_hardcoded_paths() {
+  setup_system_library
+
   bazel run //:test_hardcoded_path \
   --experimental_starlark_cc_import \
   --experimental_repo_remote_exec \

@@ -7,11 +7,11 @@ BAZEL_INCLUDE_OVERRIDE_PATHS_ENV_VAR = "BAZEL_INCLUDE_OVERRIDE_PATHS"
 ENV_VAR_SEPARATOR = ","
 ENV_VAR_ASSIGNMENT = "="
 
-def _make_flags(array_of_strings, prefix):
+def _make_flags(flag_values, flag):
     flags = []
-    if array_of_strings:
-        for s in array_of_strings:
-            flags.append(prefix + s)
+    if flag_values:
+        for s in flag_values:
+            flags.append(flag + s)
     return " ".join(flags)
 
 def _split_env_var(repo_ctx, var_name):
@@ -39,7 +39,7 @@ def _get_list_from_env_var(repo_ctx, var_name, key):
     return _split_env_var(repo_ctx, var_name).get(key, default = [])
 
 def _execute_bash(repo_ctx, cmd):
-    return repo_ctx.execute(["/bin/bash", "-c", cmd]).stdout.replace("\n", "")
+    return repo_ctx.execute(["/bin/bash", "-c", cmd]).stdout.strip("\n")
 
 def _find_linker(repo_ctx):
     ld = _execute_bash(repo_ctx, "which ld")
@@ -93,7 +93,7 @@ def _find_lib_path(repo_ctx, lib_name, archive_names, lib_path_hints):
         path = _execute_bash(repo_ctx, cmd)
         if path:
             return (archive_name, path)
-    return ("", "")
+    return (None, None)
 
 def _find_header_path(repo_ctx, lib_name, header_name, includes):
     override_paths = _get_list_from_env_var(
@@ -107,33 +107,25 @@ def _find_header_path(repo_ctx, lib_name, header_name, includes):
         lib_name,
     )
 
-    # See https://gcc.gnu.org/onlinedocs/gcc/Directory-Options.html
-    override_include_flags = _make_flags(override_paths, "-I")
-    standard_include_flags = _make_flags(includes, "-isystem")
-    additional_include_flags = _make_flags(additional_paths, "-idirafter")
-
     compiler = _find_compiler(repo_ctx)
-
-    # Taken from https://stackoverflow.com/a/63052918/922404
     cmd = """
-          f=\"{}\"; \\
-          echo | \\
-          {} -E {} {} {} -Wp,-v - 2>&1 | \\
-          sed '\\~^ /~!d; s/ //' | \\
-          while IFS= read -r path; \\
-              do if [[ -e \"$path/$f\" ]]; \\
-                  then echo \"$path/$f\";  \\
-                  break; \\
-              fi; \\
-          done
-          """.format(
-        header_name,
-        compiler,
-        override_include_flags,
-        standard_include_flags,
-        additional_include_flags,
-    )
-    return _execute_bash(repo_ctx, cmd)
+          print | \\
+          {} -Wp,-v -x c++ - -fsyntax-only 2>&1 | \\
+          sed -n -e '/^\s\+/p' | \\
+          sed -e 's/^[ \t]*//'
+          """.format(compiler)
+    system_includes = _execute_bash(repo_ctx, cmd).split("\n")
+    all_includes = (override_paths + includes +
+        system_includes + additional_paths)
+
+    for directory in all_includes:
+        cmd = """
+              test -f "{dir}/{hdr}" && echo "{dir}/{hdr}"
+              """.format(dir = directory, hdr = header_name)
+        result = _execute_bash(repo_ctx, cmd)
+        if result:
+            return result
+    return None
 
 def _system_library_impl(repo_ctx):
     repo_name = repo_ctx.attr.name
