@@ -77,11 +77,16 @@ def compile_cc_file(repository_ctx, src_name, out_name):
              error_msg)
 
 def configure_osx_toolchain(repository_ctx, overriden_tools):
-    """Configure C++ toolchain on macOS."""
+    """Configure C++ toolchain on macOS.
+
+    Args:
+      repository_ctx: The repository context.
+      overriden_tools: dictionary of overriden tools.
+    """
     paths = resolve_labels(repository_ctx, [
         "@rules_cc//cc/private/toolchain:osx_cc_wrapper.sh.tpl",
+        "@rules_cc//cc/private/toolchain:libtool_check_unique.cc",
         "@bazel_tools//tools/objc:libtool.sh",
-        "@bazel_tools//tools/objc:libtool_check_unique.cc",
         "@bazel_tools//tools/objc:make_hashed_objlist.py",
         "@bazel_tools//tools/objc:xcrunwrapper.sh",
         "@bazel_tools//tools/osx/crosstool:BUILD.tpl",
@@ -137,7 +142,7 @@ def configure_osx_toolchain(repository_ctx, overriden_tools):
             "cc_toolchain_config.bzl",
         )
         libtool_check_unique_src_path = str(repository_ctx.path(
-            paths["@bazel_tools//tools/objc:libtool_check_unique.cc"],
+            paths["@rules_cc//cc/private/toolchain:libtool_check_unique.cc"],
         ))
         compile_cc_file(repository_ctx, libtool_check_unique_src_path, "libtool_check_unique")
         wrapped_clang_src_path = str(repository_ctx.path(
