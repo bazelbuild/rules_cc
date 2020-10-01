@@ -91,4 +91,5 @@ my_c_archive = rule(
     },
     fragments = ["cpp"],
     toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
+    incompatible_use_toolchain_transition = True,
 )
