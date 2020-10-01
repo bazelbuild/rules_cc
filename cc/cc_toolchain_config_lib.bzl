@@ -35,7 +35,10 @@ def _check_is_nonempty_list(obj, parameter_name, method_name):
         fail("{} parameter of {} must be a nonempty list."
             .format(parameter_name, method_name))
 
-EnvEntryInfo = provider(fields = ["key", "value", "type_name"])
+EnvEntryInfo = provider(
+    "A key/value pair to be added as an environment variable.",
+    fields = ["key", "value", "type_name"],
+)
 
 def env_entry(key, value):
     """ A key/value pair to be added as an environment variable.
@@ -57,7 +60,10 @@ def env_entry(key, value):
     _check_is_nonempty_string(value, "value", "env_entry")
     return EnvEntryInfo(key = key, value = value, type_name = "env_entry")
 
-VariableWithValueInfo = provider(fields = ["name", "value", "type_name"])
+VariableWithValueInfo = provider(
+    "Represents equality check between a variable and a certain value.",
+    fields = ["name", "value", "type_name"],
+)
 
 def variable_with_value(name, value):
     """ Represents equality check between a variable and a certain value.
@@ -81,7 +87,10 @@ def variable_with_value(name, value):
         type_name = "variable_with_value",
     )
 
-MakeVariableInfo = provider(fields = ["name", "value", "type_name"])
+MakeVariableInfo = provider(
+    "A make variable that is made accessible to rules.",
+    fields = ["name", "value", "type_name"],
+)
 
 def make_variable(name, value):
     """ A make variable that is made accessible to rules."""
@@ -93,7 +102,10 @@ def make_variable(name, value):
         type_name = "make_variable",
     )
 
-FeatureSetInfo = provider(fields = ["features", "type_name"])
+FeatureSetInfo = provider(
+    "A set of features.",
+    fields = ["features", "type_name"],
+)
 
 def feature_set(features = []):
     """ A set of features.
@@ -110,7 +122,10 @@ def feature_set(features = []):
     _check_right_type(features, [], "features", "feature_set")
     return FeatureSetInfo(features = features, type_name = "feature_set")
 
-WithFeatureSetInfo = provider(fields = ["features", "not_features", "type_name"])
+WithFeatureSetInfo = provider(
+    "A set of positive and negative features.",
+    fields = ["features", "not_features", "type_name"],
+)
 
 def with_feature_set(features = [], not_features = []):
     """ A set of positive and negative features.
@@ -133,7 +148,10 @@ def with_feature_set(features = [], not_features = []):
         type_name = "with_feature_set",
     )
 
-EnvSetInfo = provider(fields = ["actions", "env_entries", "with_features", "type_name"])
+EnvSetInfo = provider(
+    "Groups a set of environment variables to apply for certain actions.",
+    fields = ["actions", "env_entries", "with_features", "type_name"],
+)
 
 def env_set(actions, env_entries = [], with_features = []):
     """ Groups a set of environment variables to apply for certain actions.
@@ -166,17 +184,20 @@ def env_set(actions, env_entries = [], with_features = []):
         type_name = "env_set",
     )
 
-FlagGroupInfo = provider(fields = [
-    "flags",
-    "flag_groups",
-    "iterate_over",
-    "expand_if_available",
-    "expand_if_not_available",
-    "expand_if_true",
-    "expand_if_false",
-    "expand_if_equal",
-    "type_name",
-])
+FlagGroupInfo = provider(
+    "A group of flags. Supports parametrization via variable expansion.",
+    fields = [
+        "flags",
+        "flag_groups",
+        "iterate_over",
+        "expand_if_available",
+        "expand_if_not_available",
+        "expand_if_true",
+        "expand_if_false",
+        "expand_if_equal",
+        "type_name",
+    ],
+)
 
 def flag_group(
         flags = [],
@@ -285,12 +306,15 @@ def flag_group(
         type_name = "flag_group",
     )
 
-FlagSetInfo = provider(fields = [
-    "actions",
-    "with_features",
-    "flag_groups",
-    "type_name",
-])
+FlagSetInfo = provider(
+    "A set of flags to be expanded in the command line for specific actions.",
+    fields = [
+        "actions",
+        "with_features",
+        "flag_groups",
+        "type_name",
+    ],
+)
 
 def flag_set(
         actions = [],
@@ -322,16 +346,19 @@ def flag_set(
         type_name = "flag_set",
     )
 
-FeatureInfo = provider(fields = [
-    "name",
-    "enabled",
-    "flag_sets",
-    "env_sets",
-    "requires",
-    "implies",
-    "provides",
-    "type_name",
-])
+FeatureInfo = provider(
+    "Contains all flag specifications for one feature.",
+    fields = [
+        "name",
+        "enabled",
+        "flag_sets",
+        "env_sets",
+        "requires",
+        "implies",
+        "provides",
+        "type_name",
+    ],
+)
 
 def feature(
         name,
@@ -395,7 +422,10 @@ def feature(
         type_name = "feature",
     )
 
-ToolPathInfo = provider(fields = ["name", "path", "type_name"])
+ToolPathInfo = provider(
+    "Tool locations.",
+    fields = ["name", "path", "type_name"],
+)
 
 def tool_path(name, path):
     """ Tool locations.
@@ -416,7 +446,10 @@ def tool_path(name, path):
     _check_is_nonempty_string(path, "path", "tool_path")
     return ToolPathInfo(name = name, path = path, type_name = "tool_path")
 
-ToolInfo = provider(fields = ["path", "with_features", "execution_requirements", "type_name"])
+ToolInfo = provider(
+    "Describes a tool associated with a crosstool action config.",
+    fields = ["path", "with_features", "execution_requirements", "type_name"],
+)
 
 def tool(path, with_features = [], execution_requirements = []):
     """ Describes a tool associated with a crosstool action config.
@@ -448,15 +481,18 @@ def tool(path, with_features = [], execution_requirements = []):
         type_name = "tool",
     )
 
-ActionConfigInfo = provider(fields = [
-    "config_name",
-    "action_name",
-    "enabled",
-    "tools",
-    "flag_sets",
-    "implies",
-    "type_name",
-])
+ActionConfigInfo = provider(
+    "Configuration of a Bazel action.",
+    fields = [
+        "config_name",
+        "action_name",
+        "enabled",
+        "tools",
+        "flag_sets",
+        "implies",
+        "type_name",
+    ],
+)
 
 def action_config(
         action_name,
@@ -506,12 +542,15 @@ def action_config(
         type_name = "action_config",
     )
 
-ArtifactNamePatternInfo = provider(fields = [
-    "category_name",
-    "prefix",
-    "extension",
-    "type_name",
-])
+ArtifactNamePatternInfo = provider(
+    "The name for an artifact of a given category of input or output artifacts to an action.",
+    fields = [
+        "category_name",
+        "prefix",
+        "extension",
+        "type_name",
+    ],
+)
 
 def artifact_name_pattern(category_name, prefix, extension):
     """ The name for an artifact of a given category of input or output artifacts to an action.

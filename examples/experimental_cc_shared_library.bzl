@@ -17,11 +17,13 @@ load("//cc:find_cc_toolchain.bzl", "find_cc_toolchain")
 LINKABLE_MORE_THAN_ONCE = "LINKABLE_MORE_THAN_ONCE"
 
 CcSharedLibraryPermissionsInfo = provider(
+    "Permissions for a cc shared library.",
     fields = {
         "targets": "Matches targets that can be exported.",
     },
 )
 GraphNodeInfo = provider(
+    "Nodes in the graph of shared libraries.",
     fields = {
         "children": "Other GraphNodeInfo from dependencies of this target",
         "label": "Label of the target visited",
@@ -29,6 +31,7 @@ GraphNodeInfo = provider(
     },
 )
 CcSharedLibraryInfo = provider(
+    "Information about a cc shared library.",
     fields = {
         "dynamic_deps": "All shared libraries depended on transitively",
         "exports": "cc_libraries that are linked statically and exported",
