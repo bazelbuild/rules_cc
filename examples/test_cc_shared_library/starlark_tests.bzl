@@ -10,7 +10,7 @@ def _linking_suffix_test_impl(ctx):
     actions = analysistest.target_actions(env)
 
     for arg in reversed(actions[1].argv):
-        if arg.find(".a") != -1 or arg.find("-l") != -1:
+        if (arg.find(".a") != -1 or arg.find("-l") != -1) and "/" in arg:
             asserts.equals(env, "liba_suffix.a", arg[arg.rindex("/") + 1:])
             break
 
