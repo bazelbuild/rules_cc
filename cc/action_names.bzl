@@ -89,7 +89,7 @@ OBJCPP_EXECUTABLE_ACTION_NAME = "objc++-executable"
 # A string constant for the objc fully-link link action.
 OBJC_FULLY_LINK_ACTION_NAME = "objc-fully-link"
 
-# A string constant for the clif actions.
+# A string constant for the clif action.
 CLIF_MATCH_ACTION_NAME = "clif-match"
 
 ACTION_NAMES = struct(
@@ -119,4 +119,70 @@ ACTION_NAMES = struct(
     objcpp_compile = OBJCPP_COMPILE_ACTION_NAME,
     objcpp_executable = OBJCPP_EXECUTABLE_ACTION_NAME,
     clif_match = CLIF_MATCH_ACTION_NAME,
+)
+
+# Names of actions that parse or compile C++ code.
+ALL_CPP_COMPILE_ACTION_NAMES = [
+    ACTION_NAMES.linkstamp_compile,
+    ACTION_NAMES.cpp_compile,
+    ACTION_NAMES.cpp_header_parsing,
+    ACTION_NAMES.cpp_module_compile,
+    ACTION_NAMES.cpp_module_codegen,
+    ACTION_NAMES.lto_backend,
+    ACTION_NAMES.clif_match,
+]
+
+# Names of actions that parse or compile C, C++ and assembly code.
+ALL_CC_COMPILE_ACTION_NAMES = ALL_CPP_COMPILE_ACTION_NAMES + [
+    ACTION_NAMES.c_compile,
+    ACTION_NAMES.preprocess_assemble,
+    ACTION_NAMES.assemble,
+]
+
+# Names of actions that link C, C++ and assembly code.
+ALL_CC_LINK_ACTION_NAMES = [
+    ACTION_NAMES.cpp_link_executable,
+    ACTION_NAMES.cpp_link_dynamic_library,
+    ACTION_NAMES.cpp_link_nodeps_dynamic_library,
+    ACTION_NAMES.lto_index_for_executable,
+    ACTION_NAMES.lto_index_for_dynamic_library,
+    ACTION_NAMES.lto_index_for_nodeps_dynamic_library,
+]
+
+# Names of actions that link entire programs.
+CC_LINK_EXECUTABLE_ACTION_NAMES = [
+    ACTION_NAMES.cpp_link_executable,
+    ACTION_NAMES.lto_index_for_executable,
+]
+
+# Names of actions that link dynamic libraries.
+DYNAMIC_LIBRARY_LINK_ACTION_NAMES = [
+    ACTION_NAMES.cpp_link_dynamic_library,
+    ACTION_NAMES.cpp_link_nodeps_dynamic_library,
+    ACTION_NAMES.lto_index_for_dynamic_library,
+    ACTION_NAMES.lto_index_for_nodeps_dynamic_library,
+]
+
+# Names of actions that link nodeps dynamic libraries.
+NODEPS_DYNAMIC_LIBRARY_LINK_ACTION_NAMES = [
+    ACTION_NAMES.cpp_link_nodeps_dynamic_library,
+    ACTION_NAMES.lto_index_for_nodeps_dynamic_library,
+]
+
+# Names of actions that link transitive dependencies.
+TRANSITIVE_LINK_ACTION_NAMES = [
+    ACTION_NAMES.cpp_link_executable,
+    ACTION_NAMES.cpp_link_dynamic_library,
+    ACTION_NAMES.lto_index_for_executable,
+    ACTION_NAMES.lto_index_for_dynamic_library,
+]
+
+ACTION_NAME_GROUPS = struct(
+    all_cc_compile_actions = ALL_CC_COMPILE_ACTION_NAMES,
+    all_cc_link_actions = ALL_CC_LINK_ACTION_NAMES,
+    all_cpp_compile_actions = ALL_CPP_COMPILE_ACTION_NAMES,
+    cc_link_executable_actions = CC_LINK_EXECUTABLE_ACTION_NAMES,
+    dynamic_library_link_actions = DYNAMIC_LIBRARY_LINK_ACTION_NAMES,
+    nodeps_dynamic_library_link_actions = NODEPS_DYNAMIC_LIBRARY_LINK_ACTION_NAMES,
+    transitive_link_actions = TRANSITIVE_LINK_ACTION_NAMES,
 )
