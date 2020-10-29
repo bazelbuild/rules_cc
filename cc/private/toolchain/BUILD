@@ -1,3 +1,4 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//cc:defs.bzl", "cc_flags_supplier", "cc_library", "compiler_flag")
 
 # Copyright 2018 The Bazel Authors. All rights reserved.
@@ -93,3 +94,72 @@ filegroup(
 compiler_flag(name = "compiler")
 
 cc_flags_supplier(name = "cc_flags")
+
+bzl_library(
+    name = "armeabi_cc_toolchain_config",
+    srcs = ["armeabi_cc_toolchain_config.bzl"],
+    deps = ["@rules_cc//cc:cc_toolchain_config_lib"],
+)
+
+bzl_library(
+    name = "cc_configure",
+    srcs = ["cc_configure.bzl"],
+    deps = ["@bazel_tools//tools/osx:xcode_configure.bzl"],
+)
+
+bzl_library(
+    name = "cc_toolchain_config",
+    srcs = ["cc_toolchain_config.bzl"],
+    deps = [
+        "@rules_cc//cc:action_names",
+        "@rules_cc//cc:cc_toolchain_config_lib",
+    ],
+)
+
+bzl_library(
+    name = "empty_cc_toolchain_config",
+    srcs = ["empty_cc_toolchain_config.bzl"],
+)
+
+bzl_library(
+    name = "freebsd_cc_toolchain_config",
+    srcs = ["freebsd_cc_toolchain_config.bzl"],
+    deps = [
+        "@rules_cc//cc:action_names",
+        "@rules_cc//cc:cc_toolchain_config_lib",
+    ],
+)
+
+bzl_library(
+    name = "osx_cc_configure",
+    srcs = ["osx_cc_configure.bzl"],
+    deps = ["@bazel_tools//tools/osx:xcode_configure.bzl"],
+)
+
+bzl_library(
+    name = "unix_cc_configure",
+    srcs = ["unix_cc_configure.bzl"],
+)
+
+bzl_library(
+    name = "unix_cc_toolchain_config",
+    srcs = ["unix_cc_toolchain_config.bzl"],
+    deps = [
+        "@rules_cc//cc:action_names",
+        "@rules_cc//cc:cc_toolchain_config_lib",
+    ],
+)
+
+bzl_library(
+    name = "windows_cc_configure",
+    srcs = ["windows_cc_configure.bzl"],
+)
+
+bzl_library(
+    name = "windows_cc_toolchain_config",
+    srcs = ["windows_cc_toolchain_config.bzl"],
+    deps = [
+        "@rules_cc//cc:action_names",
+        "@rules_cc//cc:cc_toolchain_config_lib",
+    ],
+)

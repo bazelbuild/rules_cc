@@ -1,3 +1,5 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -131,3 +133,13 @@ filegroup(
 )
 
 exports_files(["ctoolchain_compare.bzl"])
+
+bzl_library(
+    name = "cc_toolchain_config_comparator",
+    srcs = ["cc_toolchain_config_comparator.bzl"],
+)
+
+bzl_library(
+    name = "ctoolchain_compare",
+    srcs = ["ctoolchain_compare.bzl"],
+)
