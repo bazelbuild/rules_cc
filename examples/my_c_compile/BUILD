@@ -1,3 +1,4 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//examples/my_c_compile:my_c_compile.bzl", "my_c_compile")
 
 # Copyright 2019 The Bazel Authors. All rights reserved.
@@ -20,4 +21,10 @@ licenses(["notice"])
 my_c_compile(
     name = "foo",
     src = "foo.c",
+)
+
+bzl_library(
+    name = "my_c_compile_bzl",
+    srcs = ["my_c_compile.bzl"],
+    visibility = ["//visibility:private"],
 )
