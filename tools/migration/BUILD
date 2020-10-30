@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-
 # Go rules
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 
@@ -133,15 +131,3 @@ filegroup(
 )
 
 exports_files(["ctoolchain_compare.bzl"])
-
-bzl_library(
-    name = "ctoolchain_compare_bzl",
-    srcs = ["ctoolchain_compare.bzl"],
-    visibility = ["//visibility:private"],
-)
-
-bzl_library(
-    name = "cc_toolchain_config_comparator_bzl",
-    srcs = ["cc_toolchain_config_comparator.bzl"],
-    visibility = ["//visibility:private"],
-)

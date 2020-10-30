@@ -14,7 +14,6 @@
 
 # Example showing how to create a custom Starlark rule that rules_cc can depend on
 
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("//examples/my_c_archive:my_c_archive.bzl", "my_c_archive")
 load("//examples/my_c_compile:my_c_compile.bzl", "my_c_compile")
@@ -41,10 +40,4 @@ my_c_compile(
 cc_library(
     name = "bar",
     srcs = ["bar.c"],
-)
-
-bzl_library(
-    name = "my_c_archive_bzl",
-    srcs = ["my_c_archive.bzl"],
-    visibility = ["//visibility:private"],
 )

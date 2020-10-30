@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//cc:defs.bzl", "cc_library")
 load(":tags.bzl", "TAGS")
 
@@ -22,10 +21,4 @@ cc_library(
     name = "foo",
     srcs = ["foo.cc"],
     tags = TAGS,
-)
-
-bzl_library(
-    name = "tags_bzl",
-    srcs = ["tags.bzl"],
-    visibility = ["//visibility:private"],
 )

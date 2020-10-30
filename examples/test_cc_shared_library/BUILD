@@ -1,4 +1,3 @@
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 load("//examples:experimental_cc_shared_library.bzl", "LINKABLE_MORE_THAN_ONCE", "cc_shared_library")
 load(":starlark_tests.bzl", "additional_inputs_test", "build_failure_test", "linking_suffix_test", "paths_test")
@@ -195,10 +194,4 @@ build_failure_test(
     name = "forbidden_target_permissions_test",
     message = "can only list targets that are in the same package or a sub-package",
     target_under_test = "//examples/test_cc_shared_library/failing_targets:permissions_fail",
-)
-
-bzl_library(
-    name = "test_cc_shared_library_starlark_tests_bzl",
-    srcs = ["starlark_tests.bzl"],
-    visibility = ["//visibility:private"],
 )
