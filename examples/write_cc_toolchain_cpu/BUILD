@@ -1,3 +1,4 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//examples/write_cc_toolchain_cpu:write_cc_toolchain_cpu.bzl", "write_cc_toolchain_cpu")
 
 # Copyright 2019 The Bazel Authors. All rights reserved.
@@ -18,3 +19,9 @@ load("//examples/write_cc_toolchain_cpu:write_cc_toolchain_cpu.bzl", "write_cc_t
 licenses(["notice"])
 
 write_cc_toolchain_cpu(name = "write_me_the_cpu")
+
+bzl_library(
+    name = "write_cc_toolchain_cpu_bzl",
+    srcs = ["write_cc_toolchain_cpu.bzl"],
+    visibility = ["//visibility:private"],
+)
