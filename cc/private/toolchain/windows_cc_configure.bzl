@@ -471,7 +471,7 @@ def _get_clang_version(repository_ctx, clang_cl):
         auto_configure_fail("Failed to get clang version by running \"%s -v\"" % clang_cl)
 
     # Stderr should look like "clang version X.X.X ..."
-    return result.stderr.strip().split(" ")[2]
+    return result.stderr.splitlines()[0].split(" ")[2]
 
 def _get_msys_mingw_vars(repository_ctx):
     """Get the variables we need to populate the msys/mingw toolchains."""
