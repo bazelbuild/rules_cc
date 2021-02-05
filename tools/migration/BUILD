@@ -50,7 +50,6 @@ py_test(
     python_version = "PY3",
     deps = [
         ":legacy_fields_migration_lib",
-        "//net/proto2/python/public:use_pure_python",
         "//third_party/com/github/bazelbuild/bazel/src/main/protobuf:crosstool_config_py_pb2",
     ],
 )
@@ -92,7 +91,6 @@ py_test(
     python_version = "PY3",
     deps = [
         ":ctoolchain_comparator_lib",
-        "//net/proto2/python/public:use_pure_python",
         "//third_party/com/github/bazelbuild/bazel/src/main/protobuf:crosstool_config_py_pb2",
         "@py_mock//py/mock",
     ],
