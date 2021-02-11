@@ -29,6 +29,8 @@
 #
 # This example demonstrates both approaches.
 
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_toolchain", "cc_toolchain_suite")
+
 # Load the Starlark logic defining the toolchain's behavior. For example: what
 # program runs to compile a source file and how its command line is
 # constructed. See toolchain_config.bzl for details.

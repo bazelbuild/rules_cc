@@ -1,15 +1,16 @@
-# Sample Starlark definition defining a C++ toolchain's behavior.
-#
-# When you build a cc_* rule, this logic defines what programs run for what
-# build steps (e.g. compile / link / archive) and how their command lines are
-# structured.
-#
-# This is a proof-of-concept simple implementation. It doesn't construct fancy
-# command lines and uses mock shell scripts to compile and link
-# ("sample_compiler" and "sample_linker"). See
-# https://docs.bazel.build/versions/master/cc-toolchain-config-reference.html and
-# https://docs.bazel.build/versions/master/tutorial/cc-toolchain-config.html for
-# advanced usage.
+"""Sample Starlark definition defining a C++ toolchain's behavior.
+
+When you build a cc_* rule, this logic defines what programs run for what
+build steps (e.g. compile / link / archive) and how their command lines are
+structured.
+
+This is a proof-of-concept simple implementation. It doesn't construct fancy
+command lines and uses mock shell scripts to compile and link
+("sample_compiler" and "sample_linker"). See
+https://docs.bazel.build/versions/master/cc-toolchain-config-reference.html and
+https://docs.bazel.build/versions/master/tutorial/cc-toolchain-config.html for
+advanced usage.
+"""
 
 load("@bazel_tools//tools/cpp:cc_toolchain_config_lib.bzl", "tool_path")
 
