@@ -3,7 +3,7 @@
 This example shows how to define and use a simple custom C++ toolchain.
 
 Output is non-functional: simple scripts replace compilation and linking
-with "I compiled!" and "I linked!" messages.
+with `I compiled!` and `I linked!` messages.
 
 [BUILD](BUILD) provides detailed implementation walkthrough. The fundamental
 sequence is:
@@ -14,14 +14,14 @@ sequence is:
 `1` is C++-specific: the logic and structure depends specifically on C++'s
 language model. Other languages have their own models.
 
-`2` supports two variations. `--crosstool_top` / `--cput`, the legacy variation,
-is C++-specific. `--platforms`, the modern variation, is much more generic and
+`2` supports two variations. `--crosstool_top` / `--cpu`, the legacy version,
+is C++-specific. `--platforms`, the modern version, is much more generic and
 supports all languages and features like [incompatible target
 skipping](https://docs.bazel.build/versions/master/platforms.html#skipping-incompatible-targets). See
 [Building with
 Platforms](https://docs.bazel.build/versions/master/platforms-intro.html) and
 its [C++
-annotations](https://docs.bazel.build/versions/master/platforms-intro.html#c) for
+notes](https://docs.bazel.build/versions/master/platforms-intro.html#c) for
 full review.
 
 ## Building with the default toolchain
@@ -29,11 +29,11 @@ full review.
 ```
 $ bazel clean
 $ bazel build //examples/custom_toolchain:buildme
-$  file bazel-bin/examples/custom_toolchain/libbuildme.a
+$ file bazel-bin/examples/custom_toolchain/libbuildme.a
 bazel-bin/examples/custom_toolchain/libbuildme.a: current ar archive
 ```
 
-## Building with platforms
+## Custom toolchain with platforms
 
 This mode requires `--incompatible_enable_cc_toolchain_resolution`. Without this
 flag, `--platforms` and `--extra_toolchains` are ignored and the default
@@ -61,7 +61,7 @@ in `WORKSPACE` and auto-set
 $ bazel build //examples/custom_toolchain:buildme --platforms=//examples/custom_toolchain:x86_platform
 ```
 
-## Building with legacy toolchain selection:
+## Custom toolchain with legacy selection:
 
 ```
 $ bazel clean
