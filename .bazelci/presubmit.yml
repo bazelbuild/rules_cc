@@ -51,6 +51,7 @@ tasks:
     bazel: last_downstream_green
     build_targets:
     - "//examples/test_cc_shared_library/..."
+    - "//examples/test_cc_shared_library/diamond_inheritance"
     build_flags:
     - "--experimental_cc_shared_library"
     - "--//examples:incompatible_link_once=True"
@@ -60,3 +61,4 @@ tasks:
     - "--//examples:incompatible_link_once=True"
     test_targets:
     - "//examples/test_cc_shared_library/..."
+    - "//examples/test_cc_shared_library/diamond_inheritance"
