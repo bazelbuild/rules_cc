@@ -365,7 +365,7 @@ def _cc_shared_library_impl(ctx):
         runfiles = runfiles.merge(dep[DefaultInfo].data_runfiles)
 
     for export in ctx.attr.roots:
-        exports[str(export.label)] = export
+        exports[str(export.label)] = True
 
     linker_input = cc_common.create_linker_input(
         owner = ctx.label,
