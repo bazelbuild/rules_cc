@@ -365,7 +365,14 @@ def _cc_shared_library_impl(ctx):
         runfiles = runfiles.merge(dep[DefaultInfo].data_runfiles)
 
     for export in ctx.attr.roots:
-        exports[str(export.label)] = True
+        exports[str(export.label)] = export
+
+    linker_input = cc_common.create_linker_input(
+        owner = ctx.label,
+        libraries = depset([linking_outputs.library_to_link]),
+    )
+
+    merged_cc_infos = cc_common.merge_cc_infos(cc_infos = [dep[CcInfo] for dep in ctx.attr.roots])
 
     debug_files = []
     if ctx.attr._experimental_debug[BuildSettingInfo].value:
@@ -390,11 +397,21 @@ def _cc_shared_library_impl(ctx):
             dynamic_deps = merged_cc_shared_library_info,
             exports = exports.keys(),
             link_once_static_libs = link_once_static_libs,
-            linker_input = cc_common.create_linker_input(
-                owner = ctx.label,
-                libraries = depset([linking_outputs.library_to_link]),
-            ),
+            linker_input = linker_input,
             preloaded_deps = preloaded_dep_merged_cc_info,
+        ),
+        CcInfo(
+            linking_context = cc_common.create_linking_context(
+                linker_inputs = depset([cc_common.create_linker_input(
+                    owner = ctx.label,
+                    libraries = depset([linking_outputs.library_to_link,]),
+                )]),
+            ),
+            compilation_context = cc_common.create_compilation_context(
+                headers = merged_cc_infos.compilation_context.headers,
+                includes = merged_cc_infos.compilation_context.includes,
+                system_includes = merged_cc_infos.compilation_context.system_includes,
+            ),
         ),
     ]
 
