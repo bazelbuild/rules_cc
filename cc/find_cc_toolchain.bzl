@@ -40,7 +40,7 @@ Returns the current `CcToolchainInfo`.
     foo = rule(
         implementation = _foo_impl,
         toolchains = [
-            "@rules_cc//cc:toolchain_type", # copybara-use-repo-external-label
+            "@bazel_tools//tools/cpp:toolchain_type", # copybara-use-repo-external-label
         ],
     )
 
@@ -63,9 +63,9 @@ Returns the current `CcToolchainInfo`.
 
     # Check the incompatible flag for toolchain resolution.
     if hasattr(cc_common, "is_cc_toolchain_resolution_enabled_do_not_use") and cc_common.is_cc_toolchain_resolution_enabled_do_not_use(ctx = ctx):
-        if not "//cc:toolchain_type" in ctx.toolchains:
+        if not "@bazel_tools//tools/cpp:toolchain_type" in ctx.toolchains:  # copybara-use-repo-external-label
             fail("In order to use find_cc_toolchain, your rule has to depend on C++ toolchain. See find_cc_toolchain.bzl docs for details.")
-        toolchain_info = ctx.toolchains["//cc:toolchain_type"]
+        toolchain_info = ctx.toolchains["@bazel_tools//tools/cpp:toolchain_type"]  # copybara-use-repo-external-label
         if hasattr(toolchain_info, "cc_provider_in_toolchain") and hasattr(toolchain_info, "cc"):
             return toolchain_info.cc
         return toolchain_info

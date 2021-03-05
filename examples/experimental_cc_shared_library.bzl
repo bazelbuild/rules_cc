@@ -460,7 +460,7 @@ cc_shared_library = rule(
         "_experimental_debug": attr.label(default = "//examples:experimental_debug"),
         "_incompatible_link_once": attr.label(default = "//examples:incompatible_link_once"),
     },
-    toolchains = ["@rules_cc//cc:toolchain_type"],  # copybara-use-repo-external-label
+    toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],  # copybara-use-repo-external-label
     fragments = ["cpp"],
 )
 
