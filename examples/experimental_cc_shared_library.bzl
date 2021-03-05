@@ -109,7 +109,7 @@ def _build_exports_map_from_only_dynamic_deps(merged_shared_library_infos):
             if export in exports_map:
                 fail("Two shared libraries in dependencies export the same symbols. Both " +
                      exports_map[export].libraries[0].dynamic_library.short_path +
-                     " and " + linker_input.dynamic_library.short_path +
+                     " and " + linker_input.libraries[0].dynamic_library.short_path +
                      " export " + export)
             exports_map[export] = linker_input
     return exports_map

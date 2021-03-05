@@ -21,6 +21,16 @@ cc_binary(
     deps = ["foo"],
 )
 
+cc_binary(
+    name = "binary_with_bar_so_twice",
+    srcs = ["main.cc"],
+    dynamic_deps = [
+        "foo_so",
+        "bar_so",
+    ],
+    deps = ["foo"],
+)
+
 cc_shared_library(
     name = "foo_so",
     additional_linker_inputs = [
@@ -211,4 +221,16 @@ cc_shared_library_permissions(
         "//examples/test_cc_shared_library:qux2",
     ],
     visibility = ["//examples/test_cc_shared_library/diamond_inheritance:__pkg__"],
+)
+
+build_failure_test(
+    name = "two_dynamic_deps_same_export_in_so_test",
+    message = "Two shared libraries in dependencies export the same symbols",
+    target_under_test = "//examples/test_cc_shared_library/failing_targets:two_dynamic_deps_same_export_in_so",
+)
+
+build_failure_test(
+    name = "two_dynamic_deps_same_export_in_binary_test",
+    message = "Two shared libraries in dependencies export the same symbols",
+    target_under_test = "//examples/test_cc_shared_library/failing_targets:two_dynamic_deps_same_export_in_binary",
 )
