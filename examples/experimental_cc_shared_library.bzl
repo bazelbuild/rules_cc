@@ -462,6 +462,7 @@ cc_shared_library = rule(
     },
     toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],  # copybara-use-repo-external-label
     fragments = ["cpp"],
+    incompatible_use_toolchain_transition = True,
 )
 
 for_testing_dont_use_check_if_target_under_path = _check_if_target_under_path
