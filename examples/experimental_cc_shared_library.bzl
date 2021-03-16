@@ -162,6 +162,9 @@ def _check_if_target_under_path(value, pattern):
     return pattern.package == value.package and pattern.name == value.name
 
 def _check_if_target_can_be_exported(target, current_label, permissions):
+    if permissions == None:
+        return True
+
     if (target.workspace_name != current_label.workspace_name or
         _same_package_or_above(current_label, target)):
         return True
@@ -271,7 +274,7 @@ def _filter_inputs(
                     linker_input.owner,
                     ctx.label,
                     ctx.attr.exports_filter,
-                    ctx.attr.permissions,
+                    _get_permissions(ctx),
                 ):
                     exports[owner] = True
                     can_be_linked_statically = True
@@ -301,6 +304,11 @@ def _same_package_or_above(label_a, label_b):
 
     return True
 
+def _get_permissions(ctx):
+    if ctx.attr._enable_permissions_check[BuildSettingInfo].value:
+        return ctx.attr.permissions
+    return None
+
 def _cc_shared_library_impl(ctx):
     cc_common.check_experimental_cc_shared_library()
     cc_toolchain = find_cc_toolchain(ctx)
@@ -318,7 +326,7 @@ def _cc_shared_library_impl(ctx):
             fail("Trying to export a library already exported by a different shared library: " +
                  str(export.label))
 
-        _check_if_target_should_be_exported_without_filter(export.label, ctx.label, ctx.attr.permissions)
+        _check_if_target_should_be_exported_without_filter(export.label, ctx.label, _get_permissions(ctx))
 
     preloaded_deps_direct_labels = {}
     preloaded_dep_merged_cc_info = None
@@ -457,6 +465,7 @@ cc_shared_library = rule(
         "static_deps": attr.string_list(),
         "user_link_flags": attr.string_list(),
         "_cc_toolchain": attr.label(default = "@bazel_tools//tools/cpp:current_cc_toolchain"),
+        "_enable_permissions_check": attr.label(default = "//examples:enable_permissions_check"),
         "_experimental_debug": attr.label(default = "//examples:experimental_debug"),
         "_incompatible_link_once": attr.label(default = "//examples:incompatible_link_once"),
     },

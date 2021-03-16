@@ -25,6 +25,12 @@ bool_flag(
 )
 
 bool_flag(
+    name = "enable_permissions_check",
+    build_setting_default = False,
+    visibility = ["//visibility:public"],
+)
+
+bool_flag(
     name = "experimental_debug",
     build_setting_default = False,
     visibility = ["//visibility:public"],

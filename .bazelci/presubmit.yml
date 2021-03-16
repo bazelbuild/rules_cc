@@ -55,10 +55,12 @@ tasks:
     build_flags:
     - "--experimental_cc_shared_library"
     - "--//examples:incompatible_link_once=True"
+    - "--//examples:enable_permissions_check=True"
     test_flags:
     - "--test_timeout=120"
     - "--experimental_cc_shared_library"
     - "--//examples:incompatible_link_once=True"
+    - "--//examples:enable_permissions_check=True"
     test_targets:
     - "//examples/test_cc_shared_library/..."
     - "//examples/test_cc_shared_library/diamond_inheritance/..."
