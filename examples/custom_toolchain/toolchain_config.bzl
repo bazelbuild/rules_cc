@@ -15,8 +15,6 @@ advanced usage.
 load("@bazel_tools//tools/cpp:cc_toolchain_config_lib.bzl", "tool_path")
 
 def _impl(ctx):
-    print("Invoking my custom toolchain!")
-
     tool_paths = [
         tool_path(
             name = "ar",

@@ -20,7 +20,7 @@ load("@rules_cc//cc:toolchain_utils.bzl", "find_cpp_toolchain")
 MyCCompileInfo = provider(doc = "", fields = ["object"])
 
 DISABLED_FEATURES = [
-#     "module_maps",  # copybara-comment-this-out-please
+    #     "module_maps",  # copybara-comment-this-out-please
 ]
 
 def _my_c_compile_impl(ctx):
