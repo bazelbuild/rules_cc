@@ -17,10 +17,10 @@ rules_pkg_dependencies()
 
 http_archive(
     name = "bazel_federation",
-    sha256 = "33222ab7bcc430f1ff1db8788c2e0118b749319dd572476c4fd02322d7d15792",
-    strip_prefix = "bazel-federation-f0e5eda7f0cbfe67f126ef4dacb18c89039b0506",
+    sha256 = "d7a9b12474c772b389b3e24dde281f0332d7ef8645df47c80d122e9d446b883c",
+    strip_prefix = "bazel-federation-8ce885a3a89da83228cd845c6ab13bb0175ca105",
     type = "zip",
-    url = "https://github.com/bazelbuild/bazel-federation/archive/f0e5eda7f0cbfe67f126ef4dacb18c89039b0506.zip",  # 2019-09-30
+    url = "https://github.com/bazelbuild/bazel-federation/archive/8ce885a3a89da83228cd845c6ab13bb0175ca105.zip",  # 2019-09-30
 )
 
 load("@bazel_federation//:repositories.bzl", "rules_cc_deps")
