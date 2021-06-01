@@ -35,6 +35,19 @@ cc_library(
 )
 ```
 
+# Using the rules_cc toolchain
+
+If you'd like to use the cc toolchain defined in this repo add this to
+your WORKSPACE after you include rules_cc:
+
+```bzl
+load("@rules_cc//cc:repositories.bzl", "rules_cc_dependencies", "rules_cc_toolchains")
+
+rules_cc_dependencies()
+
+rules_cc_toolchains()
+```
+
 # Migration Tools
 
 This repository also contains migration tools that can be used to migrate your
