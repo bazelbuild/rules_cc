@@ -84,6 +84,7 @@ def configure_osx_toolchain(repository_ctx, overriden_tools):
       overriden_tools: dictionary of overriden tools.
     """
     paths = resolve_labels(repository_ctx, [
+        "@rules_cc//cc/private/toolchain:armeabi_cc_toolchain_config.bzl",
         "@rules_cc//cc/private/toolchain:osx_cc_wrapper.sh.tpl",
         "@rules_cc//cc/private/toolchain:libtool_check_unique.cc",
         "@bazel_tools//tools/objc:libtool.sh",
@@ -124,6 +125,10 @@ def configure_osx_toolchain(repository_ctx, overriden_tools):
                 "%{cc}": escape_string(cc_path),
                 "%{env}": escape_string(get_env(repository_ctx)),
             },
+        )
+        repository_ctx.symlink(
+            paths["@rules_cc//cc/private/toolchain:armeabi_cc_toolchain_config.bzl"],
+            "armeabi_cc_toolchain_config.bzl",
         )
         repository_ctx.symlink(
             paths["@bazel_tools//tools/objc:xcrunwrapper.sh"],
