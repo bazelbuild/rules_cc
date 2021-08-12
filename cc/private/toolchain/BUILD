@@ -66,6 +66,11 @@ filegroup(
 )
 
 filegroup(
+    name = "bzl_srcs",
+    srcs = glob(["**/*.bzl"]),
+)
+
+filegroup(
     name = "srcs",
     srcs = glob(["**"]),
 )
