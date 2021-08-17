@@ -132,7 +132,10 @@ filegroup(
     ],
 )
 
-exports_files(["ctoolchain_compare.bzl"])
+exports_files([
+    "cc_toolchain_config_comparator.bzl",
+    "ctoolchain_compare.bzl",
+])
 
 bzl_library(
     name = "ctoolchain_compare_bzl",
