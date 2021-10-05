@@ -14,7 +14,6 @@
 
 """Setup for rules_cc tests and tools."""
 
-load("@bazel_federation//setup:rules_pkg.bzl", "rules_pkg_setup")
 load("@bazel_federation//setup:rules_python.bzl", "rules_python_setup")
 
 # TODO(fweikert): Add setup.bzl file for skylib to the federation and load it instead of workspace.bzl
@@ -28,5 +27,4 @@ def rules_cc_internal_setup():
     bazel_skylib_workspace()
     go_rules_dependencies()
     go_register_toolchains()
-    rules_pkg_setup()
     rules_python_setup()
