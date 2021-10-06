@@ -1,6 +1,6 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
-load("//examples:experimental_cc_shared_library.bzl", "LINKABLE_MORE_THAN_ONCE", "cc_shared_library", "cc_shared_library_permissions")
+load("//examples:experimental_cc_shared_library.bzl", "LINKABLE_MORE_THAN_ONCE")
 load(":starlark_tests.bzl", "additional_inputs_test", "build_failure_test", "linking_suffix_test", "paths_test")
 
 package(

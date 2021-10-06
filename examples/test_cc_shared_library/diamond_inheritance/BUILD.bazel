@@ -1,5 +1,4 @@
 load("//cc:defs.bzl", "cc_binary")
-load("//examples:experimental_cc_shared_library.bzl", "cc_shared_library")
 
 cc_shared_library(
     name = "baz_so",
