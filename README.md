@@ -1,6 +1,6 @@
 # C++ rules for Bazel
 
-* Postsubmit [![Build status](https://badge.buildkite.com/f03592ae2d7d25a2abc2a2ba776e704823fa17fd3e061f5103.svg?branch=master)](https://buildkite.com/bazel/rules-cc)
+* Postsubmit [![Build status](https://badge.buildkite.com/f03592ae2d7d25a2abc2a2ba776e704823fa17fd3e061f5103.svg?branch=main)](https://buildkite.com/bazel/rules-cc)
 * Postsubmit + Current Bazel Incompatible flags [![Build status](https://badge.buildkite.com/5ba709cc33e5855078a1f8570adcf8e0a78ea93591bc0b4e81.svg?branch=master)](https://buildkite.com/bazel/rules-cc-plus-bazelisk-migrate)
 
 This repository contains Starlark implementation of C++ rules in Bazel.
@@ -8,7 +8,7 @@ This repository contains Starlark implementation of C++ rules in Bazel.
 The rules are being incrementally converted from their native implementations in the [Bazel source tree](https://source.bazel.build/bazel/+/master:src/main/java/com/google/devtools/build/lib/rules/cpp/).
 
 For the list of C++ rules, see the Bazel
-[documentation](https://docs.bazel.build/versions/master/be/overview.html).
+[documentation](https://docs.bazel.build/versions/main/be/overview.html).
 
 # Getting Started
 
@@ -71,7 +71,7 @@ bazel run @rules_cc//tools/migration:legacy_fields_migrator -- \
 
 Bazel and `rules_cc` are the work of many contributors. We appreciate your help!
 
-To contribute, please read the contribution guidelines: [CONTRIBUTING.md](https://github.com/bazelbuild/rules_cc/blob/master/CONTRIBUTING.md).
+To contribute, please read the contribution guidelines: [CONTRIBUTING.md](https://github.com/bazelbuild/rules_cc/blob/main/CONTRIBUTING.md).
 
 Note that the `rules_cc` use the GitHub issue tracker for bug reports and feature requests only.
 For asking questions see:

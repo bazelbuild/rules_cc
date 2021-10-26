@@ -7,8 +7,8 @@ structured.
 This is a proof-of-concept simple implementation. It doesn't construct fancy
 command lines and uses mock shell scripts to compile and link
 ("sample_compiler" and "sample_linker"). See
-https://docs.bazel.build/versions/master/cc-toolchain-config-reference.html and
-https://docs.bazel.build/versions/master/tutorial/cc-toolchain-config.html for
+https://docs.bazel.build/versions/main/cc-toolchain-config-reference.html and
+https://docs.bazel.build/versions/main/tutorial/cc-toolchain-config.html for
 advanced usage.
 """
 
@@ -51,7 +51,7 @@ def _impl(ctx):
     ]
 
     # Documented at
-    # https://docs.bazel.build/versions/master/skylark/lib/cc_common.html#create_cc_toolchain_config_info.
+    # https://docs.bazel.build/versions/main/skylark/lib/cc_common.html#create_cc_toolchain_config_info.
     #
     # create_cc_toolchain_config_info is the public interface for registering
     # C++ toolchain behavior.

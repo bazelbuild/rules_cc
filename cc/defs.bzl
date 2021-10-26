@@ -29,7 +29,7 @@ def _add_tags(attrs):
 def cc_binary(**attrs):
     """Bazel cc_binary rule.
 
-    https://docs.bazel.build/versions/master/be/c-cpp.html#cc_binary
+    https://docs.bazel.build/versions/main/be/c-cpp.html#cc_binary
 
     Args:
       **attrs: Rule attributes
@@ -41,7 +41,7 @@ def cc_binary(**attrs):
 def cc_test(**attrs):
     """Bazel cc_test rule.
 
-    https://docs.bazel.build/versions/master/be/c-cpp.html#cc_test
+    https://docs.bazel.build/versions/main/be/c-cpp.html#cc_test
 
     Args:
       **attrs: Rule attributes
@@ -53,7 +53,7 @@ def cc_test(**attrs):
 def cc_library(**attrs):
     """Bazel cc_library rule.
 
-    https://docs.bazel.build/versions/master/be/c-cpp.html#cc_library
+    https://docs.bazel.build/versions/main/be/c-cpp.html#cc_library
 
     Args:
       **attrs: Rule attributes
@@ -65,7 +65,7 @@ def cc_library(**attrs):
 def cc_import(**attrs):
     """Bazel cc_import rule.
 
-    https://docs.bazel.build/versions/master/be/c-cpp.html#cc_import
+    https://docs.bazel.build/versions/main/be/c-cpp.html#cc_import
 
     Args:
       **attrs: Rule attributes
@@ -77,7 +77,7 @@ def cc_import(**attrs):
 def cc_proto_library(**attrs):
     """Bazel cc_proto_library rule.
 
-    https://docs.bazel.build/versions/master/be/c-cpp.html#cc_proto_library
+    https://docs.bazel.build/versions/main/be/c-cpp.html#cc_proto_library
 
     Args:
       **attrs: Rule attributes
@@ -89,7 +89,7 @@ def cc_proto_library(**attrs):
 def fdo_prefetch_hints(**attrs):
     """Bazel fdo_prefetch_hints rule.
 
-    https://docs.bazel.build/versions/master/be/c-cpp.html#fdo_prefetch_hints
+    https://docs.bazel.build/versions/main/be/c-cpp.html#fdo_prefetch_hints
 
     Args:
       **attrs: Rule attributes
@@ -101,7 +101,7 @@ def fdo_prefetch_hints(**attrs):
 def fdo_profile(**attrs):
     """Bazel fdo_profile rule.
 
-    https://docs.bazel.build/versions/master/be/c-cpp.html#fdo_profile
+    https://docs.bazel.build/versions/main/be/c-cpp.html#fdo_profile
 
     Args:
       **attrs: Rule attributes
@@ -113,7 +113,7 @@ def fdo_profile(**attrs):
 def cc_toolchain(**attrs):
     """Bazel cc_toolchain rule.
 
-    https://docs.bazel.build/versions/master/be/c-cpp.html#cc_toolchain
+    https://docs.bazel.build/versions/main/be/c-cpp.html#cc_toolchain
 
     Args:
       **attrs: Rule attributes
@@ -125,7 +125,7 @@ def cc_toolchain(**attrs):
 def cc_toolchain_suite(**attrs):
     """Bazel cc_toolchain_suite rule.
 
-    https://docs.bazel.build/versions/master/be/c-cpp.html#cc_toolchain_suite
+    https://docs.bazel.build/versions/main/be/c-cpp.html#cc_toolchain_suite
 
     Args:
       **attrs: Rule attributes
@@ -137,7 +137,7 @@ def cc_toolchain_suite(**attrs):
 def objc_library(**attrs):
     """Bazel objc_library rule.
 
-    https://docs.bazel.build/versions/master/be/objective-c.html#objc_library
+    https://docs.bazel.build/versions/main/be/objective-c.html#objc_library
 
     Args:
       **attrs: Rule attributes
@@ -149,7 +149,7 @@ def objc_library(**attrs):
 def objc_import(**attrs):
     """Bazel objc_import rule.
 
-    https://docs.bazel.build/versions/master/be/objective-c.html#objc_import
+    https://docs.bazel.build/versions/main/be/objective-c.html#objc_import
 
     Args:
       **attrs: Rule attributes
