@@ -96,5 +96,4 @@ my_c_archive = rule(
     },
     fragments = ["cpp"],
     toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],  # copybara-use-repo-external-label
-    incompatible_use_toolchain_transition = True,
 )
