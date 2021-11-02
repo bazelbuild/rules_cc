@@ -28,5 +28,4 @@ compiler_flag = rule(
     toolchains = [
         "@bazel_tools//tools/cpp:toolchain_type",  # copybara-use-repo-external-label
     ],
-    incompatible_use_toolchain_transition = True,
 )
