@@ -52,13 +52,13 @@ tasks:
     - "//examples/test_cc_shared_library/diamond_inheritance/..."
     build_flags:
     - "--experimental_cc_shared_library"
-    - "--//examples:incompatible_link_once=True"
-    - "--//examples:enable_permissions_check=True"
+    - "--experimental_link_static_libraries_once"
+    - "--experimental_enable_target_export_check"
     test_flags:
     - "--test_timeout=120"
     - "--experimental_cc_shared_library"
-    - "--//examples:incompatible_link_once=True"
-    - "--//examples:enable_permissions_check=True"
+    - "--experimental_link_static_libraries_once"
+    - "--experimental_enable_target_export_check"
     test_targets:
     - "//examples/test_cc_shared_library/..."
     - "//examples/test_cc_shared_library/diamond_inheritance/..."
