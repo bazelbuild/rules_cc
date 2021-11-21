@@ -360,7 +360,10 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overriden_tools):
     darwin = cpu_value == "darwin"
 
     cc = _find_generic(repository_ctx, "gcc", "CC", overriden_tools)
+    ar_tool = "libtool" if darwin else "ar"
+    ar = _find_generic(repository_ctx, ar_tool, "AR", overriden_tools)
     overriden_tools = dict(overriden_tools)
+    overriden_tools["ar"] = ar
     overriden_tools["gcc"] = cc
     overriden_tools["gcov"] = _find_generic(
         repository_ctx,
@@ -372,7 +375,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overriden_tools):
     )
     if darwin:
         overriden_tools["gcc"] = "cc_wrapper.sh"
-        overriden_tools["ar"] = "/usr/bin/libtool"
+    auto_configure_warning_maybe(repository_ctx, "AR used: " + str(ar))
     auto_configure_warning_maybe(repository_ctx, "CC used: " + str(cc))
     tool_paths = _get_tool_paths(repository_ctx, overriden_tools)
     cc_toolchain_identifier = escape_string(get_env_var(
