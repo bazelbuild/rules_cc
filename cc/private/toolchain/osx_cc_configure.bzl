@@ -124,6 +124,7 @@ def configure_osx_toolchain(repository_ctx, overriden_tools):
             {
                 "%{cc}": escape_string(cc_path),
                 "%{env}": escape_string(get_env(repository_ctx)),
+                "%{install_name_tool}": "/usr/bin/install_name_tool",
             },
         )
         repository_ctx.symlink(

@@ -95,6 +95,7 @@ def _get_tool_paths(repository_ctx, overriden_tools):
             "objcopy",
             "objdump",
             "strip",
+            "install_name_tool",
         ]
     }.items())
 
@@ -391,6 +392,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overriden_tools):
         {
             "%{cc}": escape_string(str(cc)),
             "%{env}": escape_string(get_env(repository_ctx)),
+            "%{install_name_tool}": escape_string(str(tool_paths["install_name_tool"])),
         },
     )
 
