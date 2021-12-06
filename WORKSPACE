@@ -63,3 +63,5 @@ local_repository(
     name = "test_repo",
     path = "examples/test_cc_shared_library2",
 )
+
+register_toolchains("//tools/clang_format:clang_format_toolchain")
