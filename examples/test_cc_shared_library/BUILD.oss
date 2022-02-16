@@ -1,10 +1,10 @@
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("//third_party/bazel_skylib:bzl_library.bzl", "bzl_library")
 load("//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
-load("//examples:experimental_cc_shared_library.bzl", "LINKABLE_MORE_THAN_ONCE")
+load("//third_party/bazel_rules/rules_cc/examples:experimental_cc_shared_library.bzl", "LINKABLE_MORE_THAN_ONCE")
 load(":starlark_tests.bzl", "additional_inputs_test", "build_failure_test", "linking_suffix_test", "paths_test")
 
 package(
-    default_visibility = ["//examples/test_cc_shared_library:__subpackages__"],
+    default_visibility = ["//third_party/bazel_rules/rules_cc/examples/test_cc_shared_library:__subpackages__"],
 )
 
 cc_test(
@@ -45,8 +45,8 @@ cc_shared_library(
         "a_suffix",
     ],
     static_deps = [
-        "//examples/test_cc_shared_library:qux",
-        "//examples/test_cc_shared_library:qux2",
+        "//third_party/bazel_rules/rules_cc/examples/test_cc_shared_library:qux",
+        "//third_party/bazel_rules/rules_cc/examples/test_cc_shared_library:qux2",
     ],
     user_link_flags = [
         "-Wl,-rpath,kittens",
@@ -108,10 +108,10 @@ cc_shared_library(
     ],
     exports_filter = [
         "bar3",  # Exported transitive dependency
-        "//examples/test_cc_shared_library3:bar",
+        "//third_party/bazel_rules/rules_cc/examples/test_cc_shared_library3:bar",
     ],
     permissions = [
-        "//examples/test_cc_shared_library3:permissions",
+        "//third_party/bazel_rules/rules_cc/examples/test_cc_shared_library3:permissions",
     ],
     roots = [
         "bar",
@@ -119,9 +119,9 @@ cc_shared_library(
         "@test_repo//:bar",
     ],
     static_deps = [
-        "//examples/test_cc_shared_library:barX",
+        "//third_party/bazel_rules/rules_cc/examples/test_cc_shared_library:barX",
         "@test_repo//:bar",
-        "//examples/test_cc_shared_library:qux2",
+        "//third_party/bazel_rules/rules_cc/examples/test_cc_shared_library:qux2",
     ],
     user_link_flags = [
         "-Wl,--version-script=$(location :bar.lds)",
@@ -159,7 +159,7 @@ cc_library(
     srcs = ["bar3.cc"],
     hdrs = ["bar3.h"],
     deps = [
-        "//examples/test_cc_shared_library3:bar",
+        "//third_party/bazel_rules/rules_cc/examples/test_cc_shared_library3:bar",
     ],
 )
 
@@ -187,8 +187,8 @@ additional_inputs_test(
 build_failure_test(
     name = "link_once_repeated_test",
     message = "already linked statically in " +
-              "//examples/test_cc_shared_library:foo_so but not exported.",
-    target_under_test = "//examples/test_cc_shared_library/failing_targets:should_fail_binary",
+              "//third_party/bazel_rules/rules_cc/examples/test_cc_shared_library:foo_so but not exported.",
+    target_under_test = "//third_party/bazel_rules/rules_cc/examples/test_cc_shared_library/failing_targets:should_fail_binary",
 )
 
 paths_test(
@@ -198,13 +198,13 @@ paths_test(
 build_failure_test(
     name = "export_without_permissions_test",
     message = "doesn't have the necessary permissions",
-    target_under_test = "//examples/test_cc_shared_library/failing_targets:permissions_fail_so",
+    target_under_test = "//third_party/bazel_rules/rules_cc/examples/test_cc_shared_library/failing_targets:permissions_fail_so",
 )
 
 build_failure_test(
     name = "forbidden_target_permissions_test",
     message = "can only list targets that are in the same package or a sub-package",
-    target_under_test = "//examples/test_cc_shared_library/failing_targets:permissions_fail",
+    target_under_test = "//third_party/bazel_rules/rules_cc/examples/test_cc_shared_library/failing_targets:permissions_fail",
 )
 
 bzl_library(
@@ -216,11 +216,11 @@ bzl_library(
 cc_shared_library_permissions(
     name = "permissions",
     targets = [
-        "//examples/test_cc_shared_library:a_suffix",
-        "//examples/test_cc_shared_library:qux",
-        "//examples/test_cc_shared_library:qux2",
+        "//third_party/bazel_rules/rules_cc/examples/test_cc_shared_library:a_suffix",
+        "//third_party/bazel_rules/rules_cc/examples/test_cc_shared_library:qux",
+        "//third_party/bazel_rules/rules_cc/examples/test_cc_shared_library:qux2",
     ],
-    visibility = ["//examples/test_cc_shared_library/diamond_inheritance:__pkg__"],
+    visibility = ["//third_party/bazel_rules/rules_cc/examples/test_cc_shared_library/diamond_inheritance:__pkg__"],
 )
 
 build_failure_test(
