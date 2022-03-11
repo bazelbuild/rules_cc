@@ -30,11 +30,15 @@ def _additional_inputs_test_impl(ctx):
     actions = analysistest.target_actions(env)
 
     found = False
-    for arg in actions[1].argv:
-        if arg.find("-Wl,--script=") != -1:
-            asserts.equals(env, "examples/test_cc_shared_library/additional_script.txt", arg[13:])
-            found = True
-            break
+    for action in actions:
+        if action.mnemonic != "CppLink":
+            continue
+
+        for arg in action.argv:
+            if arg.find("-Wl,--script=") != -1:
+                asserts.equals(env, "examples/test_cc_shared_library/additional_script.txt", arg[13:])
+                found = True
+                break
     asserts.true(env, found, "Should have seen option --script=")
 
     return analysistest.end(env)
