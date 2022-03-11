@@ -28,16 +28,6 @@ load(
     "write_builtin_include_directory_paths",
 )
 
-def _field(name, value):
-    """Returns properly indented top level crosstool field."""
-    if type(value) == "list":
-        return "\n".join(["  " + name + ": '" + v + "'" for v in value])
-    elif type(value) == "string":
-        return "  " + name + ": '" + value + "'"
-    else:
-        auto_configure_fail("Unexpected field type: " + type(value))
-        return ""
-
 def _uniq(iterable):
     """Remove duplicates from a list."""
 
@@ -64,15 +54,6 @@ def _prepare_include_path(repo_ctx, path):
     if path.startswith(repo_root):
         return escape_string(path[len(repo_root):])
     return escape_string(path)
-
-def _get_value(it):
-    """Convert `it` in serialized protobuf format."""
-    if type(it) == "int":
-        return str(it)
-    elif type(it) == "bool":
-        return "true" if it else "false"
-    else:
-        return "\"%s\"" % it
 
 def _find_tool(repository_ctx, tool, overriden_tools):
     """Find a tool for repository, taking overriden tools into account."""

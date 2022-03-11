@@ -1276,6 +1276,7 @@ def _impl(ctx):
                 copy_dynamic_libraries_to_binary_feature,
                 gcc_env_feature,
                 supports_pic_feature,
+                supports_start_end_lib_feature,
                 default_compile_flags_feature,
                 default_link_flags_feature,
                 fdo_optimize_feature,

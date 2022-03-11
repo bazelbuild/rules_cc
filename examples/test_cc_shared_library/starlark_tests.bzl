@@ -6,7 +6,6 @@ load("//examples:experimental_cc_shared_library.bzl", "for_testing_dont_use_chec
 def _linking_suffix_test_impl(ctx):
     env = analysistest.begin(ctx)
 
-    target_under_test = analysistest.target_under_test(env)
     actions = analysistest.target_actions(env)
 
     for arg in reversed(actions[1].argv):
@@ -21,7 +20,6 @@ linking_suffix_test = analysistest.make(_linking_suffix_test_impl)
 def _additional_inputs_test_impl(ctx):
     env = analysistest.begin(ctx)
 
-    target_under_test = analysistest.target_under_test(env)
     actions = analysistest.target_actions(env)
 
     found = False
