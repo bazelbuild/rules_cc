@@ -86,7 +86,7 @@ def configure_osx_toolchain(repository_ctx, overriden_tools):
     paths = resolve_labels(repository_ctx, [
         "@rules_cc//cc/private/toolchain:armeabi_cc_toolchain_config.bzl",
         "@rules_cc//cc/private/toolchain:osx_cc_wrapper.sh.tpl",
-        "@rules_cc//cc/private/toolchain:libtool_check_unique.cc",
+        "@bazel_tools//tools/objc:libtool_check_unique.cc",
         "@bazel_tools//tools/objc:libtool.sh",
         "@bazel_tools//tools/objc:make_hashed_objlist.py",
         "@bazel_tools//tools/objc:xcrunwrapper.sh",
@@ -147,7 +147,7 @@ def configure_osx_toolchain(repository_ctx, overriden_tools):
             "cc_toolchain_config.bzl",
         )
         libtool_check_unique_src_path = str(repository_ctx.path(
-            paths["@rules_cc//cc/private/toolchain:libtool_check_unique.cc"],
+            paths["@bazel_tools//tools/objc:libtool_check_unique.cc"],
         ))
         compile_cc_file(repository_ctx, libtool_check_unique_src_path, "libtool_check_unique")
         wrapped_clang_src_path = str(repository_ctx.path(
