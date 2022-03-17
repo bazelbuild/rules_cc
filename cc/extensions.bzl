@@ -15,7 +15,7 @@
 
 load("//cc/private/toolchain:cc_configure.bzl", "cc_autoconf", "cc_autoconf_toolchains")
 
-def _cc_configure_impl(ctx):
+def _cc_configure_impl(_):
     cc_autoconf_toolchains(name = "local_config_cc_toolchains")
     cc_autoconf(name = "local_config_cc")
 

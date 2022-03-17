@@ -950,7 +950,6 @@ def _impl(ctx):
         ],
     )
 
-    dynamic_library_linker_tool_path = tool_paths
     dynamic_library_linker_tool_feature = feature(
         name = "dynamic_library_linker_tool",
         flag_sets = [
@@ -1114,6 +1113,8 @@ def _impl(ctx):
             strip_debug_symbols_feature,
             coverage_feature,
             supports_pic_feature,
+            gcc_coverage_map_format_feature,
+            llvm_coverage_map_format_feature,
         ] + (
             [
                 supports_start_end_lib_feature,
@@ -1150,6 +1151,8 @@ def _impl(ctx):
             user_compile_flags_feature,
             sysroot_feature,
             unfiltered_compile_flags_feature,
+            gcc_coverage_map_format_feature,
+            llvm_coverage_map_format_feature,
         ]
 
     return cc_common.create_cc_toolchain_config_info(
