@@ -14,8 +14,8 @@
 
 """Example showing how to create a rule that just compiles C sources."""
 
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("@rules_cc//cc:action_names.bzl", "C_COMPILE_ACTION_NAME")
-load("@rules_cc//cc:find_cc_toolchain.bzl", "find_cc_toolchain")
 
 MyCCompileInfo = provider(doc = "", fields = ["object"])
 
@@ -24,7 +24,7 @@ DISABLED_FEATURES = [
 ]
 
 def _my_c_compile_impl(ctx):
-    cc_toolchain = find_cc_toolchain(ctx)
+    cc_toolchain = find_cpp_toolchain(ctx)
     source_file = ctx.file.src
     output_file = ctx.actions.declare_file(ctx.label.name + ".o")
     feature_configuration = cc_common.configure_features(

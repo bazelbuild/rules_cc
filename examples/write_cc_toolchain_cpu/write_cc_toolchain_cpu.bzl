@@ -14,10 +14,10 @@
 
 """Example showing how to get CcToolchainInfo in a custom rule."""
 
-load("@rules_cc//cc:find_cc_toolchain.bzl", "find_cc_toolchain")
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
 def _write_cc_toolchain_cpu_impl(ctx):
-    cc_toolchain = find_cc_toolchain(ctx)
+    cc_toolchain = find_cpp_toolchain(ctx)
     output = ctx.actions.declare_file(ctx.label.name + "_cpu")
     ctx.actions.write(output, cc_toolchain.cpu)
     return [DefaultInfo(files = depset([output]))]
