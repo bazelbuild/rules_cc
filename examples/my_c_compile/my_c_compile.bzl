@@ -14,8 +14,8 @@
 
 """Example showing how to create a rule that just compiles C sources."""
 
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("@rules_cc//cc:action_names.bzl", "C_COMPILE_ACTION_NAME")
-load("@rules_cc//cc:toolchain_utils.bzl", "find_cpp_toolchain")
 
 MyCCompileInfo = provider(doc = "", fields = ["object"])
 
