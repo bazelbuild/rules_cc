@@ -14,7 +14,10 @@
 # limitations under the License.
 
 """
-Returns the current `CcToolchainInfo`.
+Helpers for CC Toolchains.
+
+Rules that require a CC toolchain should call `use_cc_toolchain` and `find_cc_toolchain`
+to depend on and find a cc toolchain.
 
 * When https://github.com/bazelbuild/bazel/issues/7260 is **not** flipped, current
   C++ toolchain is selected using the legacy mechanism (`--crosstool_top`,
@@ -37,11 +40,11 @@ Returns the current `CcToolchainInfo`.
   (`--platforms`). For that to work the rule needs to declare a dependency on
   C++ toolchain type:
 
+    load(":find_cc_toolchain/bzl", "use_cc_toolchain")
+
     foo = rule(
         implementation = _foo_impl,
-        toolchains = [
-            "@bazel_tools//tools/cpp:toolchain_type", # copybara-use-repo-external-label
-        ],
+        toolchains = use_cc_toolchain(),
     )
 
 We advise to depend on both `_cc_toolchain` attr and on the toolchain type for
@@ -49,6 +52,8 @@ the duration of the migration. After
 https://github.com/bazelbuild/bazel/issues/7260 is flipped (and support for old
 Bazel version is not needed), it's enough to only keep the toolchain type.
 """
+
+CC_TOOLCHAIN_TYPE = "@bazel_tools//tools/cpp:toolchain_type"  # copybara-use-repo-external-label
 
 def find_cc_toolchain(ctx):
     """
@@ -63,9 +68,9 @@ Returns the current `CcToolchainInfo`.
 
     # Check the incompatible flag for toolchain resolution.
     if hasattr(cc_common, "is_cc_toolchain_resolution_enabled_do_not_use") and cc_common.is_cc_toolchain_resolution_enabled_do_not_use(ctx = ctx):
-        if not "@bazel_tools//tools/cpp:toolchain_type" in ctx.toolchains:  # copybara-use-repo-external-label
+        if not CC_TOOLCHAIN_TYPE in ctx.toolchains:
             fail("In order to use find_cc_toolchain, your rule has to depend on C++ toolchain. See find_cc_toolchain.bzl docs for details.")
-        toolchain_info = ctx.toolchains["@bazel_tools//tools/cpp:toolchain_type"]  # copybara-use-repo-external-label
+        toolchain_info = ctx.toolchains[CC_TOOLCHAIN_TYPE]
         if hasattr(toolchain_info, "cc_provider_in_toolchain") and hasattr(toolchain_info, "cc"):
             return toolchain_info.cc
         return toolchain_info
@@ -87,3 +92,24 @@ def find_cpp_toolchain(ctx):
       A CcToolchainInfo.
     """
     return find_cc_toolchain(ctx)
+
+# buildifier: disable=unused-variable
+def use_cc_toolchain(mandatory = True):
+    """
+    Helper to depend on the cc toolchain.
+
+    Usage:
+    ```
+    my_rule = rule(
+        toolchains = [other toolchain types] + use_cc_toolchain(),
+    )
+    ```
+
+    Args:
+      mandatory: Whether or not it should be an error if the toolchain cannot be resolved.
+        Currently ignored, this will be enabled when optional toolchain types are added.
+
+    Returns:
+      A list that can be used as the value for `rule.toolchains`.
+    """
+    return [CC_TOOLCHAIN_TYPE]
