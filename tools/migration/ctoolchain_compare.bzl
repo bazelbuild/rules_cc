@@ -42,7 +42,7 @@ cc_toolchains_compare_test = rule(
         "_comparator": attr.label(
             default = ":ctoolchain_comparator",
             executable = True,
-            cfg = "host",
+            cfg = "exec",
         ),
     },
     test = True,
