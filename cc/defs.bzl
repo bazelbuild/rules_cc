@@ -16,6 +16,7 @@
 
 load("//cc/private/rules_impl:cc_flags_supplier.bzl", _cc_flags_supplier = "cc_flags_supplier")
 load("//cc/private/rules_impl:compiler_flag.bzl", _compiler_flag = "compiler_flag")
+load("//cc/private/rules_impl:win_res.bzl", _windows_resources = "windows_resources")
 
 _MIGRATION_TAG = "__CC_RULES_MIGRATION_DO_NOT_USE_WILL_BREAK__"
 
@@ -173,3 +174,6 @@ def compiler_flag(**attrs):
       **attrs: Rule attributes
     """
     _compiler_flag(**_add_tags(attrs))
+
+def windows_resources(**attrs):
+    _windows_resources(**_add_tags(attrs))

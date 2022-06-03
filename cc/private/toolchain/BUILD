@@ -98,3 +98,8 @@ filegroup(
 compiler_flag(name = "compiler")
 
 cc_flags_supplier(name = "cc_flags")
+
+toolchain_type(
+    name = "resource_compiler_toolchain_type",
+    visibility = ["//visibility:public"],
+)

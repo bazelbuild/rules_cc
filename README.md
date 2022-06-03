@@ -46,6 +46,10 @@ load("@rules_cc//cc:repositories.bzl", "rules_cc_dependencies", "rules_cc_toolch
 rules_cc_dependencies()
 
 rules_cc_toolchains()
+
+# Include the following to register the Windows Resource Compiler toolchain
+load("@local_config_winsdk//:toolchains.bzl", "register_local_rc_exe_toolchains")
+register_local_rc_exe_toolchains()
 ```
 
 # Migration Tools

@@ -15,10 +15,12 @@
 
 load("@bazel_tools//tools/osx:xcode_configure.bzl", "xcode_configure")
 load("//cc/private/toolchain:cc_configure.bzl", "cc_autoconf", "cc_autoconf_toolchains")
+load("//cc/private/toolchain:winsdk_configure.bzl", "winsdk_configure")
 
 def _cc_configure_impl(_):
     cc_autoconf_toolchains(name = "local_config_cc_toolchains")
     cc_autoconf(name = "local_config_cc")
     xcode_configure("@bazel_tools//tools/osx:xcode_locator.m")
+    winsdk_configure(name = "local_config_winsdk")
 
 cc_configure = module_extension(implementation = _cc_configure_impl)

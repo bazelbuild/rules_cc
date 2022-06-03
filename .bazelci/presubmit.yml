@@ -15,6 +15,7 @@ x_defaults:
     - "//examples/my_c_archive:all"
     - "//examples/my_c_compile:all"
     - "//examples/write_cc_toolchain_cpu:all"
+    - "//examples/windows_resources:all"
     - "//tools/migration:all"
     - "//tools/runfiles:all"
     test_flags:
@@ -28,6 +29,7 @@ x_defaults:
     - "//examples/my_c_archive:all"
     - "//examples/my_c_compile:all"
     - "//examples/write_cc_toolchain_cpu:all"
+    - "//examples/windows_resources:all"
     - "//tools/migration:all"
     - "//tools/runfiles:all"
 

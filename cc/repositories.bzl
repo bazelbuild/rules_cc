@@ -10,6 +10,7 @@
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("//cc/private/toolchain:cc_configure.bzl", "cc_configure")
+load("//cc/private/toolchain:winsdk_configure.bzl", "winsdk_configure")
 
 def rules_cc_dependencies():
     _maybe(
@@ -26,6 +27,7 @@ def rules_cc_dependencies():
 # buildifier: disable=unnamed-macro
 def rules_cc_toolchains(*args):
     cc_configure(*args)
+    winsdk_configure(name = "local_config_winsdk")
 
 def _maybe(repo_rule, name, **kwargs):
     if not native.existing_rule(name):

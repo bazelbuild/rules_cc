@@ -1,0 +1,22 @@
+1 VERSIONINFO
+FILEVERSION 1,2,3,4
+PRODUCTVERSION 1,2,3,4
+FILEOS 0x4
+FILETYPE 0x1
+{
+BLOCK "StringFileInfo"
+{
+	BLOCK "040904b0"
+	{
+		VALUE "CompanyName", "Acme"
+		VALUE "FileDescription", "Test application for including windows resources"
+		VALUE "FileVersion", "1.2.3.4"
+		VALUE "ProductVersion", "1.2.3.4"
+	}
+}
+
+BLOCK "VarFileInfo"
+{
+	VALUE "Translation", 0x0409 0x04B0
+}
+}

@@ -1,7 +1,10 @@
 module(
     name = "rules_cc",
     compatibility_level = 1,
-    toolchains_to_register = ["@local_config_cc_toolchains//:all"],
+    toolchains_to_register = [
+        "@local_config_cc_toolchains//:all",
+        "@local_config_winsdk//:all",
+    ],
     version = "0.0.1",
 )
 
@@ -10,4 +13,4 @@ bazel_dep(name = "platforms", version = "0.0.4")
 
 cc_configure = use_extension("@rules_cc//cc:extensions.bzl", "cc_configure")
 
-use_repo(cc_configure, "local_config_cc_toolchains")
+use_repo(cc_configure, "local_config_cc_toolchains", "local_config_winsdk")
