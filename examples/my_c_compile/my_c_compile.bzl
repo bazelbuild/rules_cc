@@ -14,7 +14,7 @@
 
 """Example showing how to create a rule that just compiles C sources."""
 
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 load("@rules_cc//cc:action_names.bzl", "C_COMPILE_ACTION_NAME")
 
 MyCCompileInfo = provider(doc = "", fields = ["object"])
@@ -76,6 +76,6 @@ my_c_compile = rule(
         "src": attr.label(mandatory = True, allow_single_file = True),
         "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
     },
-    toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],  # copybara-use-repo-external-label
+    toolchains = use_cpp_toolchain(),  # copybara-use-repo-external-label
     fragments = ["cpp"],
 )
