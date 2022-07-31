@@ -166,6 +166,7 @@ cc_autoconf = repository_rule(
         "CC_TOOLCHAIN_NAME",
         "CPLUS_INCLUDE_PATH",
         "GCOV",
+        "LIBTOOL",
         "HOMEBREW_RUBY_PATH",
         "SYSTEMROOT",
     ] + MSVC_ENVVARS,
