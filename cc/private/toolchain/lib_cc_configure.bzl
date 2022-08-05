@@ -215,32 +215,35 @@ def execute(
     return stripped_stdout
 
 def get_cpu_value(repository_ctx):
-    """Compute the cpu_value based on the OS name. Doesn't %-escape the result!
-
-    Args:
-      repository_ctx: The repository context.
-    Returns:
-      One of (darwin, freebsd, x64_windows, ppc, s390x, arm, aarch64, k8, piii)
-    """
-    os_name = repository_ctx.os.name.lower()
+    """Compute the cpu_value based on the OS name. Doesn't %-escape the result!"""
+    os_name = repository_ctx.os.name
+    arch = repository_ctx.os.arch
     if os_name.startswith("mac os"):
-        return "darwin"
+        # Check if we are on x86_64 or arm64 and return the corresponding cpu value.
+        return "darwin" + ("_arm64" if arch == "aarch64" else "")
     if os_name.find("freebsd") != -1:
         return "freebsd"
+    if os_name.find("openbsd") != -1:
+        return "openbsd"
     if os_name.find("windows") != -1:
-        return "x64_windows"
+        if arch == "aarch64":
+            return "arm64_windows"
+        else:
+            return "x64_windows"
 
-    # Use uname to figure out whether we are on x86_32 or x86_64
-    result = repository_ctx.execute(["uname", "-m"])
-    if result.stdout.strip() in ["power", "ppc64le", "ppc", "ppc64"]:
+    if arch in ["power", "ppc64le", "ppc", "ppc64"]:
         return "ppc"
-    if result.stdout.strip() in ["s390x"]:
+    if arch in ["s390x"]:
         return "s390x"
-    if result.stdout.strip() in ["arm", "armv7l"]:
+    if arch in ["mips64"]:
+        return "mips64"
+    if arch in ["riscv64"]:
+        return "riscv64"
+    if arch in ["arm", "armv7l"]:
         return "arm"
-    if result.stdout.strip() in ["aarch64"]:
+    if arch in ["aarch64"]:
         return "aarch64"
-    return "k8" if result.stdout.strip() in ["amd64", "x86_64", "x64"] else "piii"
+    return "k8" if arch in ["amd64", "x86_64", "x64"] else "piii"
 
 def is_cc_configure_debug(repository_ctx):
     """Returns True if CC_CONFIGURE_DEBUG is set to 1."""
