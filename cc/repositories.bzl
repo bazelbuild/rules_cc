@@ -15,11 +15,11 @@ def rules_cc_dependencies():
     _maybe(
         http_archive,
         name = "bazel_skylib",
-        sha256 = "2ea8a5ed2b448baf4a6855d3ce049c4c452a6470b1efd1504fdb7c1c134d220a",
-        strip_prefix = "bazel-skylib-0.8.0",
+        sha256 = "710c2ca4b4d46250cdce2bf8f5aa76ea1f0cba514ab368f2988f70e864cfaf51",
+        strip_prefix = "bazel-skylib-1.2.1",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/archive/0.8.0.tar.gz",
-            "https://github.com/bazelbuild/bazel-skylib/archive/0.8.0.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/archive/1.2.1.tar.gz",
+            "https://github.com/bazelbuild/bazel-skylib/archive/1.2.1.tar.gz",
         ],
     )
 
