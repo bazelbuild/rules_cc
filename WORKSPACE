@@ -26,8 +26,6 @@ go_rules_dependencies()
 
 go_register_toolchains(version = "1.18.4")
 
-print(1)
-
 http_archive(
     name = "bazel_federation",
     sha256 = "0d6893f0d18f417a3324ce7f0ed2e6e5b825d6d5ab42f0f3d7877cb313f36453",
@@ -35,8 +33,6 @@ http_archive(
     type = "zip",
     url = "https://github.com/bazelbuild/bazel-federation/archive/6ad33bc586701e9836a2bf4432c7aff1235b04d2.zip",  # 2019-09-30
 )
-
-print(2)
 
 load("@bazel_federation//:repositories.bzl", "rules_cc_deps")
 
@@ -46,17 +42,12 @@ load("@bazel_federation//setup:rules_cc.bzl", "rules_cc_setup")
 
 rules_cc_setup()
 
-print(10)
-
 #
 # Dependencies for development of rules_cc itself.
 #
 load("//:internal_deps.bzl", "rules_cc_internal_deps")
 
 rules_cc_internal_deps()
-
-print(20)
-
 
 load("//:internal_setup.bzl", "rules_cc_internal_setup")
 
@@ -96,4 +87,3 @@ local_repository(
     name = "test_repo",
     path = "examples/test_cc_shared_library2",
 )
-print(99)
