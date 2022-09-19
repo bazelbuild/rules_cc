@@ -5,5 +5,5 @@ tasks:
     name: "Verify build targets"
     platform: ${{ platform }}
     build_targets:
-      - "//cc/..."
-      - "//tools/runfiles"
+      - "@rules_cc//cc/..."
+      - "@rules_cc//tools/runfiles"
