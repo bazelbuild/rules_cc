@@ -71,6 +71,10 @@ Returns the current `CcToolchainInfo`.
         if not CC_TOOLCHAIN_TYPE in ctx.toolchains:
             fail("In order to use find_cc_toolchain, your rule has to depend on C++ toolchain. See find_cc_toolchain.bzl docs for details.")
         toolchain_info = ctx.toolchains[CC_TOOLCHAIN_TYPE]
+        if toolchain_info == None:
+            # No cpp toolchain was found, so report an error.
+            fail("Unable to find a CC toolchain using toolchain resolution. Target: %s, Platform: %s, Exec platform: %s" %
+                 (ctx.label, ctx.fragments.platform.platform, ctx.fragments.platform.host_platform))
         if hasattr(toolchain_info, "cc_provider_in_toolchain") and hasattr(toolchain_info, "cc"):
             return toolchain_info.cc
         return toolchain_info
@@ -93,8 +97,7 @@ def find_cpp_toolchain(ctx):
     """
     return find_cc_toolchain(ctx)
 
-# buildifier: disable=unused-variable
-def use_cc_toolchain(mandatory = True):
+def use_cc_toolchain(mandatory = False):
     """
     Helper to depend on the cc toolchain.
 
@@ -107,9 +110,8 @@ def use_cc_toolchain(mandatory = True):
 
     Args:
       mandatory: Whether or not it should be an error if the toolchain cannot be resolved.
-        Currently ignored, this will be enabled when optional toolchain types are added.
 
     Returns:
       A list that can be used as the value for `rule.toolchains`.
     """
-    return [CC_TOOLCHAIN_TYPE]
+    return [config_common.toolchain_type(CC_TOOLCHAIN_TYPE, mandatory = mandatory)]

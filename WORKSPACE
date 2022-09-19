@@ -3,6 +3,30 @@ workspace(name = "rules_cc")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
+    name = "platforms",
+    sha256 = "5308fc1d8865406a49427ba24a9ab53087f17f5266a7aabbfc28823f3916e1ca",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/0.0.6/platforms-0.0.6.tar.gz",
+        "https://github.com/bazelbuild/platforms/releases/download/0.0.6/platforms-0.0.6.tar.gz",
+    ],
+)
+
+http_archive(
+    name = "io_bazel_rules_go",
+    sha256 = "16e9fca53ed6bd4ff4ad76facc9b7b651a89db1689a2877d6fd7b82aa824e366",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.34.0/rules_go-v0.34.0.zip",
+        "https://github.com/bazelbuild/rules_go/releases/download/v0.34.0/rules_go-v0.34.0.zip",
+    ],
+)
+
+load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
+
+go_rules_dependencies()
+
+go_register_toolchains(version = "1.18.4")
+
+http_archive(
     name = "bazel_federation",
     sha256 = "0d6893f0d18f417a3324ce7f0ed2e6e5b825d6d5ab42f0f3d7877cb313f36453",
     strip_prefix = "bazel-federation-6ad33bc586701e9836a2bf4432c7aff1235b04d2",

@@ -22,7 +22,7 @@ load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 
 package(default_visibility = ["//visibility:public"])
 
-licenses(["notice"])  # Apache 2.0
+licenses(["notice"])
 
 py_binary(
     name = "legacy_fields_migrator",

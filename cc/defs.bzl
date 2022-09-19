@@ -16,6 +16,7 @@
 
 load("//cc/private/rules_impl:cc_flags_supplier.bzl", _cc_flags_supplier = "cc_flags_supplier")
 load("//cc/private/rules_impl:compiler_flag.bzl", _compiler_flag = "compiler_flag")
+load("//cc/private/rules_impl:native.bzl", "NativeCcInfo", "NativeCcToolchainConfigInfo", "NativeDebugPackageInfo", "native_cc_common")
 
 _MIGRATION_TAG = "__CC_RULES_MIGRATION_DO_NOT_USE_WILL_BREAK__"
 
@@ -173,3 +174,11 @@ def compiler_flag(**attrs):
       **attrs: Rule attributes
     """
     _compiler_flag(**_add_tags(attrs))
+
+cc_common = native_cc_common
+
+CcInfo = NativeCcInfo
+
+CcToolchainConfigInfo = NativeCcToolchainConfigInfo
+
+DebugPackageInfo = NativeDebugPackageInfo
