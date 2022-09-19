@@ -1,10 +1,9 @@
-bcr_test_module:
-  matrix:
-    platform: ["centos7", "debian10", "macos", "ubuntu2004", "windows"]
-  tasks:
-    run_tests:
-      name: "Run test module"
-      platform: ${{ platform }}
-      test_targets:
-        - "//cc/..."
-        - "//tools/runfiles"
+matrix:
+  platform: ["centos7", "debian10", "macos", "ubuntu2004", "windows"]
+tasks:
+  verify_targets:
+    name: "Verify build targets"
+    platform: ${{ platform }}
+    build_targets:
+      - "//cc/..."
+      - "//tools/runfiles"
