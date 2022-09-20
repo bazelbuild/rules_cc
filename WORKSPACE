@@ -13,10 +13,10 @@ http_archive(
 
 http_archive(
     name = "io_bazel_rules_go",
-    sha256 = "16e9fca53ed6bd4ff4ad76facc9b7b651a89db1689a2877d6fd7b82aa824e366",
+    sha256 = "099a9fb96a376ccbbb7d291ed4ecbdfd42f6bc822ab77ae6f1b5cb9e914e94fa",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.34.0/rules_go-v0.34.0.zip",
-        "https://github.com/bazelbuild/rules_go/releases/download/v0.34.0/rules_go-v0.34.0.zip",
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.35.0/rules_go-v0.35.0.zip",
+        "https://github.com/bazelbuild/rules_go/releases/download/v0.35.0/rules_go-v0.35.0.zip",
     ],
 )
 
@@ -24,7 +24,7 @@ load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_depe
 
 go_rules_dependencies()
 
-go_register_toolchains(version = "1.18.4")
+go_register_toolchains(version = "1.19.1")
 
 http_archive(
     name = "bazel_federation",
@@ -55,11 +55,11 @@ rules_cc_internal_setup()
 
 http_archive(
     name = "com_google_googletest",
-    sha256 = "9dc9157a9a1551ec7a7e43daea9a694a0bb5fb8bec81235d8a1e6ef64c716dcb",
-    strip_prefix = "googletest-release-1.10.0",
+    sha256 = "81964fe578e9bd7c94dfdb09c8e4d6e6759e19967e397dbea48d1c10e45d0df2",
+    strip_prefix = "googletest-release-1.12.1",
     urls = [
-        "https://mirror.bazel.build/github.com/google/googletest/archive/release-1.10.0.tar.gz",
-        "https://github.com/google/googletest/archive/release-1.10.0.tar.gz",
+        "https://mirror.bazel.build/github.com/google/googletest/archive/refs/tags/release-1.12.1.tar.gz",
+        "https://github.com/google/googletest/archive/refs/tags/release-1.12.1.tar.gz",
     ],
 )
 
