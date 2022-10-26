@@ -1137,6 +1137,13 @@ def _impl(ctx):
 
     fastbuild_feature = feature(name = "fastbuild")
 
+    cpp_standard_feature = feature(
+        name = "cpp_standard,
+        flag_sets = [
+        ],
+    )
+    c_standard_feature = feature(name = "c_standard)
+
     features = None
     if (ctx.attr.cpu == "x64_windows" and ctx.attr.compiler == "windows_msys64"):
         features = [
