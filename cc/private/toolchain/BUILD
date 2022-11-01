@@ -81,11 +81,6 @@ filegroup(
 )
 
 filegroup(
-    name = "osx_wrapper",
-    srcs = ["osx_cc_wrapper.sh"],
-)
-
-filegroup(
     name = "link_dynamic_library",
     srcs = ["link_dynamic_library.sh"],
 )
