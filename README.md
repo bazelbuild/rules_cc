@@ -20,8 +20,8 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "rules_cc",
-    urls = ["https://github.com/bazelbuild/rules_cc/archive/TODO"],
-    sha256 = "TODO",
+    urls = ["https://github.com/bazelbuild/rules_cc/archive/refs/tags/<VERSION>.tar.gz"],
+    sha256 = "...",
 )
 ```
 
