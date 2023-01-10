@@ -1,4 +1,4 @@
-load("//cc:defs.bzl", "cc_library", "cc_test")
+load("//third_party/bazel_rules/rules_cc/cc:defs.bzl", "cc_library", "cc_test")
 
 licenses(["notice"])
 
