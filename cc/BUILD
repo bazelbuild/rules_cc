@@ -20,6 +20,7 @@ filegroup(
     name = "all_files_for_testing",
     srcs = glob(["**"]) + [
         "//cc/private/rules_impl:srcs",
+        "//cc/private/toolchain:srcs",
     ],
 )
 
@@ -51,6 +52,7 @@ filegroup(
         "**/*.bzl",
     ]) + [
         "//cc/private/rules_impl:bzl_srcs",
+        "//cc/private/toolchain:bzl_srcs",
     ],
     visibility = ["//visibility:public"],
 )
@@ -62,6 +64,7 @@ filegroup(
         "**/BUILD",
     ]) + [
         "//cc/private/rules_impl:srcs",
+        "//cc/private/toolchain:srcs",
     ],
     visibility = ["//visibility:public"],
 )

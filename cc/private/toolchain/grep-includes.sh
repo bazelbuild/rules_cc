@@ -1,3 +1,5 @@
+#!/bin/bash
+#
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,14 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Module extension for cc auto configuration."""
-
-load("@bazel_tools//tools/osx:xcode_configure.bzl", "xcode_configure")
-load("//cc/private/toolchain:cc_configure.bzl", "cc_autoconf", "cc_autoconf_toolchains")
-
-def _cc_configure_impl(_):
-    cc_autoconf_toolchains(name = "local_config_cc_toolchains")
-    cc_autoconf(name = "local_config_cc")
-    xcode_configure("@bazel_tools//tools/osx:xcode_locator.m")
-
-cc_configure = module_extension(implementation = _cc_configure_impl)
+#
+# TODO(bazel-team): Support include scanning and grep-includes in Bazel
+echo "grep-includes is not supported by Bazel"
+exit 1
