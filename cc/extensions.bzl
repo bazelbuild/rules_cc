@@ -13,8 +13,8 @@
 # limitations under the License.
 """Module extension for cc auto configuration."""
 
+load("@bazel_tools//tools/cpp:cc_configure.bzl", "cc_autoconf", "cc_autoconf_toolchains")
 load("@bazel_tools//tools/osx:xcode_configure.bzl", "xcode_configure")
-load("//cc/private/toolchain:cc_configure.bzl", "cc_autoconf", "cc_autoconf_toolchains")
 
 def _cc_configure_impl(_):
     cc_autoconf_toolchains(name = "local_config_cc_toolchains")
