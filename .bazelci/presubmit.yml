@@ -35,11 +35,17 @@ buildifier:
   warnings: "all"
 
 tasks:
-  ubuntu1604:
-    <<: *common
   ubuntu1804:
     <<: *common
   macos:
     <<: *common
   windows:
     <<: *common
+  ubuntu_bzlmod:
+    name: Bzlmod
+    platform: ubuntu1804
+    build_flags:
+      - "--enable_bzlmod"
+      - "--ignore_dev_dependency"
+    build_targets:
+      - "//cc/..."
