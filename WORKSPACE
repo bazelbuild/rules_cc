@@ -23,10 +23,10 @@ http_archive(
 
 http_archive(
     name = "io_abseil_py",
-    sha256 = "c0bf3e839b7b1c58ac75e41f72a708597087a6c7dd0582aec4914e0d98ec8b04",
-    strip_prefix = "abseil-py-1.3.0",
+    sha256 = "0fb3a4916a157eb48124ef309231cecdfdd96ff54adf1660b39c0d4a9790a2c0",
+    strip_prefix = "abseil-py-1.4.0",
     urls = [
-        "https://github.com/abseil/abseil-py/archive/refs/tags/v1.3.0.tar.gz",
+        "https://github.com/abseil/abseil-py/archive/refs/tags/v1.4.0.tar.gz",
     ],
 )
 
