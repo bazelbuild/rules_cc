@@ -7,11 +7,11 @@ def rules_cc_dependencies():
     maybe(
         http_archive,
         name = "bazel_skylib",
-        sha256 = "2ea8a5ed2b448baf4a6855d3ce049c4c452a6470b1efd1504fdb7c1c134d220a",
-        strip_prefix = "bazel-skylib-0.8.0",
+        sha256 = "3b620033ca48fcd6f5ef2ac85e0f6ec5639605fa2f627968490e52fc91a9932f",
+        strip_prefix = "bazel-skylib-1.3.0",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/archive/0.8.0.tar.gz",
-            "https://github.com/bazelbuild/bazel-skylib/archive/0.8.0.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/archive/1.3.0.tar.gz",
+            "https://github.com/bazelbuild/bazel-skylib/archive/1.3.0.tar.gz",
         ],
     )
 
