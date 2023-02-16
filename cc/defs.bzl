@@ -20,11 +20,30 @@ load("//cc/private/rules_impl:native.bzl", "NativeCcInfo", "NativeCcToolchainCon
 
 _MIGRATION_TAG = "__CC_RULES_MIGRATION_DO_NOT_USE_WILL_BREAK__"
 
-def _add_tags(attrs):
+# TODO(bazel-team): To avoid breaking changes, if the below are no longer
+# forwarding to native rules, flag @bazel_tools@bazel_tools//tools/cpp:link_extra_libs
+# should either: (a) alias the flag @rules_cc//:link_extra_libs, or (b) be
+# added as a dependency to @rules_cc//:link_extra_lib. The intermediate library
+# @bazel_tools@bazel_tools//tools/cpp:link_extra_lib should either be added as a dependency
+# to @rules_cc//:link_extra_lib, or removed entirely (if possible).
+_LINK_EXTRA_LIB = "@rules_cc//:link_extra_lib"  # copybara-use-repo-external-label
+
+def _add_tags(attrs, is_binary = False):
     if "tags" in attrs and attrs["tags"] != None:
         attrs["tags"] = attrs["tags"] + [_MIGRATION_TAG]
     else:
         attrs["tags"] = [_MIGRATION_TAG]
+
+    if is_binary:
+        is_library = "linkshared" in attrs and attrs["linkshared"]
+
+        # Executable builds also include the "link_extra_lib" library.
+        if not is_library:
+            if "deps" in attrs and attrs["deps"] != None:
+                attrs["deps"] = attrs["deps"] + [_LINK_EXTRA_LIB]
+            else:
+                attrs["deps"] = [_LINK_EXTRA_LIB]
+
     return attrs
 
 def cc_binary(**attrs):
@@ -37,7 +56,7 @@ def cc_binary(**attrs):
     """
 
     # buildifier: disable=native-cc
-    native.cc_binary(**_add_tags(attrs))
+    native.cc_binary(**_add_tags(attrs, True))
 
 def cc_test(**attrs):
     """Bazel cc_test rule.
@@ -49,7 +68,7 @@ def cc_test(**attrs):
     """
 
     # buildifier: disable=native-cc
-    native.cc_test(**_add_tags(attrs))
+    native.cc_test(**_add_tags(attrs, True))
 
 def cc_library(**attrs):
     """Bazel cc_library rule.
