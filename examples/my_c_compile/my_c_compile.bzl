@@ -76,6 +76,6 @@ my_c_compile = rule(
         "src": attr.label(mandatory = True, allow_single_file = True),
         "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
     },
-    toolchains = use_cpp_toolchain(),  # copybara-use-repo-external-label
+    toolchains = use_cpp_toolchain(),
     fragments = ["cpp"],
 )

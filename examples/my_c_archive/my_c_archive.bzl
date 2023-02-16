@@ -95,5 +95,5 @@ my_c_archive = rule(
         "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
     },
     fragments = ["cpp"],
-    toolchains = use_cpp_toolchain(),  # copybara-use-repo-external-label
+    toolchains = use_cpp_toolchain(),
 )

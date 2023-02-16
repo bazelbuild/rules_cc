@@ -28,5 +28,5 @@ write_cc_toolchain_cpu = rule(
     attrs = {
         "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
     },
-    toolchains = use_cpp_toolchain(),  # copybara-use-repo-external-label
+    toolchains = use_cpp_toolchain(),
 )
