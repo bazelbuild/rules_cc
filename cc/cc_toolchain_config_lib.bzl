@@ -186,7 +186,7 @@ def env_set(actions, env_entries = [], with_features = []):
     _check_same_type(env_entries, [], "env_entries", "env_set")
     _check_same_type(with_features, [], "with_features", "env_set")
     return EnvSetInfo(
-        actions = sorted(actions),
+        actions = actions,
         env_entries = env_entries,
         with_features = with_features,
         type_name = "env_set",
@@ -348,7 +348,7 @@ def flag_set(
     _check_same_type(with_features, [], "with_features", "flag_set")
     _check_same_type(flag_groups, [], "flag_groups", "flag_set")
     return FlagSetInfo(
-        actions = sorted(actions),
+        actions = actions,
         with_features = with_features,
         flag_groups = flag_groups,
         type_name = "flag_set",
