@@ -82,6 +82,4 @@ filegroup(
 
 cc_toolchain_alias(name = "current_cc_toolchain")
 
-cc_host_toolchain_alias(name = "current_cc_host_toolchain")
-
 cc_libc_top_alias(name = "current_libc_top")
