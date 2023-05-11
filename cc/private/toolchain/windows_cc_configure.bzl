@@ -205,7 +205,7 @@ def _find_vc_path(repository_ctx):
             "Microsoft Visual Studio\\{vs_year}\\BuildTools\\VC".format(vs_year = vs_year),
             "Microsoft Visual Studio\\{vs_year}\\Community\\VC".format(vs_year = vs_year),
             "Microsoft Visual Studio\\{vs_year}\\Professional\\VC".format(vs_year = vs_year),
-            "Microsoft Visual Studio\\{vs_year}\\Enterprise\\VC.format(vs_year = vs_year)"
+            "Microsoft Visual Studio\\{vs_year}\\Enterprise\\VC".format(vs_year = vs_year)
         ])
     all_vc_locations.append("Microsoft Visual Studio 14.0\\VC")
     for path in all_vc_locations:
