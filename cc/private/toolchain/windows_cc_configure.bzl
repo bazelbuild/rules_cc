@@ -198,18 +198,17 @@ def _find_vc_path(repository_ctx):
             repository_ctx,
             "'PROGRAMFILES(X86)' environment variable is not set, using '%s' as default" % program_files_dir,
         )
-    for path in [
-        "Microsoft Visual Studio\\2019\\Preview\\VC",
-        "Microsoft Visual Studio\\2019\\BuildTools\\VC",
-        "Microsoft Visual Studio\\2019\\Community\\VC",
-        "Microsoft Visual Studio\\2019\\Professional\\VC",
-        "Microsoft Visual Studio\\2019\\Enterprise\\VC",
-        "Microsoft Visual Studio\\2017\\BuildTools\\VC",
-        "Microsoft Visual Studio\\2017\\Community\\VC",
-        "Microsoft Visual Studio\\2017\\Professional\\VC",
-        "Microsoft Visual Studio\\2017\\Enterprise\\VC",
-        "Microsoft Visual Studio 14.0\\VC",
-    ]:
+    all_vc_locations = []
+    for vs_year in ["2022", "2019", "2017"]:
+        all_vc_locations.extend([
+            "Microsoft Visual Studio\\{vs_year}\\Preview\\VC".format(vs_year = vs_year),
+            "Microsoft Visual Studio\\{vs_year}\\BuildTools\\VC".format(vs_year = vs_year),
+            "Microsoft Visual Studio\\{vs_year}\\Community\\VC".format(vs_year = vs_year),
+            "Microsoft Visual Studio\\{vs_year}\\Professional\\VC".format(vs_year = vs_year),
+            "Microsoft Visual Studio\\{vs_year}\\Enterprise\\VC.format(vs_year = vs_year)"
+        ])
+    all_vc_locations.append("Microsoft Visual Studio 14.0\\VC")
+    for path in all_vc_locations:
         path = program_files_dir + "\\" + path
         if repository_ctx.path(path).exists:
             vc_dir = path
