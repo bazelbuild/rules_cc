@@ -45,10 +45,10 @@ def _check_is_nonempty_list(obj, parameter_name, method_name):
 
 EnvEntryInfo = provider(
     "A key/value pair to be added as an environment variable.",
-    fields = ["key", "value", "type_name"],
+    fields = ["key", "value", "expand_if_available", "type_name"],
 )
 
-def env_entry(key, value):
+def env_entry(key, value, expand_if_available = None):
     """ A key/value pair to be added as an environment variable.
 
     The returned EnvEntry provider finds its use in EnvSet creation through
@@ -60,13 +60,21 @@ def env_entry(key, value):
     Args:
         key: a string literal representing the name of the variable.
         value: the value to be expanded.
+        expand_if_available: A build variable that needs to be available
+            in order to expand the env_entry.
 
     Returns:
         An EnvEntryInfo provider.
     """
     _check_is_nonempty_string(key, "key", "env_entry")
     _check_is_nonempty_string(value, "value", "env_entry")
-    return EnvEntryInfo(key = key, value = value, type_name = "env_entry")
+    _check_is_none_or_right_type(expand_if_available, "string", "expand_if_available", "env_entry")
+    return EnvEntryInfo(
+        key = key,
+        value = value,
+        expand_if_available = expand_if_available,
+        type_name = "env_entry",
+    )
 
 VariableWithValueInfo = provider(
     "Represents equality check between a variable and a certain value.",
