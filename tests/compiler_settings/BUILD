@@ -21,11 +21,12 @@ cc_binary(
     srcs = ["main.cc"],
     local_defines = select(
         {
-            "//cc/compiler:clang": ["COMPILER=clang"],
             "//cc/compiler:clang-cl": ["COMPILER=clang-cl"],
+            "//cc/compiler:clang": ["COMPILER=clang"],
             "//cc/compiler:gcc": ["COMPILER=gcc"],
             "//cc/compiler:mingw-gcc": ["COMPILER=mingw-gcc"],
             "//cc/compiler:msvc-cl": ["COMPILER=msvc-cl"],
+            "//conditions:default": [],
         },
         no_match_error = "Compiler not detected by Bazel",
     ),

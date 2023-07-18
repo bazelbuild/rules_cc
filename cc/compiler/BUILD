@@ -43,7 +43,7 @@ simplified by extracting the select expression into a Starlark constant.
 
 package(default_visibility = ["//visibility:public"])
 
-licenses(["notice"])  # Apache 2.0
+licenses(["notice"])
 
 config_setting(
     name = "clang",
