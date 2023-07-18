@@ -7,4 +7,7 @@ sh_test(
         "//cc:system_library.bzl",
         "@bazel_tools//tools/bash/runfiles",
     ],
+    target_compatible_with = [
+        "@platforms//os:linux",
+    ],
 )
