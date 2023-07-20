@@ -3,7 +3,7 @@
 * Postsubmit [![Build status](https://badge.buildkite.com/f03592ae2d7d25a2abc2a2ba776e704823fa17fd3e061f5103.svg?branch=main)](https://buildkite.com/bazel/rules-cc)
 * Postsubmit + Current Bazel Incompatible flags [![Build status](https://badge.buildkite.com/5ba709cc33e5855078a1f8570adcf8e0a78ea93591bc0b4e81.svg?branch=master)](https://buildkite.com/bazel/rules-cc-plus-bazelisk-migrate)
 
-This repository contains Starlark implementation of C++ rules in Bazel.
+This repository contains a Starlark implementation of C++ rules in Bazel.
 
 The rules are being incrementally converted from their native implementations in the [Bazel source tree](https://source.bazel.build/bazel/+/master:src/main/java/com/google/devtools/build/lib/rules/cpp/).
 
@@ -37,7 +37,16 @@ cc_library(
 
 # Using the rules_cc toolchain
 
-If you'd like to use the cc toolchain defined in this repo add this to
+This repo contains an auto-detecting toolchain that expects to find tools installed on your host machine.
+This is non-hermetic, and may have varying behaviors depending on the versions of tools found.
+
+There are third-party contributed hermetic toolchains you may want to investigate:
+
+- LLVM: <https://github.com/grailbio/bazel-toolchain>
+- GCC (Linux only): <https://github.com/aspect-build/gcc-toolchain>
+- zig cc: <https://github.com/uber/hermetic_cc_toolchain>
+
+If you'd like to use the cc toolchain defined in this repo, add this to
 your WORKSPACE after you include rules_cc:
 
 ```bzl
