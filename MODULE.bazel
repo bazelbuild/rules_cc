@@ -4,7 +4,7 @@ module(
     compatibility_level = 1,
 )
 
-bazel_dep(name = "platforms", version = "0.0.6")
+bazel_dep(name = "platforms", version = "0.0.7")
 
 cc_configure = use_extension("@rules_cc//cc:extensions.bzl", "cc_configure")
 use_repo(cc_configure, "local_config_cc_toolchains")
