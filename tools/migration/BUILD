@@ -16,8 +16,6 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 # Go rules
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
-
-# Python rules
 load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 
 package(default_visibility = ["//visibility:public"])
