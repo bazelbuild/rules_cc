@@ -16,6 +16,7 @@ load("//examples/my_c_compile:my_c_compile.bzl", "my_c_compile")
 # limitations under the License.
 
 # Example showing how to create a custom Starlark rule that just compiles C sources
+
 licenses(["notice"])
 
 my_c_compile(

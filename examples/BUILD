@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# A collection of examples showing the usage of rules_cc
+
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 
-# A collection of examples showing the usage of rules_cc
 licenses(["notice"])
 
 bool_flag(
