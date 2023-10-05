@@ -67,11 +67,11 @@ http_archive(
 
 http_archive(
     name = "rules_proto",
-    sha256 = "9a0503631679e9ab4e27d891ea60fee3e86a85654ea2048cae25516171dd260e",
-    strip_prefix = "rules_proto-e51f588e5932966ab9e63e0b0f6de6f740cf04c4",
+    sha256 = "03ee6ce4ee3c828cf88e0e6cb02d1c4c92d5d36fef45120b20a07ace9f86d2a1",
+    strip_prefix = "rules_proto-34a8208267ae0a83e142e9a1b6a68fdf00c2a21e",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_proto/archive/e51f588e5932966ab9e63e0b0f6de6f740cf04c4.tar.gz",
-        "https://github.com/bazelbuild/rules_proto/archive/e51f588e5932966ab9e63e0b0f6de6f740cf04c4.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_proto/archive/34a8208267ae0a83e142e9a1b6a68fdf00c2a21e.tar.gz",
+        "https://github.com/bazelbuild/rules_proto/archive/34a8208267ae0a83e142e9a1b6a68fdf00c2a21e.tar.gz",
     ],
 )
 
