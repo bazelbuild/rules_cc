@@ -27,9 +27,9 @@ py_binary(
     deps = [
         ":legacy_fields_migration_lib",
         "//third_party/com/github/bazelbuild/bazel/src/main/protobuf:crosstool_config_py_pb2",
-        "//third_party/py/google/protobuf:use_fast_cpp_protos",
         "@io_abseil_py//absl:app",
         "@io_abseil_py//absl/flags",
+        #internal proto upb dep,
     ],
 )
 
@@ -57,9 +57,9 @@ py_binary(
     python_version = "PY3",
     deps = [
         "//third_party/com/github/bazelbuild/bazel/src/main/protobuf:crosstool_config_py_pb2",
-        "//third_party/py/google/protobuf:use_fast_cpp_protos",
         "@io_abseil_py//absl:app",
         "@io_abseil_py//absl/flags",
+        #internal proto upb dep,
     ],
 )
 
@@ -70,9 +70,9 @@ py_binary(
     deps = [
         ":ctoolchain_comparator_lib",
         "//third_party/com/github/bazelbuild/bazel/src/main/protobuf:crosstool_config_py_pb2",
-        "//third_party/py/google/protobuf:use_fast_cpp_protos",
         "@io_abseil_py//absl:app",
         "@io_abseil_py//absl/flags",
+        #internal proto upb dep,
     ],
 )
 

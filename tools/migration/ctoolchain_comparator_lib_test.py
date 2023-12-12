@@ -17,7 +17,7 @@ from google.protobuf import text_format
 from third_party.com.github.bazelbuild.bazel.src.main.protobuf import crosstool_config_pb2
 from tools.migration.ctoolchain_comparator_lib import compare_ctoolchains
 
-from py import mock
+from py from py import mock
 try:
   # Python 2
   from cStringIO import StringIO
