@@ -13,11 +13,13 @@
 # limitations under the License.
 
 import unittest
+
+from py import mock
+
 from google.protobuf import text_format
 from third_party.com.github.bazelbuild.bazel.src.main.protobuf import crosstool_config_pb2
 from tools.migration.ctoolchain_comparator_lib import compare_ctoolchains
 
-from py from py import mock
 try:
   # Python 2
   from cStringIO import StringIO
@@ -60,34 +62,53 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     error_toolchain_identifier = (
         "Difference in 'toolchain_identifier' field:\n"
         "Value before change:\t'first-id'\n"
-        "Value after change:\t'second-id'\n")
-    error_host_system_name = ("Difference in 'host_system_name' field:\n"
-                              "Value before change:\t'first-host'\n"
-                              "Value after change:\t'second-host'\n")
-    error_target_system_name = ("Difference in 'target_system_name' field:\n"
-                                "Value before change:\t'first-target'\n"
-                                "Value after change:\t'second-target'\n")
-    error_target_cpu = ("Difference in 'target_cpu' field:\n"
-                        "Value before change:\t'first-cpu'\n"
-                        "Value after change:\t'second-cpu'\n")
-    error_target_libc = ("Difference in 'target_libc' field:\n"
-                         "Value before change:\t'first-libc'\n"
-                         "Value after change:\t'second-libc'\n")
-    error_compiler = ("Difference in 'compiler' field:\n"
-                      "Value before change:\t'first-compiler'\n"
-                      "Value after change:\t'second-compiler'\n")
-    error_abi_version = ("Difference in 'abi_version' field:\n"
-                         "Value before change:\t'first-abi'\n"
-                         "Value after change:\t'second-abi'\n")
-    error_abi_libc_version = ("Difference in 'abi_libc_version' field:\n"
-                              "Value before change:\t'first-abi-libc'\n"
-                              "Value after change:\t'second-abi-libc'\n")
-    error_builtin_sysroot = ("Difference in 'builtin_sysroot' field:\n"
-                             "Value before change is set to 'sysroot'\n"
-                             "Value after change is not set\n")
-    error_cc_target_os = ("Difference in 'cc_target_os' field:\n"
-                          "Value before change is not set\n"
-                          "Value after change is set to 'os'\n")
+        "Value after change:\t'second-id'\n"
+    )
+    error_host_system_name = (
+        "Difference in 'host_system_name' field:\n"
+        "Value before change:\t'first-host'\n"
+        "Value after change:\t'second-host'\n"
+    )
+    error_target_system_name = (
+        "Difference in 'target_system_name' field:\n"
+        "Value before change:\t'first-target'\n"
+        "Value after change:\t'second-target'\n"
+    )
+    error_target_cpu = (
+        "Difference in 'target_cpu' field:\n"
+        "Value before change:\t'first-cpu'\n"
+        "Value after change:\t'second-cpu'\n"
+    )
+    error_target_libc = (
+        "Difference in 'target_libc' field:\n"
+        "Value before change:\t'first-libc'\n"
+        "Value after change:\t'second-libc'\n"
+    )
+    error_compiler = (
+        "Difference in 'compiler' field:\n"
+        "Value before change:\t'first-compiler'\n"
+        "Value after change:\t'second-compiler'\n"
+    )
+    error_abi_version = (
+        "Difference in 'abi_version' field:\n"
+        "Value before change:\t'first-abi'\n"
+        "Value after change:\t'second-abi'\n"
+    )
+    error_abi_libc_version = (
+        "Difference in 'abi_libc_version' field:\n"
+        "Value before change:\t'first-abi-libc'\n"
+        "Value after change:\t'second-abi-libc'\n"
+    )
+    error_builtin_sysroot = (
+        "Difference in 'builtin_sysroot' field:\n"
+        "Value before change is set to 'sysroot'\n"
+        "Value after change is not set\n"
+    )
+    error_cc_target_os = (
+        "Difference in 'cc_target_os' field:\n"
+        "Value before change is not set\n"
+        "Value after change is set to 'os'\n"
+    )
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
@@ -127,20 +148,26 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
           path: "/a/b/c"
         }
     """)
-    error_only_first = ("* List before change contains entries for the "
-                        "following tools that the list after the change "
-                        "doesn't:\n[only_first]\n")
-    error_only_second = ("* List after change contains entries for the "
-                         "following tools that the list before the change "
-                         "doesn't:\n"
-                         "[\n"
-                         "\tonly_second_1\n"
-                         "\tonly_second_2\n"
-                         "]\n")
-    error_paths_differ = ("* Path for tool 'paths_differ' differs before and "
-                          "after the change:\n"
-                          "Value before change:\t'/path/first'\n"
-                          "Value after change:\t'/path/second'\n")
+    error_only_first = (
+        "* List before change contains entries for the "
+        "following tools that the list after the change "
+        "doesn't:\n[only_first]\n"
+    )
+    error_only_second = (
+        "* List after change contains entries for the "
+        "following tools that the list before the change "
+        "doesn't:\n"
+        "[\n"
+        "\tonly_second_1\n"
+        "\tonly_second_2\n"
+        "]\n"
+    )
+    error_paths_differ = (
+        "* Path for tool 'paths_differ' differs before and "
+        "after the change:\n"
+        "Value before change:\t'/path/first'\n"
+        "Value after change:\t'/path/second'\n"
+    )
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
@@ -173,20 +200,26 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
           value: "val"
         }
     """)
-    error_only_first = ("* List before change contains entries for the "
-                        "following variables that the list after the "
-                        "change doesn't:\n[only_first]\n")
-    error_only_second = ("* List after change contains entries for the "
-                         "following variables that the list before the "
-                         "change doesn't:\n"
-                         "[\n"
-                         "\tonly_second_1\n"
-                         "\tonly_second_2\n"
-                         "]\n")
-    error_value_differs = ("* Value for variable 'value_differs' differs before"
-                           " and after the change:\n"
-                           "Value before change:\t'first_value'\n"
-                           "Value after change:\t'second_value'\n")
+    error_only_first = (
+        "* List before change contains entries for the "
+        "following variables that the list after the "
+        "change doesn't:\n[only_first]\n"
+    )
+    error_only_second = (
+        "* List after change contains entries for the "
+        "following variables that the list before the "
+        "change doesn't:\n"
+        "[\n"
+        "\tonly_second_1\n"
+        "\tonly_second_2\n"
+        "]\n"
+    )
+    error_value_differs = (
+        "* Value for variable 'value_differs' differs before"
+        " and after the change:\n"
+        "Value before change:\t'first_value'\n"
+        "Value after change:\t'second_value'\n"
+    )
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
@@ -203,17 +236,19 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
         cxx_builtin_include_directory: "d/e/f"
         cxx_builtin_include_directory: "a/b/c"
     """)
-    expect_error = ("Difference in 'cxx_builtin_include_directory' field:\n"
-                    "List of elements before change:\n"
-                    "[\n"
-                    "\ta/b/c\n"
-                    "\td/e/f\n"
-                    "]\n"
-                    "List of elements after change:\n"
-                    "[\n"
-                    "\td/e/f\n"
-                    "\ta/b/c\n"
-                    "]\n")
+    expect_error = (
+        "Difference in 'cxx_builtin_include_directory' field:\n"
+        "List of elements before change:\n"
+        "[\n"
+        "\ta/b/c\n"
+        "\td/e/f\n"
+        "]\n"
+        "List of elements after change:\n"
+        "[\n"
+        "\td/e/f\n"
+        "\ta/b/c\n"
+        "]\n"
+    )
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
@@ -259,32 +294,40 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
           extension: '.if.lib'
         }
     """)
-    error_only_first = ("* List before change contains entries for the "
-                        "following categories that the list after the "
-                        "change doesn't:\n[dynamic_library]\n")
-    error_only_second = ("* List after change contains entries for the "
-                         "following categories that the list before the "
-                         "change doesn't:\n"
-                         "[\n"
-                         "\tinterface_library\n"
-                         "\tstatic_library\n"
-                         "]\n")
-    error_extension_differs = ("* Value for category 'object_file' differs "
-                               "before and after the change:\n"
-                               "Value before change:"
-                               "\tprefix:''"
-                               "\textension:'.obj1'\n"
-                               "Value after change:"
-                               "\tprefix:''"
-                               "\textension:'.obj2'\n")
-    error_prefix_differs = ("* Value for category 'executable' differs "
-                            "before and after the change:\n"
-                            "Value before change:"
-                            "\tprefix:'first'"
-                            "\textension:'.exe'\n"
-                            "Value after change:"
-                            "\tprefix:'second'"
-                            "\textension:'.exe'\n")
+    error_only_first = (
+        "* List before change contains entries for the "
+        "following categories that the list after the "
+        "change doesn't:\n[dynamic_library]\n"
+    )
+    error_only_second = (
+        "* List after change contains entries for the "
+        "following categories that the list before the "
+        "change doesn't:\n"
+        "[\n"
+        "\tinterface_library\n"
+        "\tstatic_library\n"
+        "]\n"
+    )
+    error_extension_differs = (
+        "* Value for category 'object_file' differs "
+        "before and after the change:\n"
+        "Value before change:"
+        "\tprefix:''"
+        "\textension:'.obj1'\n"
+        "Value after change:"
+        "\tprefix:''"
+        "\textension:'.obj2'\n"
+    )
+    error_prefix_differs = (
+        "* Value for category 'executable' differs "
+        "before and after the change:\n"
+        "Value before change:"
+        "\tprefix:'first'"
+        "\textension:'.exe'\n"
+        "Value after change:"
+        "\tprefix:'second'"
+        "\textension:'.exe'\n"
+    )
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
@@ -326,12 +369,16 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
           name: 'feature2'
         }
     """)
-    error_only_first = ("* List before change contains entries for the "
-                        "following features that the list after the "
-                        "change doesn't:\n[feature1]\n")
-    error_only_second = ("* List after change contains entries for the "
-                         "following features that the list before the "
-                         "change doesn't:\n[feature2]\n")
+    error_only_first = (
+        "* List before change contains entries for the "
+        "following features that the list after the "
+        "change doesn't:\n[feature1]\n"
+    )
+    error_only_second = (
+        "* List after change contains entries for the "
+        "following features that the list before the "
+        "change doesn't:\n[feature2]\n"
+    )
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
@@ -354,8 +401,9 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
-      self.assertIn("* Feature 'feature' differs before and after",
-                    mock_stdout.getvalue())
+      self.assertIn(
+          "* Feature 'feature' differs before and after", mock_stdout.getvalue()
+      )
 
   def test_feature_provides(self):
     first = make_toolchain("""
@@ -373,8 +421,10 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
-      self.assertIn("* Feature 'feature' differs before and after the change:",
-                    mock_stdout.getvalue())
+      self.assertIn(
+          "* Feature 'feature' differs before and after the change:",
+          mock_stdout.getvalue(),
+      )
 
   def test_feature_provides_preserves_order(self):
     first = make_toolchain("""
@@ -394,8 +444,10 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
-      self.assertIn("* Feature 'feature' differs before and after the change:",
-                    mock_stdout.getvalue())
+      self.assertIn(
+          "* Feature 'feature' differs before and after the change:",
+          mock_stdout.getvalue(),
+      )
 
   def test_feature_implies(self):
     first = make_toolchain("""
@@ -412,8 +464,10 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
-      self.assertIn("* Feature 'feature' differs before and after the change:",
-                    mock_stdout.getvalue())
+      self.assertIn(
+          "* Feature 'feature' differs before and after the change:",
+          mock_stdout.getvalue(),
+      )
 
   def test_feature_implies_preserves_order(self):
     first = make_toolchain("""
@@ -433,8 +487,10 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
-      self.assertIn("* Feature 'feature' differs before and after the change:",
-                    mock_stdout.getvalue())
+      self.assertIn(
+          "* Feature 'feature' differs before and after the change:",
+          mock_stdout.getvalue(),
+      )
 
   def test_feature_requires_preserves_list_order(self):
     first = make_toolchain("""
@@ -462,8 +518,10 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
-      self.assertIn("* Feature 'feature' differs before and after the change:",
-                    mock_stdout.getvalue())
+      self.assertIn(
+          "* Feature 'feature' differs before and after the change:",
+          mock_stdout.getvalue(),
+      )
 
   def test_feature_requires_ignores_required_features_order(self):
     first = make_toolchain("""
@@ -509,8 +567,10 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
-      self.assertIn("* Feature 'feature' differs before and after the change:",
-                    mock_stdout.getvalue())
+      self.assertIn(
+          "* Feature 'feature' differs before and after the change:",
+          mock_stdout.getvalue(),
+      )
 
   def test_action_config_ignores_requires(self):
     first = make_toolchain("""
@@ -555,8 +615,10 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
-      self.assertIn("* Feature 'feature' differs before and after the change:",
-                    mock_stdout.getvalue())
+      self.assertIn(
+          "* Feature 'feature' differs before and after the change:",
+          mock_stdout.getvalue(),
+      )
 
   def test_env_set_ignores_actions_order(self):
     first = make_toolchain("""
@@ -616,8 +678,10 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
-      self.assertIn("* Feature 'feature' differs before and after the change:",
-                    mock_stdout.getvalue())
+      self.assertIn(
+          "* Feature 'feature' differs before and after the change:",
+          mock_stdout.getvalue(),
+      )
 
   def test_env_set_env_entries_differ(self):
     first = make_toolchain("""
@@ -645,8 +709,10 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
-      self.assertIn("* Feature 'feature' differs before and after the change:",
-                    mock_stdout.getvalue())
+      self.assertIn(
+          "* Feature 'feature' differs before and after the change:",
+          mock_stdout.getvalue(),
+      )
 
   def test_feature_preserves_env_set_order(self):
     first = make_toolchain("""
@@ -686,8 +752,10 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
-      self.assertIn("* Feature 'feature' differs before and after the change:",
-                    mock_stdout.getvalue())
+      self.assertIn(
+          "* Feature 'feature' differs before and after the change:",
+          mock_stdout.getvalue(),
+      )
 
   def test_action_config_ignores_env_set(self):
     first = make_toolchain("""
@@ -987,10 +1055,13 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
-      self.assertIn("* Feature 'feature' differs before and after",
-                    mock_stdout.getvalue())
-      self.assertIn("* Action config 'config' differs before and after",
-                    mock_stdout.getvalue())
+      self.assertIn(
+          "* Feature 'feature' differs before and after", mock_stdout.getvalue()
+      )
+      self.assertIn(
+          "* Action config 'config' differs before and after",
+          mock_stdout.getvalue(),
+      )
 
   def test_flag_group_preserves_flags_order(self):
     first = make_toolchain("""
@@ -1036,10 +1107,13 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
-      self.assertIn("* Feature 'feature' differs before and after",
-                    mock_stdout.getvalue())
-      self.assertIn("* Action config 'config' differs before and after",
-                    mock_stdout.getvalue())
+      self.assertIn(
+          "* Feature 'feature' differs before and after", mock_stdout.getvalue()
+      )
+      self.assertIn(
+          "* Action config 'config' differs before and after",
+          mock_stdout.getvalue(),
+      )
 
   def test_flag_group_iterate_over_differs(self):
     first = make_toolchain("""
@@ -1081,10 +1155,13 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
-      self.assertIn("* Feature 'feature' differs before and after",
-                    mock_stdout.getvalue())
-      self.assertIn("* Action config 'config' differs before and after",
-                    mock_stdout.getvalue())
+      self.assertIn(
+          "* Feature 'feature' differs before and after", mock_stdout.getvalue()
+      )
+      self.assertIn(
+          "* Action config 'config' differs before and after",
+          mock_stdout.getvalue(),
+      )
 
   def test_flag_group_expand_if_true_differs(self):
     first = make_toolchain("""
@@ -1126,10 +1203,13 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
-      self.assertIn("* Feature 'feature' differs before and after",
-                    mock_stdout.getvalue())
-      self.assertIn("* Action config 'config' differs before and after",
-                    mock_stdout.getvalue())
+      self.assertIn(
+          "* Feature 'feature' differs before and after", mock_stdout.getvalue()
+      )
+      self.assertIn(
+          "* Action config 'config' differs before and after",
+          mock_stdout.getvalue(),
+      )
 
   def test_flag_group_expand_if_false_differs(self):
     first = make_toolchain("""
@@ -1171,10 +1251,13 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
-      self.assertIn("* Feature 'feature' differs before and after",
-                    mock_stdout.getvalue())
-      self.assertIn("* Action config 'config' differs before and after",
-                    mock_stdout.getvalue())
+      self.assertIn(
+          "* Feature 'feature' differs before and after", mock_stdout.getvalue()
+      )
+      self.assertIn(
+          "* Action config 'config' differs before and after",
+          mock_stdout.getvalue(),
+      )
 
   def test_flag_group_expand_if_all_available_differs(self):
     first = make_toolchain("""
@@ -1216,10 +1299,13 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
-      self.assertIn("* Feature 'feature' differs before and after",
-                    mock_stdout.getvalue())
-      self.assertIn("* Action config 'config' differs before and after",
-                    mock_stdout.getvalue())
+      self.assertIn(
+          "* Feature 'feature' differs before and after", mock_stdout.getvalue()
+      )
+      self.assertIn(
+          "* Action config 'config' differs before and after",
+          mock_stdout.getvalue(),
+      )
 
   def test_flag_group_expand_if_none_available_differs(self):
     first = make_toolchain("""
@@ -1261,10 +1347,13 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
-      self.assertIn("* Feature 'feature' differs before and after",
-                    mock_stdout.getvalue())
-      self.assertIn("* Action config 'config' differs before and after",
-                    mock_stdout.getvalue())
+      self.assertIn(
+          "* Feature 'feature' differs before and after", mock_stdout.getvalue()
+      )
+      self.assertIn(
+          "* Action config 'config' differs before and after",
+          mock_stdout.getvalue(),
+      )
 
   def test_flag_group_expand_if_all_available_ignores_order(self):
     first = make_toolchain("""
@@ -1410,10 +1499,13 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
-      self.assertIn("* Feature 'feature' differs before and after",
-                    mock_stdout.getvalue())
-      self.assertIn("* Action config 'config' differs before and after",
-                    mock_stdout.getvalue())
+      self.assertIn(
+          "* Feature 'feature' differs before and after", mock_stdout.getvalue()
+      )
+      self.assertIn(
+          "* Action config 'config' differs before and after",
+          mock_stdout.getvalue(),
+      )
 
   def test_flag_group_flag_groups_differ(self):
     first = make_toolchain("""
@@ -1467,10 +1559,13 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
-      self.assertIn("* Feature 'feature' differs before and after",
-                    mock_stdout.getvalue())
-      self.assertIn("* Action config 'config' differs before and after",
-                    mock_stdout.getvalue())
+      self.assertIn(
+          "* Feature 'feature' differs before and after", mock_stdout.getvalue()
+      )
+      self.assertIn(
+          "* Action config 'config' differs before and after",
+          mock_stdout.getvalue(),
+      )
 
   def test_action_configs_not_ordered(self):
     first = make_toolchain("""
@@ -1505,12 +1600,16 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
           config_name: 'action2'
         }
     """)
-    error_only_first = ("* List before change contains entries for the "
-                        "following action_configs that the list after the "
-                        "change doesn't:\n[action1]\n")
-    error_only_second = ("* List after change contains entries for the "
-                         "following action_configs that the list before the "
-                         "change doesn't:\n[action2]\n")
+    error_only_first = (
+        "* List before change contains entries for the "
+        "following action_configs that the list after the "
+        "change doesn't:\n[action1]\n"
+    )
+    error_only_second = (
+        "* List after change contains entries for the "
+        "following action_configs that the list before the "
+        "change doesn't:\n[action2]\n"
+    )
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
@@ -1533,8 +1632,10 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
-      self.assertIn("* Action config 'config' differs before and after",
-                    mock_stdout.getvalue())
+      self.assertIn(
+          "* Action config 'config' differs before and after",
+          mock_stdout.getvalue(),
+      )
 
   def test_action_config_action_name(self):
     first = make_toolchain("""
@@ -1552,8 +1653,10 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
-      self.assertIn("* Action config 'config' differs before and after",
-                    mock_stdout.getvalue())
+      self.assertIn(
+          "* Action config 'config' differs before and after",
+          mock_stdout.getvalue(),
+      )
 
   def test_action_config_tool_tool_path_differs(self):
     first = make_toolchain("""
@@ -1575,8 +1678,10 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
-      self.assertIn("* Action config 'config' differs before and after",
-                    mock_stdout.getvalue())
+      self.assertIn(
+          "* Action config 'config' differs before and after",
+          mock_stdout.getvalue(),
+      )
 
   def test_action_config_tool_execution_requirements_differ(self):
     first = make_toolchain("""
@@ -1598,8 +1703,10 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
-      self.assertIn("* Action config 'config' differs before and after",
-                    mock_stdout.getvalue())
+      self.assertIn(
+          "* Action config 'config' differs before and after",
+          mock_stdout.getvalue(),
+      )
 
   def test_action_config_tool_execution_requirements_ignores_order(self):
     first = make_toolchain("""
@@ -1641,8 +1748,10 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
-      self.assertIn("* Action config 'config' differs before and after",
-                    mock_stdout.getvalue())
+      self.assertIn(
+          "* Action config 'config' differs before and after",
+          mock_stdout.getvalue(),
+      )
 
   def test_action_config_implies_preserves_order(self):
     first = make_toolchain("""
@@ -1662,8 +1771,10 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     mock_stdout = StringIO()
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
-      self.assertIn("* Action config 'config' differs before and after",
-                    mock_stdout.getvalue())
+      self.assertIn(
+          "* Action config 'config' differs before and after",
+          mock_stdout.getvalue(),
+      )
 
   def test_unused_tool_path(self):
     first = make_toolchain("""
@@ -1704,6 +1815,7 @@ class CtoolchainComparatorLibTest(unittest.TestCase):
     with mock.patch("sys.stdout", mock_stdout):
       compare_ctoolchains(first, second)
       self.assertIn("No difference", mock_stdout.getvalue())
+
 
 if __name__ == "__main__":
   unittest.main()
