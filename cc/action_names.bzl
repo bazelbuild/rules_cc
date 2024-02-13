@@ -13,6 +13,8 @@
 # limitations under the License.
 """Constants for action names used for C++ rules."""
 
+# Keep in sync with //cc/toolchains/actions:BUILD.
+
 # Name for the C compilation action.
 C_COMPILE_ACTION_NAME = "c-compile"
 
