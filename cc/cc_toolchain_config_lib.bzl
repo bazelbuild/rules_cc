@@ -492,7 +492,7 @@ def tool(path = None, with_features = [], execution_requirements = [], tool = No
         execution_requirements: Requirements on the execution environment for
             the execution of this tool, to be passed as out-of-band "hints" to
             the execution backend.
-            Ex. "requires-darwin"
+            Ex. "requires-mem:24g"
 
     Returns:
         A ToolInfo provider.
