@@ -17,7 +17,10 @@
 # that can access the providers directly.
 # Once it's stabilized, we *may* consider opening up parts of the API, or we may
 # decide to just require users to use the public user-facing rules.
-visibility("//third_party/bazel_rules/rules_cc/toolchains/...")
+visibility([
+    "//cc/toolchains/...",
+    "//tests/...",
+])
 
 # Note that throughout this file, we never use a list. This is because mutable
 # types cannot be stored in depsets. Thus, we type them as a sequence in the
@@ -120,12 +123,11 @@ ActionConfigInfo = provider(
     # @unsorted-dict-items
     fields = {
         "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
-        "action_name": "(str) The name of the action",
+        "action": "(ActionTypeInfo) The name of the action",
         "enabled": "(bool) If True, this action is enabled unless a rule type explicitly marks it as unsupported",
         "tools": "(Sequence[ToolInfo]) The tool applied to the action will be the first tool in the sequence with a feature set that matches the feature configuration",
-        "flag_sets": "(depset[FlagSetInfo]) Set of flag sets the action sets",
-        "implies_features": "(depset[FeatureInfo]) Set of features implied by this action config",
-        "implies_action_configs": "(depset[ActionConfigInfo]) Set of action configs enabled by this action config",
+        "flag_sets": "(Sequence[FlagSetInfo]) Set of flag sets the action sets",
+        "implies": "(depset[FeatureInfo]) Set of features implied by this action config",
         "files": "(depset[File]) The files required to run these actions",
     },
 )
