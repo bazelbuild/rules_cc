@@ -36,7 +36,7 @@ sh_binary(
 An action config is a mapping from action to:
 
 * A list of tools, (the first one matching the execution requirements is used).
-* A list of flags and features that are always enabled for the action
+* A list of args and features that are always enabled for the action
 * A set of additional files required for the action
 
 Each action can only be specified once in the toolchain. Specifying multiple
@@ -62,7 +62,7 @@ cc_action_config(
     name  = "c_compile",
     actions = ["@rules_cc//actions:all_c_compile"],
     tools = ["@sysroot//:clang"],
-    flag_sets = [":my_flag_set"],
+    args = [":my_args"],
     implies = [":my_feature"],
     additional_files = ["@sysroot//:all_header_files"],
 )
@@ -74,57 +74,109 @@ cc_additional_files_for_actions(
 )
 ```
 
-## Step 3: Define some flag sets
-Flag sets are just sets of flags to be associated with actions. Most flag sets
-are simple, so we provide the shorthand `flags`. However, sometimes you
-need to do more complex things, for which we support `flag_groups` instead.
-
-Flag groups work exactly the same as the existing toolchain definition.
-
-Flag sets are a combination of both `flag_set` and `env_set` from the existing
-toolchain definition.
-
-`cc_flag_set_list` is simply a list of flag sets. This can be used to group
-flag sets together, and preserves ordering.
+## Step 3: Define some arguments
+Arguments are our replacement for `flag_set` and `env_set`. To add arguments to
+our tools, we take heavy inspiration from bazel's
+[`Args`](https://bazel.build/rules/lib/builtins/Args) type. We provide the same
+API, with the following caveats:
+* `actions` specifies which actions the arguments apply to (same as `flag_set`).
+* `requires_any_of` is equivalent to `with_features` on the `flag_set`.
+* `args` may be used instead of `add` if your command-line is only strings.
+* `env` may be used to add environment variables to the arguments. Environment
+  variables set by later args take priority.
+* By default, all inputs are automatically added to the corresponding actions.
+  `additional_files` specifies files that are required for an action when using
+  that argument.
 
 ```
-cc_flag_set(
-    name = "simple",
+cc_args(
+    name = "inline",
     actions = ["@rules_cc//actions:all_cpp_compile_actions"],
-    flags = ["--foo"],
-    envs = {"FOO": "bar"},
+    args = ["--foo"],
+    requires_any_of = [":feature"]
+    env = {"FOO": "bar"},
+    additional_files = [":file"],
+)
+```
+
+For more complex use cases, we use the same API as `Args`. Values are either:
+* A list of files (or a single file for `cc_add_args`).
+* Something returning `CcVariableInfo`, which is equivalent to a list of strings.
+
+```
+cc_variable(
+  name = "bar_baz",
+  values = ["bar", "baz"],
 )
 
-cc_flag_group(
-    name = "complex_flag_group",
-    # API TBD
+# Expands to CcVariableInfo(values = ["x86_64-unknown-linux-gnu"])
+custom_variable_rule(
+  name = "triple",
+  ...
 )
-cc_flag_set(
+
+# Taken from https://bazel.build/rules/lib/builtins/Args#add
+cc_add_args(
+    name = "single",
+    arg_name = "--platform",
+    value = ":triple", # Either a single file or a cc_variable
+    format = "%s",
+)
+
+# Taken from https://bazel.build/rules/lib/builtins/Args#add_all
+cc_add_args_all(
+    name = "multiple",
+    arg_name = "--foo",
+    values = [":file", ":file_set"], # Either files or cc_variable.
+    # map_each not supported. Write a custom rule if you want that.
+    format_each = "%s",
+    before_each = "--foo",
+    omit_if_empty = True,
+    uniquify = False,
+    # Expand_directories not yet supported.
+    terminate_with = "foo",
+)
+
+# Taken from https://bazel.build/rules/lib/builtins/Args#add_joined
+cc_add_args_joined(
+    name = "joined",
+    arg_name = "--foo",
+    values = [":file", ":file_set"], # Either files or cc_variable.
+    join_with = ",",
+    # map_each not supported. Write a custom rule if you want that.
+    format_each = "%s",
+    format_joined = "--foo=%s",
+    omit_if_empty = True,
+    uniquify = False,
+    # Expand_directories not yet supported.
+)
+
+cc_args(
     name = "complex",
     actions = ["@rules_cc//actions:c_compile"],
-    flag_groups = [":complex_flag_group"],
+    add = [":single", ":multiple", ":joined"],
 )
 
-cc_flag_set_list(
+cc_args_list(
     name = "all_flags",
-    flag_sets = [":simple", ":complex"],
+    args = [":inline", ":complex"],
 )
 ```
 
 ## Step 4: Define some features
-A feature is a set of flags and configurations that can be enabled or disabled.
+A feature is a set of args and configurations that can be enabled or disabled.
 
 Although the existing toolchain recommends using features to avoid duplication
 of definitions, we recommend avoiding using features unless you want the user to
 be able to enable / disable the feature themselves. This is because we provide
-alternatives such as `cc_flag_set_list` to allow combining flag sets and
+alternatives such as `cc_args_list` to allow combining arguments and
 specifying them on each action in the action config.
 
 ```
 cc_feature(
     name = "my_feature",
     feature_name = "my_feature",
-    flag_sets = [":all_flags"],
+    args = [":all_args"],
     implies = [":other_feature"],
 )
 ```
@@ -143,7 +195,7 @@ The `cc_toolchain` macro:
 cc_toolchain(
     name = "toolchain",
     features = [":my_feature"]
-    unconditional_flag_sets = [":all_warnings"],
+    unconditional_args = [":all_warnings"],
     action_configs = [":c_compile"],
     additional_files = [":all_action_files"],
 )
@@ -187,7 +239,7 @@ def cc_legacy_features(name, features):
 
 
 # Build file
-FOO = feature(name = "foo", flag_sets=[flag_group(...)])
+FOO = feature(name = "foo", args=[arg_group(...)])
 FEATURES = [FOO]
 cc_legacy_features(name = "legacy_features", features = FEATURES)
 
@@ -240,7 +292,7 @@ Feature requirements can come in two formats.
 For example:
 
 * Features can require some subset of features to be enabled.
-* Flag sets can require some subset of features to be enabled, but others to be
+* Arguments can require some subset of features to be enabled, but others to be
   disabled.
 
 This is very confusing for toolchain authors, so we will simplify things with
@@ -265,7 +317,7 @@ cc_feature_constraint(
     none_of = [":my_other_feature"],
 )
 
-cc_flag_set(
+cc_args(
    name = "foo",
    # All of these provide with_feature.
    requires_any_of = [":my_feature", ":my_feature_set", ":my_feature_constraint"]

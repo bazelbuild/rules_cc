@@ -19,7 +19,7 @@
 # decide to just require users to use the public user-facing rules.
 visibility([
     "//cc/toolchains/...",
-    "//tests/...",
+    "//tests/rule_based_toolchain/...",
 ])
 
 # Note that throughout this file, we never use a list. This is because mutable
@@ -29,6 +29,7 @@ visibility([
 
 ActionTypeInfo = provider(
     doc = "A type of action (eg. c-compile, c++-link-executable)",
+    # @unsorted-dict-items
     fields = {
         "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
         "name": "(str) The action name, as defined by action_names.bzl",
@@ -44,23 +45,34 @@ ActionTypeSetInfo = provider(
     },
 )
 
-FlagGroupInfo = provider(
-    doc = "A group of flags",
+AddArgsInfo = provider(
+    doc = "A provider representation of Args.add/add_all/add_joined parameters",
     # @unsorted-dict-items
     fields = {
         "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
-        "flags": "(Sequence[str]) A list of flags to add to the command-line",
+        "args": "(Sequence[str]) The command-line arguments to add",
+        "files": "(depset[File]) The files required to use this variable",
     },
 )
 
-FlagSetInfo = provider(
-    doc = "A set of flags to be expanded in the command line for specific actions",
+ArgsInfo = provider(
+    doc = "A set of arguments to be added to the command line for specific actions",
     # @unsorted-dict-items
     fields = {
         "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
         "actions": "(depset[ActionTypeInfo]) The set of actions this is associated with",
         "requires_any_of": "(Sequence[FeatureConstraintInfo]) This will be enabled if any of the listed predicates are met. Equivalent to with_features",
-        "flag_groups": "(Sequence[FlagGroupInfo]) Set of flag groups to include.",
+        "args": "(Sequence[AddArgsInfo]) The command-line arguments to add.",
+        "files": "(depset[File]) Files required for the args",
+        "env": "(dict[str, str]) Environment variables to apply",
+    },
+)
+ArgsListInfo = provider(
+    doc = "A ordered list of arguments",
+    # @unsorted-dict-items
+    fields = {
+        "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
+        "args": "(Sequence[ArgsInfo]) The flag sets contained within",
     },
 )
 
@@ -71,7 +83,7 @@ FeatureInfo = provider(
         "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
         "name": "(str) The name of the feature",
         "enabled": "(bool) Whether this feature is enabled by default",
-        "flag_sets": "(depset[FlagSetInfo]) Flag sets enabled by this feature",
+        "args": "(Sequence[ArgsInfo]) Flag sets enabled by this feature",
         "implies": "(depset[FeatureInfo]) Set of features implied by this feature",
         "requires_any_of": "(Sequence[FeatureSetInfo]) A list of feature sets, at least one of which is required to enable this feature. This is semantically equivalent to the requires attribute of rules_cc's FeatureInfo",
         "provides": "(Sequence[MutuallyExclusiveCategoryInfo]) Indicates that this feature is one of several mutually exclusive alternate features.",
@@ -100,6 +112,7 @@ FeatureConstraintInfo = provider(
 
 MutuallyExclusiveCategoryInfo = provider(
     doc = "Multiple features with the category will be mutally exclusive",
+    # @unsorted-dict-items
     fields = {
         "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
         "name": "(str) The name of the category",
@@ -126,7 +139,7 @@ ActionConfigInfo = provider(
         "action": "(ActionTypeInfo) The name of the action",
         "enabled": "(bool) If True, this action is enabled unless a rule type explicitly marks it as unsupported",
         "tools": "(Sequence[ToolInfo]) The tool applied to the action will be the first tool in the sequence with a feature set that matches the feature configuration",
-        "flag_sets": "(Sequence[FlagSetInfo]) Set of flag sets the action sets",
+        "args": "(Sequence[ArgsInfo]) Set of flag sets the action sets",
         "implies": "(depset[FeatureInfo]) Set of features implied by this action config",
         "files": "(depset[File]) The files required to run these actions",
     },

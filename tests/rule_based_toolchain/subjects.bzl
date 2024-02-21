@@ -20,11 +20,11 @@ load(
     "ActionConfigSetInfo",
     "ActionTypeInfo",
     "ActionTypeSetInfo",
+    "AddArgsInfo",
+    "ArgsInfo",
     "FeatureConstraintInfo",
     "FeatureInfo",
     "FeatureSetInfo",
-    "FlagGroupInfo",
-    "FlagSetInfo",
     "MutuallyExclusiveCategoryInfo",
     "ToolInfo",
 )
@@ -94,22 +94,24 @@ _FeatureConstraintFactory = generate_factory(
 )
 
 # buildifier: disable=name-conventions
-_FlagGroupFactory = generate_factory(
-    FlagGroupInfo,
-    "FlagGroupInfo",
+_AddArgsFactory = generate_factory(
+    AddArgsInfo,
+    "AddArgsInfo",
     dict(
-        flags = subjects.collection,
+        args = subjects.collection,
+        files = subjects.depset_file,
     ),
 )
 
 # buildifier: disable=name-conventions
-_FlagSetFactory = generate_factory(
-    FlagSetInfo,
-    "FlagSetInfo",
+_ArgsFactory = generate_factory(
+    ArgsInfo,
+    "ArgsInfo",
     dict(
         actions = ProviderDepset(_ActionTypeFactory),
-        # Use a collection here because we don't want to
-        flag_groups = subjects.collection,
+        args = ProviderSequence(_AddArgsFactory),
+        env = subjects.dict,
+        files = subjects.depset_file,
         requires_any_of = ProviderSequence(_FeatureConstraintFactory),
     ),
 )
@@ -144,7 +146,7 @@ _ActionConfigFactory = generate_factory(
         action = _ActionTypeFactory,
         enabled = subjects.bool,
         tools = ProviderSequence(_ToolFactory),
-        flag_sets = ProviderSequence(_FlagSetFactory),
+        flag_sets = ProviderSequence(_ArgsFactory),
         implies = ProviderDepset(_FeatureFactory),
         files = subjects.depset_file,
     ),
@@ -174,8 +176,8 @@ _ActionConfigSetFactory = struct(
 FACTORIES = [
     _ActionTypeFactory,
     _ActionTypeSetFactory,
-    _FlagGroupFactory,
-    _FlagSetFactory,
+    _AddArgsFactory,
+    _ArgsFactory,
     _MutuallyExclusiveCategoryFactory,
     _FeatureFactory,
     _FeatureConstraintFactory,

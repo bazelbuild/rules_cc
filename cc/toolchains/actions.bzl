@@ -13,6 +13,7 @@
 # limitations under the License.
 """Rules to turn action types into bazel labels."""
 
+load("//cc/toolchains/impl:collect.bzl", "collect_action_types")
 load(":cc_toolchain_info.bzl", "ActionTypeInfo", "ActionTypeSetInfo")
 
 visibility("public")
@@ -51,10 +52,7 @@ cc_action_type(
 def _cc_action_type_set_impl(ctx):
     return [ActionTypeSetInfo(
         label = ctx.label,
-        actions = depset(transitive = [
-            attr[ActionTypeSetInfo].actions
-            for attr in ctx.attr.actions
-        ]),
+        actions = collect_action_types(ctx.attr.actions),
     )]
 
 cc_action_type_set = rule(
