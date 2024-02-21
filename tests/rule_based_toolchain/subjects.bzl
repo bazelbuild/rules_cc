@@ -13,7 +13,8 @@
 # limitations under the License.
 """Test subjects for cc_toolchain_info providers."""
 
-load("@rules_testing//lib:truth.bzl", "subjects")
+load("@bazel_skylib//lib:structs.bzl", "structs")
+load("@rules_testing//lib:truth.bzl", _subjects = "subjects")
 load(
     "//cc/toolchains:cc_toolchain_info.bzl",
     "ActionConfigInfo",
@@ -29,15 +30,16 @@ load(
     "ToolInfo",
 )
 load(":generate_factory.bzl", "ProviderDepset", "ProviderSequence", "generate_factory")
+load(":generics.bzl", "optional_subject", "result_subject", "struct_subject", _result_fn_wrapper = "result_fn_wrapper")
 
-visibility("private")
+visibility("//tests/rule_based_toolchain/...")
 
 # buildifier: disable=name-conventions
 _ActionTypeFactory = generate_factory(
     ActionTypeInfo,
     "ActionTypeInfo",
     dict(
-        name = subjects.str,
+        name = _subjects.str,
     ),
 )
 
@@ -54,17 +56,17 @@ _ActionTypeSetFactory = generate_factory(
 _MutuallyExclusiveCategoryFactory = generate_factory(
     MutuallyExclusiveCategoryInfo,
     "MutuallyExclusiveCategoryInfo",
-    dict(name = subjects.str),
+    dict(name = _subjects.str),
 )
 
 _FEATURE_FLAGS = dict(
-    name = subjects.str,
-    enabled = subjects.bool,
+    name = _subjects.str,
+    enabled = _subjects.bool,
     flag_sets = None,
     implies = None,
     requires_any_of = None,
     provides = ProviderSequence(_MutuallyExclusiveCategoryFactory),
-    known = subjects.bool,
+    known = _subjects.bool,
     overrides = None,
 )
 
@@ -98,8 +100,8 @@ _AddArgsFactory = generate_factory(
     AddArgsInfo,
     "AddArgsInfo",
     dict(
-        args = subjects.collection,
-        files = subjects.depset_file,
+        args = _subjects.collection,
+        files = _subjects.depset_file,
     ),
 )
 
@@ -110,8 +112,8 @@ _ArgsFactory = generate_factory(
     dict(
         actions = ProviderDepset(_ActionTypeFactory),
         args = ProviderSequence(_AddArgsFactory),
-        env = subjects.dict,
-        files = subjects.depset_file,
+        env = _subjects.dict,
+        files = _subjects.depset_file,
         requires_any_of = ProviderSequence(_FeatureConstraintFactory),
     ),
 )
@@ -132,9 +134,10 @@ _ToolFactory = generate_factory(
     ToolInfo,
     "ToolInfo",
     dict(
-        exe = subjects.file,
-        runifles = subjects.depset_file,
+        exe = _subjects.file,
+        runfiles = _subjects.depset_file,
         requires_any_of = ProviderSequence(_FeatureConstraintFactory),
+        execution_requirements = _subjects.collection,
     ),
 )
 
@@ -144,11 +147,11 @@ _ActionConfigFactory = generate_factory(
     "ActionConfigInfo",
     dict(
         action = _ActionTypeFactory,
-        enabled = subjects.bool,
+        enabled = _subjects.bool,
         tools = ProviderSequence(_ToolFactory),
         flag_sets = ProviderSequence(_ArgsFactory),
         implies = ProviderDepset(_FeatureFactory),
-        files = subjects.depset_file,
+        files = _subjects.depset_file,
     ),
 )
 
@@ -185,3 +188,13 @@ FACTORIES = [
     _ToolFactory,
     _ActionConfigSetFactory,
 ]
+
+result_fn_wrapper = _result_fn_wrapper
+
+subjects = struct(
+    **(structs.to_dict(_subjects) | dict(
+        result = result_subject,
+        optional = optional_subject,
+        struct = struct_subject,
+    ) | {factory.name: factory.factory for factory in FACTORIES})
+)
