@@ -18,7 +18,7 @@ load(
     "ArgsInfo",
 )
 
-visibility("//tests/rule_based_toolchain/...")
+visibility("private")
 
 def _test_simple_args_impl(env, targets):
     simple = env.expect.that_target(targets.simple).provider(ArgsInfo)

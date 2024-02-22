@@ -34,6 +34,10 @@ load(":generics.bzl", "optional_subject", "result_subject", "struct_subject", _r
 
 visibility("//tests/rule_based_toolchain/...")
 
+# The default runfiles subject uses path instead of short_path.
+# This makes it rather awkward for copybara.
+runfiles_subject = lambda value, meta: _subjects.depset_file(value.files, meta = meta)
+
 # buildifier: disable=name-conventions
 _ActionTypeFactory = generate_factory(
     ActionTypeInfo,
@@ -135,7 +139,7 @@ _ToolFactory = generate_factory(
     "ToolInfo",
     dict(
         exe = _subjects.file,
-        runfiles = _subjects.depset_file,
+        runfiles = runfiles_subject,
         requires_any_of = ProviderSequence(_FeatureConstraintFactory),
         execution_requirements = _subjects.collection,
     ),
@@ -196,5 +200,6 @@ subjects = struct(
         result = result_subject,
         optional = optional_subject,
         struct = struct_subject,
+        runfiles = runfiles_subject,
     ) | {factory.name: factory.factory for factory in FACTORIES})
 )
