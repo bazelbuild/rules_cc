@@ -16,6 +16,7 @@
 load(
     "//cc/toolchains:cc_toolchain_info.bzl",
     "ActionTypeSetInfo",
+    "ArgsListInfo",
     "ToolInfo",
 )
 
@@ -109,3 +110,38 @@ def collect_tools(ctx, targets, fail = fail):
             fail("Expected %s to be a cc_tool or a binary rule" % target.label)
 
     return tools
+
+def collect_args_lists(targets, label):
+    """Collects a label_list of ArgsListInfo into a single ArgsListInfo
+
+    Args:
+        targets: (List[Target]) A label_list of targets providing ArgsListInfo
+        label: The label to attach to the resulting ArgsListInfo
+    Returns:
+        An ArgsListInfo that is the result of joining all of the ArgsListInfos
+        together.
+    """
+    args = []
+    by_action = {}
+    transitive_files = []
+    for target in targets:
+        args_list = target[ArgsListInfo]
+        args.extend(args_list.args)
+        transitive_files.extend([args_info.files for args_info in args_list.args])
+        for value in args_list.by_action:
+            out = by_action.setdefault(
+                value.action,
+                struct(args = [], transitive_files = [], action = value.action),
+            )
+            out.args.extend(value.args)
+            out.transitive_files.append(value.files)
+
+    return ArgsListInfo(
+        label = label,
+        args = tuple(args),
+        files = depset(transitive = transitive_files),
+        by_action = tuple([
+            struct(action = k, args = v.args, files = depset(transitive = v.transitive_files))
+            for k, v in by_action.items()
+        ]),
+    )
