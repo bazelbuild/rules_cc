@@ -51,7 +51,15 @@ def _cc_args_impl(ctx):
     )
     return [
         args,
-        ArgsListInfo(label = ctx.label, args = tuple([args])),
+        ArgsListInfo(
+            label = ctx.label,
+            args = tuple([args]),
+            files = files,
+            by_action = tuple([
+                struct(action = action, args = [args], files = files)
+                for action in actions.to_list()
+            ]),
+        ),
     ]
 
 cc_args = rule(

@@ -73,6 +73,8 @@ ArgsListInfo = provider(
     fields = {
         "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
         "args": "(Sequence[ArgsInfo]) The flag sets contained within",
+        "files": "(depset[File]) The files required for all of the arguments",
+        "by_action": "(Sequence[struct(action=ActionTypeInfo, args=List[ArgsInfo], files=depset[Files])]) Relevant information about the args keyed by the action type.",
     },
 )
 
@@ -83,12 +85,12 @@ FeatureInfo = provider(
         "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
         "name": "(str) The name of the feature",
         "enabled": "(bool) Whether this feature is enabled by default",
-        "args": "(Sequence[ArgsInfo]) Flag sets enabled by this feature",
+        "args": "(ArgsListInfo) Args enabled by this feature",
         "implies": "(depset[FeatureInfo]) Set of features implied by this feature",
         "requires_any_of": "(Sequence[FeatureSetInfo]) A list of feature sets, at least one of which is required to enable this feature. This is semantically equivalent to the requires attribute of rules_cc's FeatureInfo",
-        "provides": "(Sequence[MutuallyExclusiveCategoryInfo]) Indicates that this feature is one of several mutually exclusive alternate features.",
+        "mutually_exclusive": "(Sequence[MutuallyExclusiveCategoryInfo]) Indicates that this feature is one of several mutually exclusive alternate features.",
         "known": "(bool) Whether the feature is a known feature. Known features are assumed to be defined elsewhere.",
-        "overrides": "(Optional[FeatureInfo]) The feature that this overrides",
+        "overrides": "(Optional[FeatureInfo]) The feature that this overrides. Must be a known feature",
     },
 )
 FeatureSetInfo = provider(

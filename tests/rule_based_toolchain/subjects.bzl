@@ -23,6 +23,7 @@ load(
     "ActionTypeSetInfo",
     "AddArgsInfo",
     "ArgsInfo",
+    "ArgsListInfo",
     "FeatureConstraintInfo",
     "FeatureInfo",
     "FeatureSetInfo",
@@ -30,7 +31,7 @@ load(
     "ToolInfo",
 )
 load(":generate_factory.bzl", "ProviderDepset", "ProviderSequence", "generate_factory")
-load(":generics.bzl", "optional_subject", "result_subject", "struct_subject", _result_fn_wrapper = "result_fn_wrapper")
+load(":generics.bzl", "dict_key_subject", "optional_subject", "result_subject", "struct_subject", _result_fn_wrapper = "result_fn_wrapper")
 
 visibility("//tests/rule_based_toolchain/...")
 
@@ -66,10 +67,10 @@ _MutuallyExclusiveCategoryFactory = generate_factory(
 _FEATURE_FLAGS = dict(
     name = _subjects.str,
     enabled = _subjects.bool,
-    flag_sets = None,
+    args = None,
     implies = None,
     requires_any_of = None,
-    provides = ProviderSequence(_MutuallyExclusiveCategoryFactory),
+    mutually_exclusive = ProviderSequence(_MutuallyExclusiveCategoryFactory),
     known = _subjects.bool,
     overrides = None,
 )
@@ -123,13 +124,29 @@ _ArgsFactory = generate_factory(
 )
 
 # buildifier: disable=name-conventions
+_ArgsListFactory = generate_factory(
+    ArgsListInfo,
+    "ArgsListInfo",
+    dict(
+        args = ProviderSequence(_ArgsFactory),
+        by_action = lambda values, *, meta: dict_key_subject(struct_subject(
+            args = _subjects.collection,
+            files = _subjects.depset_file,
+        ))({value.action: value for value in values}, meta = meta),
+        files = _subjects.depset_file,
+    ),
+)
+
+# buildifier: disable=name-conventions
 _FeatureFactory = generate_factory(
     FeatureInfo,
     "FeatureInfo",
     _FEATURE_FLAGS | dict(
+        # Use .factory so it's not inlined.
+        args = _ArgsListFactory.factory,
         implies = ProviderDepset(_FakeFeatureFactory),
         requires_any_of = ProviderSequence(_FeatureSetFactory),
-        overrides = _FakeFeatureFactory,
+        overrides = optional_subject(_FakeFeatureFactory),
     ),
 )
 
@@ -153,7 +170,7 @@ _ActionConfigFactory = generate_factory(
         action = _ActionTypeFactory,
         enabled = _subjects.bool,
         tools = ProviderSequence(_ToolFactory),
-        flag_sets = ProviderSequence(_ArgsFactory),
+        args = ProviderSequence(_ArgsFactory),
         implies = ProviderDepset(_FeatureFactory),
         files = _subjects.depset_file,
     ),
@@ -185,6 +202,7 @@ FACTORIES = [
     _ActionTypeSetFactory,
     _AddArgsFactory,
     _ArgsFactory,
+    _ArgsListFactory,
     _MutuallyExclusiveCategoryFactory,
     _FeatureFactory,
     _FeatureConstraintFactory,
@@ -201,5 +219,6 @@ subjects = struct(
         optional = optional_subject,
         struct = struct_subject,
         runfiles = runfiles_subject,
+        dict_key = dict_key_subject,
     ) | {factory.name: factory.factory for factory in FACTORIES})
 )

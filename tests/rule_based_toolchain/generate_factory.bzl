@@ -64,8 +64,9 @@ def generate_factory(type, name, attrs):
 
     def validate(*, value, meta):
         got_keys = sorted(structs.to_dict(value).keys())
-        if got_keys != want_keys:
-            meta.add_failure("Wanted a %s with keys %r, got %r" % (name, want_keys, got_keys), "")
+        subjects.collection(got_keys, meta = meta.derive(details = [
+            "Value was not a %s - it has a different set of fields" % name,
+        ])).contains_exactly(want_keys).in_order()
 
     def type_factory(value, *, meta):
         validate(value = value, meta = meta)

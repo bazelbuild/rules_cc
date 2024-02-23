@@ -120,3 +120,13 @@ struct_subject = lambda **attrs: lambda value, *, meta: subjects.struct(
     meta = meta,
     attrs = attrs,
 )
+
+# We can't do complex assertions on containers. This allows you to write
+# assert.that_value({"foo": 1), factory=dict_key_subject(subjects.int))
+#   .get("foo").equals(1)
+dict_key_subject = lambda factory: lambda value, *, meta: struct(
+    get = lambda key: factory(
+        value[key],
+        meta = meta.derive(".get({})".format(key)),
+    ),
+)

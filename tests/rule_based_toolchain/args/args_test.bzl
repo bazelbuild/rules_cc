@@ -15,10 +15,18 @@
 
 load(
     "//cc/toolchains:cc_toolchain_info.bzl",
+    "ActionTypeInfo",
     "ArgsInfo",
+    "ArgsListInfo",
 )
 
 visibility("private")
+
+_SIMPLE_FILES = [
+    "tests/rule_based_toolchain/testdata/file1",
+    "tests/rule_based_toolchain/testdata/multiple1",
+    "tests/rule_based_toolchain/testdata/multiple2",
+]
 
 def _test_simple_args_impl(env, targets):
     simple = env.expect.that_target(targets.simple).provider(ArgsInfo)
@@ -28,11 +36,13 @@ def _test_simple_args_impl(env, targets):
     ])
     simple.args().contains_exactly([targets.simple.label])
     simple.env().contains_exactly({"BAR": "bar"})
-    simple.files().contains_exactly([
-        "tests/rule_based_toolchain/testdata/file1",
-        "tests/rule_based_toolchain/testdata/multiple1",
-        "tests/rule_based_toolchain/testdata/multiple2",
-    ])
+    simple.files().contains_exactly(_SIMPLE_FILES)
+
+    c_compile = env.expect.that_target(targets.simple).provider(ArgsListInfo).by_action().get(
+        targets.c_compile[ActionTypeInfo],
+    )
+    c_compile.args().contains_exactly([targets.simple[ArgsInfo]])
+    c_compile.files().contains_exactly(_SIMPLE_FILES)
 
 TARGETS = [
     ":simple",
