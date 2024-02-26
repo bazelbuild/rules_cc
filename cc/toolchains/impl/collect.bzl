@@ -15,8 +15,10 @@
 
 load(
     "//cc/toolchains:cc_toolchain_info.bzl",
+    "ActionTypeConfigSetInfo",
     "ActionTypeSetInfo",
     "ArgsListInfo",
+    "FeatureSetInfo",
     "ToolInfo",
 )
 
@@ -57,6 +59,7 @@ def _make_collector(provider, field):
     return collector
 
 collect_action_types = _make_collector(ActionTypeSetInfo, "actions")
+collect_features = _make_collector(FeatureSetInfo, "features")
 collect_files = _make_collector(DefaultInfo, "files")
 
 def collect_data(ctx, targets):
@@ -145,3 +148,22 @@ def collect_args_lists(targets, label):
             for k, v in by_action.items()
         ]),
     )
+
+def collect_action_type_config_sets(targets, label, fail = fail):
+    """Collects several `cc_action_type_config` labels together.
+
+    Args:
+        targets: (List[Target]) A list of targets providing ActionTypeConfigSetInfo
+        label: The label to apply to the resulting config.
+        fail: (function) The fail function. Should only be used in tests.
+    Returns:
+        A combined ActionTypeConfigSetInfo representing a variety of action
+        types.
+    """
+    configs = {}
+    for atcs in collect_provider(targets, ActionTypeConfigSetInfo):
+        for action_type, config in atcs.configs.items():
+            if action_type in configs:
+                fail("The action type %s is configured by both %s and %s. Each action type may only be configured once." % (action_type.label, config.label, configs[action_type].label))
+            configs[action_type] = config
+    return ActionTypeConfigSetInfo(label = label, configs = configs)

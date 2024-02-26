@@ -133,13 +133,12 @@ ToolInfo = provider(
     },
 )
 
-ActionConfigInfo = provider(
+ActionTypeConfigInfo = provider(
     doc = "Configuration of a Bazel action.",
     # @unsorted-dict-items
     fields = {
         "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
-        "action": "(ActionTypeInfo) The name of the action",
-        "enabled": "(bool) If True, this action is enabled unless a rule type explicitly marks it as unsupported",
+        "action_type": "(ActionTypeInfo) The type of the action",
         "tools": "(Sequence[ToolInfo]) The tool applied to the action will be the first tool in the sequence with a feature set that matches the feature configuration",
         "args": "(Sequence[ArgsInfo]) Set of flag sets the action sets",
         "implies": "(depset[FeatureInfo]) Set of features implied by this action config",
@@ -147,11 +146,11 @@ ActionConfigInfo = provider(
     },
 )
 
-ActionConfigSetInfo = provider(
+ActionTypeConfigSetInfo = provider(
     doc = "A set of action configs",
     # @unsorted-dict-items
     fields = {
         "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
-        "action_configs": "(depset[ActionConfigInfo]) A set of action configs",
+        "configs": "(dict[ActionTypeInfo, ActionTypeConfigInfo]) A set of action configs",
     },
 )

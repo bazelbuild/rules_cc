@@ -50,6 +50,8 @@ cc_action_type(
 )
 
 def _cc_action_type_set_impl(ctx):
+    if not ctx.attr.actions:
+        fail("Each cc_action_type_set must contain at least one action type.")
     return [ActionTypeSetInfo(
         label = ctx.label,
         actions = collect_action_types(ctx.attr.actions),

@@ -10,6 +10,7 @@ util.helper_target(
     actions = ["//tests/rule_based_toolchain/actions:c_compile"],
     additional_files = ["//tests/rule_based_toolchain/testdata:file1"],
     args = ["c"],
+    visibility = ["//tests/rule_based_toolchain:__subpackages__"],
 )
 
 util.helper_target(
@@ -18,6 +19,7 @@ util.helper_target(
     actions = ["//tests/rule_based_toolchain/actions:cpp_compile"],
     additional_files = ["//tests/rule_based_toolchain/testdata:file2"],
     args = ["cpp"],
+    visibility = ["//tests/rule_based_toolchain:__subpackages__"],
 )
 
 util.helper_target(
@@ -26,6 +28,7 @@ util.helper_target(
     actions = ["//tests/rule_based_toolchain/actions:all_compile"],
     additional_files = ["//tests/rule_based_toolchain/testdata:multiple1"],
     args = ["all"],
+    visibility = ["//tests/rule_based_toolchain:__subpackages__"],
 )
 
 util.helper_target(
@@ -36,6 +39,7 @@ util.helper_target(
         ":cpp_compile_args",
         ":all_compile_args",
     ],
+    visibility = ["//tests/rule_based_toolchain:__subpackages__"],
 )
 
 analysis_test_suite(

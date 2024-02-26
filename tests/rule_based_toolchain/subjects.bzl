@@ -17,8 +17,8 @@ load("@bazel_skylib//lib:structs.bzl", "structs")
 load("@rules_testing//lib:truth.bzl", _subjects = "subjects")
 load(
     "//cc/toolchains:cc_toolchain_info.bzl",
-    "ActionConfigInfo",
-    "ActionConfigSetInfo",
+    "ActionTypeConfigInfo",
+    "ActionTypeConfigSetInfo",
     "ActionTypeInfo",
     "ActionTypeSetInfo",
     "AddArgsInfo",
@@ -163,38 +163,25 @@ _ToolFactory = generate_factory(
 )
 
 # buildifier: disable=name-conventions
-_ActionConfigFactory = generate_factory(
-    ActionConfigInfo,
-    "ActionConfigInfo",
+_ActionTypeConfigFactory = generate_factory(
+    ActionTypeConfigInfo,
+    "ActionTypeConfigInfo",
     dict(
-        action = _ActionTypeFactory,
-        enabled = _subjects.bool,
+        action_type = _ActionTypeFactory,
         tools = ProviderSequence(_ToolFactory),
         args = ProviderSequence(_ArgsFactory),
         implies = ProviderDepset(_FeatureFactory),
-        files = _subjects.depset_file,
+        files = runfiles_subject,
     ),
 )
 
-def _action_config_set_factory_impl(value, *, meta):
-    # We can't use the usual strategy of "inline the labels" since all labels
-    # are the same.
-    transformed = {}
-    for ac in value.action_configs.to_list():
-        key = ac.action.label
-        if key in transformed:
-            meta.add_failure("Action declared twice in action config", key)
-        transformed[key] = _ActionConfigFactory.factory(
-            value = ac,
-            meta = meta.derive(".get({})".format(key)),
-        )
-    return transformed
-
 # buildifier: disable=name-conventions
-_ActionConfigSetFactory = struct(
-    type = ActionConfigSetInfo,
-    name = "ActionConfigSetInfo",
-    factory = _action_config_set_factory_impl,
+_ActionTypeConfigSetFactory = generate_factory(
+    ActionTypeConfigSetInfo,
+    "ActionTypeConfigSetInfo",
+    dict(
+        configs = dict_key_subject(_ActionTypeConfigFactory.factory),
+    ),
 )
 
 FACTORIES = [
@@ -208,7 +195,7 @@ FACTORIES = [
     _FeatureConstraintFactory,
     _FeatureSetFactory,
     _ToolFactory,
-    _ActionConfigSetFactory,
+    _ActionTypeConfigSetFactory,
 ]
 
 result_fn_wrapper = _result_fn_wrapper

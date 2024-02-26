@@ -15,12 +15,7 @@ util.helper_target(
     cc_tool,
     name = "wrapped_tool",
     executable = "//tests/rule_based_toolchain/testdata:bin_wrapper",
-)
-
-util.helper_target(
-    cc_tool,
-    name = "data_with_runfiles",
-    executable = "//tests/rule_based_toolchain/testdata:file1",
+    visibility = ["//tests/rule_based_toolchain:__subpackages__"],
 )
 
 analysis_test_suite(

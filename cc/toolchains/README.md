@@ -40,7 +40,7 @@ An action config is a mapping from action to:
 * A set of additional files required for the action
 
 Each action can only be specified once in the toolchain. Specifying multiple
-actions in a single `cc_action_config` is just a shorthand for specifying the
+actions in a single `cc_action_type_config` is just a shorthand for specifying the
 same config for every one of those actions.
 
 If you're already familiar with how to define toolchains, the additional files
@@ -50,7 +50,7 @@ Additionally, to replace `all_files`, we add `cc_additional_files_for_actions`.
 This allows you to specify that particular files are required for particular
 actions.
 
-We provide `additional_files` on the `cc_action_config` as a shorthand for 
+We provide `additional_files` on the `cc_action_type_config` as a shorthand for 
 specifying `cc_additional_files_for_actions`
 
 Warning: Implying a feature that is not listed directly in the toolchain will throw
@@ -58,7 +58,7 @@ an error. This is to ensure you don't accidentally add a feature to the
 toolchain.
 
 ```
-cc_action_config(
+cc_action_type_config(
     name  = "c_compile",
     actions = ["@rules_cc//actions:all_c_compile"],
     tools = ["@sysroot//:clang"],
@@ -196,7 +196,7 @@ cc_toolchain(
     name = "toolchain",
     features = [":my_feature"]
     unconditional_args = [":all_warnings"],
-    action_configs = [":c_compile"],
+    action_type_configs = [":c_compile"],
     additional_files = [":all_action_files"],
 )
 ```
