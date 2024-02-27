@@ -3,6 +3,7 @@ load("//cc/toolchains:args.bzl", "cc_args")
 load("//cc/toolchains:feature.bzl", "cc_feature")
 load("//cc/toolchains:feature_constraint.bzl", "cc_feature_constraint")
 load("//cc/toolchains:feature_set.bzl", "cc_feature_set")
+load("//cc/toolchains/impl:external_feature.bzl", "cc_external_feature")
 load("//tests/rule_based_toolchain:analysis_test_suite.bzl", "analysis_test_suite")
 load(":features_test.bzl", "TARGETS", "TESTS")
 
@@ -82,6 +83,21 @@ util.helper_target(
         ":requires",
     ],
     none_of = [":implies"],
+)
+
+util.helper_target(
+    cc_external_feature,
+    name = "builtin_feature",
+    feature_name = "builtin_feature",
+    overridable = True,
+)
+
+util.helper_target(
+    cc_feature,
+    name = "overrides",
+    args = [":c_compile"],
+    enabled = True,
+    overrides = ":builtin_feature",
 )
 
 analysis_test_suite(

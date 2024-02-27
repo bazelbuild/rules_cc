@@ -93,6 +93,16 @@ def _feature_constraint_collects_transitive_features_test(env, targets):
         targets.implies.label,
     ])
 
+def _external_feature_is_a_feature_test(env, targets):
+    env.expect.that_target(targets.builtin_feature).provider(
+        FeatureInfo,
+    ).name().equals("builtin_feature")
+
+def _feature_can_be_overridden_test(env, targets):
+    overrides = env.expect.that_target(targets.overrides).provider(FeatureInfo)
+    overrides.name().equals("builtin_feature")
+    overrides.overrides().some().label().equals(targets.builtin_feature.label)
+
 TARGETS = [
     ":c_compile",
     ":simple",
@@ -103,6 +113,8 @@ TARGETS = [
     ":mutual_exclusion_feature",
     ":direct_constraint",
     ":transitive_constraint",
+    ":builtin_feature",
+    ":overrides",
 ]
 
 # @unsorted-dict-items
@@ -114,4 +126,6 @@ TESTS = {
     "feature_set_collects_features_test": _feature_set_collects_features_test,
     "feature_constraint_collects_direct_features_test": _feature_constraint_collects_direct_features_test,
     "feature_constraint_collects_transitive_features_test": _feature_constraint_collects_transitive_features_test,
+    "external_feature_is_a_feature_test": _external_feature_is_a_feature_test,
+    "feature_can_be_overridden_test": _feature_can_be_overridden_test,
 }
