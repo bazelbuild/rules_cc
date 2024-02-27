@@ -71,7 +71,8 @@ _FEATURE_FLAGS = dict(
     implies = None,
     requires_any_of = None,
     mutually_exclusive = ProviderSequence(_MutuallyExclusiveCategoryFactory),
-    known = _subjects.bool,
+    overridable = _subjects.bool,
+    external = _subjects.bool,
     overrides = None,
 )
 
@@ -146,7 +147,7 @@ _FeatureFactory = generate_factory(
         args = _ArgsListFactory.factory,
         implies = ProviderDepset(_FakeFeatureFactory),
         requires_any_of = ProviderSequence(_FeatureSetFactory),
-        overrides = optional_subject(_FakeFeatureFactory),
+        overrides = optional_subject(_FakeFeatureFactory.factory),
     ),
 )
 

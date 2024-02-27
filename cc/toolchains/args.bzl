@@ -56,7 +56,7 @@ def _cc_args_impl(ctx):
             args = tuple([args]),
             files = files,
             by_action = tuple([
-                struct(action = action, args = [args], files = files)
+                struct(action = action, args = tuple([args]), files = files)
                 for action in actions.to_list()
             ]),
         ),

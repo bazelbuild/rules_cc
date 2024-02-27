@@ -144,7 +144,11 @@ def collect_args_lists(targets, label):
         args = tuple(args),
         files = depset(transitive = transitive_files),
         by_action = tuple([
-            struct(action = k, args = v.args, files = depset(transitive = v.transitive_files))
+            struct(
+                action = k,
+                args = tuple(v.args),
+                files = depset(transitive = v.transitive_files),
+            )
             for k, v in by_action.items()
         ]),
     )

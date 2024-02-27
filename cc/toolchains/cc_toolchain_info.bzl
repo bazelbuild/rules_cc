@@ -89,7 +89,8 @@ FeatureInfo = provider(
         "implies": "(depset[FeatureInfo]) Set of features implied by this feature",
         "requires_any_of": "(Sequence[FeatureSetInfo]) A list of feature sets, at least one of which is required to enable this feature. This is semantically equivalent to the requires attribute of rules_cc's FeatureInfo",
         "mutually_exclusive": "(Sequence[MutuallyExclusiveCategoryInfo]) Indicates that this feature is one of several mutually exclusive alternate features.",
-        "known": "(bool) Whether the feature is a known feature. Known features are assumed to be defined elsewhere.",
+        "external": "(bool) Whether a feature is defined elsewhere.",
+        "overridable": "(bool) Whether the feature is an overridable feature.",
         "overrides": "(Optional[FeatureInfo]) The feature that this overrides. Must be a known feature",
     },
 )
