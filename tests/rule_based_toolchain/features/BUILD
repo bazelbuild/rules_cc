@@ -1,6 +1,8 @@
 load("@rules_testing//lib:util.bzl", "util")
 load("//cc/toolchains:args.bzl", "cc_args")
 load("//cc/toolchains:feature.bzl", "cc_feature")
+load("//cc/toolchains:feature_constraint.bzl", "cc_feature_constraint")
+load("//cc/toolchains:feature_set.bzl", "cc_feature_set")
 load("//tests/rule_based_toolchain:analysis_test_suite.bzl", "analysis_test_suite")
 load(":features_test.bzl", "TARGETS", "TESTS")
 
@@ -23,11 +25,28 @@ util.helper_target(
 
 util.helper_target(
     cc_feature,
+    name = "simple2",
+    args = [":c_compile"],
+    enabled = False,
+    feature_name = "simple2",
+)
+
+util.helper_target(
+    cc_feature_set,
+    name = "feature_set",
+    features = [
+        ":simple",
+        ":simple2",
+    ],
+)
+
+util.helper_target(
+    cc_feature,
     name = "requires",
     args = [":c_compile"],
     enabled = True,
     feature_name = "requires",
-    requires_any_of = [":simple"],
+    requires_any_of = [":feature_set"],
 )
 
 util.helper_target(
@@ -46,6 +65,23 @@ util.helper_target(
     enabled = True,
     feature_name = "mutual_exclusion",
     mutually_exclusive = [":simple"],
+)
+
+util.helper_target(
+    cc_feature_constraint,
+    name = "direct_constraint",
+    all_of = [":simple"],
+    none_of = [":simple2"],
+)
+
+util.helper_target(
+    cc_feature_constraint,
+    name = "transitive_constraint",
+    all_of = [
+        ":direct_constraint",
+        ":requires",
+    ],
+    none_of = [":implies"],
 )
 
 analysis_test_suite(

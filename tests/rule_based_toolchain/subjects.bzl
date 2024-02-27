@@ -88,7 +88,7 @@ _FakeFeatureFactory = generate_factory(
 _FeatureSetFactory = generate_factory(
     FeatureSetInfo,
     "FeatureSetInfo",
-    dict(features = _FakeFeatureFactory),
+    dict(features = ProviderDepset(_FakeFeatureFactory)),
 )
 
 # buildifier: disable=name-conventions

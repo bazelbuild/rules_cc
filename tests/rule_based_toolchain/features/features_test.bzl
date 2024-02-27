@@ -16,7 +16,9 @@
 load(
     "//cc/toolchains:cc_toolchain_info.bzl",
     "ArgsInfo",
+    "FeatureConstraintInfo",
     "FeatureInfo",
+    "FeatureSetInfo",
     "MutuallyExclusiveCategoryInfo",
 )
 
@@ -43,7 +45,7 @@ def _feature_collects_requirements_test(env, targets):
     env.expect.that_target(targets.requires).provider(
         FeatureInfo,
     ).requires_any_of().contains_exactly([
-        targets.simple.label,
+        targets.feature_set.label,
     ])
 
 def _feature_collects_implies_test(env, targets):
@@ -63,12 +65,44 @@ def _feature_collects_mutual_exclusion_test(env, targets):
         targets.simple.label,
     ])
 
+def _feature_set_collects_features_test(env, targets):
+    env.expect.that_target(targets.feature_set).provider(
+        FeatureSetInfo,
+    ).features().contains_exactly([
+        targets.simple.label,
+        targets.simple2.label,
+    ])
+
+def _feature_constraint_collects_direct_features_test(env, targets):
+    constraint = env.expect.that_target(targets.direct_constraint).provider(
+        FeatureConstraintInfo,
+    )
+    constraint.all_of().contains_exactly([targets.simple.label])
+    constraint.none_of().contains_exactly([targets.simple2.label])
+
+def _feature_constraint_collects_transitive_features_test(env, targets):
+    constraint = env.expect.that_target(targets.transitive_constraint).provider(
+        FeatureConstraintInfo,
+    )
+    constraint.all_of().contains_exactly([
+        targets.simple.label,
+        targets.requires.label,
+    ])
+    constraint.none_of().contains_exactly([
+        targets.simple2.label,
+        targets.implies.label,
+    ])
+
 TARGETS = [
     ":c_compile",
     ":simple",
+    ":simple2",
+    ":feature_set",
     ":requires",
     ":implies",
     ":mutual_exclusion_feature",
+    ":direct_constraint",
+    ":transitive_constraint",
 ]
 
 # @unsorted-dict-items
@@ -77,4 +111,7 @@ TESTS = {
     "feature_collects_requirements_test": _feature_collects_requirements_test,
     "feature_collects_implies_test": _feature_collects_implies_test,
     "feature_collects_mutual_exclusion_test": _feature_collects_mutual_exclusion_test,
+    "feature_set_collects_features_test": _feature_set_collects_features_test,
+    "feature_constraint_collects_direct_features_test": _feature_constraint_collects_direct_features_test,
+    "feature_constraint_collects_transitive_features_test": _feature_constraint_collects_transitive_features_test,
 }
