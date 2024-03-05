@@ -143,7 +143,7 @@ ActionTypeConfigInfo = provider(
         "tools": "(Sequence[ToolInfo]) The tool applied to the action will be the first tool in the sequence with a feature set that matches the feature configuration",
         "args": "(Sequence[ArgsInfo]) Set of flag sets the action sets",
         "implies": "(depset[FeatureInfo]) Set of features implied by this action config",
-        "files": "(depset[File]) The files required to run these actions",
+        "files": "(runfiles) The files required to run these actions",
     },
 )
 
@@ -153,5 +153,17 @@ ActionTypeConfigSetInfo = provider(
     fields = {
         "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
         "configs": "(dict[ActionTypeInfo, ActionTypeConfigInfo]) A set of action configs",
+    },
+)
+
+ToolchainConfigInfo = provider(
+    doc = "The configuration for a toolchain",
+    # @unsorted-dict-items
+    fields = {
+        "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
+        "features": "(Sequence[FeatureInfo]) The features available for this toolchain",
+        "action_type_configs": "(dict[ActionTypeInfo, ActionTypeConfigInfo]) The configuration of action configs for the toolchain.",
+        "args": "(Sequence[ArgsInfo]) A list of arguments to be unconditionally applied to the toolchain.",
+        "files": "(dict[ActionTypeInfo, depset[File]]) Files required for the toolchain, keyed by the action type.",
     },
 )

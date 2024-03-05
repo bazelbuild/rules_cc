@@ -13,6 +13,7 @@
 # limitations under the License.
 """Implementation of a result type for use with rules_testing."""
 
+load("@bazel_skylib//lib:structs.bzl", "structs")
 load("@rules_testing//lib:truth.bzl", "subjects")
 
 visibility("//tests/rule_based_toolchain/...")
@@ -85,7 +86,13 @@ def result_subject(factory):
         def err():
             if value.err == None:
                 meta.add_failure("Wanted an error, but got a value", value.ok)
-            return subjects.str(value.err, meta = meta.derive("err()"))
+            subject = subjects.str(value.err, meta = meta.derive("err()"))
+
+            def contains_all_of(values):
+                for value in values:
+                    subject.contains(str(value))
+
+            return struct(contains_all_of = contains_all_of, **structs.to_dict(subject))
 
         return struct(ok = ok, err = err)
 

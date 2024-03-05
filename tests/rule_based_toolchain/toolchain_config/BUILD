@@ -1,0 +1,160 @@
+load("@rules_testing//lib:util.bzl", "util")
+load("//cc/toolchains:action_type_config.bzl", "cc_action_type_config")
+load("//cc/toolchains:args.bzl", "cc_args")
+load("//cc/toolchains:feature.bzl", "cc_feature")
+load("//cc/toolchains:feature_set.bzl", "cc_feature_set")
+load("//cc/toolchains:tool.bzl", "cc_tool")
+load("//cc/toolchains/impl:external_feature.bzl", "cc_external_feature")
+load("//tests/rule_based_toolchain:analysis_test_suite.bzl", "analysis_test_suite")
+load(":toolchain_config_test.bzl", "TARGETS", "TESTS")
+
+util.helper_target(
+    cc_feature_set,
+    name = "all_simple_features",
+    all_of = [
+        ":simple_feature",
+        "simple_feature2",
+    ],
+)
+
+util.helper_target(
+    cc_external_feature,
+    name = "builtin_feature",
+    feature_name = "builtin_feature",
+    overridable = True,
+)
+
+util.helper_target(
+    cc_args,
+    name = "c_compile_args",
+    actions = ["//tests/rule_based_toolchain/actions:c_compile"],
+    additional_files = ["//tests/rule_based_toolchain/testdata:file1"],
+    args = ["c_compile_args"],
+)
+
+util.helper_target(
+    cc_args,
+    name = "compile_args",
+    actions = ["//tests/rule_based_toolchain/actions:all_compile"],
+    additional_files = ["//tests/rule_based_toolchain/testdata:file2"],
+    args = ["compile_args"],
+)
+
+util.helper_target(
+    cc_action_type_config,
+    name = "compile_config",
+    action_types = ["//tests/rule_based_toolchain/actions:all_compile"],
+    tools = [
+        "//tests/rule_based_toolchain/testdata:bin",
+    ],
+)
+
+util.helper_target(
+    cc_feature,
+    name = "compile_feature",
+    args = [":compile_args"],
+    enabled = True,
+    feature_name = "compile_feature",
+)
+
+util.helper_target(
+    cc_action_type_config,
+    name = "c_compile_config",
+    action_types = ["//tests/rule_based_toolchain/actions:c_compile"],
+    implies = [":simple_feature"],
+    tools = [
+        "//tests/rule_based_toolchain/testdata:bin",
+    ],
+)
+
+util.helper_target(
+    cc_feature,
+    name = "implies_simple_feature",
+    args = [":c_compile_args"],
+    enabled = True,
+    feature_name = "implies",
+    implies = [":simple_feature"],
+)
+
+util.helper_target(
+    cc_feature,
+    name = "overrides_feature",
+    args = [":c_compile_args"],
+    enabled = True,
+    overrides = ":builtin_feature",
+)
+
+util.helper_target(
+    cc_args,
+    name = "requires_all_simple_args",
+    actions = ["//tests/rule_based_toolchain/actions:c_compile"],
+    args = ["--foo"],
+    requires_any_of = [":all_simple_features"],
+)
+
+util.helper_target(
+    cc_feature,
+    name = "requires_all_simple_feature",
+    args = [":c_compile_args"],
+    enabled = True,
+    feature_name = "requires_any_simple",
+    requires_any_of = [":all_simple_features"],
+)
+
+util.helper_target(
+    cc_tool,
+    name = "requires_all_simple_tool",
+    executable = "//tests/rule_based_toolchain/testdata:bin_wrapper.sh",
+    requires_any_of = [":all_simple_features"],
+)
+
+util.helper_target(
+    cc_action_type_config,
+    name = "requires_all_simple_action_type_config",
+    action_types = ["//tests/rule_based_toolchain/actions:c_compile"],
+    tools = [":requires_all_simple_tool"],
+)
+
+util.helper_target(
+    cc_feature,
+    name = "requires_any_simple_feature",
+    args = [":c_compile_args"],
+    enabled = True,
+    feature_name = "requires_any_simple",
+    requires_any_of = [
+        ":simple_feature",
+        ":simple_feature2",
+    ],
+)
+
+util.helper_target(
+    cc_feature,
+    name = "same_feature_name",
+    args = [":c_compile_args"],
+    enabled = False,
+    feature_name = "simple_feature",
+    visibility = ["//tests/rule_based_toolchain:__subpackages__"],
+)
+
+util.helper_target(
+    cc_feature,
+    name = "simple_feature",
+    args = [":c_compile_args"],
+    enabled = False,
+    feature_name = "simple_feature",
+)
+
+util.helper_target(
+    cc_feature,
+    name = "simple_feature2",
+    args = [":c_compile_args"],
+    enabled = False,
+    feature_name = "simple_feature2",
+    visibility = ["//tests/rule_based_toolchain:__subpackages__"],
+)
+
+analysis_test_suite(
+    name = "test_suite",
+    targets = TARGETS,
+    tests = TESTS,
+)

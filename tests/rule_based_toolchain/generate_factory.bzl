@@ -63,6 +63,8 @@ def generate_factory(type, name, attrs):
     want_keys = sorted(attrs.keys())
 
     def validate(*, value, meta):
+        if value == None:
+            meta.add_failure("Wanted a %s but got" % name, value)
         got_keys = sorted(structs.to_dict(value).keys())
         subjects.collection(got_keys, meta = meta.derive(details = [
             "Value was not a %s - it has a different set of fields" % name,

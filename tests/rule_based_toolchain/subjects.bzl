@@ -29,6 +29,7 @@ load(
     "FeatureSetInfo",
     "MutuallyExclusiveCategoryInfo",
     "ToolInfo",
+    "ToolchainConfigInfo",
 )
 load(":generate_factory.bzl", "ProviderDepset", "ProviderSequence", "generate_factory")
 load(":generics.bzl", "dict_key_subject", "optional_subject", "result_subject", "struct_subject", _result_fn_wrapper = "result_fn_wrapper")
@@ -185,6 +186,18 @@ _ActionTypeConfigSetFactory = generate_factory(
     ),
 )
 
+# buildifier: disable=name-conventions
+_ToolchainConfigFactory = generate_factory(
+    ToolchainConfigInfo,
+    "ToolchainConfigInfo",
+    dict(
+        features = ProviderDepset(_FeatureFactory),
+        action_type_configs = dict_key_subject(_ActionTypeConfigFactory.factory),
+        args = ProviderSequence(_ArgsFactory),
+        files = dict_key_subject(_subjects.depset_file),
+    ),
+)
+
 FACTORIES = [
     _ActionTypeFactory,
     _ActionTypeSetFactory,
@@ -197,6 +210,7 @@ FACTORIES = [
     _FeatureSetFactory,
     _ToolFactory,
     _ActionTypeConfigSetFactory,
+    _ToolchainConfigFactory,
 ]
 
 result_fn_wrapper = _result_fn_wrapper
