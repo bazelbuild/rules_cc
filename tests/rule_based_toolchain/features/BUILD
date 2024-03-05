@@ -35,7 +35,7 @@ util.helper_target(
 util.helper_target(
     cc_feature_set,
     name = "feature_set",
-    features = [
+    all_of = [
         ":simple",
         ":simple2",
     ],

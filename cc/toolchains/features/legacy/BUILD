@@ -235,7 +235,7 @@ cc_external_feature(
 
 cc_feature_set(
     name = "all_legacy_builtin_features",
-    features = [
+    all_of = [
         ":legacy_compile_flags",
         ":default_compile_flags",
         ":dependency_file",

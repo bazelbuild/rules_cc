@@ -14,7 +14,6 @@
 """Implementation of the cc_feature_set rule."""
 
 load("//cc/toolchains/impl:collect.bzl", "collect_features")
-load("//cc/toolchains/impl:features_attr.bzl", "require_features_attr")
 load(
     ":cc_toolchain_info.bzl",
     "FeatureConstraintInfo",
@@ -22,7 +21,9 @@ load(
 )
 
 def _cc_feature_set_impl(ctx):
-    features = collect_features(ctx.attr.features_)
+    if ctx.attr.features:
+        fail("Features is a reserved attribute in bazel. cc_feature_set takes `all_of` instead.")
+    features = collect_features(ctx.attr.all_of)
     return [
         FeatureSetInfo(label = ctx.label, features = features),
         FeatureConstraintInfo(
@@ -32,10 +33,10 @@ def _cc_feature_set_impl(ctx):
         ),
     ]
 
-_cc_feature_set = rule(
+cc_feature_set = rule(
     implementation = _cc_feature_set_impl,
     attrs = {
-        "features_": attr.label_list(
+        "all_of": attr.label_list(
             providers = [FeatureSetInfo],
             doc = "A set of features",
         ),
@@ -54,4 +55,3 @@ Example:
     )
 """,
 )
-cc_feature_set = require_features_attr(_cc_feature_set)

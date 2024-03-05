@@ -18,7 +18,6 @@ load(
     "collect_features",
     "collect_provider",
 )
-load("//cc/toolchains/impl:features_attr.bzl", "disallow_features_attr")
 load(
     ":cc_toolchain_info.bzl",
     "FeatureConstraintInfo",
@@ -26,6 +25,8 @@ load(
 )
 
 def _cc_feature_constraint_impl(ctx):
+    if ctx.attr.features:
+        fail("Features is a reserved attribute in bazel. Use the attributes `all_of` and `none_of` for feature constraints")
     all_of = collect_provider(ctx.attr.all_of, FeatureConstraintInfo)
     none_of = [collect_features(ctx.attr.none_of)]
     none_of.extend([fc.none_of for fc in all_of])
@@ -35,7 +36,7 @@ def _cc_feature_constraint_impl(ctx):
         none_of = depset(transitive = none_of),
     )]
 
-_cc_feature_constraint = rule(
+cc_feature_constraint = rule(
     implementation = _cc_feature_constraint_impl,
     attrs = {
         "all_of": attr.label_list(
@@ -51,4 +52,3 @@ _cc_feature_constraint = rule(
 Can be used with require_any_of to specify that something is only enabled when
 a constraint is met.""",
 )
-cc_feature_constraint = disallow_features_attr(_cc_feature_constraint)

@@ -73,7 +73,7 @@ cc_external_feature(
 
 cc_feature_set(
     name = "all_non_legacy_builtin_features",
-    features = [
+    all_of = [
         ":opt",
         ":dbg",
         ":fastbuild",
@@ -91,7 +91,7 @@ cc_feature_set(
 
 cc_feature_set(
     name = "all_builtin_features",
-    features = [
+    all_of = [
         ":all_non_legacy_builtin_features",
         "//cc/toolchains/features/legacy:all_legacy_builtin_features",
     ],
