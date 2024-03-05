@@ -5,6 +5,7 @@ load("//cc/toolchains:feature.bzl", "cc_feature")
 load("//cc/toolchains:feature_set.bzl", "cc_feature_set")
 load("//cc/toolchains:tool.bzl", "cc_tool")
 load("//cc/toolchains/impl:external_feature.bzl", "cc_external_feature")
+load("//cc/toolchains/impl:toolchain_config.bzl", "cc_legacy_file_group", "cc_toolchain_config")
 load("//tests/rule_based_toolchain:analysis_test_suite.bzl", "analysis_test_suite")
 load(":toolchain_config_test.bzl", "TARGETS", "TESTS")
 
@@ -30,6 +31,29 @@ util.helper_target(
     actions = ["//tests/rule_based_toolchain/actions:c_compile"],
     additional_files = ["//tests/rule_based_toolchain/testdata:file1"],
     args = ["c_compile_args"],
+)
+
+util.helper_target(
+    cc_toolchain_config,
+    name = "collects_files_toolchain_config",
+    action_type_configs = [":compile_config"],
+    args = [":c_compile_args"],
+    skip_experimental_flag_validation_for_test = True,
+    toolchain_features = [":compile_feature"],
+)
+
+util.helper_target(
+    cc_legacy_file_group,
+    name = "collects_files_c_compile",
+    actions = ["//tests/rule_based_toolchain/actions:c_compile"],
+    config = ":collects_files_toolchain_config",
+)
+
+util.helper_target(
+    cc_legacy_file_group,
+    name = "collects_files_cpp_compile",
+    actions = ["//tests/rule_based_toolchain/actions:cpp_compile"],
+    config = ":collects_files_toolchain_config",
 )
 
 util.helper_target(

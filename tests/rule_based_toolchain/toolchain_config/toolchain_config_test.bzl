@@ -13,13 +13,25 @@
 # limitations under the License.
 """Tests for the cc_args rule."""
 
-load("//cc/toolchains:cc_toolchain_info.bzl", "ActionTypeInfo")
+load("//cc/toolchains:cc_toolchain_info.bzl", "ActionTypeInfo", "ToolchainConfigInfo")
 load("//cc/toolchains/impl:toolchain_config_info.bzl", _toolchain_config_info = "toolchain_config_info")
 load("//tests/rule_based_toolchain:subjects.bzl", "result_fn_wrapper", "subjects")
 
 visibility("private")
 
 toolchain_config_info = result_fn_wrapper(_toolchain_config_info)
+
+_COLLECTED_CPP_COMPILE_FILES = [
+    # From :compile_config's tool
+    "tests/rule_based_toolchain/testdata/bin",
+    # From :compile_feature's args
+    "tests/rule_based_toolchain/testdata/file2",
+]
+
+_COLLECTED_C_COMPILE_FILES = _COLLECTED_CPP_COMPILE_FILES + [
+    # From :c_compile_args
+    "tests/rule_based_toolchain/testdata/file1",
+]
 
 def _expect_that_toolchain(env, expr = None, **kwargs):
     return env.expect.that_value(
@@ -164,32 +176,27 @@ def _tool_missing_requirements_invalid_test(env, targets):
     )
 
 def _toolchain_collects_files_test(env, targets):
-    tc = _expect_that_toolchain(
-        env,
-        args = [targets.c_compile_args],
-        action_type_configs = [targets.compile_config],
-        features = [targets.compile_feature],
-    ).ok()
-    tc.files().get(targets.c_compile[ActionTypeInfo]).contains_exactly([
-        # From :compile_config's tool
-        "tests/rule_based_toolchain/testdata/bin",
-        # From :c_compile_args
-        "tests/rule_based_toolchain/testdata/file1",
-        # From :compile_feature's args
-        "tests/rule_based_toolchain/testdata/file2",
-    ])
-    tc.files().get(targets.cpp_compile[ActionTypeInfo]).contains_exactly([
-        # From :compile_config's tool
-        "tests/rule_based_toolchain/testdata/bin",
-        # From :compile_feature's args
-        "tests/rule_based_toolchain/testdata/file2",
-    ])
+    tc = env.expect.that_target(
+        targets.collects_files_toolchain_config,
+    ).provider(ToolchainConfigInfo)
+    tc.files().get(targets.c_compile[ActionTypeInfo]).contains_exactly(_COLLECTED_C_COMPILE_FILES)
+    tc.files().get(targets.cpp_compile[ActionTypeInfo]).contains_exactly(_COLLECTED_CPP_COMPILE_FILES)
+
+    env.expect.that_target(
+        targets.collects_files_c_compile,
+    ).default_outputs().contains_exactly(_COLLECTED_C_COMPILE_FILES)
+    env.expect.that_target(
+        targets.collects_files_cpp_compile,
+    ).default_outputs().contains_exactly(_COLLECTED_CPP_COMPILE_FILES)
 
 TARGETS = [
     "//tests/rule_based_toolchain/actions:c_compile",
     "//tests/rule_based_toolchain/actions:cpp_compile",
     ":builtin_feature",
     ":compile_config",
+    ":collects_files_c_compile",
+    ":collects_files_cpp_compile",
+    ":collects_files_toolchain_config",
     ":compile_feature",
     ":c_compile_args",
     ":c_compile_config",

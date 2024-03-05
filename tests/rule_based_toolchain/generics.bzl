@@ -134,6 +134,6 @@ struct_subject = lambda **attrs: lambda value, *, meta: subjects.struct(
 dict_key_subject = lambda factory: lambda value, *, meta: struct(
     get = lambda key: factory(
         value[key],
-        meta = meta.derive(".get({})".format(key)),
+        meta = meta.derive("get({})".format(key)),
     ),
 )
