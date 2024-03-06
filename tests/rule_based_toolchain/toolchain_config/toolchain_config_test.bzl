@@ -11,9 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Tests for the cc_args rule."""
+"""Tests for the cc_toolchain_config rule."""
 
+load(
+    "//cc:cc_toolchain_config_lib.bzl",
+    legacy_action_config = "action_config",
+    legacy_env_entry = "env_entry",
+    legacy_env_set = "env_set",
+    legacy_feature = "feature",
+    legacy_flag_group = "flag_group",
+    legacy_flag_set = "flag_set",
+    legacy_tool = "tool",
+)
 load("//cc/toolchains:cc_toolchain_info.bzl", "ActionTypeInfo", "ToolchainConfigInfo")
+load("//cc/toolchains/impl:legacy_converter.bzl", "convert_toolchain")
 load("//cc/toolchains/impl:toolchain_config_info.bzl", _toolchain_config_info = "toolchain_config_info")
 load("//tests/rule_based_toolchain:subjects.bzl", "result_fn_wrapper", "subjects")
 
@@ -24,6 +35,7 @@ toolchain_config_info = result_fn_wrapper(_toolchain_config_info)
 _COLLECTED_CPP_COMPILE_FILES = [
     # From :compile_config's tool
     "tests/rule_based_toolchain/testdata/bin",
+    "tests/rule_based_toolchain/testdata/bin_wrapper",
     # From :compile_feature's args
     "tests/rule_based_toolchain/testdata/file2",
 ]
@@ -188,6 +200,61 @@ def _toolchain_collects_files_test(env, targets):
     env.expect.that_target(
         targets.collects_files_cpp_compile,
     ).default_outputs().contains_exactly(_COLLECTED_CPP_COMPILE_FILES)
+
+    legacy = convert_toolchain(tc.actual)
+    env.expect.that_collection(legacy.features).contains_exactly([
+        legacy_feature(
+            name = "compile_feature",
+            enabled = True,
+            flag_sets = [legacy_flag_set(
+                actions = ["c_compile", "cpp_compile"],
+                flag_groups = [
+                    legacy_flag_group(flags = ["compile_args"]),
+                ],
+            )],
+        ),
+        legacy_feature(
+            name = "implied_by_always_enabled",
+            enabled = True,
+            flag_sets = [legacy_flag_set(
+                actions = ["c_compile"],
+                flag_groups = [
+                    legacy_flag_group(flags = ["c_compile_args"]),
+                ],
+            )],
+        ),
+        legacy_feature(
+            name = "implied_by_cpp_compile",
+            enabled = False,
+            flag_sets = [legacy_flag_set(
+                actions = ["cpp_compile"],
+                flag_groups = [
+                    legacy_flag_group(flags = ["cpp_compile_args"]),
+                ],
+            )],
+            env_sets = [legacy_env_set(
+                actions = ["cpp_compile"],
+                env_entries = [legacy_env_entry(key = "CPP_COMPILE", value = "1")],
+            )],
+        ),
+    ]).in_order()
+
+    exe = tc.action_type_configs().get(
+        targets.c_compile[ActionTypeInfo],
+    ).actual.tools[0].exe
+    env.expect.that_collection(legacy.action_configs).contains_exactly([
+        legacy_action_config(
+            action_name = "c_compile",
+            enabled = True,
+            tools = [legacy_tool(tool = exe)],
+        ),
+        legacy_action_config(
+            action_name = "cpp_compile",
+            enabled = True,
+            tools = [legacy_tool(tool = exe)],
+            implies = ["implied_by_cpp_compile"],
+        ),
+    ]).in_order()
 
 TARGETS = [
     "//tests/rule_based_toolchain/actions:c_compile",

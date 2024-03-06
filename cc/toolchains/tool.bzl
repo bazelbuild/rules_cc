@@ -70,7 +70,7 @@ executable label.
             doc = "Additional files that are required for this tool to run.",
         ),
         "execution_requirements": attr.string_list(
-            doc = "A list of strings that provide hints for execution environment compatibility (e.g. `requires-mac`).",
+            doc = "A list of strings that provide hints for execution environment compatibility (e.g. `requires-network`).",
         ),
         "requires_any_of": attr.label_list(
             providers = [FeatureConstraintInfo],

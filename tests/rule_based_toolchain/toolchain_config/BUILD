@@ -34,12 +34,25 @@ util.helper_target(
 )
 
 util.helper_target(
+    cc_args,
+    name = "cpp_compile_args",
+    actions = ["//tests/rule_based_toolchain/actions:cpp_compile"],
+    args = ["cpp_compile_args"],
+    env = {"CPP_COMPILE": "1"},
+)
+
+util.helper_target(
     cc_toolchain_config,
     name = "collects_files_toolchain_config",
     action_type_configs = [":compile_config"],
     args = [":c_compile_args"],
+    compiler = "gcc-4.1.1",
     skip_experimental_flag_validation_for_test = True,
+    target_cpu = "k8",
+    target_libc = "glibc-2.2.2",
+    target_system_name = "local",
     toolchain_features = [":compile_feature"],
+    toolchain_identifier = "collects_files_toolchain",
 )
 
 util.helper_target(
@@ -68,8 +81,9 @@ util.helper_target(
     cc_action_type_config,
     name = "compile_config",
     action_types = ["//tests/rule_based_toolchain/actions:all_compile"],
+    args = [":cpp_compile_args"],
     tools = [
-        "//tests/rule_based_toolchain/testdata:bin",
+        "//tests/rule_based_toolchain/tool:wrapped_tool",
     ],
 )
 
@@ -87,7 +101,7 @@ util.helper_target(
     action_types = ["//tests/rule_based_toolchain/actions:c_compile"],
     implies = [":simple_feature"],
     tools = [
-        "//tests/rule_based_toolchain/testdata:bin",
+        "//tests/rule_based_toolchain/tool:wrapped_tool",
     ],
 )
 

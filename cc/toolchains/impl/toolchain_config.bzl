@@ -23,6 +23,7 @@ load(
     "ToolchainConfigInfo",
 )
 load(":collect.bzl", "collect_action_types")
+load(":legacy_converter.bzl", "convert_toolchain")
 load(":toolchain_config_info.bzl", "toolchain_config_info")
 
 visibility([
@@ -61,21 +62,54 @@ def _cc_toolchain_config_impl(ctx):
         args = ctx.attr.args,
     )
 
+    legacy = convert_toolchain(toolchain_config)
+
     return [
-        # TODO: Transform toolchain_config into legacy cc_toolchain_config_info
         toolchain_config,
+        cc_common.create_cc_toolchain_config_info(
+            ctx = ctx,
+            action_configs = legacy.action_configs,
+            features = legacy.features,
+            cxx_builtin_include_directories = ctx.attr.cxx_builtin_include_directories,
+            toolchain_identifier = ctx.attr.toolchain_identifier,
+            target_system_name = ctx.attr.target_system_name,
+            target_cpu = ctx.attr.target_cpu,
+            target_libc = ctx.attr.target_libc,
+            compiler = ctx.attr.compiler,
+            abi_version = ctx.attr.abi_version,
+            abi_libc_version = ctx.attr.abi_libc_version,
+            builtin_sysroot = ctx.attr.sysroot or None,
+        ),
     ]
 
 cc_toolchain_config = rule(
     implementation = _cc_toolchain_config_impl,
     # @unsorted-dict-items
     attrs = {
+        # Attributes new to this rule.
         "action_type_configs": attr.label_list(providers = [ActionTypeConfigSetInfo]),
         "args": attr.label_list(providers = [ArgsListInfo]),
         "toolchain_features": attr.label_list(providers = [FeatureSetInfo]),
         "skip_experimental_flag_validation_for_test": attr.bool(default = False),
         "_builtin_features": attr.label(default = "//cc/toolchains/features:all_builtin_features"),
         "_enabled": attr.label(default = "//cc/toolchains:experimental_enable_rule_based_toolchains"),
+
+        # Attributes from create_cc_toolchain_config_info.
+        # artifact_name_patterns is currently unused. Consider adding it later.
+        # TODO: Consider making this into a label_list that takes a
+        #  cc_directory_marker rule as input.
+        "cxx_builtin_include_directories": attr.string_list(),
+        "toolchain_identifier": attr.string(mandatory = True),
+        "target_system_name": attr.string(mandatory = True),
+        "target_cpu": attr.string(mandatory = True),
+        "target_libc": attr.string(mandatory = True),
+        "compiler": attr.string(mandatory = True),
+        "abi_version": attr.string(),
+        "abi_libc_version": attr.string(),
+        # tool_paths currently unused.
+        # TODO: Consider making this into a label that takes a
+        #  cc_directory_marker rule as an input.
+        "sysroot": attr.string(),
     },
     provides = [ToolchainConfigInfo],
 )

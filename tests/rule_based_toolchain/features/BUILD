@@ -73,6 +73,7 @@ util.helper_target(
     name = "direct_constraint",
     all_of = [":simple"],
     none_of = [":simple2"],
+    visibility = ["//tests/rule_based_toolchain:__subpackages__"],
 )
 
 util.helper_target(

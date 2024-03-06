@@ -13,8 +13,13 @@
 # limitations under the License.
 """Tests for the cc_args rule."""
 
+load(
+    "//cc:cc_toolchain_config_lib.bzl",
+    legacy_with_feature_set = "with_feature_set",
+)
 load("//cc/toolchains:cc_toolchain_info.bzl", "ToolInfo")
 load("//cc/toolchains/impl:collect.bzl", _collect_tools = "collect_tools")
+load("//cc/toolchains/impl:legacy_converter.bzl", "convert_tool")
 load("//tests/rule_based_toolchain:subjects.bzl", "result_fn_wrapper", "subjects")
 
 visibility("private")
@@ -35,9 +40,21 @@ _BIN = "tests/rule_based_toolchain/testdata/bin"
 def _tool_test(env, targets):
     tool = env.expect.that_target(targets.tool).provider(ToolInfo)
     tool.exe().short_path_equals(_BIN_WRAPPER)
+    tool.execution_requirements().contains_exactly(["requires-network"])
     tool.runfiles().contains_exactly([
         _BIN_WRAPPER,
         _BIN,
+    ])
+    tool.requires_any_of().contains_exactly([targets.direct_constraint.label])
+
+    legacy = convert_tool(tool.actual)
+    env.expect.that_file(legacy.tool).equals(tool.actual.exe)
+    env.expect.that_collection(legacy.execution_requirements).contains_exactly(["requires-network"])
+    env.expect.that_collection(legacy.with_features).contains_exactly([
+        legacy_with_feature_set(
+            features = ["feature_name"],
+            not_features = ["simple2"],
+        ),
     ])
 
 def _wrapped_tool_includes_runfiles_test(env, targets):
@@ -86,6 +103,7 @@ def _collect_tools_fails_on_non_binary_test(env, targets):
     ).err()
 
 TARGETS = [
+    "//tests/rule_based_toolchain/features:direct_constraint",
     "//tests/rule_based_toolchain/tool:tool",
     "//tests/rule_based_toolchain/tool:wrapped_tool",
     "//tests/rule_based_toolchain/testdata:bin_wrapper",

@@ -8,7 +8,8 @@ util.helper_target(
     name = "tool",
     data = ["//tests/rule_based_toolchain/testdata:bin"],
     executable = "//tests/rule_based_toolchain/testdata:bin_wrapper.sh",
-    execution_requirements = ["requires-mac"],
+    execution_requirements = ["requires-network"],
+    requires_any_of = ["//tests/rule_based_toolchain/features:direct_constraint"],
 )
 
 util.helper_target(

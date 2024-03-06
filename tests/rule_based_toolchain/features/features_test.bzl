@@ -11,8 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Tests for actions for the rule based toolchain."""
+"""Tests for features for the rule based toolchain."""
 
+load(
+    "//cc:cc_toolchain_config_lib.bzl",
+    legacy_feature_set = "feature_set",
+    legacy_flag_group = "flag_group",
+    legacy_flag_set = "flag_set",
+)
 load(
     "//cc/toolchains:cc_toolchain_info.bzl",
     "ArgsInfo",
@@ -20,6 +26,11 @@ load(
     "FeatureInfo",
     "FeatureSetInfo",
     "MutuallyExclusiveCategoryInfo",
+)
+load(
+    "//cc/toolchains/impl:legacy_converter.bzl",
+    "convert_feature",
+    "convert_feature_constraint",
 )
 
 visibility("private")
@@ -41,11 +52,26 @@ def _simple_feature_test(env, targets):
     c_compile_action.files().contains_exactly([_C_COMPILE_FILE])
     c_compile_action.args().contains_exactly([targets.c_compile[ArgsInfo]])
 
+    legacy = convert_feature(simple.actual)
+    env.expect.that_str(legacy.name).equals("feature_name")
+    env.expect.that_bool(legacy.enabled).equals(False)
+    env.expect.that_collection(legacy.flag_sets).contains_exactly([
+        legacy_flag_set(
+            actions = ["c_compile"],
+            with_features = [],
+            flag_groups = [legacy_flag_group(flags = ["c"])],
+        ),
+    ])
+
 def _feature_collects_requirements_test(env, targets):
-    env.expect.that_target(targets.requires).provider(
-        FeatureInfo,
-    ).requires_any_of().contains_exactly([
+    ft = env.expect.that_target(targets.requires).provider(FeatureInfo)
+    ft.requires_any_of().contains_exactly([
         targets.feature_set.label,
+    ])
+
+    legacy = convert_feature(ft.actual)
+    env.expect.that_collection(legacy.requires).contains_exactly([
+        legacy_feature_set(features = ["feature_name", "simple2"]),
     ])
 
 def _feature_collects_implies_test(env, targets):
@@ -93,10 +119,24 @@ def _feature_constraint_collects_transitive_features_test(env, targets):
         targets.implies.label,
     ])
 
+    legacy = convert_feature_constraint(constraint.actual)
+    env.expect.that_collection(legacy.features).contains_exactly([
+        "feature_name",
+        "requires",
+    ])
+    env.expect.that_collection(legacy.not_features).contains_exactly([
+        "simple2",
+        "implies",
+    ])
+
 def _external_feature_is_a_feature_test(env, targets):
-    env.expect.that_target(targets.builtin_feature).provider(
+    external_feature = env.expect.that_target(targets.builtin_feature).provider(
         FeatureInfo,
-    ).name().equals("builtin_feature")
+    )
+    external_feature.name().equals("builtin_feature")
+
+    # It's not a string, but we don't have a factory for the type.
+    env.expect.that_str(convert_feature(external_feature.actual)).equals(None)
 
 def _feature_can_be_overridden_test(env, targets):
     overrides = env.expect.that_target(targets.overrides).provider(FeatureInfo)
