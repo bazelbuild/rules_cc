@@ -139,6 +139,19 @@ cc_action_type(
 )
 
 cc_action_type_set(
+    name = "all_ar_actions",
+    actions = [":cpp_link_static_library"],
+)
+
+cc_action_type_set(
+    name = "all_assembly_actions",
+    actions = [
+        ":preprocess_assemble",
+        ":assemble",
+    ],
+)
+
+cc_action_type_set(
     name = "all_cpp_compile_actions",
     actions = [
         ":linkstamp_compile",
@@ -158,6 +171,14 @@ cc_action_type_set(
         ":c_compile",
         ":preprocess_assemble",
         ":assemble",
+    ],
+)
+
+cc_action_type_set(
+    name = "all_compile_actions",
+    actions = [
+        ":all_cc_compile_actions",
+        ":all_cpp_compile_actions",
     ],
 )
 

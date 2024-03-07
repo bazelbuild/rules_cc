@@ -80,6 +80,12 @@ def _cc_toolchain_config_impl(ctx):
             abi_libc_version = ctx.attr.abi_libc_version,
             builtin_sysroot = ctx.attr.sysroot or None,
         ),
+        # This allows us to support all_files.
+        # If all_files was simply an alias to
+        # ///cc/toolchains/actions:all_actions,
+        # then if a toolchain introduced a new type of action, it wouldn't get
+        # put in all_files.
+        DefaultInfo(files = depset(transitive = toolchain_config.files.values())),
     ]
 
 cc_toolchain_config = rule(
