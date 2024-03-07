@@ -82,6 +82,7 @@ directory as additional files.
 """,
         ),
         "args": attr.string_list(
+            mandatory = True,
             doc = """Arguments that should be added to the command-line.
 
 These are evaluated in order, with earlier args appearing earlier in the

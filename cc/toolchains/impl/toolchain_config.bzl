@@ -53,7 +53,7 @@ def _cc_toolchain_config_impl(ctx):
         fail("Features is a reserved attribute in bazel. Did you mean 'toolchain_features'")
 
     if not ctx.attr._enabled[BuildSettingInfo].value and not ctx.attr.skip_experimental_flag_validation_for_test:
-        fail("Rule based toolchains are experimental. To use it, please add --//cc/toolchains:experimental_enable_rule_based_toolchains to your bazelrc")
+        fail("Rule based toolchains are experimental. To use it, please add --@rules_cc//cc/toolchains:experimental_enable_rule_based_toolchains to your bazelrc")
 
     toolchain_config = toolchain_config_info(
         label = ctx.label,

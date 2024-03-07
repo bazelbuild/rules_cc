@@ -142,7 +142,7 @@ util.helper_target(
 util.helper_target(
     cc_tool,
     name = "requires_all_simple_tool",
-    executable = "//tests/rule_based_toolchain/testdata:bin_wrapper.sh",
+    src = "//tests/rule_based_toolchain/testdata:bin_wrapper.sh",
     requires_any_of = [":all_simple_features"],
 )
 

@@ -6,8 +6,8 @@ load(":tool_test.bzl", "TARGETS", "TESTS")
 util.helper_target(
     cc_tool,
     name = "tool",
+    src = "//tests/rule_based_toolchain/testdata:bin_wrapper.sh",
     data = ["//tests/rule_based_toolchain/testdata:bin"],
-    executable = "//tests/rule_based_toolchain/testdata:bin_wrapper.sh",
     execution_requirements = ["requires-network"],
     requires_any_of = ["//tests/rule_based_toolchain/features:direct_constraint"],
 )
@@ -15,7 +15,7 @@ util.helper_target(
 util.helper_target(
     cc_tool,
     name = "wrapped_tool",
-    executable = "//tests/rule_based_toolchain/testdata:bin_wrapper",
+    src = "//tests/rule_based_toolchain/testdata:bin_wrapper",
     visibility = ["//tests/rule_based_toolchain:__subpackages__"],
 )
 

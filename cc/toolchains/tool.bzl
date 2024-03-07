@@ -21,8 +21,15 @@ load(
 )
 
 def _cc_tool_impl(ctx):
-    exe = ctx.executable.executable
-    runfiles = collect_data(ctx, ctx.attr.data + [ctx.attr.executable])
+    exe_info = ctx.attr.src[DefaultInfo]
+    if exe_info.files_to_run != None and exe_info.files_to_run.executable != None:
+        exe = exe_info.files_to_run.executable
+    elif len(exe_info.files.to_list()) == 1:
+        exe = exe_info.files.to_list()[0]
+    else:
+        fail("Expected cc_tool's src attribute to be either an executable or a single file")
+
+    runfiles = collect_data(ctx, ctx.attr.data + [ctx.attr.src])
     tool = ToolInfo(
         label = ctx.label,
         exe = exe,
@@ -37,7 +44,7 @@ def _cc_tool_impl(ctx):
     link = ctx.actions.declare_file(ctx.label.name)
     ctx.actions.symlink(
         output = link,
-        target_file = ctx.executable.executable,
+        target_file = exe,
         is_executable = True,
     )
     return [
@@ -55,9 +62,8 @@ cc_tool = rule(
     implementation = _cc_tool_impl,
     # @unsorted-dict-items
     attrs = {
-        "executable": attr.label(
+        "src": attr.label(
             allow_files = True,
-            executable = True,
             cfg = "exec",
             doc = """The underlying binary that this tool represents.
 
