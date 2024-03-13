@@ -13,7 +13,7 @@
 # limitations under the License.
 """Implementation of the cc_toolchain rule."""
 
-load("//cc:defs.bzl", "cc_toolchain")
+load("//cc:defs.bzl", _cc_toolchain = "cc_toolchain")
 load(
     "//cc/toolchains/impl:toolchain_config.bzl",
     "cc_legacy_file_group",
@@ -128,7 +128,7 @@ def cc_toolchain(
     if visibility != None:
         all_kwargs["visibility"] = visibility
 
-    cc_toolchain(
+    _cc_toolchain(
         name = name,
         toolchain_config = config_name,
         all_files = config_name,
