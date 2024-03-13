@@ -7,10 +7,10 @@ util.helper_target(
     cc_action_type_config,
     name = "file_map",
     action_types = ["//tests/rule_based_toolchain/actions:all_compile"],
-    additional_files = [
+    args = ["//tests/rule_based_toolchain/args_list"],
+    data = [
         "//tests/rule_based_toolchain/testdata:multiple2",
     ],
-    args = ["//tests/rule_based_toolchain/args_list"],
     tools = [
         "//tests/rule_based_toolchain/testdata:bin_wrapper.sh",
         "//tests/rule_based_toolchain/tool:wrapped_tool",

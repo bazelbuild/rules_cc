@@ -40,7 +40,7 @@ def _cc_action_type_config_impl(ctx):
     tools = tuple(collect_tools(ctx, ctx.attr.tools))
     implies = collect_features(ctx.attr.implies)
     args_list = collect_args_lists(ctx.attr.args, ctx.label)
-    files = collect_files(ctx.attr.additional_files)
+    files = collect_files(ctx.attr.data)
 
     configs = {}
     for action_type in collect_action_types(ctx.attr.action_types).to_list():
@@ -92,7 +92,7 @@ unconditionally bound to the specified actions.
             providers = [FeatureSetInfo],
             doc = "Features that should be enabled when this action is used.",
         ),
-        "additional_files": attr.label_list(
+        "data": attr.label_list(
             allow_files = True,
             doc = """Files required for this action type.
 

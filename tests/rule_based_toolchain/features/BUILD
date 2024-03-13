@@ -11,8 +11,8 @@ util.helper_target(
     cc_args,
     name = "c_compile",
     actions = ["//tests/rule_based_toolchain/actions:c_compile"],
-    additional_files = ["//tests/rule_based_toolchain/testdata:file1"],
     args = ["c"],
+    data = ["//tests/rule_based_toolchain/testdata:file1"],
 )
 
 util.helper_target(

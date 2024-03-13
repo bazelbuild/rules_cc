@@ -38,7 +38,7 @@ def _cc_args_impl(ctx):
     )]
 
     actions = collect_action_types(ctx.attr.actions)
-    files = collect_files(ctx.attr.additional_files)
+    files = collect_files(ctx.attr.data)
     requires = collect_provider(ctx.attr.requires_any_of, FeatureConstraintInfo)
 
     args = ArgsInfo(
@@ -73,14 +73,6 @@ cc_args = rule(
 See @rules_cc//cc/toolchains/actions:all for valid options.
 """,
         ),
-        "additional_files": attr.label_list(
-            allow_files = True,
-            doc = """Files required to add this argument to the command-line.
-
-For example, a flag that sets the header directory might add the headers in that
-directory as additional files.
-""",
-        ),
         "args": attr.string_list(
             mandatory = True,
             doc = """Arguments that should be added to the command-line.
@@ -88,6 +80,14 @@ directory as additional files.
 These are evaluated in order, with earlier args appearing earlier in the
 invocation of the underlying tool.
 """,
+        ),
+        "data": attr.label_list(
+            allow_files = True,
+            doc = """Files required to add this argument to the command-line.
+
+For example, a flag that sets the header directory might add the headers in that
+directory as additional files.
+        """,
         ),
         "env": attr.string_dict(
             doc = "Environment variables to be added to the command-line.",

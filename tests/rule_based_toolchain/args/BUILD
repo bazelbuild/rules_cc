@@ -7,13 +7,13 @@ util.helper_target(
     cc_args,
     name = "simple",
     actions = ["//tests/rule_based_toolchain/actions:all_compile"],
-    additional_files = [
-        "//tests/rule_based_toolchain/testdata:file1",
-        "//tests/rule_based_toolchain/testdata:multiple",
-    ],
     args = [
         "--foo",
         "foo",
+    ],
+    data = [
+        "//tests/rule_based_toolchain/testdata:file1",
+        "//tests/rule_based_toolchain/testdata:multiple",
     ],
     env = {"BAR": "bar"},
 )

@@ -29,8 +29,8 @@ util.helper_target(
     cc_args,
     name = "c_compile_args",
     actions = ["//tests/rule_based_toolchain/actions:c_compile"],
-    additional_files = ["//tests/rule_based_toolchain/testdata:file1"],
     args = ["c_compile_args"],
+    data = ["//tests/rule_based_toolchain/testdata:file1"],
 )
 
 util.helper_target(
@@ -73,8 +73,8 @@ util.helper_target(
     cc_args,
     name = "compile_args",
     actions = ["//tests/rule_based_toolchain/actions:all_compile"],
-    additional_files = ["//tests/rule_based_toolchain/testdata:file2"],
     args = ["compile_args"],
+    data = ["//tests/rule_based_toolchain/testdata:file2"],
 )
 
 util.helper_target(

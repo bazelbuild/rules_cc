@@ -8,8 +8,8 @@ util.helper_target(
     cc_args,
     name = "c_compile_args",
     actions = ["//tests/rule_based_toolchain/actions:c_compile"],
-    additional_files = ["//tests/rule_based_toolchain/testdata:file1"],
     args = ["c"],
+    data = ["//tests/rule_based_toolchain/testdata:file1"],
     visibility = ["//tests/rule_based_toolchain:__subpackages__"],
 )
 
@@ -17,8 +17,8 @@ util.helper_target(
     cc_args,
     name = "cpp_compile_args",
     actions = ["//tests/rule_based_toolchain/actions:cpp_compile"],
-    additional_files = ["//tests/rule_based_toolchain/testdata:file2"],
     args = ["cpp"],
+    data = ["//tests/rule_based_toolchain/testdata:file2"],
     visibility = ["//tests/rule_based_toolchain:__subpackages__"],
 )
 
@@ -26,8 +26,8 @@ util.helper_target(
     cc_args,
     name = "all_compile_args",
     actions = ["//tests/rule_based_toolchain/actions:all_compile"],
-    additional_files = ["//tests/rule_based_toolchain/testdata:multiple1"],
     args = ["all"],
+    data = ["//tests/rule_based_toolchain/testdata:multiple1"],
     visibility = ["//tests/rule_based_toolchain:__subpackages__"],
 )
 
