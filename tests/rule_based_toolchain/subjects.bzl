@@ -21,9 +21,9 @@ load(
     "ActionTypeConfigSetInfo",
     "ActionTypeInfo",
     "ActionTypeSetInfo",
-    "AddArgsInfo",
     "ArgsInfo",
     "ArgsListInfo",
+    "ExpandArgsInfo",
     "FeatureConstraintInfo",
     "FeatureInfo",
     "FeatureSetInfo",
@@ -39,6 +39,10 @@ visibility("//tests/rule_based_toolchain/...")
 # The default runfiles subject uses path instead of short_path.
 # This makes it rather awkward for copybara.
 runfiles_subject = lambda value, meta: _subjects.depset_file(value.files, meta = meta)
+
+# The string type has .equals(), which is all we can really do for an unknown
+# type.
+unknown_subject = _subjects.str
 
 # buildifier: disable=name-conventions
 _ActionTypeFactory = generate_factory(
@@ -102,13 +106,27 @@ _FeatureConstraintFactory = generate_factory(
     ),
 )
 
+_EXPAND_ARGS_FLAGS = dict(
+    expand = None,
+    files = _subjects.depset_file,
+    iterate_over = optional_subject(_subjects.str),
+    legacy_flag_group = unknown_subject,
+    requires_types = _subjects.dict,
+)
+
 # buildifier: disable=name-conventions
-_AddArgsFactory = generate_factory(
-    AddArgsInfo,
-    "AddArgsInfo",
-    dict(
-        args = _subjects.collection,
-        files = _subjects.depset_file,
+_FakeExpandArgsFactory = generate_factory(
+    ExpandArgsInfo,
+    "ExpandArgsInfo",
+    _EXPAND_ARGS_FLAGS,
+)
+
+# buildifier: disable=name-conventions
+_ExpandArgsFactory = generate_factory(
+    ExpandArgsInfo,
+    "ExpandArgsInfo",
+    _EXPAND_ARGS_FLAGS | dict(
+        expand = ProviderSequence(_FakeExpandArgsFactory),
     ),
 )
 
@@ -118,9 +136,10 @@ _ArgsFactory = generate_factory(
     "ArgsInfo",
     dict(
         actions = ProviderDepset(_ActionTypeFactory),
-        args = ProviderSequence(_AddArgsFactory),
         env = _subjects.dict,
         files = _subjects.depset_file,
+        # Use .factory so it's not inlined.
+        expand = optional_subject(_ExpandArgsFactory.factory),
         requires_any_of = ProviderSequence(_FeatureConstraintFactory),
     ),
 )
@@ -201,7 +220,7 @@ _ToolchainConfigFactory = generate_factory(
 FACTORIES = [
     _ActionTypeFactory,
     _ActionTypeSetFactory,
-    _AddArgsFactory,
+    _ExpandArgsFactory,
     _ArgsFactory,
     _ArgsListFactory,
     _MutuallyExclusiveCategoryFactory,
@@ -217,6 +236,7 @@ result_fn_wrapper = _result_fn_wrapper
 
 subjects = struct(
     **(structs.to_dict(_subjects) | dict(
+        unknown = unknown_subject,
         result = result_subject,
         optional = optional_subject,
         struct = struct_subject,

@@ -13,6 +13,7 @@
 # limitations under the License.
 """All providers for rule-based bazel toolchain config."""
 
+load("//cc:cc_toolchain_config_lib.bzl", "flag_group")
 load(
     "//cc/toolchains/impl:collect.bzl",
     "collect_action_types",
@@ -22,32 +23,41 @@ load(
 load(
     ":cc_toolchain_info.bzl",
     "ActionTypeSetInfo",
-    "AddArgsInfo",
     "ArgsInfo",
     "ArgsListInfo",
+    "ExpandArgsInfo",
     "FeatureConstraintInfo",
 )
 
 visibility("public")
 
 def _cc_args_impl(ctx):
-    add_args = [AddArgsInfo(
-        label = ctx.label,
-        args = tuple(ctx.attr.args),
-        files = depset([]),
-    )]
+    if not ctx.attr.args and not ctx.attr.env:
+        fail("cc_args requires at least one of args and env")
 
     actions = collect_action_types(ctx.attr.actions)
     files = collect_files(ctx.attr.data)
     requires = collect_provider(ctx.attr.requires_any_of, FeatureConstraintInfo)
 
+    expand = None
+    if ctx.attr.args:
+        # TODO: This is temporary until cc_expand_args is implemented.
+        expand = ExpandArgsInfo(
+            label = ctx.label,
+            expand = tuple(),
+            iterate_over = None,
+            files = files,
+            requires_types = {},
+            legacy_flag_group = flag_group(flags = ctx.attr.args),
+        )
+
     args = ArgsInfo(
         label = ctx.label,
         actions = actions,
         requires_any_of = tuple(requires),
-        files = files,
-        args = add_args,
+        expand = expand,
         env = ctx.attr.env,
+        files = files,
     )
     return [
         args,
@@ -74,7 +84,6 @@ See @rules_cc//cc/toolchains/actions:all for valid options.
 """,
         ),
         "args": attr.string_list(
-            mandatory = True,
             doc = """Arguments that should be added to the command-line.
 
 These are evaluated in order, with earlier args appearing earlier in the

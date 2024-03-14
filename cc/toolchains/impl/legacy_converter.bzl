@@ -20,7 +20,6 @@ load(
     legacy_env_set = "env_set",
     legacy_feature = "feature",
     legacy_feature_set = "feature_set",
-    legacy_flag_group = "flag_group",
     legacy_flag_set = "flag_set",
     legacy_tool = "tool",
     legacy_with_feature_set = "with_feature_set",
@@ -50,10 +49,14 @@ def convert_feature_constraint(constraint):
         not_features = sorted([ft.name for ft in constraint.none_of.to_list()]),
     )
 
-def _convert_add_arg(add_arg):
-    return [legacy_flag_group(flags = list(add_arg.args))]
+def convert_args(args):
+    """Converts an ArgsInfo to flag_sets and env_sets.
 
-def _convert_args(args):
+    Args:
+        args: (ArgsInfo) The args to convert
+    Returns:
+        struct(flag_sets = List[flag_set], env_sets = List[env_sets])
+    """
     actions = _convert_actions(args.actions)
     with_features = [
         convert_feature_constraint(fc)
@@ -61,14 +64,11 @@ def _convert_args(args):
     ]
 
     flag_sets = []
-    if args.args:
-        flag_groups = []
-        for add_args in args.args:
-            flag_groups.extend(_convert_add_arg(add_args))
+    if args.expand != None:
         flag_sets.append(legacy_flag_set(
             actions = actions,
             with_features = with_features,
-            flag_groups = flag_groups,
+            flag_groups = [args.expand.legacy_flag_group],
         ))
 
     env_sets = []
@@ -93,7 +93,7 @@ def _convert_args_sequence(args_sequence):
     flag_sets = []
     env_sets = []
     for args in args_sequence:
-        legacy_args = _convert_args(args)
+        legacy_args = convert_args(args)
         flag_sets.extend(legacy_args.flag_sets)
         env_sets.extend(legacy_args.env_sets)
 

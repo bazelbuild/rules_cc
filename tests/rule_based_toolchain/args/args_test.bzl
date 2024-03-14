@@ -14,11 +14,23 @@
 """Tests for the cc_args rule."""
 
 load(
+    "//cc:cc_toolchain_config_lib.bzl",
+    "env_entry",
+    "env_set",
+    "flag_group",
+    "flag_set",
+)
+load(
     "//cc/toolchains:cc_toolchain_info.bzl",
     "ActionTypeInfo",
     "ArgsInfo",
     "ArgsListInfo",
 )
+load(
+    "//cc/toolchains/impl:legacy_converter.bzl",
+    "convert_args",
+)
+load("//tests/rule_based_toolchain:subjects.bzl", "subjects")
 
 visibility("private")
 
@@ -28,13 +40,17 @@ _SIMPLE_FILES = [
     "tests/rule_based_toolchain/testdata/multiple2",
 ]
 
-def _test_simple_args_impl(env, targets):
+_CONVERTED_ARGS = subjects.struct(
+    flag_sets = subjects.collection,
+    env_sets = subjects.collection,
+)
+
+def _simple_test(env, targets):
     simple = env.expect.that_target(targets.simple).provider(ArgsInfo)
     simple.actions().contains_exactly([
         targets.c_compile.label,
         targets.cpp_compile.label,
     ])
-    simple.args().contains_exactly([targets.simple.label])
     simple.env().contains_exactly({"BAR": "bar"})
     simple.files().contains_exactly(_SIMPLE_FILES)
 
@@ -44,12 +60,54 @@ def _test_simple_args_impl(env, targets):
     c_compile.args().contains_exactly([targets.simple[ArgsInfo]])
     c_compile.files().contains_exactly(_SIMPLE_FILES)
 
+    converted = env.expect.that_value(
+        convert_args(targets.simple[ArgsInfo]),
+        factory = _CONVERTED_ARGS,
+    )
+    converted.env_sets().contains_exactly([env_set(
+        actions = ["c_compile", "cpp_compile"],
+        env_entries = [env_entry(key = "BAR", value = "bar")],
+    )])
+
+    converted.flag_sets().contains_exactly([flag_set(
+        actions = ["c_compile", "cpp_compile"],
+        flag_groups = [flag_group(flags = ["--foo", "foo"])],
+    )])
+
+def _env_only_test(env, targets):
+    env_only = env.expect.that_target(targets.env_only).provider(ArgsInfo)
+    env_only.actions().contains_exactly([
+        targets.c_compile.label,
+        targets.cpp_compile.label,
+    ])
+    env_only.env().contains_exactly({"BAR": "bar"})
+    env_only.files().contains_exactly(_SIMPLE_FILES)
+
+    c_compile = env.expect.that_target(targets.simple).provider(ArgsListInfo).by_action().get(
+        targets.c_compile[ActionTypeInfo],
+    )
+    c_compile.files().contains_exactly(_SIMPLE_FILES)
+
+    converted = env.expect.that_value(
+        convert_args(targets.env_only[ArgsInfo]),
+        factory = _CONVERTED_ARGS,
+    )
+    converted.env_sets().contains_exactly([env_set(
+        actions = ["c_compile", "cpp_compile"],
+        env_entries = [env_entry(key = "BAR", value = "bar")],
+    )])
+
+    converted.flag_sets().contains_exactly([])
+
 TARGETS = [
     ":simple",
+    ":env_only",
     "//tests/rule_based_toolchain/actions:c_compile",
     "//tests/rule_based_toolchain/actions:cpp_compile",
 ]
 
+# @unsorted-dict-items
 TESTS = {
-    "simple_test": _test_simple_args_impl,
+    "simple_test": _simple_test,
+    "env_only_test_test": _env_only_test,
 }
