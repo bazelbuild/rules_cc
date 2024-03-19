@@ -25,8 +25,8 @@ load(
     "ActionTypeSetInfo",
     "ArgsInfo",
     "ArgsListInfo",
-    "ExpandArgsInfo",
     "FeatureConstraintInfo",
+    "NestedArgsInfo",
 )
 
 visibility("public")
@@ -39,12 +39,12 @@ def _cc_args_impl(ctx):
     files = collect_files(ctx.attr.data)
     requires = collect_provider(ctx.attr.requires_any_of, FeatureConstraintInfo)
 
-    expand = None
+    nested = None
     if ctx.attr.args:
-        # TODO: This is temporary until cc_expand_args is implemented.
-        expand = ExpandArgsInfo(
+        # TODO: This is temporary until cc_nested_args is implemented.
+        nested = NestedArgsInfo(
             label = ctx.label,
-            expand = tuple(),
+            nested = tuple(),
             iterate_over = None,
             files = files,
             requires_types = {},
@@ -55,7 +55,7 @@ def _cc_args_impl(ctx):
         label = ctx.label,
         actions = actions,
         requires_any_of = tuple(requires),
-        expand = expand,
+        nested = nested,
         env = ctx.attr.env,
         files = files,
     )

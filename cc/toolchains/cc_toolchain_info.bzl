@@ -45,12 +45,12 @@ ActionTypeSetInfo = provider(
     },
 )
 
-ExpandArgsInfo = provider(
+NestedArgsInfo = provider(
     doc = "A provider representation of Args.add/add_all/add_joined parameters",
     # @unsorted-dict-items
     fields = {
         "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
-        "expand": "(Sequence[ExpandArgsInfo]) The nested arg expansion. Mutually exclusive with args",
+        "nested": "(Sequence[NestedArgsInfo]) The nested arg expansion. Mutually exclusive with args",
         "iterate_over": "(Optional[str]) The variable to iterate over",
         "files": "(depset[File]) The files required to use this variable",
         "requires_types": "(dict[str, str]) A mapping from variables to their expected type name (not type). This means that we can require the generic type Option, rather than an Option[T]",
@@ -65,7 +65,7 @@ ArgsInfo = provider(
         "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
         "actions": "(depset[ActionTypeInfo]) The set of actions this is associated with",
         "requires_any_of": "(Sequence[FeatureConstraintInfo]) This will be enabled if any of the listed predicates are met. Equivalent to with_features",
-        "expand": "(Optional[ExpandArgsInfo]) The args to expand. Equivalent to a flag group.",
+        "nested": "(Optional[NestedArgsInfo]) The args to expand. Equivalent to a flag group.",
         "files": "(depset[File]) Files required for the args",
         "env": "(dict[str, str]) Environment variables to apply",
     },

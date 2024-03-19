@@ -64,11 +64,11 @@ def convert_args(args):
     ]
 
     flag_sets = []
-    if args.expand != None:
+    if args.nested != None:
         flag_sets.append(legacy_flag_set(
             actions = actions,
             with_features = with_features,
-            flag_groups = [args.expand.legacy_flag_group],
+            flag_groups = [args.nested.legacy_flag_group],
         ))
 
     env_sets = []

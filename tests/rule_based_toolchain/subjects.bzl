@@ -23,11 +23,11 @@ load(
     "ActionTypeSetInfo",
     "ArgsInfo",
     "ArgsListInfo",
-    "ExpandArgsInfo",
     "FeatureConstraintInfo",
     "FeatureInfo",
     "FeatureSetInfo",
     "MutuallyExclusiveCategoryInfo",
+    "NestedArgsInfo",
     "ToolInfo",
     "ToolchainConfigInfo",
 )
@@ -106,8 +106,8 @@ _FeatureConstraintFactory = generate_factory(
     ),
 )
 
-_EXPAND_ARGS_FLAGS = dict(
-    expand = None,
+_NESTED_ARGS_FLAGS = dict(
+    nested = None,
     files = _subjects.depset_file,
     iterate_over = optional_subject(_subjects.str),
     legacy_flag_group = unknown_subject,
@@ -115,18 +115,18 @@ _EXPAND_ARGS_FLAGS = dict(
 )
 
 # buildifier: disable=name-conventions
-_FakeExpandArgsFactory = generate_factory(
-    ExpandArgsInfo,
-    "ExpandArgsInfo",
-    _EXPAND_ARGS_FLAGS,
+_FakeNestedArgsFactory = generate_factory(
+    NestedArgsInfo,
+    "NestedArgsInfo",
+    _NESTED_ARGS_FLAGS,
 )
 
 # buildifier: disable=name-conventions
-_ExpandArgsFactory = generate_factory(
-    ExpandArgsInfo,
-    "ExpandArgsInfo",
-    _EXPAND_ARGS_FLAGS | dict(
-        expand = ProviderSequence(_FakeExpandArgsFactory),
+_NestedArgsFactory = generate_factory(
+    NestedArgsInfo,
+    "NestedArgsInfo",
+    _NESTED_ARGS_FLAGS | dict(
+        nested = ProviderSequence(_FakeNestedArgsFactory),
     ),
 )
 
@@ -139,7 +139,7 @@ _ArgsFactory = generate_factory(
         env = _subjects.dict,
         files = _subjects.depset_file,
         # Use .factory so it's not inlined.
-        expand = optional_subject(_ExpandArgsFactory.factory),
+        nested = optional_subject(_NestedArgsFactory.factory),
         requires_any_of = ProviderSequence(_FeatureConstraintFactory),
     ),
 )
@@ -220,7 +220,7 @@ _ToolchainConfigFactory = generate_factory(
 FACTORIES = [
     _ActionTypeFactory,
     _ActionTypeSetFactory,
-    _ExpandArgsFactory,
+    _NestedArgsFactory,
     _ArgsFactory,
     _ArgsListFactory,
     _MutuallyExclusiveCategoryFactory,
