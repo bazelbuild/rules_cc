@@ -45,6 +45,23 @@ ActionTypeSetInfo = provider(
     },
 )
 
+VariableInfo = provider(
+    """A variable defined by the toolchain""",
+    # @unsorted-dict-items
+    fields = {
+        "name": "(str) The variable name",
+        "actions": "(Optional[depset[ActionTypeInfo]]) The actions this variable is available for",
+        "type": "A type constructed using variables.types.*",
+    },
+)
+
+BuiltinVariablesInfo = provider(
+    doc = "The builtin variables",
+    fields = {
+        "variables": "(dict[str, struct(type=type, actions=Optional[depset[ActionTypeInfo]]) A mapping from variable name to variable metadata.",
+    },
+)
+
 NestedArgsInfo = provider(
     doc = "A provider representation of Args.add/add_all/add_joined parameters",
     # @unsorted-dict-items
