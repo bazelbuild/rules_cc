@@ -5,98 +5,98 @@ package(default_visibility = ["//visibility:public"])
 cc_variable(
     name = "cs_fdo_instrument_path",
     actions = [
-        "//cc/toolchains/actions:all_cc_link_actions",
-        "//cc/toolchains/actions:all_compile_actions",
+        "//cc/toolchains/actions:link_actions",
+        "//cc/toolchains/actions:compile_actions",
     ],
     type = types.directory,
 )
 
 cc_variable(
     name = "def_file_path",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     type = types.option(types.file),
 )
 
 cc_variable(
     name = "dependency_file",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.file,
 )
 
 cc_variable(
     name = "dependent_module_map_files",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.option(types.list(types.file)),
 )
 
 cc_variable(
     name = "external_include_paths",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.option(types.list(types.directory)),
 )
 
 cc_variable(
     name = "fdo_instrument_path",
     actions = [
-        "//cc/toolchains/actions:all_cc_link_actions",
-        "//cc/toolchains/actions:all_compile_actions",
+        "//cc/toolchains/actions:link_actions",
+        "//cc/toolchains/actions:compile_actions",
     ],
     type = types.directory,
 )
 
 cc_variable(
     name = "fdo_prefetch_hints_path",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.file,
 )
 
 cc_variable(
     name = "fdo_profile_path",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.file,
 )
 
 cc_variable(
     name = "force_pic",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     # Provided when --force-pic is passed
     type = types.option(types.void),
 )
 
 cc_variable(
     name = "framework_include_paths",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.list(types.directory),
 )
 
 cc_variable(
     name = "gcov_gcno_file",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.file,
 )
 
 cc_variable(
     name = "generate_interface_library",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     # "yes" or "no"
     type = types.option(types.string),
 )
 
 cc_variable(
     name = "include",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.list(types.file),
 )
 
 cc_variable(
     name = "include_paths",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.list(types.directory),
 )
 
 cc_variable(
     name = "includes",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.option(types.list(types.file)),
 )
 
@@ -108,55 +108,55 @@ cc_variable(
 
 cc_variable(
     name = "interface_library_builder_path",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     # Should be a file, but contains the string "ignored" when there's no value.
     type = types.option(types.string),
 )
 
 cc_variable(
     name = "interface_library_input_path",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     # Should be a file, but contains the string "ignored" when there's no value.
     type = types.option(types.string),
 )
 
 cc_variable(
     name = "interface_library_output_path",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     # Should be a file, but contains the string "ignored" when there's no value.
     type = types.option(types.string),
 )
 
 cc_variable(
     name = "is_cc_test",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     type = types.option(types.bool),
 )
 
 cc_variable(
     name = "is_using_fission",
     actions = [
-        "//cc/toolchains/actions:all_cc_link_actions",
-        "//cc/toolchains/actions:all_compile_actions",
+        "//cc/toolchains/actions:link_actions",
+        "//cc/toolchains/actions:compile_actions",
     ],
     type = types.option(types.void),
 )
 
 cc_variable(
     name = "legacy_compile_flags",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.list(types.string),
 )
 
 cc_variable(
     name = "legacy_link_flags",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     type = types.list(types.string),
 )
 
 cc_variable(
     name = "libraries_to_link",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     type = types.option(types.list(types.struct(
         shared_libraries = types.list(types.struct(
             name = types.string,
@@ -170,164 +170,164 @@ cc_variable(
 
 cc_variable(
     name = "libraries_to_link.shared_libraries",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     # See :libraries_to_link.
     type = types.unknown,
 )
 
 cc_variable(
     name = "libraries_to_link.shared_libraries.is_whole_archive",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     type = types.string,
 )
 
 cc_variable(
     name = "libraries_to_link.shared_libraries.name",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     type = types.string,
 )
 
 cc_variable(
     name = "libraries_to_link.shared_libraries.object_files",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     type = types.list(types.file),
 )
 
 cc_variable(
     name = "libraries_to_link.shared_libraries.path",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     type = types.file,
 )
 
 cc_variable(
     name = "libraries_to_link.shared_libraries.type",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     type = types.string,
 )
 
 cc_variable(
     name = "library_search_directories",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     type = types.list(types.directory),
 )
 
 cc_variable(
     name = "linker_param_file",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     type = types.file,
 )
 
 cc_variable(
     name = "linkstamp_paths",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     type = types.list(types.directory),
 )
 
 cc_variable(
     name = "lto_indexing_bitcode_file",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.option(types.file),
 )
 
 cc_variable(
     name = "module_files",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.option(types.list(types.file)),
 )
 
 cc_variable(
     name = "module_map_file",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.option(types.file),
 )
 
 cc_variable(
     name = "module_name",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.option(types.string),
 )
 
 cc_variable(
     name = "output_assembly_file",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.file,
 )
 
 cc_variable(
     name = "output_execpath",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     type = types.option(types.directory),
 )
 
 cc_variable(
     name = "output_file",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.file,
 )
 
 cc_variable(
     name = "output_preprocess_file",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.file,
 )
 
 cc_variable(
     name = "per_object_debug_info_file",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.file,
 )
 
 cc_variable(
     name = "pic",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.option(types.void),
 )
 
 cc_variable(
     name = "preprocessor_defines",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.list(types.string),
 )
 
 cc_variable(
     name = "propellor_optimize_ld_path",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     type = types.option(types.file),
 )
 
 cc_variable(
     name = "quote_include_paths",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.list(types.directory),
 )
 
 cc_variable(
     name = "runtime_library_search_directories",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     type = types.option(types.list(types.directory)),
 )
 
 cc_variable(
     name = "runtime_solib_name",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     type = types.option(types.string),
 )
 
 cc_variable(
     name = "serialized_diagnostics_file",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.option(types.file),
 )
 
 cc_variable(
     name = "source_file",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.file,
 )
 
 cc_variable(
     name = "strip_debug_symbols",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     type = types.option(types.void),
 )
 
@@ -344,73 +344,73 @@ cc_variable(
 
 cc_variable(
     name = "system_include_paths",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.list(types.directory),
 )
 
 cc_variable(
     name = "thinlto_index",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.option(types.string),
 )
 
 cc_variable(
     name = "thinlto_indexing_param_file",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     type = types.option(types.string),
 )
 
 cc_variable(
     name = "thinlto_input_bitcode_file",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.option(types.file),
 )
 
 cc_variable(
     name = "thinlto_merged_object_file",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     type = types.option(types.file),
 )
 
 cc_variable(
     name = "thinlto_object_suffix_replace",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     type = types.option(types.string),
 )
 
 cc_variable(
     name = "thinlto_output_object_file",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.option(types.file),
 )
 
 cc_variable(
     name = "thinlto_param_file",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     type = types.option(types.file),
 )
 
 cc_variable(
     name = "thinlto_prefix_replace",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     type = types.option(types.string),
 )
 
 cc_variable(
     name = "unfiltered_compile_flags",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.list(types.string),
 )
 
 cc_variable(
     name = "user_compile_flags",
-    actions = ["//cc/toolchains/actions:all_compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.list(types.string),
 )
 
 cc_variable(
     name = "user_link_flags",
-    actions = ["//cc/toolchains/actions:all_cc_link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     type = types.list(types.string),
 )
 

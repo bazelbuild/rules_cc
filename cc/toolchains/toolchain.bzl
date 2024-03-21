@@ -27,10 +27,10 @@ visibility("public")
 #  work out what actions correspond to what file groups.
 _LEGACY_FILE_GROUPS = {
     "ar_files": [
-        "@rules_cc//cc/toolchains/actions:all_ar_actions",  # copybara-use-repo-external-label
+        "@rules_cc//cc/toolchains/actions:ar_actions",  # copybara-use-repo-external-label
     ],
     "as_files": [
-        "@rules_cc//cc/toolchains/actions:all_assembly_actions",  # copybara-use-repo-external-label
+        "@rules_cc//cc/toolchains/actions:assembly_actions",  # copybara-use-repo-external-label
     ],
     "compiler_files": [
         "@rules_cc//cc/toolchains/actions:cc_flags_make_variable",  # copybara-use-repo-external-label

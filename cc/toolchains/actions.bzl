@@ -63,7 +63,7 @@ cc_action_type_set = rule(
 Example:
 
 cc_action_type_set(
-    name = "cc_link_executable_actions",
+    name = "link_executable_actions",
     actions = [
         ":cpp_link_executable",
         ":lto_index_for_executable",
