@@ -52,6 +52,7 @@ types = struct(
 def _cc_variable_impl(ctx):
     return [VariableInfo(
         name = ctx.label.name,
+        label = ctx.label,
         type = json.decode(ctx.attr.type),
         actions = collect_action_types(ctx.attr.actions) if ctx.attr.actions else None,
     )]
@@ -84,10 +85,7 @@ def cc_variable(name, type, **kwargs):
 
 def _cc_builtin_variables_impl(ctx):
     return [BuiltinVariablesInfo(variables = {
-        variable.name: struct(
-            actions = variable.actions,
-            type = variable.type,
-        )
+        variable.name: variable
         for variable in collect_provider(ctx.attr.srcs, VariableInfo)
     })]
 
@@ -131,7 +129,7 @@ def get_type(*, name, variables, overrides, actions, args_label, nested_label, f
         for action in actions:
             if action not in valid_actions:
                 fail("The variable {var} is inaccessible from the action {action}. This is required because it is referenced in {nested_label}, which is included by {args_label}, which references that action".format(
-                    var = outer,
+                    var = variables[outer].label,
                     nested_label = nested_label,
                     args_label = args_label,
                     action = action.label,

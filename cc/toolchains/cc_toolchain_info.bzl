@@ -50,6 +50,7 @@ VariableInfo = provider(
     # @unsorted-dict-items
     fields = {
         "name": "(str) The variable name",
+        "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
         "actions": "(Optional[depset[ActionTypeInfo]]) The actions this variable is available for",
         "type": "A type constructed using variables.types.*",
     },
@@ -58,7 +59,7 @@ VariableInfo = provider(
 BuiltinVariablesInfo = provider(
     doc = "The builtin variables",
     fields = {
-        "variables": "(dict[str, struct(type=type, actions=Optional[depset[ActionTypeInfo]]) A mapping from variable name to variable metadata.",
+        "variables": "(dict[str, VariableInfo]) A mapping from variable name to variable metadata.",
     },
 )
 

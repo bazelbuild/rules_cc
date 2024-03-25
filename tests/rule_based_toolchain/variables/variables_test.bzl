@@ -84,7 +84,7 @@ nested_str_list: List[string]""")
 
     expect_type("struct", actions = [c_compile]).ok()
     expect_type("struct", actions = [c_compile, cpp_compile]).err().equals(
-        "The variable struct is inaccessible from the action %s. This is required because it is referenced in %s, which is included by %s, which references that action" % (cpp_compile.label, _NESTED_LABEL, _ARGS_LABEL),
+        "The variable %s is inaccessible from the action %s. This is required because it is referenced in %s, which is included by %s, which references that action" % (targets.struct.label, cpp_compile.label, _NESTED_LABEL, _ARGS_LABEL),
     )
 
     expect_type("struct.nested_str_list", actions = [c_compile]).ok()
