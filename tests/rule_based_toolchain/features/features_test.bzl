@@ -89,6 +89,7 @@ def _feature_collects_mutual_exclusion_test(env, targets):
         FeatureInfo,
     ).mutually_exclusive().contains_exactly([
         targets.simple.label,
+        targets.category.label,
     ])
 
 def _feature_set_collects_features_test(env, targets):
@@ -144,17 +145,18 @@ def _feature_can_be_overridden_test(env, targets):
     overrides.overrides().some().label().equals(targets.builtin_feature.label)
 
 TARGETS = [
+    ":builtin_feature",
     ":c_compile",
-    ":simple",
-    ":simple2",
+    ":category",
+    ":direct_constraint",
     ":feature_set",
-    ":requires",
     ":implies",
     ":mutual_exclusion_feature",
-    ":direct_constraint",
-    ":transitive_constraint",
-    ":builtin_feature",
     ":overrides",
+    ":requires",
+    ":simple",
+    ":simple2",
+    ":transitive_constraint",
 ]
 
 # @unsorted-dict-items
