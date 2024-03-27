@@ -1,6 +1,6 @@
 """Repository rules entry point module for rules_cc."""
 
-load("//cc/private/toolchain:cc_configure.bzl", "cc_configure")
+load("@bazel_tools//tools/cpp:cc_configure.bzl", "cc_configure")
 
 def rules_cc_dependencies():
     pass
