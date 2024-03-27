@@ -44,6 +44,11 @@ cc_action_type(
 )
 
 cc_action_type(
+    name = "cpp_header_analysis",
+    action_name = "c++-header-analysis",
+)
+
+cc_action_type(
     name = "cpp_header_parsing",
     action_name = ACTION_NAMES.cpp_header_parsing,
 )
@@ -114,6 +119,29 @@ cc_action_type(
 )
 
 cc_action_type(
+    name = "objcopy_embed_data",
+    action_name = "objcopy_embed_data",
+)
+
+# ld_embed_data is only available within google.
+cc_action_type(
+    # # copybara-comment-this-out-please
+    name = "ld_embed_data_action",  # # copybara-comment-this-out-please
+    action_name = "ld_embed_data",  # # copybara-comment-this-out-please
+)  # # copybara-comment-this-out-please
+
+# To make things simple, both internal and external rules will refer to
+# ld_embed_data, but externally it will evaluate to the empty set.
+cc_action_type_set(
+    name = "ld_embed_data",
+    actions = [
+        ":ld_embed_data_action",  # # copybara-comment-this-out-please
+    ],
+    allow_empty = True,
+    visibility = ["//cc/toolchains:__subpackages__"],
+)
+
+cc_action_type(
     name = "objc_compile",
     action_name = ACTION_NAMES.objc_compile,
 )
@@ -131,6 +159,11 @@ cc_action_type(
 cc_action_type(
     name = "objcpp_compile",
     action_name = ACTION_NAMES.objcpp_compile,
+)
+
+cc_action_type(
+    name = "objcpp_executable",
+    action_name = "objc++-executable",
 )
 
 cc_action_type(
@@ -224,6 +257,7 @@ cc_action_type_set(
         ":linkstamp_compile",
         ":cc_flags_make_variable",
         ":cpp_module_codegen",
+        ":cpp_header_analysis",
         ":cpp_header_parsing",
         ":cpp_module_compile",
         ":assemble",
@@ -238,10 +272,13 @@ cc_action_type_set(
         ":cpp_link_nodeps_dynamic_library",
         ":cpp_link_static_library",
         ":strip",
+        ":objcopy_embed_data",
+        ":ld_embed_data",
         ":objc_compile",
         ":objc_executable",
         ":objc_fully_link",
         ":objcpp_compile",
+        ":objcpp_executable",
         ":clif_match",
     ],
 )

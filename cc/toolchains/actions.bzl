@@ -50,7 +50,7 @@ cc_action_type(
 )
 
 def _cc_action_type_set_impl(ctx):
-    if not ctx.attr.actions:
+    if not ctx.attr.actions and not ctx.attr.allow_empty:
         fail("Each cc_action_type_set must contain at least one action type.")
     return [ActionTypeSetInfo(
         label = ctx.label,
@@ -77,6 +77,7 @@ cc_action_type_set(
             mandatory = True,
             doc = "A list of cc_action_type or cc_action_type_set",
         ),
+        "allow_empty": attr.bool(default = False),
     },
     provides = [ActionTypeSetInfo],
 )
