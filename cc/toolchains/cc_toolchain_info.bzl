@@ -73,6 +73,7 @@ NestedArgsInfo = provider(
         "files": "(depset[File]) The files required to use this variable",
         "requires_types": "(dict[str, str]) A mapping from variables to their expected type name (not type). This means that we can require the generic type Option, rather than an Option[T]",
         "legacy_flag_group": "(flag_group) The flag_group this corresponds to",
+        "unwrap_options": "(List[str]) A list of variables for which we should unwrap the option. For example, if a user writes `requires_not_none = \":foo\"`, then we change the type of foo from Option[str] to str",
     },
 )
 
@@ -83,7 +84,7 @@ ArgsInfo = provider(
         "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
         "actions": "(depset[ActionTypeInfo]) The set of actions this is associated with",
         "requires_any_of": "(Sequence[FeatureConstraintInfo]) This will be enabled if any of the listed predicates are met. Equivalent to with_features",
-        "nested": "(Optional[NestedArgsInfo]) The args to expand. Equivalent to a flag group.",
+        "nested": "(Optional[NestedArgsInfo]) The args expand. Equivalent to a flag group.",
         "files": "(depset[File]) Files required for the args",
         "env": "(dict[str, str]) Environment variables to apply",
     },

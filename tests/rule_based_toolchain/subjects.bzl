@@ -112,6 +112,7 @@ _NESTED_ARGS_FLAGS = dict(
     iterate_over = optional_subject(_subjects.str),
     legacy_flag_group = unknown_subject,
     requires_types = _subjects.dict,
+    unwrap_options = _subjects.collection,
 )
 
 # buildifier: disable=name-conventions
