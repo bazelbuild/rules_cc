@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("//tools/build_defs/proto/cpp:cc_proto_library.bzl", "cc_proto_library")
+
 """Starlark rules for building C++ projects."""
 
 load("//cc/private/rules_impl:cc_flags_supplier.bzl", _cc_flags_supplier = "cc_flags_supplier")
@@ -104,7 +106,7 @@ def cc_proto_library(**attrs):
     """
 
     # buildifier: disable=native-cc
-    native.cc_proto_library(**_add_tags(attrs))
+    cc_proto_library(**_add_tags(attrs))
 
 def fdo_prefetch_hints(**attrs):
     """Bazel fdo_prefetch_hints rule.
