@@ -13,8 +13,10 @@
 # limitations under the License.
 """Helper functions for working with args."""
 
+load("@bazel_skylib//lib:structs.bzl", "structs")
 load("//cc:cc_toolchain_config_lib.bzl", "flag_group", "variable_with_value")
-load("//cc/toolchains:cc_toolchain_info.bzl", "NestedArgsInfo")
+load("//cc/toolchains:cc_toolchain_info.bzl", "NestedArgsInfo", "VariableInfo")
+load(":collect.bzl", "collect_files", "collect_provider")
 
 visibility([
     "//cc/toolchains",
@@ -47,6 +49,126 @@ cc_args(
     args = ["--foo", format_arg("+%s")],
     iterate_over = "//toolchains/variables:foo_list",
 """
+
+# @unsorted-dict-items.
+NESTED_ARGS_ATTRS = {
+    "args": attr.string_list(
+        doc = """json-encoded arguments to be added to the command-line.
+
+Usage:
+cc_args(
+    ...,
+    args = ["--foo", format_arg("%s", "//cc/toolchains/variables:foo")]
+)
+
+This is equivalent to flag_group(flags = ["--foo", "%{foo}"])
+
+Mutually exclusive with nested.
+""",
+    ),
+    "nested": attr.label_list(
+        providers = [NestedArgsInfo],
+        doc = """nested_args that should be added on the command-line.
+
+Mutually exclusive with args.""",
+    ),
+    "data": attr.label_list(
+        allow_files = True,
+        doc = """Files required to add this argument to the command-line.
+
+For example, a flag that sets the header directory might add the headers in that
+directory as additional files.
+""",
+    ),
+    "variables": attr.label_list(
+        providers = [VariableInfo],
+        doc = "Variables to be used in substitutions",
+    ),
+    "iterate_over": attr.label(providers = [VariableInfo], doc = "Replacement for flag_group.iterate_over"),
+    "requires_not_none": attr.label(providers = [VariableInfo], doc = "Replacement for flag_group.expand_if_available"),
+    "requires_none": attr.label(providers = [VariableInfo], doc = "Replacement for flag_group.expand_if_not_available"),
+    "requires_true": attr.label(providers = [VariableInfo], doc = "Replacement for flag_group.expand_if_true"),
+    "requires_false": attr.label(providers = [VariableInfo], doc = "Replacement for flag_group.expand_if_false"),
+    "requires_equal": attr.label(providers = [VariableInfo], doc = "Replacement for flag_group.expand_if_equal"),
+    "requires_equal_value": attr.string(),
+}
+
+def args_wrapper_macro(*, name, rule, args = [], **kwargs):
+    """Invokes a rule by converting args to attributes.
+
+    Args:
+        name: (str) The name of the target.
+        rule: (rule) The rule to invoke. Either cc_args or cc_nested_args.
+        args: (List[str|Formatted]) A list of either strings, or function calls
+          from format.bzl. For example:
+            ["--foo", format_arg("--sysroot=%s", "//cc/toolchains/variables:sysroot")]
+        **kwargs: kwargs to pass through into the rule invocation.
+    """
+    out_args = []
+    vars = []
+    if type(args) != "list":
+        fail("Args must be a list in %s" % native.package_relative_label(name))
+    for arg in args:
+        if type(arg) == "string":
+            out_args.append(raw_string(arg))
+        elif getattr(arg, "format_type") == "format_arg":
+            arg = structs.to_dict(arg)
+            if arg["value"] == None:
+                out_args.append(arg)
+            else:
+                var = arg.pop("value")
+
+                # Swap the variable from a label to an index. This allows us to
+                # actually get the providers in a rule.
+                out_args.append(struct(value = len(vars), **arg))
+                vars.append(var)
+        else:
+            fail("Invalid type of args in %s. Expected either a string or format_args(format_string, variable_label), got value %r" % (native.package_relative_label(name), arg))
+
+    rule(
+        name = name,
+        args = [json.encode(arg) for arg in out_args],
+        variables = vars,
+        **kwargs
+    )
+
+def _var(target):
+    if target == None:
+        return None
+    return target[VariableInfo].name
+
+# TODO: Consider replacing this with a subrule in the future. However, maybe not
+# for a long time, since it'll break compatibility with all bazel versions < 7.
+def nested_args_provider_from_ctx(ctx):
+    """Gets the nested args provider from a rule that has NESTED_ARGS_ATTRS.
+
+    Args:
+        ctx: The rule context
+    Returns:
+        NestedArgsInfo
+    """
+    variables = collect_provider(ctx.attr.variables, VariableInfo)
+    args = []
+    for arg in ctx.attr.args:
+        arg = json.decode(arg)
+        if "value" in arg:
+            if arg["value"] != None:
+                arg["value"] = variables[arg["value"]]
+        args.append(struct(**arg))
+
+    return nested_args_provider(
+        label = ctx.label,
+        args = args,
+        nested = collect_provider(ctx.attr.nested, NestedArgsInfo),
+        files = collect_files(ctx.attr.data),
+        iterate_over = _var(ctx.attr.iterate_over),
+        requires_not_none = _var(ctx.attr.requires_not_none),
+        requires_none = _var(ctx.attr.requires_none),
+        requires_true = _var(ctx.attr.requires_true),
+        requires_false = _var(ctx.attr.requires_false),
+        requires_equal = _var(ctx.attr.requires_equal),
+        requires_equal_value = ctx.attr.requires_equal_value,
+    )
 
 def raw_string(s):
     """Constructs metadata for creating a raw string.

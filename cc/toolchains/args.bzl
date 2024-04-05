@@ -13,7 +13,7 @@
 # limitations under the License.
 """All providers for rule-based bazel toolchain config."""
 
-load("//cc:cc_toolchain_config_lib.bzl", "flag_group")
+load("//cc/toolchains/impl:args_utils.bzl", "validate_nested_args")
 load(
     "//cc/toolchains/impl:collect.bzl",
     "collect_action_types",
@@ -21,35 +21,42 @@ load(
     "collect_provider",
 )
 load(
+    "//cc/toolchains/impl:nested_args.bzl",
+    "NESTED_ARGS_ATTRS",
+    "args_wrapper_macro",
+    "nested_args_provider_from_ctx",
+)
+load(
     ":cc_toolchain_info.bzl",
     "ActionTypeSetInfo",
     "ArgsInfo",
     "ArgsListInfo",
+    "BuiltinVariablesInfo",
     "FeatureConstraintInfo",
-    "NestedArgsInfo",
 )
 
 visibility("public")
 
 def _cc_args_impl(ctx):
-    if not ctx.attr.args and not ctx.attr.env:
-        fail("cc_args requires at least one of args and env")
-
     actions = collect_action_types(ctx.attr.actions)
-    files = collect_files(ctx.attr.data)
-    requires = collect_provider(ctx.attr.requires_any_of, FeatureConstraintInfo)
+
+    if not ctx.attr.args and not ctx.attr.nested and not ctx.attr.env:
+        fail("cc_args requires at least one of args, nested, and env")
 
     nested = None
-    if ctx.attr.args:
-        # TODO: This is temporary until cc_nested_args is implemented.
-        nested = NestedArgsInfo(
+    if ctx.attr.args or ctx.attr.nested:
+        nested = nested_args_provider_from_ctx(ctx)
+        validate_nested_args(
+            variables = ctx.attr._variables[BuiltinVariablesInfo].variables,
+            nested_args = nested,
+            actions = actions.to_list(),
             label = ctx.label,
-            nested = tuple(),
-            iterate_over = None,
-            files = files,
-            requires_types = {},
-            legacy_flag_group = flag_group(flags = ctx.attr.args),
         )
+        files = nested.files
+    else:
+        files = collect_files(ctx.attr.data)
+
+    requires = collect_provider(ctx.attr.requires_any_of, FeatureConstraintInfo)
 
     args = ArgsInfo(
         label = ctx.label,
@@ -72,7 +79,7 @@ def _cc_args_impl(ctx):
         ),
     ]
 
-cc_args = rule(
+_cc_args = rule(
     implementation = _cc_args_impl,
     attrs = {
         "actions": attr.label_list(
@@ -82,21 +89,6 @@ cc_args = rule(
 
 See @rules_cc//cc/toolchains/actions:all for valid options.
 """,
-        ),
-        "args": attr.string_list(
-            doc = """Arguments that should be added to the command-line.
-
-These are evaluated in order, with earlier args appearing earlier in the
-invocation of the underlying tool.
-""",
-        ),
-        "data": attr.label_list(
-            allow_files = True,
-            doc = """Files required to add this argument to the command-line.
-
-For example, a flag that sets the header directory might add the headers in that
-directory as additional files.
-        """,
         ),
         "env": attr.string_dict(
             doc = "Environment variables to be added to the command-line.",
@@ -108,7 +100,10 @@ directory as additional files.
 If omitted, this flag set will be enabled unconditionally.
 """,
         ),
-    },
+        "_variables": attr.label(
+            default = "//cc/toolchains/variables:variables",
+        ),
+    } | NESTED_ARGS_ATTRS,
     provides = [ArgsInfo],
     doc = """Declares a list of arguments bound to a set of actions.
 
@@ -121,3 +116,5 @@ Examples:
     )
 """,
 )
+
+cc_args = lambda **kwargs: args_wrapper_macro(rule = _cc_args, **kwargs)
