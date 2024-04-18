@@ -52,7 +52,6 @@ util.helper_target(
     target_libc = "glibc-2.2.2",
     target_system_name = "local",
     toolchain_features = [":compile_feature"],
-    toolchain_identifier = "collects_files_toolchain",
 )
 
 util.helper_target(

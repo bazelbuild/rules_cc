@@ -71,7 +71,10 @@ def _cc_toolchain_config_impl(ctx):
             action_configs = legacy.action_configs,
             features = legacy.features,
             cxx_builtin_include_directories = ctx.attr.cxx_builtin_include_directories,
-            toolchain_identifier = ctx.attr.toolchain_identifier,
+            # toolchain_identifier is deprecated, but setting it to None results
+            # in an error that it expected a string, and for safety's sake, I'd
+            # prefer to provide something unique.
+            toolchain_identifier = str(ctx.label),
             target_system_name = ctx.attr.target_system_name,
             target_cpu = ctx.attr.target_cpu,
             target_libc = ctx.attr.target_libc,
@@ -105,7 +108,6 @@ cc_toolchain_config = rule(
         # TODO: Consider making this into a label_list that takes a
         #  cc_directory_marker rule as input.
         "cxx_builtin_include_directories": attr.string_list(),
-        "toolchain_identifier": attr.string(mandatory = True),
         "target_system_name": attr.string(mandatory = True),
         "target_cpu": attr.string(mandatory = True),
         "target_libc": attr.string(mandatory = True),
