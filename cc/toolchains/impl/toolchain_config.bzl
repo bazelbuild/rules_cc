@@ -108,9 +108,9 @@ cc_toolchain_config = rule(
         # TODO: Consider making this into a label_list that takes a
         #  cc_directory_marker rule as input.
         "cxx_builtin_include_directories": attr.string_list(),
-        "target_system_name": attr.string(mandatory = True),
-        "target_cpu": attr.string(mandatory = True),
-        "target_libc": attr.string(mandatory = True),
+        "target_system_name": attr.string(),
+        "target_cpu": attr.string(),
+        "target_libc": attr.string(),
         "compiler": attr.string(mandatory = True),
         "abi_version": attr.string(),
         "abi_libc_version": attr.string(),
