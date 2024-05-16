@@ -139,5 +139,7 @@ def cc_toolchain(
         static_runtime_lib = static_runtime_lib,
         supports_header_parsing = supports_header_parsing,
         supports_param_files = supports_param_files,
+        # This is required for Bazel versions <= 7.x.x. It is ignored in later versions.
+        exec_transition_for_inputs = False,
         **(all_kwargs | legacy_file_groups)
     )
