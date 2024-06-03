@@ -14,6 +14,7 @@
 """Implementation of the cc_toolchain rule."""
 
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
+load("@bazel_skylib//rules/directory:providers.bzl", "DirectoryInfo")
 load(
     "//cc/toolchains:cc_toolchain_info.bzl",
     "ActionTypeConfigSetInfo",
@@ -64,13 +65,22 @@ def _cc_toolchain_config_impl(ctx):
 
     legacy = convert_toolchain(toolchain_config)
 
+    sysroot = None
+    if ctx.attr.sysroot:
+        sysroot = ctx.attr.sysroot[DirectoryInfo].path
+
+    cxx_builtin_include_directories = [
+        d[DirectoryInfo].path
+        for d in ctx.attr.cxx_builtin_include_directories
+    ]
+
     return [
         toolchain_config,
         cc_common.create_cc_toolchain_config_info(
             ctx = ctx,
             action_configs = legacy.action_configs,
             features = legacy.features,
-            cxx_builtin_include_directories = ctx.attr.cxx_builtin_include_directories,
+            cxx_builtin_include_directories = cxx_builtin_include_directories,
             # toolchain_identifier is deprecated, but setting it to None results
             # in an error that it expected a string, and for safety's sake, I'd
             # prefer to provide something unique.
@@ -81,7 +91,7 @@ def _cc_toolchain_config_impl(ctx):
             compiler = ctx.attr.compiler,
             abi_version = ctx.attr.abi_version,
             abi_libc_version = ctx.attr.abi_libc_version,
-            builtin_sysroot = ctx.attr.sysroot or None,
+            builtin_sysroot = sysroot,
         ),
         # This allows us to support all_files.
         # If all_files was simply an alias to
@@ -103,21 +113,18 @@ cc_toolchain_config = rule(
         "_builtin_features": attr.label(default = "//cc/toolchains/features:all_builtin_features"),
         "_enabled": attr.label(default = "//cc/toolchains:experimental_enable_rule_based_toolchains"),
 
-        # Attributes from create_cc_toolchain_config_info.
-        # artifact_name_patterns is currently unused. Consider adding it later.
-        # TODO: Consider making this into a label_list that takes a
-        #  cc_directory_marker rule as input.
-        "cxx_builtin_include_directories": attr.string_list(),
+        # Attributes translated from legacy cc toolchains.
+        "sysroot": attr.label(providers = [DirectoryInfo]),
+        "cxx_builtin_include_directories": attr.label_list(providers = [DirectoryInfo]),
+
+        # TODO: remove these fields. I'm pretty sure they're unnecessary with
+        # --incompatible_enable_cc_toolchain_resolution.
         "target_system_name": attr.string(),
         "target_cpu": attr.string(),
         "target_libc": attr.string(),
         "compiler": attr.string(mandatory = True),
         "abi_version": attr.string(),
         "abi_libc_version": attr.string(),
-        # tool_paths currently unused.
-        # TODO: Consider making this into a label that takes a
-        #  cc_directory_marker rule as an input.
-        "sysroot": attr.string(),
     },
     provides = [ToolchainConfigInfo],
 )

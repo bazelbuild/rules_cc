@@ -1,6 +1,15 @@
 load("@bazel_skylib//rules:native_binary.bzl", "native_binary")
+load("@bazel_skylib//rules/directory:directory.bzl", "directory")
 
 package(default_visibility = ["//tests/rule_based_toolchain:__subpackages__"])
+
+directory(
+    name = "directory",
+    srcs = glob(
+        ["*"],
+        exclude = ["BUILD"],
+    ),
+)
 
 exports_files(
     glob(
