@@ -37,8 +37,8 @@ _BIN_WRAPPER_SYMLINK = "tests/rule_based_toolchain/testdata/bin_wrapper"
 _BIN_WRAPPER = "tests/rule_based_toolchain/testdata/bin_wrapper.sh"
 _BIN = "tests/rule_based_toolchain/testdata/bin"
 
-def _tool_test(env, targets):
-    tool = env.expect.that_target(targets.tool).provider(ToolInfo)
+def _tool_test(env, targets, target):
+    tool = env.expect.that_target(target).provider(ToolInfo)
     tool.exe().short_path_equals(_BIN_WRAPPER)
     tool.execution_requirements().contains_exactly(["requires-network"])
     tool.runfiles().contains_exactly([
@@ -106,14 +106,17 @@ TARGETS = [
     "//tests/rule_based_toolchain/features:direct_constraint",
     "//tests/rule_based_toolchain/tool:tool",
     "//tests/rule_based_toolchain/tool:wrapped_tool",
+    "//tests/rule_based_toolchain/tool:directory_tool",
     "//tests/rule_based_toolchain/testdata:bin_wrapper",
     "//tests/rule_based_toolchain/testdata:multiple",
     "//tests/rule_based_toolchain/testdata:bin_filegroup",
+    "//tests/rule_based_toolchain/testdata:bin_wrapper_filegroup",
 ]
 
 # @unsorted-dict-items
 TESTS = {
-    "tool_test": _tool_test,
+    "tool_test": lambda env, targets: _tool_test(env, targets, targets.tool),
+    "directory_tool_test": lambda env, targets: _tool_test(env, targets, targets.directory_tool),
     "wrapped_tool_includes_runfiles_test": _wrapped_tool_includes_runfiles_test,
     "collect_tools_collects_tools_test": _collect_tools_collects_tools_test,
     "collect_tools_collects_binaries_test": _collect_tools_collects_binaries_test,

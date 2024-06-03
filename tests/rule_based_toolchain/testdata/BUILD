@@ -39,3 +39,10 @@ filegroup(
     name = "bin_filegroup",
     srcs = ["bin"],
 )
+
+# Analysis_test is unable to depend on source files directly, but it can depend
+# on a filegroup containing a single file.
+filegroup(
+    name = "bin_wrapper_filegroup",
+    srcs = ["bin_wrapper.sh"],
+)
