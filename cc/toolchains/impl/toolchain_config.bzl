@@ -85,12 +85,13 @@ def _cc_toolchain_config_impl(ctx):
             # in an error that it expected a string, and for safety's sake, I'd
             # prefer to provide something unique.
             toolchain_identifier = str(ctx.label),
-            target_system_name = ctx.attr.target_system_name,
-            target_cpu = ctx.attr.target_cpu,
-            target_libc = ctx.attr.target_libc,
-            compiler = ctx.attr.compiler,
-            abi_version = ctx.attr.abi_version,
-            abi_libc_version = ctx.attr.abi_libc_version,
+            # These fields are only relevant for legacy toolchain resolution.
+            target_system_name = "",
+            target_cpu = "",
+            target_libc = "",
+            compiler = "",
+            abi_version = "",
+            abi_libc_version = "",
             builtin_sysroot = sysroot,
         ),
         # This allows us to support all_files.
@@ -116,15 +117,6 @@ cc_toolchain_config = rule(
         # Attributes translated from legacy cc toolchains.
         "sysroot": attr.label(providers = [DirectoryInfo]),
         "cxx_builtin_include_directories": attr.label_list(providers = [DirectoryInfo]),
-
-        # TODO: remove these fields. I'm pretty sure they're unnecessary with
-        # --incompatible_enable_cc_toolchain_resolution.
-        "target_system_name": attr.string(),
-        "target_cpu": attr.string(),
-        "target_libc": attr.string(),
-        "compiler": attr.string(mandatory = True),
-        "abi_version": attr.string(),
-        "abi_libc_version": attr.string(),
     },
     provides = [ToolchainConfigInfo],
 )
