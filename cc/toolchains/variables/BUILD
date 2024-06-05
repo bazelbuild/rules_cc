@@ -261,7 +261,10 @@ cc_variable(
 
 cc_variable(
     name = "output_file",
-    actions = ["//cc/toolchains/actions:compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:compile_actions",
+        "//cc/toolchains/actions:strip",
+    ],
     type = types.file,
 )
 
