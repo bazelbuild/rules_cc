@@ -17,7 +17,6 @@ load(
     "//cc/toolchains/impl:collect.bzl",
     "collect_action_types",
     "collect_features",
-    "collect_files",
     "collect_tools",
 )
 load(
@@ -36,7 +35,6 @@ def _cc_action_type_config_impl(ctx):
 
     tools = tuple(collect_tools(ctx, ctx.attr.tools))
     implies = collect_features(ctx.attr.implies)
-    files = collect_files(ctx.attr.data)
 
     configs = {}
     for action_type in collect_action_types(ctx.attr.action_types).to_list():
@@ -45,9 +43,7 @@ def _cc_action_type_config_impl(ctx):
             action_type = action_type,
             tools = tools,
             implies = implies,
-            files = ctx.runfiles(
-                transitive_files = depset(transitive = [files]),
-            ).merge_all([tool.runfiles for tool in tools]),
+            files = ctx.runfiles().merge_all([tool.runfiles for tool in tools]),
         )
 
     return [ActionTypeConfigSetInfo(label = ctx.label, configs = configs)]
@@ -79,14 +75,6 @@ satisfy the currently enabled feature set is used.
         "implies": attr.label_list(
             providers = [FeatureSetInfo],
             doc = "Features that should be enabled when this action is used.",
-        ),
-        "data": attr.label_list(
-            allow_files = True,
-            doc = """Files required for this action type.
-
-For example, the c-compile action type might add the C standard library header
-files from the sysroot.
-""",
         ),
     },
     provides = [ActionTypeConfigSetInfo],
