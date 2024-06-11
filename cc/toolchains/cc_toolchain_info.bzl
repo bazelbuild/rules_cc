@@ -163,7 +163,6 @@ ActionTypeConfigInfo = provider(
         "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
         "action_type": "(ActionTypeInfo) The type of the action",
         "tools": "(Sequence[ToolInfo]) The tool applied to the action will be the first tool in the sequence with a feature set that matches the feature configuration",
-        "args": "(Sequence[ArgsInfo]) Set of flag sets the action sets",
         "implies": "(depset[FeatureInfo]) Set of features implied by this action config",
         "files": "(runfiles) The files required to run these actions",
     },

@@ -80,7 +80,6 @@ util.helper_target(
     cc_action_type_config,
     name = "compile_config",
     action_types = ["//tests/rule_based_toolchain/actions:all_compile"],
-    args = [":cpp_compile_args"],
     tools = [
         "//tests/rule_based_toolchain/tool:wrapped_tool",
     ],

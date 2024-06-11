@@ -191,7 +191,6 @@ _ActionTypeConfigFactory = generate_factory(
     dict(
         action_type = _ActionTypeFactory,
         tools = ProviderSequence(_ToolFactory),
-        args = ProviderSequence(_ArgsFactory),
         implies = ProviderDepset(_FeatureFactory),
         files = runfiles_subject,
     ),

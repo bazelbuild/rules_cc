@@ -31,36 +31,16 @@ _TOOL_FILES = [
 _ADDITIONAL_FILES = [
     "tests/rule_based_toolchain/testdata/multiple2",
 ]
-_C_COMPILE_FILES = [
-    "tests/rule_based_toolchain/testdata/file1",
-    "tests/rule_based_toolchain/testdata/multiple1",
-]
-_CPP_COMPILE_FILES = [
-    "tests/rule_based_toolchain/testdata/file2",
-    "tests/rule_based_toolchain/testdata/multiple1",
-]
 
 collect_action_type_configs = result_fn_wrapper(_collect_action_type_configs)
 
 def _files_taken_test(env, targets):
     configs = env.expect.that_target(targets.file_map).provider(ActionTypeConfigSetInfo).configs()
     c_compile = configs.get(targets.c_compile[ActionTypeInfo])
-    c_compile.files().contains_exactly(
-        _C_COMPILE_FILES + _TOOL_FILES + _ADDITIONAL_FILES,
-    )
-    c_compile.args().contains_exactly([
-        targets.c_compile_args.label,
-        targets.all_compile_args.label,
-    ])
+    c_compile.files().contains_exactly(_TOOL_FILES + _ADDITIONAL_FILES)
 
     cpp_compile = configs.get(targets.cpp_compile[ActionTypeInfo])
-    cpp_compile.files().contains_exactly(
-        _CPP_COMPILE_FILES + _TOOL_FILES + _ADDITIONAL_FILES,
-    )
-    cpp_compile.args().contains_exactly([
-        targets.cpp_compile_args.label,
-        targets.all_compile_args.label,
-    ])
+    cpp_compile.files().contains_exactly(_TOOL_FILES + _ADDITIONAL_FILES)
 
 def _merge_distinct_configs_succeeds_test(env, targets):
     configs = env.expect.that_value(
@@ -95,10 +75,6 @@ TARGETS = [
     ":cpp_compile_config",
     "//tests/rule_based_toolchain/actions:c_compile",
     "//tests/rule_based_toolchain/actions:cpp_compile",
-    "//tests/rule_based_toolchain/args_list:c_compile_args",
-    "//tests/rule_based_toolchain/args_list:cpp_compile_args",
-    "//tests/rule_based_toolchain/args_list:all_compile_args",
-    "//tests/rule_based_toolchain/args_list:args_list",
 ]
 
 TESTS = {

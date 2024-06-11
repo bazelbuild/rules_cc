@@ -16,8 +16,6 @@
 load(
     "//cc:cc_toolchain_config_lib.bzl",
     legacy_action_config = "action_config",
-    legacy_env_entry = "env_entry",
-    legacy_env_set = "env_set",
     legacy_feature = "feature",
     legacy_flag_group = "flag_group",
     legacy_flag_set = "flag_set",
@@ -223,20 +221,6 @@ def _toolchain_collects_files_test(env, targets):
                 ],
             )],
         ),
-        legacy_feature(
-            name = "implied_by_cpp_compile",
-            enabled = False,
-            flag_sets = [legacy_flag_set(
-                actions = ["cpp_compile"],
-                flag_groups = [
-                    legacy_flag_group(flags = ["cpp_compile_args"]),
-                ],
-            )],
-            env_sets = [legacy_env_set(
-                actions = ["cpp_compile"],
-                env_entries = [legacy_env_entry(key = "CPP_COMPILE", value = "1")],
-            )],
-        ),
     ]).in_order()
 
     exe = tc.action_type_configs().get(
@@ -252,7 +236,7 @@ def _toolchain_collects_files_test(env, targets):
             action_name = "cpp_compile",
             enabled = True,
             tools = [legacy_tool(tool = exe)],
-            implies = ["implied_by_cpp_compile"],
+            implies = [],
         ),
     ]).in_order()
 

@@ -116,8 +116,6 @@ def _validate_action_config(self, known_features, fail):
     _validate_implies(self, known_features, fail = fail)
     for tool in self.tools:
         _validate_tool(tool, known_features, fail = fail)
-    for args in self.args:
-        _validate_args(args, known_features, fail = fail)
 
 def _validate_feature(self, known_features, fail):
     _validate_requires_any_of_feature_set(self, known_features, fail = fail)

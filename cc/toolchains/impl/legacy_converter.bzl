@@ -136,8 +136,6 @@ def convert_tool(tool):
 
 def _convert_action_type_config(atc):
     implies = sorted([ft.name for ft in atc.implies.to_list()])
-    if atc.args:
-        implies.append("implied_by_%s" % atc.action_type.name)
 
     return legacy_action_config(
         action_name = atc.action_type.name,
@@ -167,22 +165,10 @@ def convert_toolchain(toolchain):
         mutually_exclusive = [],
         external = False,
     )))
-    action_configs = []
-    for atc in toolchain.action_type_configs.values():
-        # Action configs don't take in an env like they do a flag set.
-        # In order to support them, we create a feature with the env that the action
-        # config will enable, and imply it in the action config.
-        if atc.args:
-            features.append(convert_feature(FeatureInfo(
-                name = "implied_by_%s" % atc.action_type.name,
-                enabled = False,
-                args = ArgsListInfo(args = atc.args),
-                implies = depset([]),
-                requires_any_of = [],
-                mutually_exclusive = [],
-                external = False,
-            )))
-        action_configs.append(_convert_action_type_config(atc))
+    action_configs = [
+        _convert_action_type_config(atc)
+        for atc in toolchain.action_type_configs.values()
+    ]
 
     return struct(
         features = sorted([ft for ft in features if ft != None], key = lambda ft: ft.name),

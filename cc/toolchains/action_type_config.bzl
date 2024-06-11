@@ -13,11 +13,9 @@
 # limitations under the License.
 """Implementation of cc_action_type_config."""
 
-load("//cc/toolchains/impl:args_utils.bzl", "get_action_type")
 load(
     "//cc/toolchains/impl:collect.bzl",
     "collect_action_types",
-    "collect_args_lists",
     "collect_features",
     "collect_files",
     "collect_tools",
@@ -27,7 +25,6 @@ load(
     "ActionTypeConfigInfo",
     "ActionTypeConfigSetInfo",
     "ActionTypeSetInfo",
-    "ArgsListInfo",
     "FeatureSetInfo",
 )
 
@@ -39,20 +36,17 @@ def _cc_action_type_config_impl(ctx):
 
     tools = tuple(collect_tools(ctx, ctx.attr.tools))
     implies = collect_features(ctx.attr.implies)
-    args_list = collect_args_lists(ctx.attr.args, ctx.label)
     files = collect_files(ctx.attr.data)
 
     configs = {}
     for action_type in collect_action_types(ctx.attr.action_types).to_list():
-        for_action = get_action_type(args_list, action_type)
         configs[action_type] = ActionTypeConfigInfo(
             label = ctx.label,
             action_type = action_type,
             tools = tools,
-            args = for_action.args,
             implies = implies,
             files = ctx.runfiles(
-                transitive_files = depset(transitive = [files, for_action.files]),
+                transitive_files = depset(transitive = [files]),
             ).merge_all([tool.runfiles for tool in tools]),
         )
 
@@ -80,12 +74,6 @@ A tool can be a `cc_tool`, or a binary.
 
 If multiple tools are specified, the first tool that has `with_features` that
 satisfy the currently enabled feature set is used.
-""",
-        ),
-        "args": attr.label_list(
-            providers = [ArgsListInfo],
-            doc = """Labels that point to `cc_arg`s / `cc_arg_list`s that are
-unconditionally bound to the specified actions.
 """,
         ),
         "implies": attr.label_list(
