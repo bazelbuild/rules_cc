@@ -13,8 +13,8 @@
 # limitations under the License.
 """Rule that provides the CC_FLAGS Make variable."""
 
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 load("//cc:action_names.bzl", "CC_FLAGS_MAKE_VARIABLE_ACTION_NAME")
+load("//cc:find_cc_toolchain.bzl", "find_cpp_toolchain", "use_cc_toolchain")
 load("//cc/private/rules_impl:cc_flags_supplier_lib.bzl", "build_cc_flags")
 
 def _cc_flags_supplier_impl(ctx):
@@ -30,6 +30,6 @@ cc_flags_supplier = rule(
     attrs = {
         "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
     },
-    toolchains = use_cpp_toolchain(),
+    toolchains = use_cc_toolchain(),
     fragments = ["cpp"],
 )

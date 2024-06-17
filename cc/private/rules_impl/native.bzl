@@ -32,3 +32,9 @@ NativeCcToolchainConfigInfo = CcToolchainConfigInfo
 
 # buildifier: disable=native-cc
 native_cc_common = cc_common
+
+# buildifier: disable=native-cc
+NativeCcSharedLibraryInfo = CcSharedLibraryInfo
+
+# buildifier: disable=native-cc
+NativeCcSharedLibraryHintInfo = CcSharedLibraryHintInfo

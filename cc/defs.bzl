@@ -11,193 +11,51 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Starlark rules for building C++ projects."""
 
-load("//cc/private/rules_impl:cc_flags_supplier.bzl", _cc_flags_supplier = "cc_flags_supplier")
-load("//cc/private/rules_impl:compiler_flag.bzl", _compiler_flag = "compiler_flag")
-load("//cc/private/rules_impl:native.bzl", "NativeCcInfo", "NativeCcToolchainConfigInfo", "NativeDebugPackageInfo", "native_cc_common")
+load("//cc:cc_binary.bzl", _cc_binary = "cc_binary")
+load("//cc:cc_import.bzl", _cc_import = "cc_import")
+load("//cc:cc_library.bzl", _cc_library = "cc_library")
+load("//cc:cc_shared_library.bzl", _cc_shared_library = "cc_shared_library")
+load("//cc:cc_test.bzl", _cc_test = "cc_test")
+load("//cc:objc_import.bzl", _objc_import = "objc_import")
+load("//cc:objc_library.bzl", _objc_library = "objc_library")
+load("//cc/common:cc_common.bzl", _cc_common = "cc_common")
+load("//cc/common:cc_info.bzl", _CcInfo = "CcInfo")
+load("//cc/common:debug_package_info.bzl", _DebugPackageInfo = "DebugPackageInfo")
+load("//cc/toolchains:cc_flags_supplier.bzl", _cc_flags_supplier = "cc_flags_supplier")
+load("//cc/toolchains:cc_toolchain.bzl", _cc_toolchain = "cc_toolchain")
+load("//cc/toolchains:cc_toolchain_config_info.bzl", _CcToolchainConfigInfo = "CcToolchainConfigInfo")
+load("//cc/toolchains:cc_toolchain_suite.bzl", _cc_toolchain_suite = "cc_toolchain_suite")
+load("//cc/toolchains:compiler_flag.bzl", _compiler_flag = "compiler_flag")
+load("//cc/toolchains:fdo_prefetch_hints.bzl", _fdo_prefetch_hints = "fdo_prefetch_hints")
+load("//cc/toolchains:fdo_profile.bzl", _fdo_profile = "fdo_profile")
 
-_MIGRATION_TAG = "__CC_RULES_MIGRATION_DO_NOT_USE_WILL_BREAK__"
+# Rules
 
-# TODO(bazel-team): To avoid breaking changes, if the below are no longer
-# forwarding to native rules, flag @bazel_tools@bazel_tools//tools/cpp:link_extra_libs
-# should either: (a) alias the flag @rules_cc//:link_extra_libs, or (b) be
-# added as a dependency to @rules_cc//:link_extra_lib. The intermediate library
-# @bazel_tools@bazel_tools//tools/cpp:link_extra_lib should either be added as a dependency
-# to @rules_cc//:link_extra_lib, or removed entirely (if possible).
-_LINK_EXTRA_LIB = "@rules_cc//:link_extra_lib"  # copybara-use-repo-external-label
+cc_library = _cc_library
+cc_binary = _cc_binary
+cc_test = _cc_test
+cc_import = _cc_import
+cc_shared_library = _cc_shared_library
 
-def _add_tags(attrs, is_binary = False):
-    if "tags" in attrs and attrs["tags"] != None:
-        attrs["tags"] = attrs["tags"] + [_MIGRATION_TAG]
-    else:
-        attrs["tags"] = [_MIGRATION_TAG]
+objc_library = _objc_library
+objc_import = _objc_import
 
-    if is_binary:
-        is_library = "linkshared" in attrs and attrs["linkshared"]
+cc_proto_library = native.cc_proto_library  # For compatibility with current users
 
-        # Executable builds also include the "link_extra_lib" library.
-        if not is_library:
-            if "deps" in attrs and attrs["deps"] != None:
-                attrs["deps"] = attrs["deps"] + [_LINK_EXTRA_LIB]
-            else:
-                attrs["deps"] = [_LINK_EXTRA_LIB]
+# Toolchain rules
 
-    return attrs
+cc_toolchain = _cc_toolchain
+fdo_profile = _fdo_profile
+fdo_prefetch_hints = _fdo_prefetch_hints
+cc_toolchain_suite = _cc_toolchain_suite
+compiler_flag = _compiler_flag
+cc_flags_supplier = _cc_flags_supplier
 
-def cc_binary(**attrs):
-    """Bazel cc_binary rule.
+# Modules and providers
 
-    https://docs.bazel.build/versions/main/be/c-cpp.html#cc_binary
-
-    Args:
-      **attrs: Rule attributes
-    """
-
-    # buildifier: disable=native-cc
-    native.cc_binary(**_add_tags(attrs, True))
-
-def cc_test(**attrs):
-    """Bazel cc_test rule.
-
-    https://docs.bazel.build/versions/main/be/c-cpp.html#cc_test
-
-    Args:
-      **attrs: Rule attributes
-    """
-
-    # buildifier: disable=native-cc
-    native.cc_test(**_add_tags(attrs, True))
-
-def cc_library(**attrs):
-    """Bazel cc_library rule.
-
-    https://docs.bazel.build/versions/main/be/c-cpp.html#cc_library
-
-    Args:
-      **attrs: Rule attributes
-    """
-
-    # buildifier: disable=native-cc
-    native.cc_library(**_add_tags(attrs))
-
-def cc_import(**attrs):
-    """Bazel cc_import rule.
-
-    https://docs.bazel.build/versions/main/be/c-cpp.html#cc_import
-
-    Args:
-      **attrs: Rule attributes
-    """
-
-    # buildifier: disable=native-cc
-    native.cc_import(**_add_tags(attrs))
-
-def cc_proto_library(**attrs):
-    """Bazel cc_proto_library rule.
-
-    https://docs.bazel.build/versions/main/be/c-cpp.html#cc_proto_library
-
-    Args:
-      **attrs: Rule attributes
-    """
-
-    # buildifier: disable=native-cc-proto
-    native.cc_proto_library(**_add_tags(attrs))
-
-def fdo_prefetch_hints(**attrs):
-    """Bazel fdo_prefetch_hints rule.
-
-    https://docs.bazel.build/versions/main/be/c-cpp.html#fdo_prefetch_hints
-
-    Args:
-      **attrs: Rule attributes
-    """
-
-    # buildifier: disable=native-cc
-    native.fdo_prefetch_hints(**_add_tags(attrs))
-
-def fdo_profile(**attrs):
-    """Bazel fdo_profile rule.
-
-    https://docs.bazel.build/versions/main/be/c-cpp.html#fdo_profile
-
-    Args:
-      **attrs: Rule attributes
-    """
-
-    # buildifier: disable=native-cc
-    native.fdo_profile(**_add_tags(attrs))
-
-def cc_toolchain(**attrs):
-    """Bazel cc_toolchain rule.
-
-    https://docs.bazel.build/versions/main/be/c-cpp.html#cc_toolchain
-
-    Args:
-      **attrs: Rule attributes
-    """
-
-    # buildifier: disable=native-cc
-    native.cc_toolchain(**_add_tags(attrs))
-
-def cc_toolchain_suite(**attrs):
-    """Bazel cc_toolchain_suite rule.
-
-    https://docs.bazel.build/versions/main/be/c-cpp.html#cc_toolchain_suite
-
-    Args:
-      **attrs: Rule attributes
-    """
-
-    # buildifier: disable=native-cc
-    native.cc_toolchain_suite(**_add_tags(attrs))
-
-def objc_library(**attrs):
-    """Bazel objc_library rule.
-
-    https://docs.bazel.build/versions/main/be/objective-c.html#objc_library
-
-    Args:
-      **attrs: Rule attributes
-    """
-
-    # buildifier: disable=native-cc
-    native.objc_library(**_add_tags(attrs))
-
-def objc_import(**attrs):
-    """Bazel objc_import rule.
-
-    https://docs.bazel.build/versions/main/be/objective-c.html#objc_import
-
-    Args:
-      **attrs: Rule attributes
-    """
-
-    # buildifier: disable=native-cc
-    native.objc_import(**_add_tags(attrs))
-
-def cc_flags_supplier(**attrs):
-    """Bazel cc_flags_supplier rule.
-
-    Args:
-      **attrs: Rule attributes
-    """
-    _cc_flags_supplier(**_add_tags(attrs))
-
-def compiler_flag(**attrs):
-    """Bazel compiler_flag rule.
-
-    Args:
-      **attrs: Rule attributes
-    """
-    _compiler_flag(**_add_tags(attrs))
-
-cc_common = native_cc_common
-
-CcInfo = NativeCcInfo
-
-CcToolchainConfigInfo = NativeCcToolchainConfigInfo
-
-DebugPackageInfo = NativeDebugPackageInfo
+cc_common = _cc_common
+CcInfo = _CcInfo
+DebugPackageInfo = _DebugPackageInfo
+CcToolchainConfigInfo = _CcToolchainConfigInfo
