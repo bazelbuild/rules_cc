@@ -37,6 +37,12 @@ visibility("private")
 
 _C_COMPILE_FILE = "tests/rule_based_toolchain/testdata/file1"
 
+def _sentinel_feature_test(env, targets):
+    sentinel_feature = env.expect.that_target(targets.sentinel_feature).provider(FeatureInfo)
+    sentinel_feature.name().equals("sentinel_feature_name")
+    sentinel_feature.args().args().contains_exactly([])
+    sentinel_feature.enabled().equals(True)
+
 def _simple_feature_test(env, targets):
     simple = env.expect.that_target(targets.simple).provider(FeatureInfo)
     simple.name().equals("feature_name")
@@ -154,6 +160,7 @@ TARGETS = [
     ":mutual_exclusion_feature",
     ":overrides",
     ":requires",
+    ":sentinel_feature",
     ":simple",
     ":simple2",
     ":transitive_constraint",
@@ -161,6 +168,7 @@ TARGETS = [
 
 # @unsorted-dict-items
 TESTS = {
+    "sentinel_feature_test": _sentinel_feature_test,
     "simple_feature_test": _simple_feature_test,
     "feature_collects_requirements_test": _feature_collects_requirements_test,
     "feature_collects_implies_test": _feature_collects_implies_test,

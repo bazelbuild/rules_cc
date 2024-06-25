@@ -125,7 +125,6 @@ Example:
             doc = """Whether or not this feature is enabled by default.""",
         ),
         "args": attr.label_list(
-            mandatory = True,
             doc = """Args that, when expanded, implement this feature.""",
             providers = [ArgsListInfo],
         ),

@@ -109,6 +109,13 @@ util.helper_target(
     overrides = ":builtin_feature",
 )
 
+util.helper_target(
+    cc_feature,
+    name = "sentinel_feature",
+    enabled = True,
+    feature_name = "sentinel_feature_name",
+)
+
 analysis_test_suite(
     name = "test_suite",
     targets = TARGETS,
