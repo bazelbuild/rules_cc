@@ -156,8 +156,15 @@ cc_variable(
 
 cc_variable(
     name = "libraries_to_link",
-    actions = ["//cc/toolchains/actions:link_actions"],
+    actions = [
+        "//cc/toolchains/actions:cpp_link_static_library",
+        "//cc/toolchains/actions:link_actions",
+    ],
     type = types.option(types.list(types.struct(
+        name = types.string,
+        is_whole_archive = types.bool,
+        object_files = types.list(types.file),
+        path = types.string,
         shared_libraries = types.list(types.struct(
             name = types.string,
             is_whole_archive = types.bool,
@@ -165,7 +172,54 @@ cc_variable(
             path = types.file,
             type = types.string,
         )),
+        type = types.string,
     ))),
+)
+
+cc_variable(
+    name = "libraries_to_link.type",
+    actions = [
+        "//cc/toolchains/actions:cpp_link_static_library",
+        "//cc/toolchains/actions:link_actions",
+    ],
+    # See :libraries_to_link.
+    type = types.string,
+)
+
+cc_variable(
+    name = "libraries_to_link.name",
+    actions = [
+        "//cc/toolchains/actions:cpp_link_static_library",
+        "//cc/toolchains/actions:link_actions",
+    ],
+    # See :libraries_to_link.
+    type = types.string,
+)
+
+cc_variable(
+    name = "libraries_to_link.path",
+    actions = [
+        "//cc/toolchains/actions:cpp_link_static_library",
+        "//cc/toolchains/actions:link_actions",
+    ],
+    # See :libraries_to_link.
+    type = types.string,
+)
+
+cc_variable(
+    name = "libraries_to_link.object_files",
+    actions = [
+        "//cc/toolchains/actions:cpp_link_static_library",
+        "//cc/toolchains/actions:link_actions",
+    ],
+    # See :libraries_to_link.
+    type = types.list(types.file),
+)
+
+cc_variable(
+    name = "libraries_to_link.is_whole_archive",
+    actions = ["//cc/toolchains/actions:link_actions"],
+    type = types.bool,
 )
 
 cc_variable(
@@ -213,8 +267,11 @@ cc_variable(
 
 cc_variable(
     name = "linker_param_file",
-    actions = ["//cc/toolchains/actions:link_actions"],
-    type = types.file,
+    actions = [
+        "//cc/toolchains/actions:cpp_link_static_library",
+        "//cc/toolchains/actions:link_actions",
+    ],
+    type = types.option(types.file),
 )
 
 cc_variable(
@@ -255,7 +312,10 @@ cc_variable(
 
 cc_variable(
     name = "output_execpath",
-    actions = ["//cc/toolchains/actions:link_actions"],
+    actions = [
+        "//cc/toolchains/actions:cpp_link_static_library",
+        "//cc/toolchains/actions:link_actions",
+    ],
     type = types.option(types.directory),
 )
 
