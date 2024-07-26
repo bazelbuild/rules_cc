@@ -109,5 +109,5 @@ TARGETS = [
 # @unsorted-dict-items
 TESTS = {
     "simple_test": _simple_test,
-    "env_only_test_test": _env_only_test,
+    "env_only_test": _env_only_test,
 }

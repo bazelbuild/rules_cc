@@ -16,7 +16,6 @@
 load(
     "//cc/toolchains/impl:nested_args.bzl",
     "NESTED_ARGS_ATTRS",
-    "args_wrapper_macro",
     "nested_args_provider_from_ctx",
 )
 load(
@@ -42,4 +41,9 @@ Examples:
 """,
 )
 
-cc_nested_args = lambda **kwargs: args_wrapper_macro(rule = _cc_nested_args, **kwargs)
+def cc_nested_args(name, format = {}, **kwargs):
+    return _cc_nested_args(
+        name = name,
+        format = {k: v for v, k in format.items()},
+        **kwargs
+    )

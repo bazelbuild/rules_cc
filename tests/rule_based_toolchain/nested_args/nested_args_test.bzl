@@ -13,19 +13,16 @@
 # limitations under the License.
 """Tests for the cc_args rule."""
 
+load("@bazel_skylib//rules/directory:providers.bzl", "DirectoryInfo")
 load("//cc:cc_toolchain_config_lib.bzl", "flag_group", "variable_with_value")
-load("//cc/toolchains:cc_toolchain_info.bzl", "VariableInfo")
-load("//cc/toolchains:format.bzl", "format_arg")
 load(
     "//cc/toolchains/impl:nested_args.bzl",
     "FORMAT_ARGS_ERR",
     "REQUIRES_EQUAL_ERR",
     "REQUIRES_MUTUALLY_EXCLUSIVE_ERR",
     "REQUIRES_NONE_ERR",
-    "format_string_indexes",
-    "format_variable",
+    "format_args",
     "nested_args_provider",
-    "raw_string",
 )
 load("//tests/rule_based_toolchain:subjects.bzl", "result_fn_wrapper", "subjects")
 
@@ -41,83 +38,101 @@ def _expect_that_nested(env, expr = None, **kwargs):
         factory = subjects.result(subjects.NestedArgsInfo),
     )
 
-def _expect_that_formatted(env, var, iterate_over = None, expr = None):
+def _expect_that_formatted(env, args, format, must_use = [], expr = None):
     return env.expect.that_value(
-        result_fn_wrapper(format_variable)(var, iterate_over),
-        factory = subjects.result(subjects.str),
-        expr = expr or "format_variable(var=%r, iterate_over=%r" % (var, iterate_over),
-    )
-
-def _expect_that_format_string_indexes(env, var, expr = None):
-    return env.expect.that_value(
-        result_fn_wrapper(format_string_indexes)(var),
+        result_fn_wrapper(format_args)(args, format, must_use = must_use),
         factory = subjects.result(subjects.collection),
-        expr = expr or "format_string_indexes(%r)" % var,
+        expr = expr or "format_args(%r, %r)" % (args, format),
     )
 
-def _format_string_indexes_test(env, _):
-    _expect_that_format_string_indexes(env, "foo").ok().contains_exactly([])
-    _expect_that_format_string_indexes(env, "%%").ok().contains_exactly([])
-    _expect_that_format_string_indexes(env, "%").err().equals(
-        '% should always either of the form %s, or escaped with %%. Instead, got "%"',
-    )
-    _expect_that_format_string_indexes(env, "%a").err().equals(
-        '% should always either of the form %s, or escaped with %%. Instead, got "%a"',
-    )
-    _expect_that_format_string_indexes(env, "%s").ok().contains_exactly([0])
-    _expect_that_format_string_indexes(env, "%%%s%s").ok().contains_exactly([2, 4])
-    _expect_that_format_string_indexes(env, "%%{").ok().contains_exactly([])
-    _expect_that_format_string_indexes(env, "%%s").ok().contains_exactly([])
-    _expect_that_format_string_indexes(env, "%{foo}").err().equals(
-        'Using the old mechanism for variables, %{variable}, but we instead use format_arg("--foo=%s", "//cc/toolchains/variables:<variable>"). Got "%{foo}"',
-    )
-
-def _formats_raw_strings_test(env, _):
+def _format_args_test(env, targets):
     _expect_that_formatted(
         env,
-        raw_string("foo"),
-    ).ok().equals("foo")
-    _expect_that_formatted(
-        env,
-        raw_string("%s"),
-    ).err().contains("Can't use %s with a raw string. Either escape it with %%s or use format_arg")
-
-def _formats_variables_test(env, targets):
-    _expect_that_formatted(
-        env,
-        format_arg("ab %s cd", targets.foo[VariableInfo]),
-    ).ok().equals("ab %{foo} cd")
+        [
+            "a % b",
+            "a {{",
+            "}} b",
+            "a {{ b }}",
+        ],
+        {},
+    ).ok().contains_exactly([
+        "a %% b",
+        "a {",
+        "} b",
+        "a { b }",
+    ]).in_order()
 
     _expect_that_formatted(
         env,
-        format_arg("foo", targets.foo[VariableInfo]),
-    ).err().equals('format_arg requires a "%s" in the format string, but got "foo"')
-    _expect_that_formatted(
-        env,
-        format_arg("%s%s", targets.foo[VariableInfo]),
-    ).err().equals('Only one %s can be used in a format string, but got "%s%s"')
+        ["{foo"],
+        {},
+    ).err().equals('Unmatched { in "{foo"')
 
     _expect_that_formatted(
         env,
-        format_arg("%s"),
-        iterate_over = "foo",
-    ).ok().equals("%{foo}")
+        ["foo}"],
+        {},
+    ).err().equals('Unexpected } in "foo}"')
     _expect_that_formatted(
         env,
-        format_arg("%s"),
-    ).err().contains("format_arg requires either a variable to format, or iterate_over must be provided")
+        ["{foo}"],
+        {},
+    ).err().contains('Unknown variable "foo" in format string "{foo}"')
 
-def _iterate_over_test(env, _):
+    _expect_that_formatted(
+        env,
+        [
+            "a {var}",
+            "b {directory}",
+            "c {file}",
+        ],
+        {
+            "directory": targets.directory,
+            "file": targets.bin_wrapper,
+            "var": targets.foo,
+        },
+    ).ok().contains_exactly([
+        "a %{foo}",
+        "b " + targets.directory[DirectoryInfo].path,
+        "c " + targets.bin_wrapper[DefaultInfo].files.to_list()[0].path,
+    ]).in_order()
+
+    _expect_that_formatted(
+        env,
+        ["{var}", "{var}"],
+        {"var": targets.foo},
+    ).ok().contains_exactly(["%{foo}", "%{foo}"])
+
+    _expect_that_formatted(
+        env,
+        [],
+        {"var": targets.foo},
+        must_use = ["var"],
+    ).err().contains('"var" was not used')
+
+    _expect_that_formatted(
+        env,
+        ["{var} {var}"],
+        {"var": targets.foo},
+    ).err().contains('"{var} {var}" contained multiple variables')
+
+    _expect_that_formatted(
+        env,
+        ["{foo} {bar}"],
+        {"foo": targets.foo, "bar": targets.foo},
+    ).err().contains('"{foo} {bar}" contained multiple variables')
+
+def _iterate_over_test(env, targets):
     inner = _expect_that_nested(
         env,
-        args = [raw_string("--foo")],
+        args = ["--foo"],
     ).ok().actual
     env.expect.that_str(inner.legacy_flag_group).equals(flag_group(flags = ["--foo"]))
 
     nested = _expect_that_nested(
         env,
         nested = [inner],
-        iterate_over = "my_list",
+        iterate_over = targets.my_list,
     ).ok()
     nested.iterate_over().some().equals("my_list")
     nested.legacy_flag_group().equals(flag_group(
@@ -131,14 +146,14 @@ def _requires_types_test(env, targets):
         env,
         requires_not_none = "abc",
         requires_none = "def",
-        args = [raw_string("--foo")],
+        args = ["--foo"],
         expr = "mutually_exclusive",
     ).err().equals(REQUIRES_MUTUALLY_EXCLUSIVE_ERR)
 
     _expect_that_nested(
         env,
         requires_none = "var",
-        args = [raw_string("--foo")],
+        args = ["--foo"],
         expr = "requires_none",
     ).ok().requires_types().contains_exactly(
         {"var": [struct(
@@ -150,13 +165,8 @@ def _requires_types_test(env, targets):
 
     _expect_that_nested(
         env,
-        args = [raw_string("foo %s baz")],
-        expr = "no_variable",
-    ).err().contains("Can't use %s with a raw string")
-
-    _expect_that_nested(
-        env,
-        args = [format_arg("foo %s baz", targets.foo[VariableInfo])],
+        args = ["foo {foo} baz"],
+        format = {targets.foo: "foo"},
         expr = "type_validation",
     ).ok().requires_types().contains_exactly(
         {"foo": [struct(
@@ -170,7 +180,8 @@ def _requires_types_test(env, targets):
         env,
         requires_equal = "foo",
         requires_equal_value = "value",
-        args = [format_arg("--foo=%s", targets.foo[VariableInfo])],
+        args = ["--foo={foo}"],
+        format = {targets.foo: "foo"},
         expr = "type_and_requires_equal_validation",
     ).ok()
     nested.requires_types().contains_exactly(
@@ -194,12 +205,13 @@ def _requires_types_test(env, targets):
 
 TARGETS = [
     ":foo",
+    ":my_list",
+    "//tests/rule_based_toolchain/testdata:directory",
+    "//tests/rule_based_toolchain/testdata:bin_wrapper",
 ]
 
 TESTS = {
-    "format_string_indexes_test": _format_string_indexes_test,
-    "formats_raw_strings_test": _formats_raw_strings_test,
-    "formats_variables_test": _formats_variables_test,
+    "format_args_test": _format_args_test,
     "iterate_over_test": _iterate_over_test,
     "requires_types_test": _requires_types_test,
 }

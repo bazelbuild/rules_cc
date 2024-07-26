@@ -23,7 +23,6 @@ load(
 load(
     "//cc/toolchains/impl:nested_args.bzl",
     "NESTED_ARGS_ATTRS",
-    "args_wrapper_macro",
     "nested_args_provider_from_ctx",
 )
 load(
@@ -39,9 +38,6 @@ visibility("public")
 
 def _cc_args_impl(ctx):
     actions = collect_action_types(ctx.attr.actions)
-
-    if not ctx.attr.args and not ctx.attr.nested and not ctx.attr.env:
-        fail("cc_args requires at least one of args, nested, and env")
 
     nested = None
     if ctx.attr.args or ctx.attr.nested:
@@ -117,4 +113,9 @@ Examples:
 """,
 )
 
-cc_args = lambda **kwargs: args_wrapper_macro(rule = _cc_args, **kwargs)
+def cc_args(name, format = {}, **kwargs):
+    return _cc_args(
+        name = name,
+        format = {k: v for v, k in format.items()},
+        **kwargs
+    )

@@ -1,4 +1,3 @@
-load("//cc/toolchains:format.bzl", "format_arg")
 load("//cc/toolchains:nested_args.bzl", "cc_nested_args")
 load("//cc/toolchains/impl:variables.bzl", "cc_builtin_variables", "cc_variable", "types")
 load("//tests/rule_based_toolchain:analysis_test_suite.bzl", "analysis_test_suite")
@@ -56,17 +55,19 @@ alias(
 
 cc_nested_args(
     name = "simple_str",
-    args = [format_arg("%s", ":str")],
+    args = ["{str}"],
+    format = {"str": ":str"},
 )
 
 cc_nested_args(
     name = "list_not_allowed",
-    args = [format_arg("%s", ":str_list")],
+    args = ["{s}"],
+    format = {"s": ":str_list"},
 )
 
 cc_nested_args(
     name = "iterate_over_list",
-    args = [format_arg("%s")],
+    args = ["{}"],
     iterate_over = ":str_list",
 )
 
@@ -91,7 +92,7 @@ cc_nested_args(
 
 cc_nested_args(
     name = "inner_iter",
-    args = [format_arg("%s")],
+    args = ["{}"],
     iterate_over = ":struct_list.nested_str_list",
 )
 
@@ -103,7 +104,8 @@ cc_nested_args(
 
 cc_nested_args(
     name = "bad_inner_iter",
-    args = [format_arg("%s", ":struct_list.nested_str_list")],
+    args = ["{s}"],
+    format = {"s": ":struct_list.nested_str_list"},
 )
 
 cc_nested_args(
@@ -114,12 +116,14 @@ cc_nested_args(
 
 cc_nested_args(
     name = "bad_nested_optional",
-    args = [format_arg("%s", ":str_option")],
+    args = ["{s}"],
+    format = {"s": ":str_option"},
 )
 
 cc_nested_args(
     name = "good_nested_optional",
-    args = [format_arg("%s", ":str_option")],
+    args = ["{s}"],
+    format = {"s": ":str_option"},
     requires_not_none = ":str_option",
 )
 
@@ -138,6 +142,13 @@ cc_builtin_variables(
         ":str_option",
         ":struct",
         ":struct_list",
+    ],
+)
+
+cc_builtin_variables(
+    name = "nested_variables",
+    srcs = [
+        ":struct_list.nested_str_list",
     ],
 )
 
