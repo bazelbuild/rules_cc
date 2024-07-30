@@ -106,7 +106,6 @@ def collect_tools(ctx, targets, fail = fail):
                 label = target.label,
                 exe = info.files_to_run.executable,
                 runfiles = collect_data(ctx, [target]),
-                requires_any_of = tuple(),
                 execution_requirements = tuple(),
             ))
         else:

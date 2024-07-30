@@ -151,7 +151,6 @@ ToolInfo = provider(
         "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
         "exe": "(File) The file corresponding to the tool",
         "runfiles": "(depset[File]) The files required to run the tool",
-        "requires_any_of": "(Sequence[FeatureConstraintInfo]) A set of constraints, one of which is required to enable the tool. Equivalent to with_features",
         "execution_requirements": "(Sequence[str]) A set of execution requirements of the tool",
     },
 )

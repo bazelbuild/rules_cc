@@ -3,7 +3,6 @@ load("//cc/toolchains:action_type_config.bzl", "cc_action_type_config")
 load("//cc/toolchains:args.bzl", "cc_args")
 load("//cc/toolchains:feature.bzl", "cc_feature")
 load("//cc/toolchains:feature_set.bzl", "cc_feature_set")
-load("//cc/toolchains:tool.bzl", "cc_tool")
 load("//cc/toolchains/impl:external_feature.bzl", "cc_external_feature")
 load("//cc/toolchains/impl:toolchain_config.bzl", "cc_legacy_file_group", "cc_toolchain_config")
 load("//tests/rule_based_toolchain:analysis_test_suite.bzl", "analysis_test_suite")
@@ -135,20 +134,6 @@ util.helper_target(
     enabled = True,
     feature_name = "requires_any_simple",
     requires_any_of = [":all_simple_features"],
-)
-
-util.helper_target(
-    cc_tool,
-    name = "requires_all_simple_tool",
-    src = "//tests/rule_based_toolchain/testdata:bin_wrapper.sh",
-    requires_any_of = [":all_simple_features"],
-)
-
-util.helper_target(
-    cc_action_type_config,
-    name = "requires_all_simple_action_type_config",
-    action_types = ["//tests/rule_based_toolchain/actions:c_compile"],
-    tools = [":requires_all_simple_tool"],
 )
 
 util.helper_target(

@@ -119,7 +119,7 @@ def _format_args_test(env, targets):
     _expect_that_formatted(
         env,
         ["{foo} {bar}"],
-        {"foo": targets.foo, "bar": targets.foo},
+        {"bar": targets.foo, "foo": targets.foo},
     ).err().contains('"{foo} {bar}" contained multiple variables')
 
 def _iterate_over_test(env, targets):

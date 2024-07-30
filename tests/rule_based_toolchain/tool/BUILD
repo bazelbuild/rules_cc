@@ -10,7 +10,6 @@ util.helper_target(
     src = "//tests/rule_based_toolchain/testdata:bin_wrapper.sh",
     data = ["//tests/rule_based_toolchain/testdata:bin"],
     execution_requirements = ["requires-network"],
-    requires_any_of = ["//tests/rule_based_toolchain/features:direct_constraint"],
 )
 
 util.helper_target(
@@ -26,7 +25,6 @@ cc_directory_tool(
     directory = "//tests/rule_based_toolchain/testdata:directory",
     executable = "bin_wrapper.sh",
     execution_requirements = ["requires-network"],
-    requires_any_of = ["//tests/rule_based_toolchain/features:direct_constraint"],
 )
 
 analysis_test_suite(

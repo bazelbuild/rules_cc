@@ -179,7 +179,6 @@ _ToolFactory = generate_factory(
     dict(
         exe = _subjects.file,
         runfiles = runfiles_subject,
-        requires_any_of = ProviderSequence(_FeatureConstraintFactory),
         execution_requirements = _subjects.collection,
     ),
 )

@@ -169,22 +169,6 @@ def _args_missing_requirements_invalid_test(env, targets):
         "It is impossible to enable %s" % targets.requires_all_simple_args.label,
     )
 
-def _tool_missing_requirements_invalid_test(env, targets):
-    _expect_that_toolchain(
-        env,
-        action_type_configs = [targets.requires_all_simple_action_type_config],
-        features = [targets.simple_feature, targets.simple_feature2],
-        expr = "has_both",
-    ).ok()
-    _expect_that_toolchain(
-        env,
-        action_type_configs = [targets.requires_all_simple_action_type_config],
-        features = [targets.simple_feature],
-        expr = "has_only_one",
-    ).err().contains(
-        "It is impossible to enable %s" % targets.requires_all_simple_tool.label,
-    )
-
 def _toolchain_collects_files_test(env, targets):
     tc = env.expect.that_target(
         targets.collects_files_toolchain_config,
@@ -256,8 +240,6 @@ TARGETS = [
     ":requires_any_simple_feature",
     ":requires_all_simple_feature",
     ":requires_all_simple_args",
-    ":requires_all_simple_action_type_config",
-    ":requires_all_simple_tool",
     ":simple_feature",
     ":simple_feature2",
     ":same_feature_name",
@@ -272,6 +254,5 @@ TESTS = {
     "feature_config_implies_missing_feature_invalid_test": _feature_config_implies_missing_feature_invalid_test,
     "feature_missing_requirements_invalid_test": _feature_missing_requirements_invalid_test,
     "args_missing_requirements_invalid_test": _args_missing_requirements_invalid_test,
-    "tool_missing_requirements_invalid_test": _tool_missing_requirements_invalid_test,
     "toolchain_collects_files_test": _toolchain_collects_files_test,
 }

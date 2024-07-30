@@ -13,10 +13,9 @@
 # limitations under the License.
 """Implementation of cc_tool"""
 
-load("//cc/toolchains/impl:collect.bzl", "collect_data", "collect_provider")
+load("//cc/toolchains/impl:collect.bzl", "collect_data")
 load(
     ":cc_toolchain_info.bzl",
-    "FeatureConstraintInfo",
     "ToolInfo",
 )
 
@@ -34,10 +33,6 @@ def _cc_tool_impl(ctx):
         label = ctx.label,
         exe = exe,
         runfiles = runfiles,
-        requires_any_of = tuple(collect_provider(
-            ctx.attr.requires_any_of,
-            FeatureConstraintInfo,
-        )),
         execution_requirements = tuple(ctx.attr.execution_requirements),
     )
 
@@ -77,13 +72,6 @@ executable label.
         ),
         "execution_requirements": attr.string_list(
             doc = "A list of strings that provide hints for execution environment compatibility (e.g. `requires-network`).",
-        ),
-        "requires_any_of": attr.label_list(
-            providers = [FeatureConstraintInfo],
-            doc = """This will be enabled when any of the constraints are met.
-
-If omitted, this tool will be enabled unconditionally.
-""",
         ),
     },
     provides = [ToolInfo],

@@ -85,14 +85,6 @@ def _validate_requires_any_of(fn, self, known_features, fail):
     if self.requires_any_of and not valid:
         fail(_INVALID_CONSTRAINT_ERR.format(provider = self.label))
 
-def _validate_requires_any_of_constraint(self, known_features, fail):
-    return _validate_requires_any_of(
-        lambda constraint: constraint.all_of.to_list(),
-        self,
-        known_features,
-        fail,
-    )
-
 def _validate_requires_any_of_feature_set(self, known_features, fail):
     return _validate_requires_any_of(
         lambda feature_set: feature_set.features.to_list(),
@@ -107,15 +99,15 @@ def _validate_implies(self, known_features, fail = fail):
             fail(_UNKNOWN_FEATURE_ERR.format(self = self.label, ft = ft.label))
 
 def _validate_args(self, known_features, fail):
-    _validate_requires_any_of_constraint(self, known_features, fail = fail)
-
-def _validate_tool(self, known_features, fail):
-    _validate_requires_any_of_constraint(self, known_features, fail = fail)
+    return _validate_requires_any_of(
+        lambda constraint: constraint.all_of.to_list(),
+        self,
+        known_features,
+        fail,
+    )
 
 def _validate_action_config(self, known_features, fail):
     _validate_implies(self, known_features, fail = fail)
-    for tool in self.tools:
-        _validate_tool(tool, known_features, fail = fail)
 
 def _validate_feature(self, known_features, fail):
     _validate_requires_any_of_feature_set(self, known_features, fail = fail)

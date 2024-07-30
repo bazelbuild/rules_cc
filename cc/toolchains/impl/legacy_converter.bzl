@@ -128,10 +128,7 @@ def convert_tool(tool):
     return legacy_tool(
         tool = tool.exe,
         execution_requirements = list(tool.execution_requirements),
-        with_features = [
-            convert_feature_constraint(fc)
-            for fc in tool.requires_any_of
-        ],
+        with_features = [],
     )
 
 def _convert_action_type_config(atc):

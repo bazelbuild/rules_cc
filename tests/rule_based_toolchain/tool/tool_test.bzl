@@ -13,10 +13,6 @@
 # limitations under the License.
 """Tests for the cc_args rule."""
 
-load(
-    "//cc:cc_toolchain_config_lib.bzl",
-    legacy_with_feature_set = "with_feature_set",
-)
 load("//cc/toolchains:cc_toolchain_info.bzl", "ToolInfo")
 load("//cc/toolchains/impl:collect.bzl", _collect_tools = "collect_tools")
 load("//cc/toolchains/impl:legacy_converter.bzl", "convert_tool")
@@ -37,7 +33,7 @@ _BIN_WRAPPER_SYMLINK = "tests/rule_based_toolchain/testdata/bin_wrapper"
 _BIN_WRAPPER = "tests/rule_based_toolchain/testdata/bin_wrapper.sh"
 _BIN = "tests/rule_based_toolchain/testdata/bin"
 
-def _tool_test(env, targets, target):
+def _tool_test(env, target):
     tool = env.expect.that_target(target).provider(ToolInfo)
     tool.exe().short_path_equals(_BIN_WRAPPER)
     tool.execution_requirements().contains_exactly(["requires-network"])
@@ -45,17 +41,11 @@ def _tool_test(env, targets, target):
         _BIN_WRAPPER,
         _BIN,
     ])
-    tool.requires_any_of().contains_exactly([targets.direct_constraint.label])
 
     legacy = convert_tool(tool.actual)
     env.expect.that_file(legacy.tool).equals(tool.actual.exe)
     env.expect.that_collection(legacy.execution_requirements).contains_exactly(["requires-network"])
-    env.expect.that_collection(legacy.with_features).contains_exactly([
-        legacy_with_feature_set(
-            features = ["feature_name"],
-            not_features = ["simple2"],
-        ),
-    ])
+    env.expect.that_collection(legacy.with_features).contains_exactly([])
 
 def _wrapped_tool_includes_runfiles_test(env, targets):
     tool = env.expect.that_target(targets.wrapped_tool).provider(ToolInfo)
@@ -115,8 +105,8 @@ TARGETS = [
 
 # @unsorted-dict-items
 TESTS = {
-    "tool_test": lambda env, targets: _tool_test(env, targets, targets.tool),
-    "directory_tool_test": lambda env, targets: _tool_test(env, targets, targets.directory_tool),
+    "tool_test": lambda env, targets: _tool_test(env, targets.tool),
+    "directory_tool_test": lambda env, targets: _tool_test(env, targets.directory_tool),
     "wrapped_tool_includes_runfiles_test": _wrapped_tool_includes_runfiles_test,
     "collect_tools_collects_tools_test": _collect_tools_collects_tools_test,
     "collect_tools_collects_binaries_test": _collect_tools_collects_binaries_test,
