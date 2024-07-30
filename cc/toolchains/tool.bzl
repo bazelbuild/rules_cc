@@ -33,7 +33,7 @@ def _cc_tool_impl(ctx):
         label = ctx.label,
         exe = exe,
         runfiles = runfiles,
-        execution_requirements = tuple(ctx.attr.execution_requirements),
+        execution_requirements = tuple(ctx.attr.tags),
     )
 
     link = ctx.actions.declare_file(ctx.label.name)
@@ -70,9 +70,6 @@ executable label.
             allow_files = True,
             doc = "Additional files that are required for this tool to run.",
         ),
-        "execution_requirements": attr.string_list(
-            doc = "A list of strings that provide hints for execution environment compatibility (e.g. `requires-network`).",
-        ),
     },
     provides = [ToolInfo],
     doc = """Declares a tool that can be bound to action configs.
@@ -87,6 +84,7 @@ cc_tool(
     executable = "@llvm_toolchain//:bin/clang",
     # Suppose clang needs libc to run.
     data = ["@llvm_toolchain//:lib/x86_64-linux-gnu/libc.so.6"]
+    tags = ["requires-network"],
 )
 ```
 """,
