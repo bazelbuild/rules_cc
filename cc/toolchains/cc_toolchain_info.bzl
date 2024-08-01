@@ -150,8 +150,17 @@ ToolInfo = provider(
     fields = {
         "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
         "exe": "(File) The file corresponding to the tool",
-        "runfiles": "(depset[File]) The files required to run the tool",
+        "runfiles": "(runfiles) The files required to run the tool",
         "execution_requirements": "(Sequence[str]) A set of execution requirements of the tool",
+    },
+)
+
+ToolConfigInfo = provider(
+    doc = "A mapping from action to tool",
+    # @unsorted-dict-items
+    fields = {
+        "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
+        "configs": "(dict[ActionTypeInfo, ToolInfo]) A mapping from action to tool.",
     },
 )
 

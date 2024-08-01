@@ -28,6 +28,7 @@ load(
     "FeatureSetInfo",
     "MutuallyExclusiveCategoryInfo",
     "NestedArgsInfo",
+    "ToolConfigInfo",
     "ToolInfo",
     "ToolchainConfigInfo",
 )
@@ -184,6 +185,15 @@ _ToolFactory = generate_factory(
 )
 
 # buildifier: disable=name-conventions
+_ToolConfigFactory = generate_factory(
+    ToolConfigInfo,
+    "ToolConfigInfo",
+    dict(
+        configs = dict_key_subject(_ToolFactory.factory),
+    ),
+)
+
+# buildifier: disable=name-conventions
 _ActionTypeConfigFactory = generate_factory(
     ActionTypeConfigInfo,
     "ActionTypeConfigInfo",
@@ -227,6 +237,7 @@ FACTORIES = [
     _FeatureConstraintFactory,
     _FeatureSetFactory,
     _ToolFactory,
+    _ToolConfigFactory,
     _ActionTypeConfigSetFactory,
     _ToolchainConfigFactory,
 ]
