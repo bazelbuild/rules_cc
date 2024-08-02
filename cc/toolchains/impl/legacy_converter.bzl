@@ -157,7 +157,7 @@ def convert_toolchain(toolchain):
         name = "implied_by_always_enabled",
         enabled = True,
         args = ArgsListInfo(args = toolchain.args),
-        implies = depset([]),
+        implies = depset([ft for ft in toolchain.enabled_features]),
         requires_any_of = [],
         mutually_exclusive = [],
         external = False,
@@ -168,6 +168,6 @@ def convert_toolchain(toolchain):
     ]
 
     return struct(
-        features = sorted([ft for ft in features if ft != None], key = lambda ft: ft.name),
+        features = [ft for ft in features if ft != None],
         action_configs = sorted(action_configs, key = lambda ac: ac.action_name),
     )

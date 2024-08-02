@@ -56,7 +56,7 @@ def _empty_toolchain_valid_test(env, _targets):
 def _duplicate_feature_names_invalid_test(env, targets):
     _expect_that_toolchain(
         env,
-        features = [targets.simple_feature, targets.same_feature_name],
+        known_features = [targets.simple_feature, targets.same_feature_name],
         expr = "duplicate_feature_name",
     ).err().contains_all_of([
         "The feature name simple_feature was defined by",
@@ -67,14 +67,14 @@ def _duplicate_feature_names_invalid_test(env, targets):
     # Overriding a feature gives it the same name. Ensure this isn't blocked.
     _expect_that_toolchain(
         env,
-        features = [targets.builtin_feature, targets.overrides_feature],
+        known_features = [targets.builtin_feature, targets.overrides_feature],
         expr = "override_feature",
     ).ok()
 
 def _duplicate_action_type_invalid_test(env, targets):
     _expect_that_toolchain(
         env,
-        features = [targets.simple_feature],
+        known_features = [targets.simple_feature],
         action_type_configs = [targets.compile_config, targets.c_compile_config],
     ).err().contains_all_of([
         "The action type %s is configured by" % targets.c_compile.label,
@@ -85,14 +85,14 @@ def _duplicate_action_type_invalid_test(env, targets):
 def _action_config_implies_missing_feature_invalid_test(env, targets):
     _expect_that_toolchain(
         env,
-        features = [targets.simple_feature],
+        known_features = [targets.simple_feature],
         action_type_configs = [targets.c_compile_config],
         expr = "action_type_config_with_implies",
     ).ok()
 
     _expect_that_toolchain(
         env,
-        features = [],
+        known_features = [],
         action_type_configs = [targets.c_compile_config],
         expr = "action_type_config_missing_implies",
     ).err().contains(
@@ -103,12 +103,12 @@ def _feature_config_implies_missing_feature_invalid_test(env, targets):
     _expect_that_toolchain(
         env,
         expr = "feature_with_implies",
-        features = [targets.simple_feature, targets.implies_simple_feature],
+        known_features = [targets.simple_feature, targets.implies_simple_feature],
     ).ok()
 
     _expect_that_toolchain(
         env,
-        features = [targets.implies_simple_feature],
+        known_features = [targets.implies_simple_feature],
         expr = "feature_missing_implies",
     ).err().contains(
         "%s implies the feature %s" % (targets.implies_simple_feature.label, targets.simple_feature.label),
@@ -117,17 +117,17 @@ def _feature_config_implies_missing_feature_invalid_test(env, targets):
 def _feature_missing_requirements_invalid_test(env, targets):
     _expect_that_toolchain(
         env,
-        features = [targets.requires_any_simple_feature, targets.simple_feature],
+        known_features = [targets.requires_any_simple_feature, targets.simple_feature],
         expr = "requires_any_simple_has_simple",
     ).ok()
     _expect_that_toolchain(
         env,
-        features = [targets.requires_any_simple_feature, targets.simple_feature2],
+        known_features = [targets.requires_any_simple_feature, targets.simple_feature2],
         expr = "requires_any_simple_has_simple2",
     ).ok()
     _expect_that_toolchain(
         env,
-        features = [targets.requires_any_simple_feature],
+        known_features = [targets.requires_any_simple_feature],
         expr = "requires_any_simple_has_none",
     ).err().contains(
         "It is impossible to enable %s" % targets.requires_any_simple_feature.label,
@@ -135,19 +135,19 @@ def _feature_missing_requirements_invalid_test(env, targets):
 
     _expect_that_toolchain(
         env,
-        features = [targets.requires_all_simple_feature, targets.simple_feature, targets.simple_feature2],
+        known_features = [targets.requires_all_simple_feature, targets.simple_feature, targets.simple_feature2],
         expr = "requires_all_simple_has_both",
     ).ok()
     _expect_that_toolchain(
         env,
-        features = [targets.requires_all_simple_feature, targets.simple_feature],
+        known_features = [targets.requires_all_simple_feature, targets.simple_feature],
         expr = "requires_all_simple_has_simple",
     ).err().contains(
         "It is impossible to enable %s" % targets.requires_all_simple_feature.label,
     )
     _expect_that_toolchain(
         env,
-        features = [targets.requires_all_simple_feature, targets.simple_feature2],
+        known_features = [targets.requires_all_simple_feature, targets.simple_feature2],
         expr = "requires_all_simple_has_simple2",
     ).err().contains(
         "It is impossible to enable %s" % targets.requires_all_simple_feature.label,
@@ -157,13 +157,13 @@ def _args_missing_requirements_invalid_test(env, targets):
     _expect_that_toolchain(
         env,
         args = [targets.requires_all_simple_args],
-        features = [targets.simple_feature, targets.simple_feature2],
+        known_features = [targets.simple_feature, targets.simple_feature2],
         expr = "has_both",
     ).ok()
     _expect_that_toolchain(
         env,
         args = [targets.requires_all_simple_args],
-        features = [targets.simple_feature],
+        known_features = [targets.simple_feature],
         expr = "has_only_one",
     ).err().contains(
         "It is impossible to enable %s" % targets.requires_all_simple_args.label,
@@ -186,6 +186,16 @@ def _toolchain_collects_files_test(env, targets):
     legacy = convert_toolchain(tc.actual)
     env.expect.that_collection(legacy.features).contains_exactly([
         legacy_feature(
+            name = "simple_feature",
+            enabled = False,
+            flag_sets = [legacy_flag_set(
+                actions = ["c_compile"],
+                flag_groups = [
+                    legacy_flag_group(flags = ["c_compile_args"]),
+                ],
+            )],
+        ),
+        legacy_feature(
             name = "compile_feature",
             enabled = True,
             flag_sets = [legacy_flag_set(
@@ -198,6 +208,7 @@ def _toolchain_collects_files_test(env, targets):
         legacy_feature(
             name = "implied_by_always_enabled",
             enabled = True,
+            implies = ["simple_feature"],
             flag_sets = [legacy_flag_set(
                 actions = ["c_compile"],
                 flag_groups = [

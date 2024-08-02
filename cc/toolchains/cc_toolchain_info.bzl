@@ -191,6 +191,7 @@ ToolchainConfigInfo = provider(
     fields = {
         "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
         "features": "(Sequence[FeatureInfo]) The features available for this toolchain",
+        "enabled_features": "(Sequence[FeatureInfo]) The features That are enabled by default for this toolchain",
         "action_type_configs": "(dict[ActionTypeInfo, ActionTypeConfigInfo]) The configuration of action configs for the toolchain.",
         "args": "(Sequence[ArgsInfo]) A list of arguments to be unconditionally applied to the toolchain.",
         "files": "(dict[ActionTypeInfo, depset[File]]) Files required for the toolchain, keyed by the action type.",

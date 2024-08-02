@@ -51,14 +51,15 @@ cc_legacy_file_group = rule(
 
 def _cc_toolchain_config_impl(ctx):
     if ctx.attr.features:
-        fail("Features is a reserved attribute in bazel. Did you mean 'toolchain_features'")
+        fail("Features is a reserved attribute in bazel. Did you mean 'known_features' or 'enabled_features'?")
 
     if not ctx.attr._enabled[BuildSettingInfo].value and not ctx.attr.skip_experimental_flag_validation_for_test:
         fail("Rule based toolchains are experimental. To use it, please add --@rules_cc//cc/toolchains:experimental_enable_rule_based_toolchains to your bazelrc")
 
     toolchain_config = toolchain_config_info(
         label = ctx.label,
-        features = ctx.attr.toolchain_features + [ctx.attr._builtin_features],
+        known_features = ctx.attr.known_features + [ctx.attr._builtin_features],
+        enabled_features = ctx.attr.enabled_features,
         action_type_configs = ctx.attr.action_type_configs,
         args = ctx.attr.args,
     )
@@ -109,7 +110,8 @@ cc_toolchain_config = rule(
         # Attributes new to this rule.
         "action_type_configs": attr.label_list(providers = [ActionTypeConfigSetInfo]),
         "args": attr.label_list(providers = [ArgsListInfo]),
-        "toolchain_features": attr.label_list(providers = [FeatureSetInfo]),
+        "known_features": attr.label_list(providers = [FeatureSetInfo]),
+        "enabled_features": attr.label_list(providers = [FeatureSetInfo]),
         "skip_experimental_flag_validation_for_test": attr.bool(default = False),
         "_builtin_features": attr.label(default = "//cc/toolchains/features:all_builtin_features"),
         "_enabled": attr.label(default = "//cc/toolchains:experimental_enable_rule_based_toolchains"),

@@ -132,12 +132,14 @@ def _collect_files_for_action_type(atc, features, args):
 
     return depset(transitive = transitive_files)
 
-def toolchain_config_info(label, features = [], args = [], action_type_configs = [], fail = fail):
+def toolchain_config_info(label, known_features = [], enabled_features = [], args = [], action_type_configs = [], fail = fail):
     """Generates and validates a ToolchainConfigInfo from lists of labels.
 
     Args:
         label: (Label) The label to apply to the ToolchainConfigInfo
-        features: (List[Target]) A list of targets providing FeatureSetInfo
+        known_features: (List[Target]) A list of features that can be enabled.
+        enabled_features: (List[Target]) A list of features that are enabled by
+          default. Every enabled feature is implicitly also a known feature.
         args: (List[Target]) A list of targets providing ArgsListInfo
         action_type_configs: (List[Target]) A list of targets providing
           ActionTypeConfigSetInfo
@@ -145,7 +147,14 @@ def toolchain_config_info(label, features = [], args = [], action_type_configs =
     Returns:
         A validated ToolchainConfigInfo
     """
-    features = collect_features(features).to_list()
+
+    # Later features will come after earlier features on the command-line, and
+    # thus override them. Because of this, we ensure that known_features comes
+    # *after* enabled_features, so that if we do enable them, they override the
+    # default feature flags.
+    features = collect_features(enabled_features + known_features).to_list()
+    enabled_features = collect_features(enabled_features).to_list()
+
     args = collect_args_lists(args, label = label)
     action_type_configs = collect_action_type_config_sets(
         action_type_configs,
@@ -160,6 +169,7 @@ def toolchain_config_info(label, features = [], args = [], action_type_configs =
     toolchain_config = ToolchainConfigInfo(
         label = label,
         features = features,
+        enabled_features = enabled_features,
         action_type_configs = action_type_configs,
         args = args.args,
         files = files,

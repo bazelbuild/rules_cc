@@ -220,6 +220,7 @@ _ToolchainConfigFactory = generate_factory(
     "ToolchainConfigInfo",
     dict(
         features = ProviderDepset(_FeatureFactory),
+        enabled_features = _subjects.collection,
         action_type_configs = dict_key_subject(_ActionTypeConfigFactory.factory),
         args = ProviderSequence(_ArgsFactory),
         files = dict_key_subject(_subjects.depset_file),

@@ -48,9 +48,10 @@ util.helper_target(
     cxx_builtin_include_directories = [
         "//tests/rule_based_toolchain/testdata:directory",
     ],
+    enabled_features = [":simple_feature"],
+    known_features = [":compile_feature"],
     skip_experimental_flag_validation_for_test = True,
     sysroot = "//tests/rule_based_toolchain/testdata:directory",
-    toolchain_features = [":compile_feature"],
 )
 
 util.helper_target(
