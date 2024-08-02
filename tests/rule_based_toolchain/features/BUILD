@@ -20,7 +20,6 @@ util.helper_target(
     cc_feature,
     name = "simple",
     args = [":c_compile"],
-    enabled = False,
     feature_name = "feature_name",
     visibility = ["//tests/rule_based_toolchain:__subpackages__"],
 )
@@ -29,7 +28,6 @@ util.helper_target(
     cc_feature,
     name = "simple2",
     args = [":c_compile"],
-    enabled = False,
     feature_name = "simple2",
 )
 
@@ -46,7 +44,6 @@ util.helper_target(
     cc_feature,
     name = "requires",
     args = [":c_compile"],
-    enabled = True,
     feature_name = "requires",
     requires_any_of = [":feature_set"],
 )
@@ -55,7 +52,6 @@ util.helper_target(
     cc_feature,
     name = "implies",
     args = [":c_compile"],
-    enabled = True,
     feature_name = "implies",
     implies = [":simple"],
 )
@@ -68,7 +64,6 @@ util.helper_target(
     cc_feature,
     name = "mutual_exclusion_feature",
     args = [":c_compile"],
-    enabled = True,
     feature_name = "mutual_exclusion",
     mutually_exclusive = [
         ":simple",
@@ -105,14 +100,12 @@ util.helper_target(
     cc_feature,
     name = "overrides",
     args = [":c_compile"],
-    enabled = True,
     overrides = ":builtin_feature",
 )
 
 util.helper_target(
     cc_feature,
     name = "sentinel_feature",
-    enabled = True,
     feature_name = "sentinel_feature_name",
 )
 

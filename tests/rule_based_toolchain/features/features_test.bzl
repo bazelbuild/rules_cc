@@ -41,7 +41,6 @@ def _sentinel_feature_test(env, targets):
     sentinel_feature = env.expect.that_target(targets.sentinel_feature).provider(FeatureInfo)
     sentinel_feature.name().equals("sentinel_feature_name")
     sentinel_feature.args().args().contains_exactly([])
-    sentinel_feature.enabled().equals(True)
 
 def _simple_feature_test(env, targets):
     simple = env.expect.that_target(targets.simple).provider(FeatureInfo)

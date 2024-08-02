@@ -197,7 +197,7 @@ def _toolchain_collects_files_test(env, targets):
         ),
         legacy_feature(
             name = "compile_feature",
-            enabled = True,
+            enabled = False,
             flag_sets = [legacy_flag_set(
                 actions = ["c_compile", "cpp_compile"],
                 flag_groups = [

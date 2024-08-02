@@ -89,7 +89,6 @@ util.helper_target(
     cc_feature,
     name = "compile_feature",
     args = [":compile_args"],
-    enabled = True,
     feature_name = "compile_feature",
 )
 
@@ -107,7 +106,6 @@ util.helper_target(
     cc_feature,
     name = "implies_simple_feature",
     args = [":c_compile_args"],
-    enabled = True,
     feature_name = "implies",
     implies = [":simple_feature"],
 )
@@ -116,7 +114,6 @@ util.helper_target(
     cc_feature,
     name = "overrides_feature",
     args = [":c_compile_args"],
-    enabled = True,
     overrides = ":builtin_feature",
 )
 
@@ -132,7 +129,6 @@ util.helper_target(
     cc_feature,
     name = "requires_all_simple_feature",
     args = [":c_compile_args"],
-    enabled = True,
     feature_name = "requires_any_simple",
     requires_any_of = [":all_simple_features"],
 )
@@ -141,7 +137,6 @@ util.helper_target(
     cc_feature,
     name = "requires_any_simple_feature",
     args = [":c_compile_args"],
-    enabled = True,
     feature_name = "requires_any_simple",
     requires_any_of = [
         ":simple_feature",
@@ -153,7 +148,6 @@ util.helper_target(
     cc_feature,
     name = "same_feature_name",
     args = [":c_compile_args"],
-    enabled = False,
     feature_name = "simple_feature",
     visibility = ["//tests/rule_based_toolchain:__subpackages__"],
 )
@@ -162,7 +156,6 @@ util.helper_target(
     cc_feature,
     name = "simple_feature",
     args = [":c_compile_args"],
-    enabled = False,
     feature_name = "simple_feature",
 )
 
@@ -170,7 +163,6 @@ util.helper_target(
     cc_feature,
     name = "simple_feature2",
     args = [":c_compile_args"],
-    enabled = False,
     feature_name = "simple_feature2",
     visibility = ["//tests/rule_based_toolchain:__subpackages__"],
 )

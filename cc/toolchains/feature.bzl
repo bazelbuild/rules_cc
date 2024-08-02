@@ -65,7 +65,9 @@ def _cc_feature_impl(ctx):
     feature = FeatureInfo(
         label = ctx.label,
         name = name,
-        enabled = ctx.attr.enabled,
+        # Unused field, but leave it just in case we want to reuse it in the
+        # future.
+        enabled = False,
         args = collect_args_lists(ctx.attr.args, ctx.label),
         implies = collect_features(ctx.attr.implies),
         requires_any_of = tuple(collect_provider(
@@ -120,10 +122,6 @@ Example:
     )
 """,
         ),
-        "enabled": attr.bool(
-            mandatory = True,
-            doc = """Whether or not this feature is enabled by default.""",
-        ),
         "args": attr.label_list(
             doc = """Args that, when expanded, implement this feature.""",
             providers = [ArgsListInfo],
@@ -137,7 +135,8 @@ deemed compatible and may be enabled.
 
 Note: Even if `cc_feature.requires_any_of` is satisfied, a feature is not
 enabled unless another mechanism (e.g. command-line flags, `cc_feature.implies`,
-`cc_feature.enabled`) signals that the feature should actually be enabled.
+`cc_toolchain_config.enabled_features`) signals that the feature should actually
+be enabled.
 """,
             providers = [FeatureSetInfo],
         ),
@@ -159,8 +158,7 @@ It can be either:
     `mutually_exclusive = [":category"]` are mutually exclusive with each other.
 
 If this feature has a side-effect of implementing another feature, it can be
-useful to list that feature here to ensure they aren't enabled at the
-same time.
+useful to list that feature here to ensure they aren't enabled at the same time.
 """,
         ),
         "overrides": attr.label(
@@ -224,7 +222,6 @@ Examples:
     # A feature that can be easily toggled to optimize for size
     cc_feature(
         name = "optimize_for_size",
-        enabled = False,
         feature_name = "optimize_for_size",
         args = [":optimize_for_size_args"],
     )
@@ -235,7 +232,6 @@ Examples:
     #    https://bazel.build/docs/cc-toolchain-config-reference#wellknown-features
     cc_feature(
         name = "supports_pic",
-        enabled = True,
         overrides = "//cc/toolchains/features:supports_pic
     )
 """,
