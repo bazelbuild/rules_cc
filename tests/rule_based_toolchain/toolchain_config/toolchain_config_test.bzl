@@ -187,7 +187,7 @@ def _toolchain_collects_files_test(env, targets):
     env.expect.that_collection(legacy.features).contains_exactly([
         legacy_feature(
             name = "simple_feature",
-            enabled = False,
+            enabled = True,
             flag_sets = [legacy_flag_set(
                 actions = ["c_compile"],
                 flag_groups = [
@@ -208,7 +208,6 @@ def _toolchain_collects_files_test(env, targets):
         legacy_feature(
             name = "implied_by_always_enabled",
             enabled = True,
-            implies = ["simple_feature"],
             flag_sets = [legacy_flag_set(
                 actions = ["c_compile"],
                 flag_groups = [

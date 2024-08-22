@@ -99,7 +99,7 @@ def _convert_args_sequence(args_sequence):
 
     return struct(flag_sets = flag_sets, env_sets = env_sets)
 
-def convert_feature(feature):
+def convert_feature(feature, enabled = False):
     if feature.external:
         return None
 
@@ -107,7 +107,7 @@ def convert_feature(feature):
 
     return legacy_feature(
         name = feature.name,
-        enabled = feature.enabled,
+        enabled = enabled or feature.enabled,
         flag_sets = args.flag_sets,
         env_sets = args.env_sets,
         implies = sorted([ft.name for ft in feature.implies.to_list()]),
@@ -150,14 +150,17 @@ def convert_toolchain(toolchain):
         A struct containing parameters suitable to pass to
           cc_common.create_cc_toolchain_config_info.
     """
-    features = [convert_feature(feature) for feature in toolchain.features]
+    features = [
+        convert_feature(feature, enabled = feature in toolchain.enabled_features)
+        for feature in toolchain.features
+    ]
     features.append(convert_feature(FeatureInfo(
         # We reserve names starting with implied_by. This ensures we don't
         # conflict with the name of a feature the user creates.
         name = "implied_by_always_enabled",
         enabled = True,
         args = ArgsListInfo(args = toolchain.args),
-        implies = depset([ft for ft in toolchain.enabled_features]),
+        implies = depset([]),
         requires_any_of = [],
         mutually_exclusive = [],
         external = False,
