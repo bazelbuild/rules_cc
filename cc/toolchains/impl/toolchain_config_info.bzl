@@ -13,9 +13,9 @@
 # limitations under the License.
 """Helper functions to create and validate a ToolchainConfigInfo."""
 
-load("//cc/toolchains:cc_toolchain_info.bzl", "ToolchainConfigInfo")
+load("//cc/toolchains:cc_toolchain_info.bzl", "ToolConfigInfo", "ToolchainConfigInfo")
 load(":args_utils.bzl", "get_action_type")
-load(":collect.bzl", "collect_action_type_config_sets", "collect_args_lists", "collect_features")
+load(":collect.bzl", "collect_args_lists", "collect_features")
 
 visibility([
     "//cc/toolchains/...",
@@ -106,9 +106,6 @@ def _validate_args(self, known_features, fail):
         fail,
     )
 
-def _validate_action_config(self, known_features, fail):
-    _validate_implies(self, known_features, fail = fail)
-
 def _validate_feature(self, known_features, fail):
     _validate_requires_any_of_feature_set(self, known_features, fail = fail)
     for arg in self.args.args:
@@ -120,19 +117,17 @@ def _validate_toolchain(self, fail = fail):
 
     for feature in self.features:
         _validate_feature(feature, known_features, fail = fail)
-    for atc in self.action_type_configs.values():
-        _validate_action_config(atc, known_features, fail = fail)
     for args in self.args:
         _validate_args(args, known_features, fail = fail)
 
-def _collect_files_for_action_type(atc, features, args):
-    transitive_files = [atc.files.files, get_action_type(args, atc.action_type).files]
+def _collect_files_for_action_type(action_type, tool_map, features, args):
+    transitive_files = [tool_map[action_type].runfiles.files, get_action_type(args, action_type).files]
     for ft in features:
-        transitive_files.append(get_action_type(ft.args, atc.action_type).files)
+        transitive_files.append(get_action_type(ft.args, action_type).files)
 
     return depset(transitive = transitive_files)
 
-def toolchain_config_info(label, known_features = [], enabled_features = [], args = [], action_type_configs = [], fail = fail):
+def toolchain_config_info(label, known_features = [], enabled_features = [], args = [], tool_map = None, fail = fail):
     """Generates and validates a ToolchainConfigInfo from lists of labels.
 
     Args:
@@ -141,8 +136,7 @@ def toolchain_config_info(label, known_features = [], enabled_features = [], arg
         enabled_features: (List[Target]) A list of features that are enabled by
           default. Every enabled feature is implicitly also a known feature.
         args: (List[Target]) A list of targets providing ArgsListInfo
-        action_type_configs: (List[Target]) A list of targets providing
-          ActionTypeConfigSetInfo
+        tool_map: (Target) A target providing ToolMapInfo.
         fail: A fail function. Use only during tests.
     Returns:
         A validated ToolchainConfigInfo
@@ -155,22 +149,25 @@ def toolchain_config_info(label, known_features = [], enabled_features = [], arg
     features = collect_features(enabled_features + known_features).to_list()
     enabled_features = collect_features(enabled_features).to_list()
 
+    if tool_map == None:
+        fail("tool_map is required")
+
+        # The `return` here is to support testing, since injecting `fail()` has a
+        # side-effect of allowing code to continue.
+        return None  # buildifier: disable=unreachable
+
     args = collect_args_lists(args, label = label)
-    action_type_configs = collect_action_type_config_sets(
-        action_type_configs,
-        label = label,
-        fail = fail,
-    ).configs
+    tools = tool_map[ToolConfigInfo].configs
     files = {
-        atc.action_type: _collect_files_for_action_type(atc, features, args)
-        for atc in action_type_configs.values()
+        action_type: _collect_files_for_action_type(action_type, tools, features, args)
+        for action_type in tools.keys()
     }
 
     toolchain_config = ToolchainConfigInfo(
         label = label,
         features = features,
         enabled_features = enabled_features,
-        action_type_configs = action_type_configs,
+        tool_map = tool_map[ToolConfigInfo],
         args = args.args,
         files = files,
     )

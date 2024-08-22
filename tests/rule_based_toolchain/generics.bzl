@@ -136,5 +136,6 @@ dict_key_subject = lambda factory: lambda value, *, meta: struct(
         value[key],
         meta = meta.derive("get({})".format(key)),
     ),
+    keys = lambda: subjects.collection(value.keys(), meta = meta.derive("keys()")),
     contains = lambda key: subjects.bool(key in value, meta = meta.derive("contains({})".format(key))),
 )

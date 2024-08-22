@@ -17,8 +17,6 @@ load("@bazel_skylib//lib:structs.bzl", "structs")
 load("@rules_testing//lib:truth.bzl", _subjects = "subjects")
 load(
     "//cc/toolchains:cc_toolchain_info.bzl",
-    "ActionTypeConfigInfo",
-    "ActionTypeConfigSetInfo",
     "ActionTypeInfo",
     "ActionTypeSetInfo",
     "ArgsInfo",
@@ -194,34 +192,13 @@ _ToolConfigFactory = generate_factory(
 )
 
 # buildifier: disable=name-conventions
-_ActionTypeConfigFactory = generate_factory(
-    ActionTypeConfigInfo,
-    "ActionTypeConfigInfo",
-    dict(
-        action_type = _ActionTypeFactory,
-        tools = ProviderSequence(_ToolFactory),
-        implies = ProviderDepset(_FeatureFactory),
-        files = runfiles_subject,
-    ),
-)
-
-# buildifier: disable=name-conventions
-_ActionTypeConfigSetFactory = generate_factory(
-    ActionTypeConfigSetInfo,
-    "ActionTypeConfigSetInfo",
-    dict(
-        configs = dict_key_subject(_ActionTypeConfigFactory.factory),
-    ),
-)
-
-# buildifier: disable=name-conventions
 _ToolchainConfigFactory = generate_factory(
     ToolchainConfigInfo,
     "ToolchainConfigInfo",
     dict(
         features = ProviderDepset(_FeatureFactory),
         enabled_features = _subjects.collection,
-        action_type_configs = dict_key_subject(_ActionTypeConfigFactory.factory),
+        tool_map = optional_subject(_ToolConfigFactory.factory),
         args = ProviderSequence(_ArgsFactory),
         files = dict_key_subject(_subjects.depset_file),
     ),
@@ -239,7 +216,6 @@ FACTORIES = [
     _FeatureSetFactory,
     _ToolFactory,
     _ToolConfigFactory,
-    _ActionTypeConfigSetFactory,
     _ToolchainConfigFactory,
 ]
 

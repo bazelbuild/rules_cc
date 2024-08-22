@@ -1,8 +1,8 @@
 load("@rules_testing//lib:util.bzl", "util")
-load("//cc/toolchains:action_type_config.bzl", "cc_action_type_config")
 load("//cc/toolchains:args.bzl", "cc_args")
 load("//cc/toolchains:feature.bzl", "cc_feature")
 load("//cc/toolchains:feature_set.bzl", "cc_feature_set")
+load("//cc/toolchains:tool_map.bzl", "cc_tool_map")
 load("//cc/toolchains/impl:external_feature.bzl", "cc_external_feature")
 load("//cc/toolchains/impl:toolchain_config.bzl", "cc_legacy_file_group", "cc_toolchain_config")
 load("//tests/rule_based_toolchain:analysis_test_suite.bzl", "analysis_test_suite")
@@ -43,7 +43,6 @@ util.helper_target(
 util.helper_target(
     cc_toolchain_config,
     name = "collects_files_toolchain_config",
-    action_type_configs = [":compile_config"],
     args = [":c_compile_args"],
     cxx_builtin_include_directories = [
         "//tests/rule_based_toolchain/testdata:directory",
@@ -52,6 +51,7 @@ util.helper_target(
     known_features = [":compile_feature"],
     skip_experimental_flag_validation_for_test = True,
     sysroot = "//tests/rule_based_toolchain/testdata:directory",
+    tool_map = ":compile_tool_map",
 )
 
 util.helper_target(
@@ -77,12 +77,11 @@ util.helper_target(
 )
 
 util.helper_target(
-    cc_action_type_config,
-    name = "compile_config",
-    action_types = ["//tests/rule_based_toolchain/actions:all_compile"],
-    tools = [
-        "//tests/rule_based_toolchain/tool:wrapped_tool",
-    ],
+    cc_tool_map,
+    name = "compile_tool_map",
+    tools = {
+        "//tests/rule_based_toolchain/actions:all_compile": "//tests/rule_based_toolchain/tool:wrapped_tool",
+    },
 )
 
 util.helper_target(
@@ -93,13 +92,17 @@ util.helper_target(
 )
 
 util.helper_target(
-    cc_action_type_config,
-    name = "c_compile_config",
-    action_types = ["//tests/rule_based_toolchain/actions:c_compile"],
-    implies = [":simple_feature"],
-    tools = [
-        "//tests/rule_based_toolchain/tool:wrapped_tool",
-    ],
+    cc_tool_map,
+    name = "c_compile_tool_map",
+    tools = {
+        "//tests/rule_based_toolchain/actions:c_compile": "//tests/rule_based_toolchain/tool:wrapped_tool",
+    },
+)
+
+util.helper_target(
+    cc_tool_map,
+    name = "empty_tool_map",
+    tools = {},
 )
 
 util.helper_target(

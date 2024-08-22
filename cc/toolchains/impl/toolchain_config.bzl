@@ -17,10 +17,10 @@ load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@bazel_skylib//rules/directory:providers.bzl", "DirectoryInfo")
 load(
     "//cc/toolchains:cc_toolchain_info.bzl",
-    "ActionTypeConfigSetInfo",
     "ActionTypeSetInfo",
     "ArgsListInfo",
     "FeatureSetInfo",
+    "ToolConfigInfo",
     "ToolchainConfigInfo",
 )
 load(":collect.bzl", "collect_action_types")
@@ -60,7 +60,7 @@ def _cc_toolchain_config_impl(ctx):
         label = ctx.label,
         known_features = ctx.attr.known_features + [ctx.attr._builtin_features],
         enabled_features = ctx.attr.enabled_features,
-        action_type_configs = ctx.attr.action_type_configs,
+        tool_map = ctx.attr.tool_map,
         args = ctx.attr.args,
     )
 
@@ -108,7 +108,7 @@ cc_toolchain_config = rule(
     # @unsorted-dict-items
     attrs = {
         # Attributes new to this rule.
-        "action_type_configs": attr.label_list(providers = [ActionTypeConfigSetInfo]),
+        "tool_map": attr.label(providers = [ToolConfigInfo], mandatory = True),
         "args": attr.label_list(providers = [ArgsListInfo]),
         "known_features": attr.label_list(providers = [FeatureSetInfo]),
         "enabled_features": attr.label_list(providers = [FeatureSetInfo]),

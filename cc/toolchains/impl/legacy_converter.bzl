@@ -131,15 +131,16 @@ def convert_tool(tool):
         with_features = [],
     )
 
-def _convert_action_type_config(atc):
-    implies = sorted([ft.name for ft in atc.implies.to_list()])
-
-    return legacy_action_config(
-        action_name = atc.action_type.name,
-        enabled = True,
-        tools = [convert_tool(tool) for tool in atc.tools],
-        implies = implies,
-    )
+def _convert_tool_map(tool_map):
+    return [
+        legacy_action_config(
+            action_name = action_type.name,
+            enabled = True,
+            tools = [convert_tool(tool_map.configs[action_type])],
+            implies = [],
+        )
+        for action_type in tool_map.configs.keys()
+    ]
 
 def convert_toolchain(toolchain):
     """Converts a rule-based toolchain into the legacy providers.
@@ -165,10 +166,7 @@ def convert_toolchain(toolchain):
         mutually_exclusive = [],
         external = False,
     )))
-    action_configs = [
-        _convert_action_type_config(atc)
-        for atc in toolchain.action_type_configs.values()
-    ]
+    action_configs = _convert_tool_map(toolchain.tool_map)
 
     return struct(
         features = [ft for ft in features if ft != None],

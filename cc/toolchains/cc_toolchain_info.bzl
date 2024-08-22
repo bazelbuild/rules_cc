@@ -164,27 +164,6 @@ ToolConfigInfo = provider(
     },
 )
 
-ActionTypeConfigInfo = provider(
-    doc = "Configuration of a Bazel action.",
-    # @unsorted-dict-items
-    fields = {
-        "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
-        "action_type": "(ActionTypeInfo) The type of the action",
-        "tools": "(Sequence[ToolInfo]) The tool applied to the action will be the first tool in the sequence with a feature set that matches the feature configuration",
-        "implies": "(depset[FeatureInfo]) Set of features implied by this action config",
-        "files": "(runfiles) The files required to run these actions",
-    },
-)
-
-ActionTypeConfigSetInfo = provider(
-    doc = "A set of action configs",
-    # @unsorted-dict-items
-    fields = {
-        "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
-        "configs": "(dict[ActionTypeInfo, ActionTypeConfigInfo]) A set of action configs",
-    },
-)
-
 ToolchainConfigInfo = provider(
     doc = "The configuration for a toolchain",
     # @unsorted-dict-items
@@ -192,7 +171,7 @@ ToolchainConfigInfo = provider(
         "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
         "features": "(Sequence[FeatureInfo]) The features available for this toolchain",
         "enabled_features": "(Sequence[FeatureInfo]) The features That are enabled by default for this toolchain",
-        "action_type_configs": "(dict[ActionTypeInfo, ActionTypeConfigInfo]) The configuration of action configs for the toolchain.",
+        "tool_map": "(ToolConfigInfo) A provider mapping toolchain action types to tools.",
         "args": "(Sequence[ArgsInfo]) A list of arguments to be unconditionally applied to the toolchain.",
         "files": "(dict[ActionTypeInfo, depset[File]]) Files required for the toolchain, keyed by the action type.",
     },
