@@ -204,12 +204,37 @@ def _toolchain_collects_files_test(env, targets):
         legacy_feature(
             name = "implied_by_always_enabled",
             enabled = True,
-            flag_sets = [legacy_flag_set(
-                actions = ["c_compile"],
-                flag_groups = [
-                    legacy_flag_group(flags = ["c_compile_args"]),
-                ],
-            )],
+            flag_sets = [
+                legacy_flag_set(
+                    actions = [
+                        "c++-compile",
+                        "c++-header-parsing",
+                        "c++-link-dynamic-library",
+                        "c++-link-executable",
+                        "c++-link-nodeps-dynamic-library",
+                        "c++-module-codegen",
+                        "c++-module-compile",
+                        "c-compile",
+                        "clif-match",
+                        "linkstamp-compile",
+                        "lto-backend",
+                        "lto-index-for-dynamic-library",
+                        "lto-index-for-executable",
+                        "lto-index-for-nodeps-dynamic-library",
+                    ],
+                    flag_groups = [
+                        legacy_flag_group(flags = [
+                            "--sysroot=tests/rule_based_toolchain/testdata",
+                        ]),
+                    ],
+                ),
+                legacy_flag_set(
+                    actions = ["c_compile"],
+                    flag_groups = [
+                        legacy_flag_group(flags = ["c_compile_args"]),
+                    ],
+                ),
+            ],
         ),
     ]).in_order()
 

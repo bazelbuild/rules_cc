@@ -66,10 +66,6 @@ def _cc_toolchain_config_impl(ctx):
 
     legacy = convert_toolchain(toolchain_config)
 
-    sysroot = None
-    if ctx.attr.sysroot:
-        sysroot = ctx.attr.sysroot[DirectoryInfo].path
-
     cxx_builtin_include_directories = [
         d[DirectoryInfo].path
         for d in ctx.attr.cxx_builtin_include_directories
@@ -93,7 +89,6 @@ def _cc_toolchain_config_impl(ctx):
             compiler = "",
             abi_version = "",
             abi_libc_version = "",
-            builtin_sysroot = sysroot,
         ),
         # This allows us to support all_files.
         # If all_files was simply an alias to
@@ -117,7 +112,6 @@ cc_toolchain_config = rule(
         "_enabled": attr.label(default = "//cc/toolchains:experimental_enable_rule_based_toolchains"),
 
         # Attributes translated from legacy cc toolchains.
-        "sysroot": attr.label(providers = [DirectoryInfo]),
         "cxx_builtin_include_directories": attr.label_list(providers = [DirectoryInfo]),
     },
     provides = [ToolchainConfigInfo],

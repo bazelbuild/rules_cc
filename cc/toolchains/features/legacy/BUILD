@@ -203,11 +203,8 @@ cc_external_feature(
     overridable = True,
 )
 
-cc_external_feature(
-    name = "sysroot",
-    feature_name = "sysroot",
-    overridable = True,
-)
+# Instead of the "sysroot" legacy flag, use the cc_sysroot macro in
+# //cc/toolchains/args:sysroot.bzl
 
 cc_external_feature(
     name = "unfiltered_compile_flags",
@@ -269,7 +266,6 @@ cc_feature_set(
         ":gcc_coverage_map_format",
         ":fully_static_link",
         ":user_compile_flags",
-        ":sysroot",
         ":unfiltered_compile_flags",
         ":linker_param_file",
         ":compiler_input_flags",

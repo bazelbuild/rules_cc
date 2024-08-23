@@ -400,10 +400,8 @@ cc_variable(
     type = types.list(types.string),
 )
 
-cc_variable(
-    name = "sysroot",
-    type = types.directory,
-)
+# Instead of the "sysroot" variable, use the cc_sysroot macro in
+# //cc/toolchains/args:sysroot.bzl
 
 cc_variable(
     name = "system_include_paths",
@@ -526,7 +524,6 @@ cc_builtin_variables(
         ":source_file",
         ":strip_debug_symbols",
         ":stripopts",
-        ":sysroot",
         ":system_include_paths",
         ":thinlto_index",
         ":thinlto_indexing_param_file",

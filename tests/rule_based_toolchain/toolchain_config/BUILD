@@ -3,6 +3,7 @@ load("//cc/toolchains:args.bzl", "cc_args")
 load("//cc/toolchains:feature.bzl", "cc_feature")
 load("//cc/toolchains:feature_set.bzl", "cc_feature_set")
 load("//cc/toolchains:tool_map.bzl", "cc_tool_map")
+load("//cc/toolchains/args:sysroot.bzl", "cc_sysroot")
 load("//cc/toolchains/impl:external_feature.bzl", "cc_external_feature")
 load("//cc/toolchains/impl:toolchain_config.bzl", "cc_legacy_file_group", "cc_toolchain_config")
 load("//tests/rule_based_toolchain:analysis_test_suite.bzl", "analysis_test_suite")
@@ -40,17 +41,24 @@ util.helper_target(
     env = {"CPP_COMPILE": "1"},
 )
 
+cc_sysroot(
+    name = "sysroot",
+    sysroot = "//tests/rule_based_toolchain/testdata:directory",
+)
+
 util.helper_target(
     cc_toolchain_config,
     name = "collects_files_toolchain_config",
-    args = [":c_compile_args"],
+    args = [
+        ":sysroot",
+        ":c_compile_args",
+    ],
     cxx_builtin_include_directories = [
         "//tests/rule_based_toolchain/testdata:directory",
     ],
     enabled_features = [":simple_feature"],
     known_features = [":compile_feature"],
     skip_experimental_flag_validation_for_test = True,
-    sysroot = "//tests/rule_based_toolchain/testdata:directory",
     tool_map = ":compile_tool_map",
 )
 
