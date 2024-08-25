@@ -29,9 +29,9 @@ def cc_sysroot(name, sysroot, **kwargs):
     cc_args(
         name = name,
         actions = [
-            "//cc/toolchains/actions:cpp_compile_actions",
-            "//cc/toolchains/actions:c_compile",
-            "//cc/toolchains/actions:link_actions",
+            "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
+            "@rules_cc//cc/toolchains/actions:c_compile",
+            "@rules_cc//cc/toolchains/actions:link_actions",
         ],
         args = ["--sysroot={sysroot}"],
         format = {"sysroot": sysroot},
