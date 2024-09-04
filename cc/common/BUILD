@@ -21,6 +21,12 @@ bzl_library(
     deps = ["//cc/private/rules_impl:native_bzl"],
 )
 
+bzl_library(
+    name = "cc_helper_bzl",
+    srcs = ["cc_helper.bzl"],
+    visibility = ["//visibility:public"],
+)
+
 filegroup(
     name = "srcs",
     srcs = glob([
