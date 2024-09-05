@@ -127,6 +127,7 @@ cc_external_feature(
 
 cc_external_feature(
     name = "archiver_flags",
+    deprecation = "Use //cc/toolchains/args/archiver_flags instead",
     feature_name = "archiver_flags",
     overridable = True,
 )

@@ -1,0 +1,19 @@
+load(":compare_feature.bzl", "compare_feature_implementation")
+
+# These tests validate that the produced legacy feature implementations
+# properly reflect the implementations housed in the Java source of truth at
+# https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/rules/cpp/CppActionConfigs.java.
+#
+# Note: the golden textprotos are not a 1:1 match of the textprotos inlined in
+# the Java files. These aim to have identical behavior, but with allowance
+# for slight differences in structure due to implementation details. This also
+# makes it easier to review the final results.
+
+compare_feature_implementation(
+    name = "archiver_flags_test",
+    actual_implementation = "//cc/toolchains/args/archiver_flags",
+    expected = select({
+        "@platforms//os:macos": "//tests/rule_based_toolchain/legacy_features_as_args:goldens/macos/archiver_flags.textproto",
+        "//conditions:default": "//tests/rule_based_toolchain/legacy_features_as_args:goldens/unix/archiver_flags.textproto",
+    }),
+)
