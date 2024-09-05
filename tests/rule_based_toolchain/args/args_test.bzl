@@ -39,6 +39,7 @@ _SIMPLE_FILES = [
     "tests/rule_based_toolchain/testdata/multiple1",
     "tests/rule_based_toolchain/testdata/multiple2",
 ]
+_TOOL_DIRECTORY = "tests/rule_based_toolchain/testdata"
 
 _CONVERTED_ARGS = subjects.struct(
     flag_sets = subjects.collection,
@@ -99,9 +100,20 @@ def _env_only_test(env, targets):
 
     converted.flag_sets().contains_exactly([])
 
+def _with_dir_test(env, targets):
+    with_dir = env.expect.that_target(targets.with_dir).provider(ArgsInfo)
+    with_dir.allowlist_include_directories().contains_exactly([_TOOL_DIRECTORY])
+    with_dir.files().contains_at_least(_SIMPLE_FILES)
+
+    c_compile = env.expect.that_target(targets.with_dir).provider(ArgsListInfo).by_action().get(
+        targets.c_compile[ActionTypeInfo],
+    )
+    c_compile.files().contains_at_least(_SIMPLE_FILES)
+
 TARGETS = [
     ":simple",
     ":env_only",
+    ":with_dir",
     "//tests/rule_based_toolchain/actions:c_compile",
     "//tests/rule_based_toolchain/actions:cpp_compile",
 ]
@@ -110,4 +122,5 @@ TARGETS = [
 TESTS = {
     "simple_test": _simple_test,
     "env_only_test": _env_only_test,
+    "with_dir_test": _with_dir_test,
 }

@@ -13,6 +13,7 @@
 # limitations under the License.
 """Implementation of cc_tool"""
 
+load("@bazel_skylib//rules/directory:providers.bzl", "DirectoryInfo")
 load("//cc/toolchains/impl:collect.bzl", "collect_data")
 load(
     ":cc_toolchain_info.bzl",
@@ -28,12 +29,15 @@ def _cc_tool_impl(ctx):
     else:
         fail("Expected cc_tool's src attribute to be either an executable or a single file")
 
-    runfiles = collect_data(ctx, ctx.attr.data + [ctx.attr.src])
+    runfiles = collect_data(ctx, ctx.attr.data + [ctx.attr.src] + ctx.attr.allowlist_include_directories)
     tool = ToolInfo(
         label = ctx.label,
         exe = exe,
         runfiles = runfiles,
         execution_requirements = tuple(ctx.attr.tags),
+        allowlist_include_directories = depset(
+            direct = [d[DirectoryInfo] for d in ctx.attr.allowlist_include_directories],
+        ),
     )
 
     link = ctx.actions.declare_file(ctx.label.name)
@@ -69,6 +73,16 @@ executable label.
         "data": attr.label_list(
             allow_files = True,
             doc = "Additional files that are required for this tool to run.",
+        ),
+        "allowlist_include_directories": attr.label_list(
+            providers = [DirectoryInfo],
+            doc = """Include paths implied by using this tool.
+
+Compilers may include a set of built-in headers that are implicitly available
+unless flags like `-nostdinc` are provided. Bazel checks that all included
+headers are properly provided by a dependency or allowlisted through this
+mechanism.
+""",
         ),
     },
     provides = [ToolInfo],

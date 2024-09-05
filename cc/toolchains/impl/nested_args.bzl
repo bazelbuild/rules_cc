@@ -97,7 +97,7 @@ def nested_args_provider_from_ctx(ctx):
         args = ctx.attr.args,
         format = ctx.attr.format,
         nested = collect_provider(ctx.attr.nested, NestedArgsInfo),
-        files = collect_files(ctx.attr.data),
+        files = collect_files(ctx.attr.data + getattr(ctx.attr, "allowlist_include_directories", [])),
         iterate_over = ctx.attr.iterate_over,
         requires_not_none = _var(ctx.attr.requires_not_none),
         requires_none = _var(ctx.attr.requires_none),

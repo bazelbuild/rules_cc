@@ -29,6 +29,14 @@ util.helper_target(
     env = {"BAR": "bar"},
 )
 
+util.helper_target(
+    cc_args,
+    name = "with_dir",
+    actions = ["//tests/rule_based_toolchain/actions:all_compile"],
+    allowlist_include_directories = ["//tests/rule_based_toolchain/testdata:directory"],
+    args = ["--secret-builtin-include-dir"],
+)
+
 analysis_test_suite(
     name = "test_suite",
     targets = TARGETS,

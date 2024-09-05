@@ -62,13 +62,14 @@ def _cc_feature_impl(ctx):
     if name.startswith("implied_by_"):
         fail("Feature names starting with 'implied_by' are reserved")
 
+    args = collect_args_lists(ctx.attr.args, ctx.label)
     feature = FeatureInfo(
         label = ctx.label,
         name = name,
         # Unused field, but leave it just in case we want to reuse it in the
         # future.
         enabled = False,
-        args = collect_args_lists(ctx.attr.args, ctx.label),
+        args = args,
         implies = collect_features(ctx.attr.implies),
         requires_any_of = tuple(collect_provider(
             ctx.attr.requires_any_of,
@@ -81,6 +82,7 @@ def _cc_feature_impl(ctx):
         external = False,
         overridable = False,
         overrides = overrides,
+        allowlist_include_directories = args.allowlist_include_directories,
     )
 
     return [

@@ -43,6 +43,10 @@ runfiles_subject = lambda value, meta: _subjects.depset_file(value.files, meta =
 # type.
 unknown_subject = _subjects.str
 
+# Directory depsets are quite complex, so just simplify them as a list of paths.
+# buildifier: disable=name-conventions
+_FakeDirectoryDepset = lambda value, *, meta: _subjects.collection([v.path for v in value.to_list()], meta = meta)
+
 # buildifier: disable=name-conventions
 _ActionTypeFactory = generate_factory(
     ActionTypeInfo,
@@ -78,6 +82,7 @@ _FEATURE_FLAGS = dict(
     overridable = _subjects.bool,
     external = _subjects.bool,
     overrides = None,
+    allowlist_include_directories = _FakeDirectoryDepset,
 )
 
 # Break the dependency loop.
@@ -141,6 +146,7 @@ _ArgsFactory = generate_factory(
         # Use .factory so it's not inlined.
         nested = optional_subject(_NestedArgsFactory.factory),
         requires_any_of = ProviderSequence(_FeatureConstraintFactory),
+        allowlist_include_directories = _FakeDirectoryDepset,
     ),
 )
 
@@ -155,6 +161,7 @@ _ArgsListFactory = generate_factory(
             files = _subjects.depset_file,
         ))({value.action: value for value in values}, meta = meta),
         files = _subjects.depset_file,
+        allowlist_include_directories = _FakeDirectoryDepset,
     ),
 )
 
@@ -179,6 +186,7 @@ _ToolFactory = generate_factory(
         exe = _subjects.file,
         runfiles = runfiles_subject,
         execution_requirements = _subjects.collection,
+        allowlist_include_directories = _FakeDirectoryDepset,
     ),
 )
 
@@ -201,6 +209,7 @@ _ToolchainConfigFactory = generate_factory(
         tool_map = optional_subject(_ToolConfigFactory.factory),
         args = ProviderSequence(_ArgsFactory),
         files = dict_key_subject(_subjects.depset_file),
+        allowlist_include_directories = _FakeDirectoryDepset,
     ),
 )
 

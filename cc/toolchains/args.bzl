@@ -13,6 +13,7 @@
 # limitations under the License.
 """All providers for rule-based bazel toolchain config."""
 
+load("@bazel_skylib//rules/directory:providers.bzl", "DirectoryInfo")
 load("//cc/toolchains/impl:args_utils.bzl", "validate_nested_args")
 load(
     "//cc/toolchains/impl:collect.bzl",
@@ -50,7 +51,7 @@ def _cc_args_impl(ctx):
         )
         files = nested.files
     else:
-        files = collect_files(ctx.attr.data)
+        files = collect_files(ctx.attr.data + ctx.attr.allowlist_include_directories)
 
     requires = collect_provider(ctx.attr.requires_any_of, FeatureConstraintInfo)
 
@@ -61,6 +62,9 @@ def _cc_args_impl(ctx):
         nested = nested,
         env = ctx.attr.env,
         files = files,
+        allowlist_include_directories = depset(
+            direct = [d[DirectoryInfo] for d in ctx.attr.allowlist_include_directories],
+        ),
     )
     return [
         args,
@@ -72,6 +76,7 @@ def _cc_args_impl(ctx):
                 struct(action = action, args = tuple([args]), files = files)
                 for action in actions.to_list()
             ]),
+            allowlist_include_directories = args.allowlist_include_directories,
         ),
     ]
 
@@ -88,6 +93,16 @@ See @rules_cc//cc/toolchains/actions:all for valid options.
         ),
         "env": attr.string_dict(
             doc = "Environment variables to be added to the command-line.",
+        ),
+        "allowlist_include_directories": attr.label_list(
+            providers = [DirectoryInfo],
+            doc = """Include paths implied by using this rule.
+
+Some flags (e.g. --sysroot) imply certain include paths are available despite
+not explicitly specifying a normal include path flag (`-I`, `-isystem`, etc.).
+Bazel checks that all included headers are properly provided by a dependency or
+allowlisted through this mechanism.
+""",
         ),
         "requires_any_of": attr.label_list(
             providers = [FeatureConstraintInfo],

@@ -42,6 +42,34 @@ util.helper_target(
     visibility = ["//tests/rule_based_toolchain:__subpackages__"],
 )
 
+util.helper_target(
+    cc_args,
+    name = "args_with_dir_1",
+    actions = ["//tests/rule_based_toolchain/actions:c_compile"],
+    allowlist_include_directories = ["//tests/rule_based_toolchain/testdata:subdirectory_1"],
+    args = ["dir1"],
+    visibility = ["//tests/rule_based_toolchain:__subpackages__"],
+)
+
+util.helper_target(
+    cc_args,
+    name = "args_with_dir_2",
+    actions = ["//tests/rule_based_toolchain/actions:cpp_compile"],
+    allowlist_include_directories = ["//tests/rule_based_toolchain/testdata:subdirectory_2"],
+    args = ["dir2"],
+    visibility = ["//tests/rule_based_toolchain:__subpackages__"],
+)
+
+util.helper_target(
+    cc_args_list,
+    name = "args_list_with_dir",
+    args = [
+        ":args_with_dir_1",
+        ":args_with_dir_2",
+    ],
+    visibility = ["//tests/rule_based_toolchain:__subpackages__"],
+)
+
 analysis_test_suite(
     name = "test_suite",
     targets = TARGETS,

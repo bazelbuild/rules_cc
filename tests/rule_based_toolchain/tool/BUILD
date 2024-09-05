@@ -16,6 +16,13 @@ cc_tool(
     visibility = ["//tests/rule_based_toolchain:__subpackages__"],
 )
 
+cc_tool(
+    name = "tool_with_allowlist_include_directories",
+    src = "//tests/rule_based_toolchain/testdata:bin_wrapper.sh",
+    allowlist_include_directories = ["//tests/rule_based_toolchain/testdata:directory"],
+    visibility = ["//tests/rule_based_toolchain:__subpackages__"],
+)
+
 cc_directory_tool(
     name = "directory_tool",
     data = ["bin"],

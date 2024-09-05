@@ -146,7 +146,7 @@ def convert_toolchain(toolchain):
     """Converts a rule-based toolchain into the legacy providers.
 
     Args:
-        toolchain: CcToolchainConfigInfo: The toolchain config to convert.
+        toolchain: (ToolchainConfigInfo) The toolchain config to convert.
     Returns:
         A struct containing parameters suitable to pass to
           cc_common.create_cc_toolchain_config_info.
@@ -165,10 +165,17 @@ def convert_toolchain(toolchain):
         requires_any_of = [],
         mutually_exclusive = [],
         external = False,
+        allowlist_include_directories = depset(),
     )))
     action_configs = _convert_tool_map(toolchain.tool_map)
+
+    cxx_builtin_include_directories = [
+        d.path
+        for d in toolchain.allowlist_include_directories.to_list()
+    ]
 
     return struct(
         features = [ft for ft in features if ft != None],
         action_configs = sorted(action_configs, key = lambda ac: ac.action_name),
+        cxx_builtin_include_directories = cxx_builtin_include_directories,
     )

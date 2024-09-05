@@ -14,7 +14,6 @@
 """Implementation of the cc_toolchain rule."""
 
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
-load("@bazel_skylib//rules/directory:providers.bzl", "DirectoryInfo")
 load(
     "//cc/toolchains:cc_toolchain_info.bzl",
     "ActionTypeSetInfo",
@@ -66,18 +65,13 @@ def _cc_toolchain_config_impl(ctx):
 
     legacy = convert_toolchain(toolchain_config)
 
-    cxx_builtin_include_directories = [
-        d[DirectoryInfo].path
-        for d in ctx.attr.cxx_builtin_include_directories
-    ]
-
     return [
         toolchain_config,
         cc_common.create_cc_toolchain_config_info(
             ctx = ctx,
             action_configs = legacy.action_configs,
             features = legacy.features,
-            cxx_builtin_include_directories = cxx_builtin_include_directories,
+            cxx_builtin_include_directories = legacy.cxx_builtin_include_directories,
             # toolchain_identifier is deprecated, but setting it to None results
             # in an error that it expected a string, and for safety's sake, I'd
             # prefer to provide something unique.
@@ -110,9 +104,6 @@ cc_toolchain_config = rule(
         "skip_experimental_flag_validation_for_test": attr.bool(default = False),
         "_builtin_features": attr.label(default = "//cc/toolchains/features:all_builtin_features"),
         "_enabled": attr.label(default = "//cc/toolchains:experimental_enable_rule_based_toolchains"),
-
-        # Attributes translated from legacy cc toolchains.
-        "cxx_builtin_include_directories": attr.label_list(providers = [DirectoryInfo]),
     },
     provides = [ToolchainConfigInfo],
 )

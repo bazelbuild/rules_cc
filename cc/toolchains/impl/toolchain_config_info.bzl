@@ -162,7 +162,12 @@ def toolchain_config_info(label, known_features = [], enabled_features = [], arg
         action_type: _collect_files_for_action_type(action_type, tools, features, args)
         for action_type in tools.keys()
     }
-
+    allowlist_include_directories = depset(
+        transitive = [
+            src.allowlist_include_directories
+            for src in features + tools.values()
+        ] + [args.allowlist_include_directories],
+    )
     toolchain_config = ToolchainConfigInfo(
         label = label,
         features = features,
@@ -170,6 +175,7 @@ def toolchain_config_info(label, known_features = [], enabled_features = [], arg
         tool_map = tool_map[ToolConfigInfo],
         args = args.args,
         files = files,
+        allowlist_include_directories = allowlist_include_directories,
     )
     _validate_toolchain(toolchain_config, fail = fail)
     return toolchain_config

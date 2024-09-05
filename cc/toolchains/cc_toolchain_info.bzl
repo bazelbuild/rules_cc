@@ -87,6 +87,7 @@ ArgsInfo = provider(
         "nested": "(Optional[NestedArgsInfo]) The args expand. Equivalent to a flag group.",
         "files": "(depset[File]) Files required for the args",
         "env": "(dict[str, str]) Environment variables to apply",
+        "allowlist_include_directories": "(depset[DirectoryInfo]) Include directories implied by these arguments that should be allowlisted in Bazel's include checker",
     },
 )
 ArgsListInfo = provider(
@@ -97,6 +98,7 @@ ArgsListInfo = provider(
         "args": "(Sequence[ArgsInfo]) The flag sets contained within",
         "files": "(depset[File]) The files required for all of the arguments",
         "by_action": "(Sequence[struct(action=ActionTypeInfo, args=List[ArgsInfo], files=depset[Files])]) Relevant information about the args keyed by the action type.",
+        "allowlist_include_directories": "(depset[DirectoryInfo]) Include directories implied by these arguments that should be allowlisted in Bazel's include checker",
     },
 )
 
@@ -114,6 +116,7 @@ FeatureInfo = provider(
         "external": "(bool) Whether a feature is defined elsewhere.",
         "overridable": "(bool) Whether the feature is an overridable feature.",
         "overrides": "(Optional[FeatureInfo]) The feature that this overrides. Must be a known feature",
+        "allowlist_include_directories": "(depset[DirectoryInfo]) Include directories implied by this feature that should be allowlisted in Bazel's include checker",
     },
 )
 FeatureSetInfo = provider(
@@ -152,6 +155,7 @@ ToolInfo = provider(
         "exe": "(File) The file corresponding to the tool",
         "runfiles": "(runfiles) The files required to run the tool",
         "execution_requirements": "(Sequence[str]) A set of execution requirements of the tool",
+        "allowlist_include_directories": "(depset[DirectoryInfo]) Built-in include directories implied by this tool that should be allowlisted in Bazel's include checker",
     },
 )
 
@@ -174,5 +178,6 @@ ToolchainConfigInfo = provider(
         "tool_map": "(ToolConfigInfo) A provider mapping toolchain action types to tools.",
         "args": "(Sequence[ArgsInfo]) A list of arguments to be unconditionally applied to the toolchain.",
         "files": "(dict[ActionTypeInfo, depset[File]]) Files required for the toolchain, keyed by the action type.",
+        "allowlist_include_directories": "(depset[DirectoryInfo]) Built-in include directories implied by this toolchain's args and tools that should be allowlisted in Bazel's include checker",
     },
 )

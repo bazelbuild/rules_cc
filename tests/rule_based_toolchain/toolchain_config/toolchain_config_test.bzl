@@ -36,11 +36,17 @@ _COLLECTED_CPP_COMPILE_FILES = [
     "tests/rule_based_toolchain/testdata/bin_wrapper",
     # From :compile_feature's args
     "tests/rule_based_toolchain/testdata/file2",
+    # From :compile_feature's args' allowlist_include_directories
+    "tests/rule_based_toolchain/testdata/subdir2/file_bar",
 ]
 
 _COLLECTED_C_COMPILE_FILES = _COLLECTED_CPP_COMPILE_FILES + [
     # From :c_compile_args
     "tests/rule_based_toolchain/testdata/file1",
+    # From :c_compile_args's allowlist_include_directories
+    "tests/rule_based_toolchain/testdata/subdir1/file_foo",
+    # From :c_compile_tool's allowlist_include_directories
+    "tests/rule_based_toolchain/testdata/subdir3/file_baz",
 ]
 
 def _expect_that_toolchain(env, expr = None, **kwargs):

@@ -106,6 +106,7 @@ def collect_tools(ctx, targets, fail = fail):
                 exe = info.files_to_run.executable,
                 runfiles = collect_data(ctx, [target]),
                 execution_requirements = tuple(),
+                allowlist_include_directories = depset(),
             ))
         else:
             fail("Expected %s to be a cc_tool or a binary rule" % target.label)
@@ -141,6 +142,9 @@ def collect_args_lists(targets, label):
         label = label,
         args = tuple(args),
         files = depset(transitive = transitive_files),
+        allowlist_include_directories = depset(
+            transitive = [a.allowlist_include_directories for a in args],
+        ),
         by_action = tuple([
             struct(
                 action = k,

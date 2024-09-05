@@ -10,7 +10,7 @@ load(":features_test.bzl", "TARGETS", "TESTS")
 
 util.helper_target(
     cc_args,
-    name = "c_compile",
+    name = "c_compile_args",
     actions = ["//tests/rule_based_toolchain/actions:c_compile"],
     args = ["c"],
     data = ["//tests/rule_based_toolchain/testdata:file1"],
@@ -19,7 +19,7 @@ util.helper_target(
 util.helper_target(
     cc_feature,
     name = "simple",
-    args = [":c_compile"],
+    args = [":c_compile_args"],
     feature_name = "feature_name",
     visibility = ["//tests/rule_based_toolchain:__subpackages__"],
 )
@@ -27,7 +27,7 @@ util.helper_target(
 util.helper_target(
     cc_feature,
     name = "simple2",
-    args = [":c_compile"],
+    args = [":c_compile_args"],
     feature_name = "simple2",
 )
 
@@ -43,7 +43,7 @@ util.helper_target(
 util.helper_target(
     cc_feature,
     name = "requires",
-    args = [":c_compile"],
+    args = [":c_compile_args"],
     feature_name = "requires",
     requires_any_of = [":feature_set"],
 )
@@ -51,7 +51,7 @@ util.helper_target(
 util.helper_target(
     cc_feature,
     name = "implies",
-    args = [":c_compile"],
+    args = [":c_compile_args"],
     feature_name = "implies",
     implies = [":simple"],
 )
@@ -63,7 +63,7 @@ cc_mutually_exclusive_category(
 util.helper_target(
     cc_feature,
     name = "mutual_exclusion_feature",
-    args = [":c_compile"],
+    args = [":c_compile_args"],
     feature_name = "mutual_exclusion",
     mutually_exclusive = [
         ":simple",
@@ -99,7 +99,7 @@ util.helper_target(
 util.helper_target(
     cc_feature,
     name = "overrides",
-    args = [":c_compile"],
+    args = [":c_compile_args"],
     overrides = ":builtin_feature",
 )
 
@@ -107,6 +107,21 @@ util.helper_target(
     cc_feature,
     name = "sentinel_feature",
     feature_name = "sentinel_feature_name",
+)
+
+util.helper_target(
+    cc_args,
+    name = "args_with_dir",
+    actions = ["//tests/rule_based_toolchain/actions:c_compile"],
+    allowlist_include_directories = ["//tests/rule_based_toolchain/testdata:subdirectory_1"],
+    args = ["--include-builtin-dirs"],
+)
+
+util.helper_target(
+    cc_feature,
+    name = "feature_with_dir",
+    args = [":args_with_dir"],
+    feature_name = "feature_with_dir",
 )
 
 analysis_test_suite(

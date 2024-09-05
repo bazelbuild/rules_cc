@@ -2,6 +2,7 @@ load("@rules_testing//lib:util.bzl", "util")
 load("//cc/toolchains:args.bzl", "cc_args")
 load("//cc/toolchains:feature.bzl", "cc_feature")
 load("//cc/toolchains:feature_set.bzl", "cc_feature_set")
+load("//cc/toolchains:tool.bzl", "cc_tool")
 load("//cc/toolchains:tool_map.bzl", "cc_tool_map")
 load("//cc/toolchains/args:sysroot.bzl", "cc_sysroot")
 load("//cc/toolchains/impl:external_feature.bzl", "cc_external_feature")
@@ -29,6 +30,7 @@ util.helper_target(
     cc_args,
     name = "c_compile_args",
     actions = ["//tests/rule_based_toolchain/actions:c_compile"],
+    allowlist_include_directories = ["//tests/rule_based_toolchain/testdata:subdirectory_1"],
     args = ["c_compile_args"],
     data = ["//tests/rule_based_toolchain/testdata:file1"],
 )
@@ -39,6 +41,12 @@ util.helper_target(
     actions = ["//tests/rule_based_toolchain/actions:cpp_compile"],
     args = ["cpp_compile_args"],
     env = {"CPP_COMPILE": "1"},
+)
+
+cc_tool(
+    name = "c_compile_tool",
+    src = "//tests/rule_based_toolchain/testdata:bin_wrapper",
+    allowlist_include_directories = ["//tests/rule_based_toolchain/testdata:subdirectory_3"],
 )
 
 cc_sysroot(
@@ -52,9 +60,6 @@ util.helper_target(
     args = [
         ":sysroot",
         ":c_compile_args",
-    ],
-    cxx_builtin_include_directories = [
-        "//tests/rule_based_toolchain/testdata:directory",
     ],
     enabled_features = [":simple_feature"],
     known_features = [":compile_feature"],
@@ -80,6 +85,7 @@ util.helper_target(
     cc_args,
     name = "compile_args",
     actions = ["//tests/rule_based_toolchain/actions:all_compile"],
+    allowlist_include_directories = ["//tests/rule_based_toolchain/testdata:subdirectory_2"],
     args = ["compile_args"],
     data = ["//tests/rule_based_toolchain/testdata:file2"],
 )
@@ -88,7 +94,8 @@ util.helper_target(
     cc_tool_map,
     name = "compile_tool_map",
     tools = {
-        "//tests/rule_based_toolchain/actions:all_compile": "//tests/rule_based_toolchain/tool:wrapped_tool",
+        "//tests/rule_based_toolchain/actions:c_compile": ":c_compile_tool",
+        "//tests/rule_based_toolchain/actions:cpp_compile": "//tests/rule_based_toolchain/tool:wrapped_tool",
     },
 )
 

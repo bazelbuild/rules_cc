@@ -32,6 +32,8 @@ tool_result = subjects.result(subjects.ToolInfo)
 _BIN_WRAPPER_SYMLINK = "tests/rule_based_toolchain/testdata/bin_wrapper"
 _BIN_WRAPPER = "tests/rule_based_toolchain/testdata/bin_wrapper.sh"
 _BIN = "tests/rule_based_toolchain/testdata/bin"
+_FILE1 = "tests/rule_based_toolchain/testdata/file1"
+_TOOL_DIRECTORY = "tests/rule_based_toolchain/testdata"
 
 def _tool_test(env, target):
     tool = env.expect.that_target(target).provider(ToolInfo)
@@ -53,6 +55,14 @@ def _wrapped_tool_includes_runfiles_test(env, targets):
     tool.runfiles().contains_exactly([
         _BIN_WRAPPER_SYMLINK,
         _BIN,
+    ])
+
+def _tool_with_allowlist_include_directories_test(env, targets):
+    tool = env.expect.that_target(targets.tool_with_allowlist_include_directories).provider(ToolInfo)
+    tool.allowlist_include_directories().contains_exactly([_TOOL_DIRECTORY])
+    tool.runfiles().contains_at_least([
+        _BIN,
+        _FILE1,
     ])
 
 def _collect_tools_collects_tools_test(env, targets):
@@ -97,6 +107,7 @@ TARGETS = [
     "//tests/rule_based_toolchain/tool:tool",
     "//tests/rule_based_toolchain/tool:wrapped_tool",
     "//tests/rule_based_toolchain/tool:directory_tool",
+    "//tests/rule_based_toolchain/tool:tool_with_allowlist_include_directories",
     "//tests/rule_based_toolchain/testdata:bin_wrapper",
     "//tests/rule_based_toolchain/testdata:multiple",
     "//tests/rule_based_toolchain/testdata:bin_filegroup",
@@ -112,4 +123,5 @@ TESTS = {
     "collect_tools_collects_binaries_test": _collect_tools_collects_binaries_test,
     "collect_tools_collects_single_files_test": _collect_tools_collects_single_files_test,
     "collect_tools_fails_on_non_binary_test": _collect_tools_fails_on_non_binary_test,
+    "tool_with_allowlist_include_directories_test": _tool_with_allowlist_include_directories_test,
 }
