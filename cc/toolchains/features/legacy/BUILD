@@ -116,6 +116,7 @@ cc_external_feature(
 
 cc_external_feature(
     name = "runtime_library_search_directories",
+    deprecation = "Use //cc/toolchains/args/runtime_library_search_directories instead",
     feature_name = "runtime_library_search_directories",
     overridable = True,
 )

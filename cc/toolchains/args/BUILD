@@ -17,6 +17,7 @@ cc_feature(
         "//cc/toolchains/args/archiver_flags",
         "//cc/toolchains/args/force_pic_flags",
         "//cc/toolchains/args/linker_param_file",
+        "//cc/toolchains/args/runtime_library_search_directories",
         "//cc/toolchains/args/shared_flag",
     ],
     feature_name = "experimental_replace_legacy_action_config_features",
@@ -37,6 +38,5 @@ cc_feature(
         "//cc/toolchains/features/legacy:user_compile_flags",
         "//cc/toolchains/features/legacy:user_link_flags",
         "//cc/toolchains/features/legacy:libraries_to_link",
-        "//cc/toolchains/features/legacy:runtime_library_search_directories",
     ],
 )

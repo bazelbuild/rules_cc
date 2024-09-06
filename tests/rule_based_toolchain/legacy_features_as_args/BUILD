@@ -34,6 +34,15 @@ compare_feature_implementation(
 )
 
 compare_feature_implementation(
+    name = "runtime_library_search_directories_test",
+    actual_implementation = "//cc/toolchains/args/runtime_library_search_directories",
+    expected = select({
+        "@platforms//os:macos": "//tests/rule_based_toolchain/legacy_features_as_args:goldens/macos/runtime_library_search_directories.textproto",
+        "//conditions:default": "//tests/rule_based_toolchain/legacy_features_as_args:goldens/unix/runtime_library_search_directories.textproto",
+    }),
+)
+
+compare_feature_implementation(
     name = "shared_flag_test",
     actual_implementation = "//cc/toolchains/args/shared_flag",
     expected = "//tests/rule_based_toolchain/legacy_features_as_args:goldens/unix/shared_flag.textproto",
