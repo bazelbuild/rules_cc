@@ -140,6 +140,7 @@ cc_external_feature(
 
 cc_external_feature(
     name = "force_pic_flags",
+    deprecation = "Use //cc/toolchains/args/force_pic_flags instead",
     feature_name = "force_pic_flags",
     overridable = True,
 )
