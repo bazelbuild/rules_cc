@@ -17,6 +17,7 @@ cc_args(
         "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
     ],
     args = [
+        "-Werror",
         "-Wall",
         "-Wextra",
         "-Wpedantic",
