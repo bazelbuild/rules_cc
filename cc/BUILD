@@ -97,7 +97,7 @@ bzl_library(
 bzl_library(
     name = "cc_toolchain_config_lib_bzl",
     srcs = ["cc_toolchain_config_lib.bzl"],
-    visibility = ["//cc/toolchains:__subpackages__"],
+    visibility = ["//visibility:private"],
 )
 
 cc_toolchain_alias(name = "current_cc_toolchain")

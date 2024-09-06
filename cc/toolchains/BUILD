@@ -14,8 +14,6 @@
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
-load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
-load("@stardoc//stardoc:stardoc.bzl", "stardoc")
 
 bool_flag(
     name = "experimental_enable_rule_based_toolchains",
@@ -29,11 +27,9 @@ bzl_library(
     visibility = ["//visibility:public"],
     deps = [
         "//cc:action_names_bzl",
-        "//cc:cc_toolchain_config_lib_bzl",
         "//cc:find_cc_toolchain_bzl",
         "//cc/private/rules_impl:cc_flags_supplier_lib_bzl",
         "//cc/private/rules_impl:native_bzl",
-        "//cc/toolchains/impl:toolchain_impl_rules",
         "@bazel_skylib//rules/directory:glob",
     ],
 )
@@ -45,17 +41,4 @@ filegroup(
         "**/BUILD",
     ]),
     visibility = ["//visibility:public"],
-)
-
-stardoc(
-    name = "toolchain_api",
-    out = "generated_toolchain_api.md",
-    input = "//cc/toolchains/impl:documented_api.bzl",
-    deps = [":toolchain_rules"],
-)
-
-diff_test(
-    name = "toolchain_api_diff_test",
-    file1 = ":generated_toolchain_api.md",
-    file2 = ":toolchain_api.md",
 )

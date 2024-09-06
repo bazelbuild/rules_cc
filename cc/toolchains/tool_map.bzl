@@ -51,7 +51,7 @@ _cc_tool_map = rule(
             mandatory = True,
             doc = """A list of action names to apply this action to.
 
-See //cc/toolchains/actions:BUILD for valid options.
+See @toolchain//actions:all for valid options.
 """,
         ),
         "tools": attr.label_list(
@@ -60,7 +60,10 @@ See //cc/toolchains/actions:BUILD for valid options.
             allow_files = True,
             doc = """The tool to use for the specified actions.
 
-The tool may be a `cc_tool` or other executable rule.
+A tool is usually a binary, but may be a `cc_tool`.
+
+If multiple tools are specified, the first tool that has `with_features` that
+satisfy the currently enabled feature set is used.
 """,
         ),
     },
@@ -68,47 +71,12 @@ The tool may be a `cc_tool` or other executable rule.
 )
 
 def cc_tool_map(name, tools, **kwargs):
-    """A toolchain configuration rule that maps toolchain actions to tools.
-
-    A cc_tool_map aggregates all the tools that may be used for a given toolchain and maps them to
-    their corresponding actions. Conceptually, this is similar to the `CXX=/path/to/clang++`
-    environment variables that most build systems use to determine which tools to use for a given
-    action. To simplify usage, some actions have been grouped together (for example,
-    //cc/toolchains/actions:cpp_compile_actions) to
-    logically express "all the C++ compile actions".
-
-    In Bazel, there is a little more granularity to the mapping, so the mapping doesn't follow the
-    traditional `CXX`, `AR`, etc. naming scheme. For a comprehensive list of all the well-known
-    actions, see //cc/toolchains/actions:BUILD.
-
-    Example usage:
-    ```
-    load("//cc/toolchains:tool_map.bzl", "cc_tool_map")
-
-    cc_tool_map(
-        name = "all_tools",
-        tools = {
-            "//cc/toolchains/actions:assembly_actions": ":asm",
-            "//cc/toolchains/actions:c_compile": ":clang",
-            "//cc/toolchains/actions:cpp_compile_actions": ":clang++",
-            "//cc/toolchains/actions:link_actions": ":lld",
-            "//cc/toolchains/actions:objcopy_embed_data": ":llvm-objcopy",
-            "//cc/toolchains/actions:strip": ":llvm-strip",
-            "//cc/toolchains/actions:ar_actions": ":llvm-ar",
-        },
-    )
-    ```
-
-    Note:
-       Due to an implementation limitation, if you need to map the same tool to multiple actions,
-       you will need to create an intermediate alias for the tool for each set of actions. See
-       https://github.com/bazelbuild/rules_cc/issues/235 for more details.
+    """Configuration for which actions require which tools.
 
     Args:
-        name: (str) The name of the target.
-        tools: (Dict[target providing ActionTypeSetInfo, Executable target]) A mapping between `cc_action_type` targets
-            and the `cc_tool` or executable target that implements that action.
-        **kwargs: [common attributes](https://bazel.build/reference/be/common-definitions#common-attributes) that should be applied to this rule.
+        name: (str) The name of the target
+        tools: (Dict[Action target, Executable target])
+        **kwargs: kwargs to be passed to the underlying rule.
     """
     _cc_tool_map(
         name = name,
