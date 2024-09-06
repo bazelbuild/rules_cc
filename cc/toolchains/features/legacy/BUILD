@@ -215,6 +215,7 @@ cc_external_feature(
 
 cc_external_feature(
     name = "linker_param_file",
+    deprecation = "Use //cc/toolchains/args/linker_param_file instead",
     feature_name = "linker_param_file",
     overridable = True,
 )

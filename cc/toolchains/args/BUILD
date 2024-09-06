@@ -15,6 +15,7 @@ cc_feature(
     name = "experimental_replace_legacy_action_config_features",
     args = [
         "//cc/toolchains/args/archiver_flags",
+        "//cc/toolchains/args/linker_param_file",
     ],
     feature_name = "experimental_replace_legacy_action_config_features",
     # TODO: Convert remaining items in this list into their actual args.
@@ -35,7 +36,6 @@ cc_feature(
         "//cc/toolchains/features/legacy:user_link_flags",
         "//cc/toolchains/features/legacy:force_pic_flags",
         "//cc/toolchains/features/legacy:libraries_to_link",
-        "//cc/toolchains/features/legacy:linker_param_file",
         "//cc/toolchains/features/legacy:runtime_library_search_directories",
         "//cc/toolchains/features/legacy:shared_flag",
     ],
