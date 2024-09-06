@@ -91,9 +91,6 @@ _cc_args = rule(
 See @rules_cc//cc/toolchains/actions:all for valid options.
 """,
         ),
-        "env": attr.string_dict(
-            doc = "Environment variables to be added to the command-line.",
-        ),
         "allowlist_include_directories": attr.label_list(
             providers = [DirectoryInfo],
             doc = """Include paths implied by using this rule.
@@ -103,6 +100,9 @@ not explicitly specifying a normal include path flag (`-I`, `-isystem`, etc.).
 Bazel checks that all included headers are properly provided by a dependency or
 allowlisted through this mechanism.
 """,
+        ),
+        "env": attr.string_dict(
+            doc = "Environment variables to be added to the command-line.",
         ),
         "requires_any_of": attr.label_list(
             providers = [FeatureConstraintInfo],
