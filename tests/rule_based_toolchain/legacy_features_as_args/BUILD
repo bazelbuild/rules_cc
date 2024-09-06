@@ -28,6 +28,15 @@ compare_feature_implementation(
 )
 
 compare_feature_implementation(
+    name = "libraries_to_link_test",
+    actual_implementation = "//cc/toolchains/args/libraries_to_link",
+    expected = select({
+        "@platforms//os:macos": "//tests/rule_based_toolchain/legacy_features_as_args:goldens/macos/libraries_to_link.textproto",
+        "//conditions:default": "//tests/rule_based_toolchain/legacy_features_as_args:goldens/unix/libraries_to_link.textproto",
+    }),
+)
+
+compare_feature_implementation(
     name = "linker_param_file_test",
     actual_implementation = "//cc/toolchains/args/linker_param_file",
     expected = "//tests/rule_based_toolchain/legacy_features_as_args:goldens/unix/linker_param_file.textproto",

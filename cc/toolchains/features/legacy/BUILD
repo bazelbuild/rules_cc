@@ -136,6 +136,7 @@ cc_external_feature(
 
 cc_external_feature(
     name = "libraries_to_link",
+    deprecation = "Use //cc/toolchains/args/libraries_to_link instead",
     feature_name = "libraries_to_link",
     overridable = True,
 )

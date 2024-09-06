@@ -16,6 +16,7 @@ cc_feature(
     args = [
         "//cc/toolchains/args/archiver_flags",
         "//cc/toolchains/args/force_pic_flags",
+        "//cc/toolchains/args/libraries_to_link",
         "//cc/toolchains/args/linker_param_file",
         "//cc/toolchains/args/runtime_library_search_directories",
         "//cc/toolchains/args/shared_flag",
@@ -37,6 +38,5 @@ cc_feature(
         "//cc/toolchains/features/legacy:unfiltered_compile_flags",
         "//cc/toolchains/features/legacy:user_compile_flags",
         "//cc/toolchains/features/legacy:user_link_flags",
-        "//cc/toolchains/features/legacy:libraries_to_link",
     ],
 )
