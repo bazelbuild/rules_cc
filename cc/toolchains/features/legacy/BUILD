@@ -97,6 +97,7 @@ cc_external_feature(
 
 cc_external_feature(
     name = "shared_flag",
+    deprecation = "Use //cc/toolchains/args/shared_flag instead",
     feature_name = "shared_flag",
     overridable = True,
 )

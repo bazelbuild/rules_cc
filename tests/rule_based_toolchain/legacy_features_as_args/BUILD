@@ -32,3 +32,9 @@ compare_feature_implementation(
     actual_implementation = "//cc/toolchains/args/linker_param_file",
     expected = "//tests/rule_based_toolchain/legacy_features_as_args:goldens/unix/linker_param_file.textproto",
 )
+
+compare_feature_implementation(
+    name = "shared_flag_test",
+    actual_implementation = "//cc/toolchains/args/shared_flag",
+    expected = "//tests/rule_based_toolchain/legacy_features_as_args:goldens/unix/shared_flag.textproto",
+)
