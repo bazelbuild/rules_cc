@@ -15,7 +15,7 @@ cc_args(
     actions = [
         "@rules_cc//cc/toolchains/actions:c_compile",
         "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
-    ]
+    ],
     args = [
         "-Wall",
         "-Wextra",
@@ -23,18 +23,28 @@ cc_args(
     ],
 )
 
+cc_args(
+    name = "no_canonical_prefixes",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:c_compile",
+        "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
+    ],
+    args = ["-no-canonical-prefixes"],
+)
+
 [
     cc_toolchain(
-        name = "host-{}-config".format(platform),
+        name = "host-{}-config".format(platform_name),
         args = select({
             "@platforms//os:linux": [
                 "@linux_sysroot//:sysroot",
             ],
             "//conditions:default": [],
         }) + [
+            ":no_canonical_prefixes",
             ":warnings",
         ],
-        tools = "@clang-{}//:all_tools".format(platform),
+        tool_map = "@clang-{}//:all_tools".format(platform_name),
         known_features = ["@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features"],
         enabled_features = ["@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features"],
         target_compatible_with = constraints,
@@ -44,10 +54,11 @@ cc_args(
 
 [
     toolchain(
-        name = "host-{}".format(platform),
+        name = "host-{}".format(platform_name),
         exec_compatible_with = constraints,
         target_compatible_with = constraints,
+        toolchain = ":host-{}-config".format(platform_name),
+        toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
     )
-    toolchain = ":host_toolchain",
-    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+    for platform_name, constraints in PLATFORMS.items()
 ]

@@ -8,8 +8,7 @@ cc_sysroot(
     name = "sysroot",
     sysroot = ":root",
     data = [":root"],
-    implicit_include_directories = [
-        ":usr-local-include",
+    allowlist_include_directories = [
         ":usr-include-x86_64-linux-gnu",
         ":usr-include",
     ],
@@ -21,16 +20,13 @@ directory(
 )
 
 subdirectory(
-    name = "usr-local-include",
-    path = "usr/local/include",
-)
-
-subdirectory(
     name = "usr-include-x86_64-linux-gnu",
     path = "usr/include/x86_64-linux-gnu",
+    parent = ":root",
 )
 
 subdirectory(
     name = "usr-include",
     path = "usr/include",
+    parent = ":root",
 )

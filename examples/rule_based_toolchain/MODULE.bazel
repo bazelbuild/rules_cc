@@ -3,8 +3,9 @@ module(
     version = "0.0.1",
 )
 
+bazel_dep(name = "platforms", version = "0.0.10")
 bazel_dep(name = "googletest", version = "1.15.2")
-bazel_dep(name = "skylib", version = "1.7.1")
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
 
 bazel_dep(name = "rules_cc")
 local_path_override(module_name = "rules_cc", path = "../..")
@@ -28,8 +29,6 @@ http_archive(
 )
 
 register_toolchains(
-    [
-        "//toolchain:host-linux-x86_64",
-    ],
+    "//toolchain:host-linux-x86_64",
     dev_dependency = True,
 )
