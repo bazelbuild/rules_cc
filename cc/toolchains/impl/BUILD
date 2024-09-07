@@ -4,3 +4,16 @@
 
 # I wanted to call it private / internal, but then buildifier complains about
 # referencing it from the tests directory.
+
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
+exports_files(
+    ["documented_api.bzl"],
+    visibility = ["//cc/toolchains:__subpackages__"],
+)
+
+bzl_library(
+    name = "toolchain_impl_rules",
+    srcs = glob(["*.bzl"]),
+    visibility = ["//cc/toolchains:__subpackages__"],
+)
