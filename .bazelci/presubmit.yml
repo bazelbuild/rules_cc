@@ -52,7 +52,7 @@ tasks:
     build_targets:
       - "//cc/..."
   ubuntu_rule_based_toolchains:
-    name: Linux rule-based toolchains
+    name: :ubuntu: Ubuntu rule-based toolchains
     platform: ubuntu1804
     working_directory: examples/rule_based_toolchain
     build_flags:
