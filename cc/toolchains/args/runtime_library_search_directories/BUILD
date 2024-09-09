@@ -77,7 +77,7 @@ cc_nested_args(
         "-Xlinker",
     ] + select({
         "@platforms//os:macos": ["@loader_path/{search_path}"],
-        "//conditions:default": ["$EXEC_ORIGIN/{search_path}"],
+        "//conditions:default": ["$ORIGIN/{search_path}"],
     }),
     format = {
         "search_path": "//cc/toolchains/variables:runtime_library_search_directories",
@@ -113,7 +113,7 @@ cc_nested_args(
         "-Xlinker",
     ] + select({
         "@platforms//os:macos": ["@loader_path/{search_path}"],
-        "//conditions:default": ["$EXEC_ORIGIN/{search_path}"],
+        "//conditions:default": ["$ORIGIN/{search_path}"],
     }),
     format = {
         "search_path": "//cc/toolchains/variables:runtime_library_search_directories",
