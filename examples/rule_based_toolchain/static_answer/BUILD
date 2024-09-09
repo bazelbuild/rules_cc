@@ -20,9 +20,9 @@ licenses(["notice"])  # Apache 2.0
 
 cc_library(
     name = "answer",
-    includes = ["public"],
-    hdrs = ["public/static_answer.h"],
     srcs = ["static_answer.cc"],
+    hdrs = ["public/static_answer.h"],
+    includes = ["public"],
     linkstatic = True,
     visibility = ["//visibility:private"],
 )

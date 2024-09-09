@@ -59,10 +59,10 @@ cc_args(
             ":no_canonical_prefixes",
             ":warnings",
         ],
-        tool_map = "@clang-{}//:all_tools".format(platform_name),
-        known_features = ["@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features"],
         enabled_features = ["@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features"],
+        known_features = ["@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features"],
         target_compatible_with = constraints,
+        tool_map = "@clang-{}//:all_tools".format(platform_name),
     )
     for platform_name, constraints in PLATFORMS.items()
 ]

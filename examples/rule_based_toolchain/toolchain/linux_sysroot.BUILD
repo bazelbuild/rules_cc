@@ -20,12 +20,12 @@ package(default_visibility = ["//visibility:public"])
 
 cc_sysroot(
     name = "sysroot",
-    sysroot = ":root",
-    data = [":root"],
     allowlist_include_directories = [
         ":usr-include-x86_64-linux-gnu",
         ":usr-include",
     ],
+    data = [":root"],
+    sysroot = ":root",
 )
 
 directory(
@@ -35,12 +35,12 @@ directory(
 
 subdirectory(
     name = "usr-include-x86_64-linux-gnu",
-    path = "usr/include/x86_64-linux-gnu",
     parent = ":root",
+    path = "usr/include/x86_64-linux-gnu",
 )
 
 subdirectory(
     name = "usr-include",
-    path = "usr/include",
     parent = ":root",
+    path = "usr/include",
 )

@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc/toolchains:tool.bzl", "cc_tool")
-load("@rules_cc//cc/toolchains:tool_map.bzl", "cc_tool_map")
 load("@bazel_skylib//rules/directory:directory.bzl", "directory")
 load("@bazel_skylib//rules/directory:subdirectory.bzl", "subdirectory")
-load("@bazel_skylib//lib:selects.bzl", "selects")
+load("@rules_cc//cc/toolchains:tool.bzl", "cc_tool")
+load("@rules_cc//cc/toolchains:tool_map.bzl", "cc_tool_map")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -41,7 +40,7 @@ alias(
     actual = select({
         "@platforms//os:macos": ":macos_tools",
         "//conditions:default": ":default_tools",
-    })
+    }),
 )
 
 COMMON_TOOLS = {
@@ -56,7 +55,7 @@ COMMON_TOOLS = {
 cc_tool_map(
     name = "default_tools",
     tools = COMMON_TOOLS | {
-        "@rules_cc//cc/toolchains/actions:ar_actions": ":llvm-ar"
+        "@rules_cc//cc/toolchains/actions:ar_actions": ":llvm-ar",
     },
     visibility = ["//visibility:private"],
 )
@@ -64,7 +63,7 @@ cc_tool_map(
 cc_tool_map(
     name = "macos_tools",
     tools = COMMON_TOOLS | {
-        "@rules_cc//cc/toolchains/actions:ar_actions": ":llvm-libtool-darwin"
+        "@rules_cc//cc/toolchains/actions:ar_actions": ":llvm-libtool-darwin",
     },
     visibility = ["//visibility:private"],
 )
@@ -82,14 +81,14 @@ cc_tool(
         "@platforms//os:windows": "//:bin/clang.exe",
         "//conditions:default": "//:bin/clang",
     }),
+    allowlist_include_directories = [
+        ":lib-clang-include",
+    ],
     data = glob([
         "bin/llvm",
         "include/**",
         "lib/clang/**/include/**",
     ]),
-    allowlist_include_directories = [
-        ":lib-clang-include",
-    ],
 )
 
 cc_tool(
@@ -98,16 +97,16 @@ cc_tool(
         "@platforms//os:windows": "//:bin/clang++.exe",
         "//conditions:default": "//:bin/clang++",
     }),
-    data = glob([
-        "bin/llvm",
-        "include/**",
-        "lib/clang/**/include/**",
-    ]),
     allowlist_include_directories = [
         ":include-x86_64-unknown-linux-gnu-c++-v1",
         ":include-c++-v1",
         ":lib-clang-include",
     ],
+    data = glob([
+        "bin/llvm",
+        "include/**",
+        "lib/clang/**/include/**",
+    ]),
 )
 
 cc_tool(
