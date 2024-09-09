@@ -25,6 +25,24 @@ bzl_library(
     name = "cc_helper_bzl",
     srcs = ["cc_helper.bzl"],
     visibility = ["//visibility:public"],
+    deps = [":visibility_bzl"],
+)
+
+bzl_library(
+    name = "cc_debug_helper_bzl",
+    srcs = ["cc_debug_helper.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":cc_helper_bzl",
+        ":visibility_bzl",
+        "//cc:find_cc_toolchain_bzl",
+    ],
+)
+
+bzl_library(
+    name = "visibility_bzl",
+    srcs = ["visibility.bzl"],
+    visibility = ["//visibility:private"],
 )
 
 filegroup(

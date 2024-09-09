@@ -11,10 +11,82 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Utility functions for C++ rules."""
 
-# LINT.IfChange
+load("//cc:find_cc_toolchain.bzl", "CC_TOOLCHAIN_TYPE")
+load(":cc_common.bzl", "cc_common")
+load(":visibility.bzl", "INTERNAL_VISIBILITY")
+
+visibility(INTERNAL_VISIBILITY)
+
+# LINT.IfChange(linker_mode)
+linker_mode = struct(
+    LINKING_DYNAMIC = "dynamic_linking_mode",
+    LINKING_STATIC = "static_linking_mode",
+)
+# LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/cc_helper.bzl:linker_mode)
+
+# LINT.IfChange(forked_exports)
+def _get_static_mode_params_for_dynamic_library_libraries(libs):
+    linker_inputs = []
+    for lib in libs.to_list():
+        if lib.pic_static_library:
+            linker_inputs.append(lib.pic_static_library)
+        elif lib.static_library:
+            linker_inputs.append(lib.static_library)
+        elif lib.interface_library:
+            linker_inputs.append(lib.interface_library)
+        else:
+            linker_inputs.append(lib.dynamic_library)
+    return linker_inputs
+
+def _create_strip_action(ctx, cc_toolchain, cpp_config, input, output, feature_configuration):
+    if cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "no_stripping"):
+        ctx.actions.symlink(
+            output = output,
+            target_file = input,
+            progress_message = "Symlinking original binary as stripped binary",
+        )
+        return
+
+    if not cc_common.action_is_enabled(feature_configuration = feature_configuration, action_name = "strip"):
+        fail("Expected action_config for 'strip' to be configured.")
+
+    variables = cc_common.create_compile_variables(
+        cc_toolchain = cc_toolchain,
+        feature_configuration = feature_configuration,
+        output_file = output.path,
+        input_file = input.path,
+        strip_opts = cpp_config.strip_opts(),
+    )
+    command_line = cc_common.get_memory_inefficient_command_line(
+        feature_configuration = feature_configuration,
+        action_name = "strip",
+        variables = variables,
+    )
+    env = cc_common.get_environment_variables(
+        feature_configuration = feature_configuration,
+        action_name = "strip",
+        variables = variables,
+    )
+    execution_info = {}
+    for execution_requirement in cc_common.get_tool_requirement_for_action(feature_configuration = feature_configuration, action_name = "strip"):
+        execution_info[execution_requirement] = ""
+    ctx.actions.run(
+        inputs = depset(
+            direct = [input],
+            transitive = [cc_toolchain._strip_files],
+        ),
+        outputs = [output],
+        use_default_shell_env = True,
+        env = env,
+        executable = cc_common.get_tool_for_action(feature_configuration = feature_configuration, action_name = "strip"),
+        toolchain = CC_TOOLCHAIN_TYPE,
+        execution_requirements = execution_info,
+        progress_message = "Stripping {} for {}".format(output.short_path, ctx.label),
+        mnemonic = "CcStrip",
+        arguments = command_line,
+    )
 
 def _lookup_var(ctx, additional_vars, var):
     expanded_make_var_ctx = ctx.var.get(var)
@@ -195,9 +267,29 @@ def _tokenize(options, options_string):
     if force_token or len(token) > 0:
         options.append("".join(token))
 
+def _should_use_pic(ctx, cc_toolchain, feature_configuration):
+    """Whether to use pic files
+
+    Args:
+        ctx: (RuleContext)
+        cc_toolchain: (CcToolchainInfo)
+        feature_configuration: (FeatureConfiguration)
+
+    Returns:
+        (bool)
+    """
+    return ctx.fragments.cpp.force_pic() or (
+        cc_toolchain.needs_pic_for_dynamic_libraries(feature_configuration = feature_configuration) and (
+            ctx.var["COMPILATION_MODE"] != "opt" or
+            cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "prefer_pic_for_opt_binaries")
+        )
+    )
+
 cc_helper = struct(
+    create_strip_action = _create_strip_action,
     get_expanded_env = _get_expanded_env,
+    get_static_mode_params_for_dynamic_library_libraries = _get_static_mode_params_for_dynamic_library_libraries,
+    should_use_pic = _should_use_pic,
     tokenize = _tokenize,
 )
-
-# LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/cc_helper.bzl)
+# LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/cc_helper.bzl:forked_exports)
