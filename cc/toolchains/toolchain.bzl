@@ -27,28 +27,28 @@ visibility("public")
 #  work out what actions correspond to what file groups.
 _LEGACY_FILE_GROUPS = {
     "ar_files": [
-        "@rules_cc//cc/toolchains/actions:ar_actions",  # copybara-use-repo-external-label
+        Label("//cc/toolchains/actions:ar_actions"),
     ],
     "as_files": [
-        "@rules_cc//cc/toolchains/actions:assembly_actions",  # copybara-use-repo-external-label
+        Label("//cc/toolchains/actions:assembly_actions"),
     ],
     "compiler_files": [
-        "@rules_cc//cc/toolchains/actions:cc_flags_make_variable",  # copybara-use-repo-external-label
-        "@rules_cc//cc/toolchains/actions:c_compile",  # copybara-use-repo-external-label
-        "@rules_cc//cc/toolchains/actions:cpp_compile",  # copybara-use-repo-external-label
-        "@rules_cc//cc/toolchains/actions:cpp_header_parsing",  # copybara-use-repo-external-label
+        Label("//cc/toolchains/actions:cc_flags_make_variable"),
+        Label("//cc/toolchains/actions:c_compile"),
+        Label("//cc/toolchains/actions:cpp_compile"),
+        Label("//cc/toolchains/actions:cpp_header_parsing"),
     ],
     # There are no actions listed for coverage, dwp, and objcopy in action_names.bzl.
     "coverage_files": [],
     "dwp_files": [],
     "linker_files": [
-        "@rules_cc//cc/toolchains/actions:cpp_link_dynamic_library",  # copybara-use-repo-external-label
-        "@rules_cc//cc/toolchains/actions:cpp_link_nodeps_dynamic_library",  # copybara-use-repo-external-label
-        "@rules_cc//cc/toolchains/actions:cpp_link_executable",  # copybara-use-repo-external-label
+        Label("//cc/toolchains/actions:cpp_link_dynamic_library"),
+        Label("//cc/toolchains/actions:cpp_link_nodeps_dynamic_library"),
+        Label("//cc/toolchains/actions:cpp_link_executable"),
     ],
     "objcopy_files": [],
     "strip_files": [
-        "@rules_cc//cc/toolchains/actions:strip",  # copybara-use-repo-external-label
+        Label("//cc/toolchains/actions:strip"),
     ],
 }
 

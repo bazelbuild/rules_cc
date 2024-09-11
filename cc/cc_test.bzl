@@ -20,7 +20,7 @@
 # added as a dependency to @rules_cc//:link_extra_lib. The intermediate library
 # @bazel_tools@bazel_tools//tools/cpp:link_extra_lib should either be added as a dependency
 # to @rules_cc//:link_extra_lib, or removed entirely (if possible).
-_LINK_EXTRA_LIB = "@rules_cc//:link_extra_lib"  # copybara-use-repo-external-label
+_LINK_EXTRA_LIB = Label("//:link_extra_lib")
 
 def cc_test(**attrs):
     """Bazel cc_test rule.
