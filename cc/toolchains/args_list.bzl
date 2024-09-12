@@ -24,11 +24,49 @@ def _cc_args_list_impl(ctx):
 
 cc_args_list = rule(
     implementation = _cc_args_list_impl,
-    doc = "A list of cc_args",
+    doc = """An ordered list of cc_args.
+
+    This is a convenience rule to allow you to group a set of multiple [cc_args](#cc_args) into a
+    single list. This particularly useful for toolchain behaviors that require different flags for
+    different actions.
+
+    Note: The order of the arguments in `args` is preserved to support order-sensitive flags.
+
+    Example usage:
+    ```
+    load("//cc/toolchains:cc_args.bzl", "cc_args")
+    load("//cc/toolchains:args_list.bzl", "cc_args_list")
+
+    cc_args(
+        name = "gc_sections",
+        actions = [
+            "//cc/toolchains/actions:link_actions",
+        ],
+        args = ["-Wl,--gc-sections"],
+    )
+
+    cc_args(
+        name = "function_sections",
+        actions = [
+            "//cc/toolchains/actions:compile_actions",
+            "//cc/toolchains/actions:link_actions",
+        ],
+        args = ["-ffunction-sections"],
+    )
+
+    cc_args_list(
+        name = "gc_functions",
+        args = [
+            ":function_sections",
+            ":gc_sections",
+        ],
+    )
+    ```
+    """,
     attrs = {
         "args": attr.label_list(
             providers = [ArgsListInfo],
-            doc = "The cc_args to include",
+            doc = "(ordered) cc_args to include in this list.",
         ),
     },
     provides = [ArgsListInfo],

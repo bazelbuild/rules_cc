@@ -13,6 +13,12 @@
 # limitations under the License.
 """This is a list of rules/macros that should be exported as documentation."""
 
+load("//cc/toolchains:args.bzl", _cc_args = "cc_args")
+load("//cc/toolchains:args_list.bzl", _cc_args_list = "cc_args_list")
+load("//cc/toolchains:nested_args.bzl", _cc_nested_args = "cc_nested_args")
 load("//cc/toolchains:tool_map.bzl", _cc_tool_map = "cc_tool_map")
 
 cc_tool_map = _cc_tool_map
+cc_args = _cc_args
+cc_nested_args = _cc_nested_args
+cc_args_list = _cc_args_list
