@@ -6,14 +6,7 @@ package(default_visibility = ["//visibility:private"])
 
 cc_args(
     name = "libraries_to_link",
-    actions = [
-        "//cc/toolchains/actions:cpp_link_executable",
-        "//cc/toolchains/actions:cpp_link_dynamic_library",
-        "//cc/toolchains/actions:cpp_link_nodeps_dynamic_library",
-        "//cc/toolchains/actions:lto_index_for_executable",
-        "//cc/toolchains/actions:lto_index_for_dynamic_library",
-        "//cc/toolchains/actions:lto_index_for_nodeps_dynamic_library",
-    ],
+    actions = ["//cc/toolchains/actions:link_actions"],
     nested = [
         ":thinlto_param_file",
         ":libraries_to_link_args",

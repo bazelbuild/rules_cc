@@ -12,13 +12,8 @@ cc_args_list(
 cc_args(
     name = "use_param_file",
     actions = [
-        "//cc/toolchains/actions:cpp_link_executable",
-        "//cc/toolchains/actions:cpp_link_dynamic_library",
-        "//cc/toolchains/actions:cpp_link_nodeps_dynamic_library",
-        "//cc/toolchains/actions:lto_index_for_executable",
-        "//cc/toolchains/actions:lto_index_for_dynamic_library",
-        "//cc/toolchains/actions:lto_index_for_nodeps_dynamic_library",
-        "//cc/toolchains/actions:cpp_link_static_library",
+        "//cc/toolchains/actions:link_actions",
+        "//cc/toolchains/actions:ar_actions",
     ],
     args = ["@{param_file}"],
     format = {"param_file": "//cc/toolchains/variables:linker_param_file"},
