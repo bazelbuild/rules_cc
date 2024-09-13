@@ -63,7 +63,6 @@ util.helper_target(
     ],
     enabled_features = [":simple_feature"],
     known_features = [":compile_feature"],
-    skip_experimental_flag_validation_for_test = True,
     tool_map = ":compile_tool_map",
 )
 

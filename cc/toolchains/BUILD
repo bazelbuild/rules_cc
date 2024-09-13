@@ -13,15 +13,8 @@
 # limitations under the License.
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 load("@stardoc//stardoc:stardoc.bzl", "stardoc")
-
-bool_flag(
-    name = "experimental_enable_rule_based_toolchains",
-    build_setting_default = False,
-    visibility = ["//visibility:public"],
-)
 
 bzl_library(
     name = "toolchain_rules",

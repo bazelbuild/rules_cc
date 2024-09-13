@@ -13,7 +13,6 @@
 # limitations under the License.
 """Implementation of the cc_toolchain rule."""
 
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load(
     "//cc/toolchains:cc_toolchain_info.bzl",
     "ActionTypeSetInfo",
@@ -51,9 +50,6 @@ cc_legacy_file_group = rule(
 def _cc_toolchain_config_impl(ctx):
     if ctx.attr.features:
         fail("Features is a reserved attribute in bazel. Did you mean 'known_features' or 'enabled_features'?")
-
-    if not ctx.attr._enabled[BuildSettingInfo].value and not ctx.attr.skip_experimental_flag_validation_for_test:
-        fail("Rule based toolchains are experimental. To use it, please add --@rules_cc//cc/toolchains:experimental_enable_rule_based_toolchains to your bazelrc")
 
     toolchain_config = toolchain_config_info(
         label = ctx.label,
@@ -101,9 +97,7 @@ cc_toolchain_config = rule(
         "args": attr.label_list(providers = [ArgsListInfo]),
         "known_features": attr.label_list(providers = [FeatureSetInfo]),
         "enabled_features": attr.label_list(providers = [FeatureSetInfo]),
-        "skip_experimental_flag_validation_for_test": attr.bool(default = False),
         "_builtin_features": attr.label(default = "//cc/toolchains/features:all_builtin_features"),
-        "_enabled": attr.label(default = "//cc/toolchains:experimental_enable_rule_based_toolchains"),
     },
     provides = [ToolchainConfigInfo],
 )
