@@ -20,13 +20,13 @@ Note: The order of the arguments in `args` is preserved to support order-sensiti
 
 Example usage:
 ```
-load("//third_party/bazel_rules/rules_cc/cc/toolchains:cc_args.bzl", "cc_args")
-load("//third_party/bazel_rules/rules_cc/cc/toolchains:args_list.bzl", "cc_args_list")
+load("@rules_cc//cc/toolchains:cc_args.bzl", "cc_args")
+load("@rules_cc//cc/toolchains:args_list.bzl", "cc_args_list")
 
 cc_args(
     name = "gc_sections",
     actions = [
-        "//third_party/bazel_rules/rules_cc/cc/toolchains/actions:link_actions",
+        "@rules_cc//cc/toolchains/actions:link_actions",
     ],
     args = ["-Wl,--gc-sections"],
 )
@@ -34,8 +34,8 @@ cc_args(
 cc_args(
     name = "function_sections",
     actions = [
-        "//third_party/bazel_rules/rules_cc/cc/toolchains/actions:compile_actions",
-        "//third_party/bazel_rules/rules_cc/cc/toolchains/actions:link_actions",
+        "@rules_cc//cc/toolchains/actions:compile_actions",
+        "@rules_cc//cc/toolchains/actions:link_actions",
     ],
     args = ["-ffunction-sections"],
 )
@@ -86,7 +86,7 @@ simultaneously).
 
 Example usage:
 ```
-load("//third_party/bazel_rules/rules_cc/cc/toolchains:args.bzl", "cc_args")
+load("@rules_cc//cc/toolchains:args.bzl", "cc_args")
 
 # Basic usage: a trivial flag.
 #
@@ -95,7 +95,7 @@ cc_args(
     name = "warnings_as_errors",
     actions = [
         # Applies to all C/C++ compile actions.
-        "//third_party/bazel_rules/rules_cc/cc/toolchains/actions:compile_actions",
+        "@rules_cc//cc/toolchains/actions:compile_actions",
     ],
     args = ["-Werror"],
 )
@@ -107,7 +107,7 @@ cc_args(
     name = "link_libcxx",
     actions = [
         # Applies to all link actions.
-        "//third_party/bazel_rules/rules_cc/cc/toolchains/actions:link_actions",
+        "@rules_cc//cc/toolchains/actions:link_actions",
     ],
     # On tool invocation, this appears as `-Xlinker -lc++`. Nothing will ever end up between
     # the two flags.
@@ -125,13 +125,13 @@ cc_args(
 cc_args(
     name = "library_search_directories",
     actions = [
-        "//third_party/bazel_rules/rules_cc/cc/toolchains/actions:link_actions",
+        "@rules_cc//cc/toolchains/actions:link_actions",
     ],
     args = ["-L{search_dir}"],
-    iterate_over = "//third_party/bazel_rules/rules_cc/cc/toolchains/variables:library_search_directories",
-    requires_not_none = "//third_party/bazel_rules/rules_cc/cc/toolchains/variables:library_search_directories",
+    iterate_over = "@rules_cc//cc/toolchains/variables:library_search_directories",
+    requires_not_none = "@rules_cc//cc/toolchains/variables:library_search_directories",
     format = {
-        "search_dir": "//third_party/bazel_rules/rules_cc/cc/toolchains/variables:library_search_directories",
+        "search_dir": "@rules_cc//cc/toolchains/variables:library_search_directories",
     },
 )
 ```
@@ -225,27 +225,27 @@ A cc_tool_map aggregates all the tools that may be used for a given toolchain an
 their corresponding actions. Conceptually, this is similar to the `CXX=/path/to/clang++`
 environment variables that most build systems use to determine which tools to use for a given
 action. To simplify usage, some actions have been grouped together (for example,
-//third_party/bazel_rules/rules_cc/cc/toolchains/actions:cpp_compile_actions) to
+@rules_cc//cc/toolchains/actions:cpp_compile_actions) to
 logically express "all the C++ compile actions".
 
 In Bazel, there is a little more granularity to the mapping, so the mapping doesn't follow the
 traditional `CXX`, `AR`, etc. naming scheme. For a comprehensive list of all the well-known
-actions, see //third_party/bazel_rules/rules_cc/cc/toolchains/actions:BUILD.
+actions, see @rules_cc//cc/toolchains/actions:BUILD.
 
 Example usage:
 ```
-load("//third_party/bazel_rules/rules_cc/cc/toolchains:tool_map.bzl", "cc_tool_map")
+load("@rules_cc//cc/toolchains:tool_map.bzl", "cc_tool_map")
 
 cc_tool_map(
     name = "all_tools",
     tools = {
-        "//third_party/bazel_rules/rules_cc/cc/toolchains/actions:assembly_actions": ":asm",
-        "//third_party/bazel_rules/rules_cc/cc/toolchains/actions:c_compile": ":clang",
-        "//third_party/bazel_rules/rules_cc/cc/toolchains/actions:cpp_compile_actions": ":clang++",
-        "//third_party/bazel_rules/rules_cc/cc/toolchains/actions:link_actions": ":lld",
-        "//third_party/bazel_rules/rules_cc/cc/toolchains/actions:objcopy_embed_data": ":llvm-objcopy",
-        "//third_party/bazel_rules/rules_cc/cc/toolchains/actions:strip": ":llvm-strip",
-        "//third_party/bazel_rules/rules_cc/cc/toolchains/actions:ar_actions": ":llvm-ar",
+        "@rules_cc//cc/toolchains/actions:assembly_actions": ":asm",
+        "@rules_cc//cc/toolchains/actions:c_compile": ":clang",
+        "@rules_cc//cc/toolchains/actions:cpp_compile_actions": ":clang++",
+        "@rules_cc//cc/toolchains/actions:link_actions": ":lld",
+        "@rules_cc//cc/toolchains/actions:objcopy_embed_data": ":llvm-objcopy",
+        "@rules_cc//cc/toolchains/actions:strip": ":llvm-strip",
+        "@rules_cc//cc/toolchains/actions:ar_actions": ":llvm-ar",
     },
 )
 ```

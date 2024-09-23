@@ -14,6 +14,7 @@
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("@bazel_skylib//rules:expand_template.bzl", "expand_template")
 load("@stardoc//stardoc:stardoc.bzl", "stardoc")
 
 bzl_library(
@@ -42,9 +43,19 @@ filegroup(
 
 stardoc(
     name = "toolchain_api",
-    out = "generated_toolchain_api.md",
+    out = "raw_generated_toolchain_api.md",
     input = "//cc/toolchains/impl:documented_api.bzl",
     deps = [":toolchain_rules"],
+)
+
+# In GitHub, we prefer to clarify all the labels that come from rules_cc.
+expand_template(
+    name = "toolchain_api_md",
+    out = "generated_toolchain_api.md",
+    substitutions = {
+        "\"//cc": "\"@rules_cc//cc",
+    },
+    template = ":raw_generated_toolchain_api.md",
 )
 
 diff_test(
