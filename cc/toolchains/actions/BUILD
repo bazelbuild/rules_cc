@@ -210,6 +210,8 @@ cc_action_type_set(
         ":cpp_compile_actions",
         ":c_compile_actions",
         ":assembly_actions",
+        ":objc_compile",
+        ":objcpp_compile",
     ],
 )
 
