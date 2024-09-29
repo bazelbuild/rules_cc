@@ -14,7 +14,7 @@
 
 """Example showing how to create a rule that rules_cc can depend on."""
 
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
+load("@rules_cc//cc:find_cc_toolchain.bzl", "find_cpp_toolchain", "use_cc_toolchain")
 load("@rules_cc//cc:action_names.bzl", "CPP_LINK_STATIC_LIBRARY_ACTION_NAME")
 load("//examples/my_c_compile:my_c_compile.bzl", "MyCCompileInfo")
 
@@ -95,5 +95,5 @@ my_c_archive = rule(
         "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
     },
     fragments = ["cpp"],
-    toolchains = use_cpp_toolchain(),
+    toolchains = use_cc_toolchain(),
 )

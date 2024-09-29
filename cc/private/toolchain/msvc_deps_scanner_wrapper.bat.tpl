@@ -1,4 +1,4 @@
-:: Copyright 2019 The Bazel Authors. All rights reserved.
+:: Copyright 2024 The Bazel Authors. All rights reserved.
 ::
 :: Licensed under the Apache License, Version 2.0 (the "License");
 :: you may not use this file except in compliance with the License.
@@ -13,12 +13,4 @@
 :: limitations under the License.
 
 @echo OFF
-
-echo. 1>&2
-echo The target you are compiling requires the Clang compiler. 1>&2
-echo Bazel couldn't find a valid Clang installation on your machine. 1>&2
-%{clang_error_message}
-echo Please check your installation following https://bazel.build/docs/windows#using 1>&2
-echo. 1>&2
-
-exit /b 1
+"%{cc}" /scanDependencies- /TP %* >%DEPS_SCANNER_OUTPUT_FILE%
