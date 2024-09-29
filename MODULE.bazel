@@ -8,8 +8,8 @@ bazel_dep(name = "bazel_skylib", version = "1.7.1")
 bazel_dep(name = "platforms", version = "0.0.10")
 bazel_dep(name = "stardoc", version = "0.7.0")
 
-cc_configure = use_extension("//cc:cc_configure.bzl", "cc_configure_extension")
-use_repo(cc_configure, "local_config_cc_toolchains")
+cc_configure = use_extension("//cc:extensions.bzl", "cc_configure_extension")
+use_repo(cc_configure, "local_config_cc", "local_config_cc_toolchains")
 
 register_toolchains("@local_config_cc_toolchains//:all")
 
