@@ -74,7 +74,7 @@ my_c_compile = rule(
     implementation = _my_c_compile_impl,
     attrs = {
         "src": attr.label(mandatory = True, allow_single_file = True),
-        "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
+        "_cc_toolchain": attr.label(default = Label("@rules_cc//cc:current_cc_toolchain")),
     },
     toolchains = use_cc_toolchain(),
     fragments = ["cpp"],

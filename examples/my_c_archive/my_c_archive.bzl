@@ -92,7 +92,7 @@ my_c_archive = rule(
     attrs = {
         "deps": attr.label_list(providers = [CcInfo]),
         "object": attr.label(mandatory = True, providers = [MyCCompileInfo]),
-        "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
+        "_cc_toolchain": attr.label(default = Label("@rules_cc//cc:current_cc_toolchain")),
     },
     fragments = ["cpp"],
     toolchains = use_cc_toolchain(),

@@ -26,7 +26,7 @@ def _write_cc_toolchain_cpu_impl(ctx):
 write_cc_toolchain_cpu = rule(
     implementation = _write_cc_toolchain_cpu_impl,
     attrs = {
-        "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
+        "_cc_toolchain": attr.label(default = Label("@rules_cc//cc:current_cc_toolchain")),
     },
     toolchains = use_cc_toolchain(),
 )
