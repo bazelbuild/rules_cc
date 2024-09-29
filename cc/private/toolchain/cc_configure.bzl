@@ -64,7 +64,7 @@ def cc_autoconf_impl(repository_ctx, overriden_tools = dict()):
     cpu_value = get_cpu_value(repository_ctx)
     if "BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN" in env and env["BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN"] == "1":
         paths = resolve_labels(repository_ctx, [
-            "@rules_cc//cc/private/toolchain:BUILD.empty",
+            "@rules_cc//cc/private/toolchain:BUILD.empty.tpl",
             "@rules_cc//cc/private/toolchain:empty_cc_toolchain_config.bzl",
         ])
         repository_ctx.symlink(paths["@rules_cc//cc/private/toolchain:empty_cc_toolchain_config.bzl"], "cc_toolchain_config.bzl")
