@@ -99,6 +99,15 @@ def layering_check_features(compiler, extra_flags_per_feature, is_macos):
     ]
 
 def parse_headers_support(parse_headers_tool_path):
+    """
+    Returns action configurations and features for parsing headers.
+
+    Args:
+        parse_headers_tool_path: The path to the tool used for parsing headers.
+
+    Returns:
+        A tuple containing a list of action configurations and a list of features.
+    """
     if not parse_headers_tool_path:
         return [], []
     action_configs = [

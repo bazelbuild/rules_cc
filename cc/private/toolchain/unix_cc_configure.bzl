@@ -59,15 +59,6 @@ def _prepare_include_path(repo_ctx, path):
         return path[len(repo_root):]
     return path
 
-def _get_value(it):
-    """Convert `it` in serialized protobuf format."""
-    if type(it) == "int":
-        return str(it)
-    elif type(it) == "bool":
-        return "true" if it else "false"
-    else:
-        return "\"%s\"" % it
-
 def _find_tool(repository_ctx, tool, overriden_tools):
     """Find a tool for repository, taking overridden tools into account."""
     if tool in overriden_tools:
@@ -318,6 +309,15 @@ def _find_generic(repository_ctx, name, env_name, overriden_tools, warn = False,
     return result
 
 def find_cc(repository_ctx, overriden_tools):
+    """Find the C compiler (gcc or clang) for the repository, considering overridden tools.
+
+    Args:
+      repository_ctx: The repository context.
+      overriden_tools: A dictionary of overridden tools.
+
+    Returns:
+      The path to the C compiler.
+    """
     cc = _find_generic(repository_ctx, "gcc", "CC", overriden_tools)
     if _is_clang(repository_ctx, cc):
         # If clang is run through a symlink with -no-canonical-prefixes, it does
@@ -329,7 +329,13 @@ def find_cc(repository_ctx, overriden_tools):
     return cc
 
 def configure_unix_toolchain(repository_ctx, cpu_value, overriden_tools):
-    """Configure C++ toolchain on Unix platforms."""
+    """Configure C++ toolchain on Unix platforms.
+
+    Args:
+        repository_ctx: The repository context.
+        cpu_value: The CPU value.
+        overriden_tools: A dictionary of overridden tools.
+    """
     paths = resolve_labels(repository_ctx, [
         "@rules_cc//cc/private/toolchain:BUILD.tpl",
         "@rules_cc//cc/private/toolchain:generate_system_module_map.sh",

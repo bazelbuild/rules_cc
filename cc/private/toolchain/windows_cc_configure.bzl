@@ -120,7 +120,14 @@ def _add_system_root(repository_ctx, env):
     return env
 
 def find_vc_path(repository_ctx):
-    """Find Visual C++ build tools install path. Doesn't %-escape the result."""
+    """Find Visual C++ build tools install path. Doesn't %-escape the result.
+
+    Args:
+        repository_ctx: The repository context.
+
+    Returns:
+        The path to the Visual C++ build tools installation.
+    """
 
     # 1. Check if BAZEL_VC or BAZEL_VS is already set by user.
     bazel_vc = _get_path_env_var(repository_ctx, "BAZEL_VC")
@@ -435,7 +442,17 @@ def _find_msvc_tools(repository_ctx, vc_path, target_arch = "x64"):
     return build_tools_paths
 
 def find_msvc_tool(repository_ctx, vc_path, tool, target_arch = "x64"):
-    """Find the exact path of a specific build tool in MSVC. Doesn't %-escape the result."""
+    """Find the exact path of a specific build tool in MSVC. Doesn't %-escape the result.
+
+    Args:
+        repository_ctx: The repository context.
+        vc_path: Visual C++ root directory.
+        tool: The name of the tool to find.
+        target_arch: The target architecture (default is "x64").
+
+    Returns:
+        The exact path of the specified build tool in MSVC, or None if not found.
+    """
     tool_path = None
     if _is_vs_2017_or_newer(repository_ctx, vc_path) or _is_msbuildtools(vc_path):
         full_version = _get_vc_full_version(repository_ctx, vc_path)
@@ -511,7 +528,14 @@ def _is_support_parse_showincludes(repository_ctx, cl, env):
     ])
 
 def find_llvm_path(repository_ctx):
-    """Find LLVM install path."""
+    """Find LLVM install path.
+
+    Args:
+        repository_ctx: The repository context.
+
+    Returns:
+        The path to the LLVM installation, or None if not found.
+    """
 
     # 1. Check if BAZEL_LLVM is already set by user.
     bazel_llvm = _get_path_env_var(repository_ctx, "BAZEL_LLVM")
@@ -557,7 +581,16 @@ def find_llvm_path(repository_ctx):
     return llvm_dir
 
 def find_llvm_tool(repository_ctx, llvm_path, tool):
-    """Find the exact path of a specific build tool in LLVM. Doesn't %-escape the result."""
+    """Find the exact path of a specific build tool in LLVM. Doesn't %-escape the result.
+
+    Args:
+        repository_ctx: The repository context.
+        llvm_path: The path to the LLVM installation.
+        tool: The name of the tool to find.
+
+    Returns:
+        The exact path of the specified build tool in LLVM, or None if not found.
+    """
     tool_path = llvm_path + "\\bin\\" + tool
 
     if not repository_ctx.path(tool_path).exists:
@@ -818,7 +851,11 @@ def _get_msvc_deps_scanner_vars(repository_ctx, paths, template_vars, target_arc
     }
 
 def configure_windows_toolchain(repository_ctx):
-    """Configure C++ toolchain on Windows."""
+    """Configure C++ toolchain on Windows.
+
+    Args:
+        repository_ctx: The repository context.
+    """
     paths = resolve_labels(repository_ctx, [
         "@rules_cc//cc/private/toolchain:BUILD.windows.tpl",
         "@rules_cc//cc/private/toolchain:windows_cc_toolchain_config.bzl",
