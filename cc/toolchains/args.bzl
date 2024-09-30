@@ -139,9 +139,10 @@ def cc_args(
 
     This rule is the fundamental building building block for every toolchain tool invocation. Each
     argument expressed in a toolchain tool invocation (e.g. `gcc`, `llvm-ar`) is declared in a
-    `cc_args` rule that applies an ordered list of arguments to a set of toolchain actions.
-    `cc_args` rules can be added unconditionally to a `cc_toolchain`, conditionally via `select()`
-    statements, or dynamically via an intermediate `cc_feature`.
+    `cc_args` rule that applies an ordered list of arguments to a set of toolchain
+    actions. `cc_args` rules can be added unconditionally to a
+    `cc_toolchain`, conditionally via `select()` statements, or dynamically via an
+    intermediate `cc_feature`.
 
     Conceptually, this is similar to the old `CFLAGS`, `CPPFLAGS`, etc. environment variables that
     many build systems use to determine which flags to use for a given action. The significant
@@ -208,49 +209,62 @@ def cc_args(
 
     Args:
         name: (str) The name of the target.
-        actions: (List[Label]) A list of labels of `cc_action_type` or `cc_action_type_set` rules
-            that dictate which actions these arguments should be applied to.
+        actions: (List[Label]) A list of labels of `cc_action_type` or
+            `cc_action_type_set` rules that dictate which actions these
+            arguments should be applied to.
         allowlist_include_directories: (List[Label]) A list of include paths that are implied by
             using this rule. These must point to a skylib
-            [directory](https://github.com/bazelbuild/bazel-skylib/blob/main/docs/directory_doc.md#directory)
-            or [subdirectory](https://github.com/bazelbuild/bazel-skylib/blob/main/docs/directory_subdirectory_doc.md#subdirectory) rule.
+            [directory](https://github.com/bazelbuild/bazel-skylib/tree/main/doc/directory_doc.md#directory)
+            or [subdirectory](https://github.com/bazelbuild/bazel-skylib/tree/main/doc/directory_subdirectory_doc.md#subdirectory) rule.
             Some flags (e.g. --sysroot) imply certain include paths are available despite
             not explicitly specifying a normal include path flag (`-I`, `-isystem`, etc.).
             Bazel checks that all included headers are properly provided by a dependency or
             allowlisted through this mechanism.
+
+            As a rule of thumb, only use this if Bazel is complaining about absolute paths in
+            your toolchain and you've ensured that the toolchain is compiling with the
+            `-no-canonical-prefixes` and/or `-fno-canonical-system-headers` arguments.
+
+            This can help work around errors like:
+            `the source file 'main.c' includes the following non-builtin files with absolute paths
+            (if these are builtin files, make sure these paths are in your toolchain)`.
         args: (List[str]) The command-line arguments that are applied by using this rule. This is
             mutually exclusive with [nested](#cc_args-nested).
         data: (List[Label]) A list of runtime data dependencies that are required for these
             arguments to work as intended.
         env: (Dict[str, str]) Environment variables that should be set when the tool is invoked.
         format: (Dict[str, Label]) A mapping of format strings to the label of the corresponding
-            `cc_variable` that the value should be pulled from. All instances of `{variable_name}`
-            will be replaced with the expanded value of `variable_name` in this dictionary. The
-            complete list of possible variables can be found in
-            https://github.com/bazelbuild/rules_cc/blob/main/cc/toolchains/variables/BUILD. it is
-            not possible to declare custom variables--these are inherent to Bazel itself.
+            `cc_variable` that the value should be pulled from. All instances of
+            `{variable_name}` will be replaced with the expanded value of `variable_name` in this
+            dictionary. The complete list of possible variables can be found in
+            https://github.com/bazelbuild/rules_cc/tree/main/cc/toolchains/variables/BUILD.
+            It is not possible to declare custom variables--these are inherent to Bazel itself.
         iterate_over: (Label) The label of a `cc_variable` that should be iterated over. This is
             intended for use with built-in variables that are lists.
-        nested: (List[Label]) A list of [cc_nested_args](#cc_nested_args) rules that should be
+        nested: (List[Label]) A list of `cc_nested_args` rules that should be
             expanded to command-line arguments when this rule is used. This is mutually exclusive
             with [args](#cc_args-args).
-        requires_not_none: (Label) The label of a `cc_variable` that should be checked for
-            existence before expanding this rule. If the variable is None, this rule will be
+        requires_not_none: (Label) The label of a `cc_variable` that should be checked
+            for existence before expanding this rule. If the variable is None, this rule will be
             ignored.
-        requires_none: (Label) The label of a `cc_variable` that should be checked for non-existence
-            before expanding this rule. If the variable is not None, this rule will be ignored.
-        requires_true: (Label) The label of a `cc_variable` that should be checked for truthiness
-            before expanding this rule. If the variable is false, this rule will be ignored.
-        requires_false: (Label) The label of a `cc_variable` that should be checked for falsiness
-            before expanding this rule. If the variable is true, this rule will be ignored.
-        requires_equal: (Label) The label of a `cc_variable` that should be checked for equality
-            before expanding this rule. If the variable is not equal to
+        requires_none: (Label) The label of a `cc_variable` that should be checked for
+            non-existence before expanding this rule. If the variable is not None, this rule will be
+            ignored.
+        requires_true: (Label) The label of a `cc_variable` that should be checked for
+            truthiness before expanding this rule. If the variable is false, this rule will be
+            ignored.
+        requires_false: (Label) The label of a `cc_variable` that should be checked
+            for falsiness before expanding this rule. If the variable is true, this rule will be
+            ignored.
+        requires_equal: (Label) The label of a `cc_variable` that should be checked
+            for equality before expanding this rule. If the variable is not equal to
             (requires_equal_value)[#cc_args-requires_equal_value], this rule will be ignored.
         requires_equal_value: (str) The value to compare (requires_equal)[#cc_args-requires_equal]
             against.
         requires_any_of: (List[Label]) These arguments will be used
-            in a tool invocation when at least one of the `cc_feature_constraint` entries in this
-            list are satisfied. If omitted, this flag set will be enabled unconditionally.
+            in a tool invocation when at least one of the [cc_feature_constraint](#cc_feature_constraint)
+            entries in this list are satisfied. If omitted, this flag set will be enabled
+            unconditionally.
         **kwargs: [common attributes](https://bazel.build/reference/be/common-definitions#common-attributes) that should be applied to this rule.
     """
     return _cc_args(

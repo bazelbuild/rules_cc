@@ -26,7 +26,7 @@ cc_args_list = rule(
     implementation = _cc_args_list_impl,
     doc = """An ordered list of cc_args.
 
-    This is a convenience rule to allow you to group a set of multiple [cc_args](#cc_args) into a
+    This is a convenience rule to allow you to group a set of multiple `cc_args` into a
     single list. This particularly useful for toolchain behaviors that require different flags for
     different actions.
 

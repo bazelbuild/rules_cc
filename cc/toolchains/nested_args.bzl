@@ -56,19 +56,19 @@ def cc_nested_args(
         requires_equal = None,
         requires_equal_value = None,
         **kwargs):
-    """Nested arguments for use in more complex cc_args expansions.
+    """Nested arguments for use in more complex `cc_args` expansions.
 
-    While this rule is very similar in shape to [cc_args](#cc_args), it is intended to be used as a
-    dependency of [cc_args](#cc_args) to provide additional arguments that should be applied to the
-    same actions as defined by the parent [cc_args](#cc_args) rule. The key motivation for this rule
+    While this rule is very similar in shape to `cc_args`, it is intended to be used as a
+    dependency of `cc_args` to provide additional arguments that should be applied to the
+    same actions as defined by the parent `cc_args` rule. The key motivation for this rule
     is to allow for more complex variable-based argument expensions.
 
-    Prefer expressing collections of arguments as [cc_args](#cc_args) and
-    [cc_args_list](#cc_args_list) rules when possible.
+    Prefer expressing collections of arguments as `cc_args` and
+    `cc_args_list` rules when possible.
 
     For living examples of how this rule is used, see the usages here:
-        https://github.com/bazelbuild/rules_cc/blob/main/cc/toolchains/args/runtime_library_search_directories/BUILD
-        https://github.com/bazelbuild/rules_cc/blob/main/cc/toolchains/args/libraries_to_link/BUILD
+        https://github.com/bazelbuild/rules_cc/tree/main/cc/toolchains/args/runtime_library_search_directories/BUILD
+        https://github.com/bazelbuild/rules_cc/tree/main/cc/toolchains/args/libraries_to_link/BUILD
 
     Note: These examples are non-trivial, but they illustrate when it is absolutely necessary to
     use this rule.
@@ -80,27 +80,30 @@ def cc_nested_args(
         data: (List[Label]) A list of runtime data dependencies that are required for these
             arguments to work as intended.
         format: (Dict[str, Label]) A mapping of format strings to the label of the corresponding
-            `cc_variable` that the value should be pulled from. All instances of `{variable_name}`
-            will be replaced with the expanded value of `variable_name` in this dictionary. The
-            complete list of possible variables can be found in
-            https://github.com/bazelbuild/rules_cc/blob/main/cc/toolchains/variables/BUILD. it is
-            not possible to declare custom variables--these are inherent to Bazel itself.
-        iterate_over: (Label) The label of a `cc_variable` that should be iterated over. This is
-            intended for use with built-in variables that are lists.
-        nested: (List[Label]) A list of [cc_nested_args](#cc_nested_args) rules that should be
+            `cc_variable` that the value should be pulled from. All instances of
+            `{variable_name}` will be replaced with the expanded value of `variable_name` in this
+            dictionary. The complete list of possible variables can be found in
+            https://github.com/bazelbuild/rules_cc/tree/main/cc/toolchains/variables/BUILD.
+            It is not possible to declare custom variables--these are inherent to Bazel itself.
+        iterate_over: (Label) The label of a `cc_variable` that should be iterated
+            over. This is intended for use with built-in variables that are lists.
+        nested: (List[Label]) A list of `cc_nested_args` rules that should be
             expanded to command-line arguments when this rule is used. This is mutually exclusive
             with [args](#cc_nested_args-args).
-        requires_not_none: (Label) The label of a `cc_variable` that should be checked for
-            existence before expanding this rule. If the variable is None, this rule will be
+        requires_not_none: (Label) The label of a `cc_variable` that should be checked
+            for existence before expanding this rule. If the variable is None, this rule will be
             ignored.
-        requires_none: (Label) The label of a `cc_variable` that should be checked for non-existence
-            before expanding this rule. If the variable is not None, this rule will be ignored.
-        requires_true: (Label) The label of a `cc_variable` that should be checked for truthiness
-            before expanding this rule. If the variable is false, this rule will be ignored.
-        requires_false: (Label) The label of a `cc_variable` that should be checked for falsiness
-            before expanding this rule. If the variable is true, this rule will be ignored.
-        requires_equal: (Label) The label of a `cc_variable` that should be checked for equality
-            before expanding this rule. If the variable is not equal to
+        requires_none: (Label) The label of a `cc_variable` that should be checked for
+            non-existence before expanding this rule. If the variable is not None, this rule will be
+            ignored.
+        requires_true: (Label) The label of a `cc_variable` that should be checked for
+            truthiness before expanding this rule. If the variable is false, this rule will be
+            ignored.
+        requires_false: (Label) The label of a `cc_variable` that should be checked
+            for falsiness before expanding this rule. If the variable is true, this rule will be
+            ignored.
+        requires_equal: (Label) The label of a `cc_variable` that should be checked
+            for equality before expanding this rule. If the variable is not equal to
             (requires_equal_value)[#cc_nested_args-requires_equal_value], this rule will be ignored.
         requires_equal_value: (str) The value to compare
             (requires_equal)[#cc_nested_args-requires_equal] against.

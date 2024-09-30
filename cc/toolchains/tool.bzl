@@ -66,13 +66,17 @@ cc_tool = rule(
             cfg = "exec",
             doc = """The underlying binary that this tool represents.
 
-Usually just a single prebuilt (eg. @sysroot//:bin/clang), but may be any
+Usually just a single prebuilt (eg. @toolchain//:bin/clang), but may be any
 executable label.
 """,
         ),
         "data": attr.label_list(
             allow_files = True,
-            doc = "Additional files that are required for this tool to run.",
+            doc = """Additional files that are required for this tool to run.
+
+Frequently, clang and gcc require additional files to execute as they often shell out to
+other binaries (e.g. `cc1`).
+""",
         ),
         "allowlist_include_directories": attr.label_list(
             providers = [DirectoryInfo],
@@ -82,17 +86,34 @@ Compilers may include a set of built-in headers that are implicitly available
 unless flags like `-nostdinc` are provided. Bazel checks that all included
 headers are properly provided by a dependency or allowlisted through this
 mechanism.
+
+As a rule of thumb, only use this if Bazel is complaining about absolute paths in your
+toolchain and you've ensured that the toolchain is compiling with the `-no-canonical-prefixes`
+and/or `-fno-canonical-system-headers` arguments.
+
+This can help work around errors like:
+`the source file 'main.c' includes the following non-builtin files with absolute paths
+(if these are builtin files, make sure these paths are in your toolchain)`.
 """,
         ),
     },
     provides = [ToolInfo],
-    doc = """Declares a tool that can be bound to action configs.
+    doc = """Declares a tool for use by toolchain actions.
 
-A tool is a binary with extra metadata for the action config rule to consume
-(eg. execution_requirements).
+`cc_tool` rules are used in a `cc_tool_map` rule to ensure all files and
+metadata required to run a tool are available when constructing a `cc_toolchain`.
+
+In general, include all files that are always required to run a tool (e.g. libexec/** and
+cross-referenced tools in bin/*) in the [data](#cc_tool-data) attribute. If some files are only
+required when certain flags are passed to the tool, consider using a `cc_args` rule to
+bind the files to the flags that require them. This reduces the overhead required to properly
+enumerate a sandbox with all the files required to run a tool, and ensures that there isn't
+unintentional leakage across configurations and actions.
 
 Example:
 ```
+load("//cc/toolchains:tool.bzl", "cc_tool")
+
 cc_tool(
     name = "clang_tool",
     executable = "@llvm_toolchain//:bin/clang",
