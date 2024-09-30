@@ -421,10 +421,10 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overriden_tools):
             "validate_static_library.sh",
             paths["@rules_cc//cc/private/toolchain:validate_static_library.sh.tpl"],
             {
-                "%{nm}": escape_string(str(repository_ctx.path(tool_paths["nm"]))),
+                "%{c++filt}": escape_string(str(repository_ctx.path(tool_paths["c++filt"]))),
                 # Certain weak symbols are otherwise listed with type T in the output of nm on macOS.
                 "%{nm_extra_args}": "--no-weak" if darwin else "",
-                "%{c++filt}": escape_string(str(repository_ctx.path(tool_paths["c++filt"]))),
+                "%{nm}": escape_string(str(repository_ctx.path(tool_paths["nm"]))),
             },
         )
         tool_paths["validate_static_library"] = "validate_static_library.sh"
@@ -612,20 +612,10 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overriden_tools):
         "BUILD",
         paths["@rules_cc//cc/private/toolchain:BUILD.tpl"],
         {
-            "%{cc_toolchain_identifier}": cc_toolchain_identifier,
-            "%{name}": cpu_value,
-            "%{modulemap}": ("\":module.modulemap\"" if generate_modulemap else "None"),
-            "%{cc_compiler_deps}": get_starlark_list([
-                ":builtin_include_directory_paths",
-                ":cc_wrapper",
-                ":deps_scanner_wrapper",
-            ] + (
-                [":validate_static_library"] if "validate_static_library" in tool_paths else []
-            )),
-            "%{compiler}": escape_string(get_env_var(
+            "%{abi_libc_version}": escape_string(get_env_var(
                 repository_ctx,
-                "BAZEL_COMPILER",
-                _get_compiler_name(repository_ctx, cc),
+                "ABI_LIBC_VERSION",
+                "local",
                 False,
             )),
             "%{abi_version}": escape_string(get_env_var(
@@ -634,40 +624,14 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overriden_tools):
                 "local",
                 False,
             )),
-            "%{abi_libc_version}": escape_string(get_env_var(
-                repository_ctx,
-                "ABI_LIBC_VERSION",
-                "local",
-                False,
+            "%{cc_compiler_deps}": get_starlark_list([
+                ":builtin_include_directory_paths",
+                ":cc_wrapper",
+                ":deps_scanner_wrapper",
+            ] + (
+                [":validate_static_library"] if "validate_static_library" in tool_paths else []
             )),
-            "%{host_system_name}": escape_string(get_env_var(
-                repository_ctx,
-                "BAZEL_HOST_SYSTEM",
-                "local",
-                False,
-            )),
-            "%{target_libc}": "macosx" if darwin else escape_string(get_env_var(
-                repository_ctx,
-                "BAZEL_TARGET_LIBC",
-                "local",
-                False,
-            )),
-            "%{target_cpu}": escape_string(get_env_var(
-                repository_ctx,
-                "BAZEL_TARGET_CPU",
-                cpu_value,
-                False,
-            )),
-            "%{target_system_name}": escape_string(get_env_var(
-                repository_ctx,
-                "BAZEL_TARGET_SYSTEM",
-                "local",
-                False,
-            )),
-            "%{tool_paths}": ",\n        ".join(
-                ['"%s": "%s"' % (k, v) for k, v in tool_paths.items() if v != None],
-            ),
-            "%{cxx_builtin_include_directories}": get_starlark_list(builtin_include_directories),
+            "%{cc_toolchain_identifier}": cc_toolchain_identifier,
             "%{compile_flags}": get_starlark_list(
                 [
                     "-fstack-protector",
@@ -690,8 +654,25 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overriden_tools):
                     "-fno-omit-frame-pointer",
                 ],
             ),
-            "%{cxx_flags}": get_starlark_list(cxx_opts + _escaped_cplus_include_paths(repository_ctx)),
+            "%{compiler}": escape_string(get_env_var(
+                repository_ctx,
+                "BAZEL_COMPILER",
+                _get_compiler_name(repository_ctx, cc),
+                False,
+            )),
             "%{conly_flags}": get_starlark_list(conly_opts),
+            "%{coverage_compile_flags}": coverage_compile_flags,
+            "%{coverage_link_flags}": coverage_link_flags,
+            "%{cxx_builtin_include_directories}": get_starlark_list(builtin_include_directories),
+            "%{cxx_flags}": get_starlark_list(cxx_opts + _escaped_cplus_include_paths(repository_ctx)),
+            "%{dbg_compile_flags}": get_starlark_list(["-g"]),
+            "%{extra_flags_per_feature}": repr(extra_flags_per_feature),
+            "%{host_system_name}": escape_string(get_env_var(
+                repository_ctx,
+                "BAZEL_HOST_SYSTEM",
+                "local",
+                False,
+            )),
             "%{link_flags}": get_starlark_list(force_linker_flags + (
                 ["-Wl,-no-as-needed"] if is_as_needed_supported else []
             ) + _add_linker_option_if_supported(
@@ -715,6 +696,8 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overriden_tools):
                 )
             ) + link_opts),
             "%{link_libs}": get_starlark_list(link_libs),
+            "%{modulemap}": ("\":module.modulemap\"" if generate_modulemap else "None"),
+            "%{name}": cpu_value,
             "%{opt_compile_flags}": get_starlark_list(
                 [
                     # No debug symbols.
@@ -750,6 +733,28 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overriden_tools):
                     "-gc-sections",
                 ),
             ),
+            "%{supports_start_end_lib}": "True" if gold_or_lld_linker_path else "False",
+            "%{target_cpu}": escape_string(get_env_var(
+                repository_ctx,
+                "BAZEL_TARGET_CPU",
+                cpu_value,
+                False,
+            )),
+            "%{target_libc}": "macosx" if darwin else escape_string(get_env_var(
+                repository_ctx,
+                "BAZEL_TARGET_LIBC",
+                "local",
+                False,
+            )),
+            "%{target_system_name}": escape_string(get_env_var(
+                repository_ctx,
+                "BAZEL_TARGET_SYSTEM",
+                "local",
+                False,
+            )),
+            "%{tool_paths}": ",\n        ".join(
+                ['"%s": "%s"' % (k, v) for k, v in tool_paths.items() if v != None],
+            ),
             "%{unfiltered_compile_flags}": get_starlark_list(
                 _get_no_canonical_prefixes_opt(repository_ctx, cc) + [
                     # Make C++ compilation deterministic. Use linkstamping instead of these
@@ -760,10 +765,5 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overriden_tools):
                     "-D__TIME__=\\\"redacted\\\"",
                 ],
             ),
-            "%{dbg_compile_flags}": get_starlark_list(["-g"]),
-            "%{coverage_compile_flags}": coverage_compile_flags,
-            "%{coverage_link_flags}": coverage_link_flags,
-            "%{supports_start_end_lib}": "True" if gold_or_lld_linker_path else "False",
-            "%{extra_flags_per_feature}": repr(extra_flags_per_feature),
         },
     )

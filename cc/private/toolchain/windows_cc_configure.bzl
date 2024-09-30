@@ -25,8 +25,8 @@ load(
     "write_builtin_include_directory_paths",
 )
 
-_targets_archs = {"x64": "amd64", "x86": "amd64_x86", "arm": "amd64_arm", "arm64": "amd64_arm64"}
-_targets_lib_folder = {"x86": "", "arm": "arm", "arm64": "arm64"}
+_targets_archs = {"arm": "amd64_arm", "arm64": "amd64_arm64", "x64": "amd64", "x86": "amd64_x86"}
+_targets_lib_folder = {"arm": "arm", "arm64": "arm64", "x86": ""}
 
 def _lookup_env_var(env, name, default = None):
     """Lookup environment variable case-insensitve.
@@ -487,10 +487,10 @@ def _find_missing_vc_tools(repository_ctx, vc_path, target_arch = "x64"):
 def _get_target_tools(target):
     """Return a list of required tools names and their filenames for a certain target."""
     tools = {
-        "x64": {"CL": "cl.exe", "LINK": "link.exe", "LIB": "lib.exe", "DUMPBIN": "dumpbin.exe", "ML": "ml64.exe"},
-        "x86": {"CL": "cl.exe", "LINK": "link.exe", "LIB": "lib.exe", "DUMPBIN": "dumpbin.exe", "ML": "ml.exe"},
-        "arm": {"CL": "cl.exe", "LINK": "link.exe", "LIB": "lib.exe", "DUMPBIN": "dumpbin.exe"},
-        "arm64": {"CL": "cl.exe", "LINK": "link.exe", "LIB": "lib.exe", "DUMPBIN": "dumpbin.exe"},
+        "arm": {"CL": "cl.exe", "DUMPBIN": "dumpbin.exe", "LIB": "lib.exe", "LINK": "link.exe"},
+        "arm64": {"CL": "cl.exe", "DUMPBIN": "dumpbin.exe", "LIB": "lib.exe", "LINK": "link.exe"},
+        "x64": {"CL": "cl.exe", "DUMPBIN": "dumpbin.exe", "LIB": "lib.exe", "LINK": "link.exe", "ML": "ml64.exe"},
+        "x86": {"CL": "cl.exe", "DUMPBIN": "dumpbin.exe", "LIB": "lib.exe", "LINK": "link.exe", "ML": "ml.exe"},
     }
     if tools.get(target) == None:
         auto_configure_fail("Target architecture %s is not recognized" % target)
@@ -640,10 +640,10 @@ def _get_msys_mingw_vars(repository_ctx):
     msys_mingw_vars = {
         "%{cxx_builtin_include_directories}": inc_dir_msys,
         "%{mingw_cxx_builtin_include_directories}": inc_dir_mingw,
-        "%{tool_paths}": tool_paths,
+        "%{mingw_tool_bin_path}": tool_bin_path_mingw,
         "%{mingw_tool_paths}": tool_paths_mingw,
         "%{tool_bin_path}": tool_bin_path,
-        "%{mingw_tool_bin_path}": tool_bin_path_mingw,
+        "%{tool_paths}": tool_paths,
     }
     return msys_mingw_vars
 
