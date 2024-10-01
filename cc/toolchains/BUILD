@@ -13,11 +13,6 @@
 # limitations under the License.
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
-load("@bazel_skylib//rules:expand_template.bzl", "expand_template")
-load("@stardoc//stardoc:stardoc.bzl", "stardoc")
-load("//cc/toolchains/impl:documented_api.bzl", "DOCUMENTED_TOOLCHAIN_RULES")
-load("//cc/toolchains/impl:markdown_helpers.bzl", "xref_substitutions")
 
 bzl_library(
     name = "toolchain_rules",
@@ -41,36 +36,4 @@ filegroup(
         "**/BUILD",
     ]),
     visibility = ["//visibility:public"],
-)
-
-stardoc(
-    name = "toolchain_api",
-    out = "raw_generated_toolchain_api.md",
-    input = "//cc/toolchains/impl:documented_api.bzl",
-    deps = [":toolchain_rules"],
-)
-
-expand_template(
-    name = "toolchain_api_md",
-    out = "generated_toolchain_api.md",
-    # Dictionary order 100% matters here!
-    # buildifier: disable=unsorted-dict-items
-    substitutions = {
-        # Strip @rules_cc to prevent instances of @rules_cc@rules_cc//cc.
-        "@rules_cc//cc": "//cc",
-        # In GitHub, we prefer to clarify all the labels that come from
-        # rules_cc.
-        "//cc": "@rules_cc//cc",
-    } | xref_substitutions({
-        "`{}`".format(rule_name): "#{}".format(rule_name)
-        for rule_name in DOCUMENTED_TOOLCHAIN_RULES
-    }),
-    # buildifier: enable=unsorted-dict-items
-    template = ":raw_generated_toolchain_api.md",
-)
-
-diff_test(
-    name = "toolchain_api_diff_test",
-    file1 = ":generated_toolchain_api.md",
-    file2 = ":toolchain_api.md",
 )
