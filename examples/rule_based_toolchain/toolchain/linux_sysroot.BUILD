@@ -18,6 +18,8 @@ load("@rules_cc//cc/toolchains/args:sysroot.bzl", "cc_sysroot")
 
 package(default_visibility = ["//visibility:public"])
 
+licenses(["notice"])
+
 cc_sysroot(
     name = "sysroot",
     data = [

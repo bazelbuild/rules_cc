@@ -14,6 +14,10 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_test")
 
+package(default_visibility = ["//visibility:public"])
+
+licenses(["notice"])
+
 cc_test(
     name = "quick_test",
     srcs = ["quick_test.cc"],

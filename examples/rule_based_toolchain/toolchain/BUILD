@@ -15,6 +15,10 @@
 load("@rules_cc//cc/toolchains:args.bzl", "cc_args")
 load("@rules_cc//cc/toolchains:toolchain.bzl", "cc_toolchain")
 
+package(default_visibility = ["//visibility:public"])
+
+licenses(["notice"])
+
 # For now, each toolchain is only declared to be compatible
 # when exec_platform == target_platform.
 PLATFORMS = {
