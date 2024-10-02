@@ -1,5 +1,2 @@
 # Do not use the default toolchain.
 build --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=0
-
-# Enable rule-based toolchains.
-build --@rules_cc//cc/toolchains:experimental_enable_rule_based_toolchains=True
