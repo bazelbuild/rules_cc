@@ -81,14 +81,11 @@ cc_tool(
         "@platforms//os:windows": "//:bin/clang.exe",
         "//conditions:default": "//:bin/clang",
     }),
-    allowlist_include_directories = [
-        ":lib-clang-include",
-    ],
     data = glob([
         "bin/llvm",
-        "include/**",
-        "lib/clang/**/include/**",
-    ]),
+    ]) + [
+        ":lib-clang-include",
+    ],
 )
 
 cc_tool(
@@ -97,16 +94,13 @@ cc_tool(
         "@platforms//os:windows": "//:bin/clang++.exe",
         "//conditions:default": "//:bin/clang++",
     }),
-    allowlist_include_directories = [
+    data = glob([
+        "bin/llvm",
+    ]) + [
         ":include-x86_64-unknown-linux-gnu-c++-v1",
         ":include-c++-v1",
         ":lib-clang-include",
     ],
-    data = glob([
-        "bin/llvm",
-        "include/**",
-        "lib/clang/**/include/**",
-    ]),
 )
 
 cc_tool(

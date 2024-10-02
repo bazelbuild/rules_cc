@@ -20,11 +20,11 @@ package(default_visibility = ["//visibility:public"])
 
 cc_sysroot(
     name = "sysroot",
-    allowlist_include_directories = [
+    data = [
+        ":root",
         ":usr-include-x86_64-linux-gnu",
         ":usr-include",
     ],
-    data = [":root"],
     sysroot = ":root",
 )
 
