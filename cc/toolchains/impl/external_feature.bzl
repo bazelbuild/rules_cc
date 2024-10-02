@@ -69,5 +69,26 @@ cc_external_feature = rule(
         ),
     },
     provides = [FeatureInfo, FeatureSetInfo, FeatureConstraintInfo],
-    doc = "A declaration that a feature with this name is defined elsewhere.",
+    doc = """A declaration that a [feature](https://bazel.build/docs/cc-toolchain-config-reference#features) with this name is defined elsewhere.
+
+This rule communicates that a feature has been defined externally to make it possible to reference
+features that live outside the rule-based cc toolchain ecosystem. This allows various toolchain
+rules to reference the external feature without accidentally re-defining said feature.
+
+This rule is currently considered a private API of the toolchain rules to encourage the Bazel
+ecosystem to migrate to properly defining their features as rules.
+
+Example:
+```
+load("//cc/toolchains:external_feature.bzl", "cc_external_feature")
+
+# rules_rust defines a feature that is disabled whenever rust artifacts are being linked using
+# the cc toolchain to signal that incompatible flags should be disabled as well.
+cc_external_feature(
+    name = "rules_rust_unsupported_feature",
+    feature_name = "rules_rust_unsupported_feature",
+    overridable = False,
+)
+```
+""",
 )

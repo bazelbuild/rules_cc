@@ -134,6 +134,247 @@ cc_args_list(
 | <a id="cc_args_list-args"></a>args |  (ordered) cc_args to include in this list.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 
 
+<a id="cc_external_feature"></a>
+
+## cc_external_feature
+
+<pre>
+cc_external_feature(<a href="#cc_external_feature-name">name</a>, <a href="#cc_external_feature-feature_name">feature_name</a>, <a href="#cc_external_feature-overridable">overridable</a>)
+</pre>
+
+A declaration that a [feature](https://bazel.build/docs/cc-toolchain-config-reference#features) with this name is defined elsewhere.
+
+This rule communicates that a feature has been defined externally to make it possible to reference
+features that live outside the rule-based cc toolchain ecosystem. This allows various toolchain
+rules to reference the external feature without accidentally re-defining said feature.
+
+This rule is currently considered a private API of the toolchain rules to encourage the Bazel
+ecosystem to migrate to properly defining their features as rules.
+
+Example:
+```
+load("@rules_cc//cc/toolchains:external_feature.bzl", "cc_external_feature")
+
+# rules_rust defines a feature that is disabled whenever rust artifacts are being linked using
+# the cc toolchain to signal that incompatible flags should be disabled as well.
+cc_external_feature(
+    name = "rules_rust_unsupported_feature",
+    feature_name = "rules_rust_unsupported_feature",
+    overridable = False,
+)
+```
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="cc_external_feature-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="cc_external_feature-feature_name"></a>feature_name |  The name of the feature   | String | required |  |
+| <a id="cc_external_feature-overridable"></a>overridable |  Whether the feature can be overridden   | Boolean | required |  |
+
+
+<a id="cc_feature"></a>
+
+## cc_feature
+
+<pre>
+cc_feature(<a href="#cc_feature-name">name</a>, <a href="#cc_feature-args">args</a>, <a href="#cc_feature-feature_name">feature_name</a>, <a href="#cc_feature-implies">implies</a>, <a href="#cc_feature-mutually_exclusive">mutually_exclusive</a>, <a href="#cc_feature-overrides">overrides</a>, <a href="#cc_feature-requires_any_of">requires_any_of</a>)
+</pre>
+
+A dynamic set of toolchain flags that create a singular [feature](https://bazel.build/docs/cc-toolchain-config-reference#features) definition.
+
+A feature is basically a dynamically toggleable [`cc_args_list`](#cc_args_list). There are a variety of
+dependencies and compatibility requirements that must be satisfied to enable a
+[`cc_feature`](#cc_feature). Once those conditions are met, the arguments in [`cc_feature.args`](#cc_feature-args)
+are expanded and added to the command-line.
+
+A feature may be enabled or disabled through the following mechanisms:
+* Via command-line flags, or a `.bazelrc` file via the
+  [`--features` flag](https://bazel.build/reference/command-line-reference#flag--features)
+* Through inter-feature relationships (via [`cc_feature.implies`](#cc_feature-implies)) where one
+  feature may implicitly enable another.
+* Individual rules (e.g. `cc_library`) or `package` definitions may elect to manually enable or
+  disable features through the
+  [`features` attribute](https://bazel.build/reference/be/common-definitions#common.features).
+
+Note that a feature may alternate between enabled and disabled dynamically over the course of a
+build. Because of their toggleable nature, it's generally best to avoid adding arguments to a
+`cc_toolchain` as a [`cc_feature`](#cc_feature) unless strictly necessary. Instead, prefer to express arguments
+via [`cc_toolchain.args`](#cc_toolchain-args) whenever possible.
+
+You should use a [`cc_feature`](#cc_feature) when any of the following apply:
+* You need the flags to be dynamically toggled over the course of a build.
+* You want build files to be able to configure the flags in question. For example, a
+  binary might specify `features = ["optimize_for_size"]` to create a small
+  binary instead of optimizing for performance.
+* You need to carry forward Starlark toolchain behaviors. If you're migrating a
+  complex Starlark-based toolchain definition to these rules, many of the
+  workflows and flags were likely based on features.
+
+If you only need to configure flags via the Bazel command-line, instead
+consider adding a
+[`bool_flag`](https://github.com/bazelbuild/bazel-skylib/tree/main/doc/common_settings_doc.md#bool_flag)
+paired with a [`config_setting`](https://bazel.build/reference/be/general#config_setting)
+and then make your [`cc_args`](#cc_args) rule `select` on the `config_setting`.
+
+For more details about how Bazel handles features, see the official Bazel
+documentation at
+https://bazel.build/docs/cc-toolchain-config-reference#features.
+
+Example:
+```
+load("@rules_cc//cc/toolchains:feature.bzl", "cc_feature")
+
+# A feature that enables LTO, which may be incompatible when doing interop with various
+# languages (e.g. rust, go), or may need to be disabled for particular `cc_binary` rules
+# for various reasons.
+cc_feature(
+    name = "lto",
+    feature_name = "lto",
+    args = [":lto_args"],
+)
+```
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="cc_feature-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="cc_feature-args"></a>args |  A list of [`cc_args`](#cc_args) or [`cc_args_list`](#cc_args_list) labels that are expanded when this feature is enabled.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="cc_feature-feature_name"></a>feature_name |  The name of the feature that this rule implements.<br><br>The feature name is a string that will be used in the `features` attribute of rules to enable them (eg. `cc_binary(..., features = ["opt"])`.<br><br>While two features with the same `feature_name` may not be bound to the same toolchain, they can happily live alongside each other in the same BUILD file.<br><br>Example: <pre><code>cc_feature(&#10;    name = "sysroot_macos",&#10;    feature_name = "sysroot",&#10;    ...&#10;)&#10;&#10;cc_feature(&#10;    name = "sysroot_linux",&#10;    feature_name = "sysroot",&#10;    ...&#10;)</code></pre>   | String | optional |  `""`  |
+| <a id="cc_feature-implies"></a>implies |  List of features enabled along with this feature.<br><br>Warning: If any of the features cannot be enabled, this feature is silently disabled.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="cc_feature-mutually_exclusive"></a>mutually_exclusive |  A list of things that this feature is mutually exclusive with.<br><br>It can be either: * A feature, in which case the two features are mutually exclusive. * A [`cc_mutually_exclusive_category`](#cc_mutually_exclusive_category), in which case all features that write     `mutually_exclusive = [":category"]` are mutually exclusive with each other.<br><br>If this feature has a side-effect of implementing another feature, it can be useful to list that feature here to ensure they aren't enabled at the same time.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="cc_feature-overrides"></a>overrides |  A declaration that this feature overrides a known feature.<br><br>In the example below, if you missed the "overrides" attribute, it would complain that the feature "opt" was defined twice.<br><br>Example: <pre><code>load("@rules_cc//cc/toolchains:feature.bzl", "cc_feature")&#10;&#10;cc_feature(&#10;    name = "opt",&#10;    feature_name = "opt",&#10;    args = [":size_optimized"],&#10;    overrides = "@rules_cc//cc/toolchains/features:opt",&#10;)</code></pre>   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
+| <a id="cc_feature-requires_any_of"></a>requires_any_of |  A list of feature sets that define toolchain compatibility.<br><br>If *at least one* of the listed [`cc_feature_set`](#cc_feature_set)s are fully satisfied (all features exist in the toolchain AND are currently enabled), this feature is deemed compatible and may be enabled.<br><br>Note: Even if `cc_feature.requires_any_of` is satisfied, a feature is not enabled unless another mechanism (e.g. command-line flags, `cc_feature.implies`, `cc_toolchain_config.enabled_features`) signals that the feature should actually be enabled.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+
+
+<a id="cc_feature_constraint"></a>
+
+## cc_feature_constraint
+
+<pre>
+cc_feature_constraint(<a href="#cc_feature_constraint-name">name</a>, <a href="#cc_feature_constraint-all_of">all_of</a>, <a href="#cc_feature_constraint-none_of">none_of</a>)
+</pre>
+
+Defines a compound relationship between features.
+
+This rule can be used with [`cc_args.require_any_of`](#cc_args-require_any_of) to specify that a set
+of arguments are only enabled when a constraint is met. Both `all_of` and `none_of` must be
+satisfied simultaneously.
+
+This is basically a [`cc_feature_set`](#cc_feature_set) that supports `none_of` expressions. This extra flexibility
+is why this rule may only be used by [`cc_args.require_any_of`](#cc_args-require_any_of).
+
+Example:
+```
+load("@rules_cc//cc/toolchains:feature_constraint.bzl", "cc_feature_constraint")
+
+# A constraint that requires a `linker_supports_thinlto` feature to be enabled,
+# AND a `no_optimization` to be disabled.
+cc_feature_constraint(
+    name = "thinlto_constraint",
+    all_of = [":linker_supports_thinlto"],
+    none_of = [":no_optimization"],
+)
+```
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="cc_feature_constraint-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="cc_feature_constraint-all_of"></a>all_of |  -   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="cc_feature_constraint-none_of"></a>none_of |  -   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+
+
+<a id="cc_feature_set"></a>
+
+## cc_feature_set
+
+<pre>
+cc_feature_set(<a href="#cc_feature_set-name">name</a>, <a href="#cc_feature_set-all_of">all_of</a>)
+</pre>
+
+Defines a set of features.
+
+This may be used by both [`cc_feature`](#cc_feature) and [`cc_args`](#cc_args) rules, and is effectively a way to express
+a logical `AND` operation across multiple requred features.
+
+Example:
+```
+load("@rules_cc//cc/toolchains:feature_set.bzl", "cc_feature_set")
+
+cc_feature_set(
+    name = "thin_lto_requirements",
+    all_of = [
+        ":thin_lto",
+        ":opt",
+    ],
+)
+```
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="cc_feature_set-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="cc_feature_set-all_of"></a>all_of |  A set of features   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+
+
+<a id="cc_mutually_exclusive_category"></a>
+
+## cc_mutually_exclusive_category
+
+<pre>
+cc_mutually_exclusive_category(<a href="#cc_mutually_exclusive_category-name">name</a>)
+</pre>
+
+A rule used to categorize [`cc_feature`](#cc_feature) definitions for which only one can be enabled.
+
+This is used by [`cc_feature.mutually_exclusive`](#cc_feature-mutually_exclusive) to express groups
+of [`cc_feature`](#cc_feature) definitions that are inherently incompatible with each other and must be treated as
+mutually exclusive.
+
+Warning: These groups are keyed by name, so two [`cc_mutually_exclusive_category`](#cc_mutually_exclusive_category) definitions of the
+same name in different packages will resolve to the same logical group.
+
+Example:
+```
+load("@rules_cc//cc/toolchains:feature.bzl", "cc_feature")
+load("@rules_cc//cc/toolchains:mutually_exclusive_category.bzl", "cc_mutually_exclusive_category")
+
+cc_mutually_exclusive_category(
+    name = "opt_level",
+)
+
+cc_feature(
+    name = "speed_optimized",
+    mutually_exclusive = [":opt_level"],
+)
+
+cc_feature(
+    name = "size_optimized",
+    mutually_exclusive = [":opt_level"],
+)
+
+cc_feature(
+    name = "unoptimized",
+    mutually_exclusive = [":opt_level"],
+)
+```
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="cc_mutually_exclusive_category-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+
+
 <a id="cc_tool"></a>
 
 ## cc_tool
@@ -195,7 +436,7 @@ argument expressed in a toolchain tool invocation (e.g. `gcc`, `llvm-ar`) is dec
 [`cc_args`](#cc_args) rule that applies an ordered list of arguments to a set of toolchain
 actions. [`cc_args`](#cc_args) rules can be added unconditionally to a
 `cc_toolchain`, conditionally via `select()` statements, or dynamically via an
-intermediate `cc_feature`.
+intermediate [`cc_feature`](#cc_feature).
 
 Conceptually, this is similar to the old `CFLAGS`, `CPPFLAGS`, etc. environment variables that
 many build systems use to determine which flags to use for a given action. The significant
