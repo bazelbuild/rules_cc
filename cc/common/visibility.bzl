@@ -1,3 +1,3 @@
 """Bzl load visibility package specs"""
 
-INTERNAL_VISIBILITY = ["//cc/..."]
+INTERNAL_VISIBILITY = ["public"]

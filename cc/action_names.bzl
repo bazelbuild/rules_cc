@@ -88,6 +88,9 @@ OBJC_FULLY_LINK_ACTION_NAME = "objc-fully-link"
 # A string constant for the clif action.
 CLIF_MATCH_ACTION_NAME = "clif-match"
 
+# A string constant for the obj copy actions.
+OBJ_COPY_ACTION_NAME = "objcopy_embed_data"
+
 ACTION_NAMES = struct(
     c_compile = C_COMPILE_ACTION_NAME,
     cpp_compile = CPP_COMPILE_ACTION_NAME,
@@ -113,6 +116,7 @@ ACTION_NAMES = struct(
     objc_fully_link = OBJC_FULLY_LINK_ACTION_NAME,
     objcpp_compile = OBJCPP_COMPILE_ACTION_NAME,
     clif_match = CLIF_MATCH_ACTION_NAME,
+    objcopy_embed_data = OBJ_COPY_ACTION_NAME,
 )
 
 # Names of actions that parse or compile C++ code.

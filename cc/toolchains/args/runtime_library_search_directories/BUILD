@@ -32,14 +32,7 @@ cc_args_list(
 
 cc_args(
     name = "runtime_library_search_directories_static_runtimes_args",
-    actions = [
-        "//cc/toolchains/actions:cpp_link_executable",
-        "//cc/toolchains/actions:cpp_link_dynamic_library",
-        "//cc/toolchains/actions:cpp_link_nodeps_dynamic_library",
-        "//cc/toolchains/actions:lto_index_for_executable",
-        "//cc/toolchains/actions:lto_index_for_dynamic_library",
-        "//cc/toolchains/actions:lto_index_for_nodeps_dynamic_library",
-    ],
+    actions = ["//cc/toolchains/actions:link_actions"],
     nested = [":iterate_over_search_dirs"],
     requires_any_of = [":static_link_cpp_runtimes_enabled"],
     requires_not_none = "//cc/toolchains/variables:runtime_library_search_directories",
@@ -90,14 +83,7 @@ cc_nested_args(
 # longer required.
 cc_args(
     name = "runtime_library_search_directories_args",
-    actions = [
-        "//cc/toolchains/actions:cpp_link_executable",
-        "//cc/toolchains/actions:cpp_link_dynamic_library",
-        "//cc/toolchains/actions:cpp_link_nodeps_dynamic_library",
-        "//cc/toolchains/actions:lto_index_for_executable",
-        "//cc/toolchains/actions:lto_index_for_dynamic_library",
-        "//cc/toolchains/actions:lto_index_for_nodeps_dynamic_library",
-    ],
+    actions = ["//cc/toolchains/actions:link_actions"],
     nested = [":search_dir_args"],
     # Remove the requires_any_of here if the workaround for b/27153401 is no
     # longer required.

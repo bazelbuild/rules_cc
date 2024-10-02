@@ -16,7 +16,7 @@ cc_args_list(
 
 cc_args(
     name = "create_static_archive",
-    actions = ["//cc/toolchains/actions:cpp_link_static_library"],
+    actions = ["//cc/toolchains/actions:ar_actions"],
     args = select({
         "@platforms//os:macos": ["-static"],
         "//conditions:default": ["rcsD"],
@@ -25,7 +25,7 @@ cc_args(
 
 cc_args(
     name = "output_execpath",
-    actions = ["//cc/toolchains/actions:cpp_link_static_library"],
+    actions = ["//cc/toolchains/actions:ar_actions"],
     args = select({
         "@platforms//os:macos": ["-o"],
         "//conditions:default": [],
@@ -36,7 +36,7 @@ cc_args(
 
 cc_args(
     name = "libraries_to_link",
-    actions = ["//cc/toolchains/actions:cpp_link_static_library"],
+    actions = ["//cc/toolchains/actions:ar_actions"],
     nested = ["libraries_to_link_expansion"],
     requires_not_none = "//cc/toolchains/variables:libraries_to_link",
 )

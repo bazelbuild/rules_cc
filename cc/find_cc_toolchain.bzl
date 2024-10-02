@@ -29,7 +29,7 @@ to depend on and find a cc toolchain.
         attrs = {
             "_cc_toolchain": attr.label(
                 default = Label(
-                    "@rules_cc//cc:current_cc_toolchain", # copybara-use-repo-external-label
+                    "@rules_cc//cc:current_cc_toolchain",
                 ),
             ),
         },
@@ -53,7 +53,7 @@ https://github.com/bazelbuild/bazel/issues/7260 is flipped (and support for old
 Bazel version is not needed), it's enough to only keep the toolchain type.
 """
 
-CC_TOOLCHAIN_TYPE = "@bazel_tools//tools/cpp:toolchain_type"  # copybara-use-repo-external-label
+CC_TOOLCHAIN_TYPE = Label("@bazel_tools//tools/cpp:toolchain_type")
 
 def find_cc_toolchain(ctx, *, mandatory = True):
     """

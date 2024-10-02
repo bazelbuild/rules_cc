@@ -185,6 +185,13 @@ cc_action_type_set(
 )
 
 cc_action_type_set(
+    name = "c_compile_actions",
+    actions = [
+        ":c_compile",
+    ],
+)
+
+cc_action_type_set(
     name = "cpp_compile_actions",
     actions = [
         ":linkstamp_compile",
@@ -201,7 +208,7 @@ cc_action_type_set(
     name = "compile_actions",
     actions = [
         ":cpp_compile_actions",
-        ":c_compile",
+        ":c_compile_actions",
         ":assembly_actions",
     ],
 )

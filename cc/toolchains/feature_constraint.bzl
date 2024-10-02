@@ -47,8 +47,26 @@ cc_feature_constraint = rule(
         ),
     },
     provides = [FeatureConstraintInfo],
-    doc = """Defines a constraint on features.
+    doc = """Defines a compound relationship between features.
 
-Can be used with require_any_of to specify that something is only enabled when
-a constraint is met.""",
+This rule can be used with [`cc_args.require_any_of`](#cc_args-require_any_of) to specify that a set
+of arguments are only enabled when a constraint is met. Both `all_of` and `none_of` must be
+satisfied simultaneously.
+
+This is basically a `cc_feature_set` that supports `none_of` expressions. This extra flexibility
+is why this rule may only be used by [`cc_args.require_any_of`](#cc_args-require_any_of).
+
+Example:
+```
+load("//cc/toolchains:feature_constraint.bzl", "cc_feature_constraint")
+
+# A constraint that requires a `linker_supports_thinlto` feature to be enabled,
+# AND a `no_optimization` to be disabled.
+cc_feature_constraint(
+    name = "thinlto_constraint",
+    all_of = [":linker_supports_thinlto"],
+    none_of = [":no_optimization"],
+)
+```
+""",
 )

@@ -67,19 +67,32 @@ _cc_variable = rule(
 )
 
 def cc_variable(name, type, **kwargs):
-    """Defines a variable for both the specified variable, and all nested ones.
+    """Exposes a toolchain variable to use in toolchain argument expansions.
 
-    Eg. cc_variable(
-      name = "foo",
-      type = types.list(types.struct(bar = types.string))
+    This internal rule exposes [toolchain variables](https://bazel.build/docs/cc-toolchain-config-reference#cctoolchainconfiginfo-build-variables)
+    that may be expanded in `cc_args` or `cc_nested_args`
+    rules. Because these varaibles merely expose variables inherrent to Bazel,
+    it's not possible to declare custom variables.
+
+    For a full list of available variables, see
+    [//cc/toolchains/varaibles:BUILD](https://github.com/bazelbuild/rules_cc/tree/main/cc/toolchains/variables/BUILD).
+
+    Example:
+    ```
+    load("//cc/toolchains/impl:variables.bzl", "cc_variable")
+
+    # Defines two targets, ":foo" and ":foo.bar"
+    cc_variable(
+        name = "foo",
+        type = types.list(types.struct(bar = types.string)),
     )
-
-    would define two targets, ":foo" and ":foo.bar"
+    ```
 
     Args:
         name: (str) The name of the outer variable, and the rule.
-        type: The type of the variable, constructed using types above.
-        **kwargs: kwargs to pass to _cc_variable.
+        type: The type of the variable, constructed using `types` factory in
+            [//cc/toolchains/impl:variables.bzl](https://github.com/bazelbuild/rules_cc/tree/main/cc/toolchains/impl/variables.bzl).
+        **kwargs: [common attributes](https://bazel.build/reference/be/common-definitions#common-attributes) that should be applied to this rule.
     """
     _cc_variable(name = name, type = json.encode(type), **kwargs)
 

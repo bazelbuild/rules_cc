@@ -70,11 +70,12 @@ The tool may be a `cc_tool` or other executable rule.
 def cc_tool_map(name, tools, **kwargs):
     """A toolchain configuration rule that maps toolchain actions to tools.
 
-    A cc_tool_map aggregates all the tools that may be used for a given toolchain and maps them to
-    their corresponding actions. Conceptually, this is similar to the `CXX=/path/to/clang++`
-    environment variables that most build systems use to determine which tools to use for a given
-    action. To simplify usage, some actions have been grouped together (for example,
-    //cc/toolchains/actions:cpp_compile_actions) to
+    A `cc_tool_map` aggregates all the tools that may be used for a given toolchain
+    and maps them to their corresponding actions. Conceptually, this is similar to the
+    `CXX=/path/to/clang++` environment variables that most build systems use to determine which
+    tools to use for a given action. To simplify usage, some actions have been grouped together (for
+    example,
+    [//cc/toolchains/actions:cpp_compile_actions](https://github.com/bazelbuild/rules_cc/tree/main/cc/toolchains/actions/BUILD)) to
     logically express "all the C++ compile actions".
 
     In Bazel, there is a little more granularity to the mapping, so the mapping doesn't follow the
@@ -106,7 +107,8 @@ def cc_tool_map(name, tools, **kwargs):
 
     Args:
         name: (str) The name of the target.
-        tools: (Dict[target providing ActionTypeSetInfo, Executable target]) A mapping between `cc_action_type` targets
+        tools: (Dict[Label, Label]) A mapping between
+            `cc_action_type`/`cc_action_type_set` targets
             and the `cc_tool` or executable target that implements that action.
         **kwargs: [common attributes](https://bazel.build/reference/be/common-definitions#common-attributes) that should be applied to this rule.
     """

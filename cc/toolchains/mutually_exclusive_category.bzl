@@ -23,7 +23,40 @@ def _cc_mutually_exclusive_category_impl(ctx):
 
 cc_mutually_exclusive_category = rule(
     implementation = _cc_mutually_exclusive_category_impl,
-    doc = "A category of features, for which only one can be enabled",
+    doc = """A rule used to categorize `cc_feature` definitions for which only one can be enabled.
+
+This is used by [`cc_feature.mutually_exclusive`](#cc_feature-mutually_exclusive) to express groups
+of `cc_feature` definitions that are inherently incompatible with each other and must be treated as
+mutually exclusive.
+
+Warning: These groups are keyed by name, so two `cc_mutually_exclusive_category` definitions of the
+same name in different packages will resolve to the same logical group.
+
+Example:
+```
+load("//cc/toolchains:feature.bzl", "cc_feature")
+load("//cc/toolchains:mutually_exclusive_category.bzl", "cc_mutually_exclusive_category")
+
+cc_mutually_exclusive_category(
+    name = "opt_level",
+)
+
+cc_feature(
+    name = "speed_optimized",
+    mutually_exclusive = [":opt_level"],
+)
+
+cc_feature(
+    name = "size_optimized",
+    mutually_exclusive = [":opt_level"],
+)
+
+cc_feature(
+    name = "unoptimized",
+    mutually_exclusive = [":opt_level"],
+)
+```
+""",
     attrs = {},
     provides = [MutuallyExclusiveCategoryInfo],
 )

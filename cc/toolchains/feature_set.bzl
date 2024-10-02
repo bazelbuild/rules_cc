@@ -44,14 +44,20 @@ cc_feature_set = rule(
     provides = [FeatureSetInfo],
     doc = """Defines a set of features.
 
-Example:
+This may be used by both `cc_feature` and `cc_args` rules, and is effectively a way to express
+a logical `AND` operation across multiple requred features.
 
-    cc_feature_set(
-        name = "thin_lto_requirements",
-        all_of = [
-            ":thin_lto",
-            ":opt",
-        ],
-    )
+Example:
+```
+load("//cc/toolchains:feature_set.bzl", "cc_feature_set")
+
+cc_feature_set(
+    name = "thin_lto_requirements",
+    all_of = [
+        ":thin_lto",
+        ":opt",
+    ],
+)
+```
 """,
 )

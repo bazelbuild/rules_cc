@@ -110,22 +110,23 @@ While two features with the same `feature_name` may not be bound to the same
 toolchain, they can happily live alongside each other in the same BUILD file.
 
 Example:
+```
+cc_feature(
+    name = "sysroot_macos",
+    feature_name = "sysroot",
+    ...
+)
 
-    cc_feature(
-        name = "sysroot_macos",
-        feature_name = "sysroot",
-        ...
-    )
-
-    cc_feature(
-        name = "sysroot_linux",
-        feature_name = "sysroot",
-        ...
-    )
+cc_feature(
+    name = "sysroot_linux",
+    feature_name = "sysroot",
+    ...
+)
+```
 """,
         ),
         "args": attr.label_list(
-            doc = """Args that, when expanded, implement this feature.""",
+            doc = """A list of `cc_args` or `cc_args_list` labels that are expanded when this feature is enabled.""",
             providers = [ArgsListInfo],
         ),
         "requires_any_of": attr.label_list(
@@ -152,7 +153,7 @@ silently disabled.
         ),
         "mutually_exclusive": attr.label_list(
             providers = [MutuallyExclusiveCategoryInfo],
-            doc = """A list of things that this is mutually exclusive with.
+            doc = """A list of things that this feature is mutually exclusive with.
 
 It can be either:
 * A feature, in which case the two features are mutually exclusive.
@@ -171,14 +172,16 @@ In the example below, if you missed the "overrides" attribute, it would complain
 that the feature "opt" was defined twice.
 
 Example:
+```
+load("//cc/toolchains:feature.bzl", "cc_feature")
 
-    cc_feature(
-      name = "opt",
-      feature_name = "opt",
-      ...
-      overrides = "@toolchain//features/well_known:opt",
-    )
-
+cc_feature(
+    name = "opt",
+    feature_name = "opt",
+    args = [":size_optimized"],
+    overrides = "//cc/toolchains/features:opt",
+)
+```
 """,
         ),
     },
@@ -188,53 +191,58 @@ Example:
         FeatureConstraintInfo,
         MutuallyExclusiveCategoryInfo,
     ],
-    doc = """Defines the implemented behavior of a C/C++ toolchain feature.
+    doc = """A dynamic set of toolchain flags that create a singular [feature](https://bazel.build/docs/cc-toolchain-config-reference#features) definition.
 
-A feature is basically a toggleable list of args. There are a variety of
-dependencies and compatibility requirements that must be satisfied for the
-listed args to be applied.
+A feature is basically a dynamically toggleable `cc_args_list`. There are a variety of
+dependencies and compatibility requirements that must be satisfied to enable a
+`cc_feature`. Once those conditions are met, the arguments in [`cc_feature.args`](#cc_feature-args)
+are expanded and added to the command-line.
 
 A feature may be enabled or disabled through the following mechanisms:
-* Via command-line flags, or a `.bazelrc`.
-* Through inter-feature relationships (enabling one feature may implicitly
-  enable another).
-* Individual rules may elect to manually enable or disable features through the
-  builtin `features` attribute.
+* Via command-line flags, or a `.bazelrc` file via the
+  [`--features` flag](https://bazel.build/reference/command-line-reference#flag--features)
+* Through inter-feature relationships (via [`cc_feature.implies`](#cc_feature-implies)) where one
+  feature may implicitly enable another.
+* Individual rules (e.g. `cc_library`) or `package` definitions may elect to manually enable or
+  disable features through the
+  [`features` attribute](https://bazel.build/reference/be/common-definitions#common.features).
 
-Because of the toggleable nature of toolchain features, it's generally best to
-avoid defining features as part of your toolchain with the following exceptions:
-* You want build files to be able to configure compiler flags. For example, a
+Note that a feature may alternate between enabled and disabled dynamically over the course of a
+build. Because of their toggleable nature, it's generally best to avoid adding arguments to a
+`cc_toolchain` as a `cc_feature` unless strictly necessary. Instead, prefer to express arguments
+via [`cc_toolchain.args`](#cc_toolchain-args) whenever possible.
+
+You should use a `cc_feature` when any of the following apply:
+* You need the flags to be dynamically toggled over the course of a build.
+* You want build files to be able to configure the flags in question. For example, a
   binary might specify `features = ["optimize_for_size"]` to create a small
   binary instead of optimizing for performance.
 * You need to carry forward Starlark toolchain behaviors. If you're migrating a
   complex Starlark-based toolchain definition to these rules, many of the
-  workflows and flags were likely based on features. This rule exists to support
-  those existing structures.
+  workflows and flags were likely based on features.
 
-If you want to be able to configure flags via the bazel command-line, instead
-consider making a bool_flag, and then making your `cc_args` `select` on those
-flags.
+If you only need to configure flags via the Bazel command-line, instead
+consider adding a
+[`bool_flag`](https://github.com/bazelbuild/bazel-skylib/tree/main/doc/common_settings_doc.md#bool_flag)
+paired with a [`config_setting`](https://bazel.build/reference/be/general#config_setting)
+and then make your `cc_args` rule `select` on the `config_setting`.
 
 For more details about how Bazel handles features, see the official Bazel
 documentation at
 https://bazel.build/docs/cc-toolchain-config-reference#features.
 
-Examples:
+Example:
+```
+load("//cc/toolchains:feature.bzl", "cc_feature")
 
-    # A feature that can be easily toggled to optimize for size
-    cc_feature(
-        name = "optimize_for_size",
-        feature_name = "optimize_for_size",
-        args = [":optimize_for_size_args"],
-    )
-
-    # This feature signals a capability, and doesn't have associated flags.
-    #
-    # For a list of well-known features, see:
-    #    https://bazel.build/docs/cc-toolchain-config-reference#wellknown-features
-    cc_feature(
-        name = "supports_pic",
-        overrides = "//cc/toolchains/features:supports_pic
-    )
+# A feature that enables LTO, which may be incompatible when doing interop with various
+# languages (e.g. rust, go), or may need to be disabled for particular `cc_binary` rules
+# for various reasons.
+cc_feature(
+    name = "lto",
+    feature_name = "lto",
+    args = [":lto_args"],
+)
+```
 """,
 )

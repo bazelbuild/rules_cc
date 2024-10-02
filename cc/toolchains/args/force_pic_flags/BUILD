@@ -4,10 +4,7 @@ package(default_visibility = ["//visibility:private"])
 
 cc_args(
     name = "force_pic_flags",
-    actions = [
-        "//cc/toolchains/actions:cpp_link_executable",
-        "//cc/toolchains/actions:lto_index_for_executable",
-    ],
+    actions = ["//cc/toolchains/actions:link_executable_actions"],
     args = select({
         "@platforms//os:macos": ["-Wl,-pie"],
         "//conditions:default": ["-pie"],

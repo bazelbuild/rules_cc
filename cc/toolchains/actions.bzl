@@ -37,14 +37,26 @@ cc_action_type = rule(
     },
     doc = """A type of action (eg. c_compile, assemble, strip).
 
-Example:
+`cc_action_type` rules are used to associate arguments and tools together to
+perform a specific action. Bazel prescribes a set of known action types that are used to drive
+typical C/C++/ObjC actions like compiling, linking, and archiving. The set of well-known action
+types can be found in [//cc/toolchains/actions:BUILD](https://github.com/bazelbuild/rules_cc/tree/main/cc/toolchains/actions/BUILD).
 
-load("@rules_cc//cc:action_names.bzl", "ACTION_NAMES")
+It's possible to create project-specific action types for use in toolchains. Be careful when
+doing this, because every toolchain that encounters the action will need to be configured to
+support the custom action type. If your project is a library, avoid creating new action types as
+it will reduce compatibility with existing toolchains and increase setup complexity for users.
+
+Example:
+```
+load("//cc:action_names.bzl", "ACTION_NAMES")
+load("//cc/toolchains:actions.bzl", "cc_action_type")
 
 cc_action_type(
-  name = "cpp_compile",
-  action_name =  = ACTION_NAMES.cpp_compile,
+    name = "cpp_compile",
+    action_name =  = ACTION_NAMES.cpp_compile,
 )
+```
 """,
     provides = [ActionTypeInfo, ActionTypeSetInfo],
 )
@@ -60,15 +72,21 @@ def _cc_action_type_set_impl(ctx):
 cc_action_type_set = rule(
     doc = """Represents a set of actions.
 
+This is a convenience rule to allow for more compact representation of a group of action types.
+Use this anywhere a `cc_action_type` is accepted.
+
 Example:
+```
+load("//cc/toolchains:actions.bzl", "cc_action_type_set")
 
 cc_action_type_set(
     name = "link_executable_actions",
     actions = [
-        ":cpp_link_executable",
-        ":lto_index_for_executable",
+        "//cc/toolchains/actions:cpp_link_executable",
+        "//cc/toolchains/actions:lto_index_for_executable",
     ],
 )
+```
 """,
     implementation = _cc_action_type_set_impl,
     attrs = {
