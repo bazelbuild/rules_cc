@@ -1533,7 +1533,7 @@ func TestFeatureDeclaration(t *testing.T) {
 
 func TestRule(t *testing.T) {
 	simpleToolchain := getSimpleCToolchain("simple")
-	expected := `load("@bazel_tools//tools/cpp:cc_toolchain_config_lib.bzl",
+	expected := `load("@rules_cc//cc:cc_toolchain_config_lib.bzl",
     "action_config",
     "artifact_name_pattern",
     "env_entry",
@@ -1548,7 +1548,7 @@ func TestRule(t *testing.T) {
     "variable_with_value",
     "with_feature_set",
 )
-load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
+load("@rules_cc//cc:action_names.bzl", "ACTION_NAMES")
 
 def _impl(ctx):
     toolchain_identifier = "id-simple"

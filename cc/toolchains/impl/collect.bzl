@@ -107,6 +107,7 @@ def collect_tools(ctx, targets, fail = fail):
                 runfiles = collect_data(ctx, [target]),
                 execution_requirements = tuple(),
                 allowlist_include_directories = depset(),
+                capabilities = tuple(),
             ))
         else:
             fail("Expected %s to be a cc_tool or a binary rule" % target.label)

@@ -1,4 +1,5 @@
-# Copyright 2018 The Bazel Authors. All rights reserved.
+#!/bin/bash
+# Copyright 2020 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,13 +12,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Module extension for cc auto configuration."""
 
-load("//cc/private/toolchain:cc_configure.bzl", "cc_autoconf", "cc_autoconf_toolchains")
+set -eu
 
-def _cc_configure_extension_impl(ctx):
-    cc_autoconf_toolchains(name = "local_config_cc_toolchains")
-    cc_autoconf(name = "local_config_cc")
-    return ctx.extension_metadata(reproducible = True)
+echo 'module "crosstool" [system] {'
 
-cc_configure_extension = module_extension(implementation = _cc_configure_extension_impl)
+if [[ "$OSTYPE" == darwin* ]]; then
+  for dir in $@; do
+    find "$dir" -type f \( -name "*.h" -o -name "*.def" -o -path "*/c++/*" \) \
+      | LANG=C sort -u | while read -r header; do
+        echo "  textual header \"${header}\""
+      done
+  done
+else
+  for dir in $@; do
+    find -L "${dir}" -type f 2>/dev/null | LANG=C sort -u | while read -r header; do
+      echo "  textual header \"${header}\""
+    done
+  done
+fi
+
+echo "}"

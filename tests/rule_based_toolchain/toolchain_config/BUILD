@@ -47,6 +47,7 @@ cc_tool(
     name = "c_compile_tool",
     src = "//tests/rule_based_toolchain/testdata:bin_wrapper",
     allowlist_include_directories = ["//tests/rule_based_toolchain/testdata:subdirectory_3"],
+    capabilities = ["//cc/toolchains/capabilities:supports_pic"],
 )
 
 cc_sysroot(

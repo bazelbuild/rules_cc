@@ -208,6 +208,10 @@ def _toolchain_collects_files_test(env, targets):
             )],
         ),
         legacy_feature(
+            name = "supports_pic",
+            enabled = False,
+        ),
+        legacy_feature(
             name = "implied_by_always_enabled",
             enabled = True,
             flag_sets = [
@@ -252,6 +256,7 @@ def _toolchain_collects_files_test(env, targets):
             action_name = "c_compile",
             enabled = True,
             tools = [legacy_tool(tool = exe)],
+            implies = ["supports_pic"],
         ),
         legacy_action_config(
             action_name = "cpp_compile",

@@ -131,16 +131,30 @@ def convert_tool(tool):
         with_features = [],
     )
 
+def convert_capability(capability):
+    return legacy_feature(
+        name = capability.name,
+        enabled = False,
+    )
+
 def _convert_tool_map(tool_map):
-    return [
-        legacy_action_config(
+    action_configs = []
+    caps = {}
+    for action_type, tool in tool_map.configs.items():
+        action_configs.append(legacy_action_config(
             action_name = action_type.name,
             enabled = True,
-            tools = [convert_tool(tool_map.configs[action_type])],
-            implies = [],
-        )
-        for action_type in tool_map.configs.keys()
+            tools = [convert_tool(tool)],
+            implies = [cap.feature.name for cap in tool.capabilities],
+        ))
+        for cap in tool.capabilities:
+            caps[cap] = None
+
+    cap_features = [
+        legacy_feature(name = cap.feature.name, enabled = False)
+        for cap in caps
     ]
+    return action_configs, cap_features
 
 def convert_toolchain(toolchain):
     """Converts a rule-based toolchain into the legacy providers.
@@ -155,6 +169,8 @@ def convert_toolchain(toolchain):
         convert_feature(feature, enabled = feature in toolchain.enabled_features)
         for feature in toolchain.features
     ]
+    action_configs, cap_features = _convert_tool_map(toolchain.tool_map)
+    features.extend(cap_features)
     features.append(convert_feature(FeatureInfo(
         # We reserve names starting with implied_by. This ensures we don't
         # conflict with the name of a feature the user creates.
@@ -167,7 +183,6 @@ def convert_toolchain(toolchain):
         external = False,
         allowlist_include_directories = depset(),
     )))
-    action_configs = _convert_tool_map(toolchain.tool_map)
 
     cxx_builtin_include_directories = [
         d.path

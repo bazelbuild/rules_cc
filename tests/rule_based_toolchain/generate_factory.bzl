@@ -67,7 +67,7 @@ def generate_factory(type, name, attrs):
             meta.add_failure("Wanted a %s but got" % name, value)
         got_keys = sorted(structs.to_dict(value).keys())
         subjects.collection(got_keys, meta = meta.derive(details = [
-            "Value was not a %s - it has a different set of fields" % name,
+            "Value %r was not a %s - it has a different set of fields" % (value, name),
         ])).contains_exactly(want_keys).in_order()
 
     def type_factory(value, *, meta):

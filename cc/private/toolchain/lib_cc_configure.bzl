@@ -51,7 +51,7 @@ def split_escaped(string, delimiter):
       Basic usage:
         split_escaped("a:b:c", ":") -> [ "a", "b", "c" ]
 
-      Delimeter that is not supposed to be splitten on has to be %-escaped:
+      Delimiter that is not supposed to be splitten on has to be %-escaped:
         split_escaped("a%:b", ":") -> [ "a:b" ]
 
       Literal % can be represented by escaping it as %%:
@@ -137,7 +137,8 @@ def get_env_var(repository_ctx, name, default = None, enable_warning = True):
         if enable_warning:
             auto_configure_warning("'%s' environment variable is not set, using '%s' as default" % (name, default))
         return default
-    return auto_configure_fail("'%s' environment variable is not set" % name)
+    auto_configure_fail("'%s' environment variable is not set" % name)
+    return None
 
 def which(repository_ctx, cmd, default = None):
     """A wrapper around repository_ctx.which() to provide a fallback value. Doesn't %-escape the value!
@@ -176,7 +177,8 @@ def execute(
         repository_ctx,
         command,
         environment = None,
-        expect_failure = False):
+        expect_failure = False,
+        expect_empty_output = False):
     """Execute a command, return stdout if succeed and throw an error if it fails. Doesn't %-escape the result!
 
     Args:
@@ -184,6 +186,7 @@ def execute(
       command: command to execute.
       environment: dictionary with environment variables to set for the command.
       expect_failure: True if the command is expected to fail.
+      expect_empty_output: True if the command is expected to produce no output.
     Returns:
       stdout of the executed command.
     """
@@ -208,10 +211,15 @@ def execute(
                 ),
             )
     stripped_stdout = result.stdout.strip()
-    if not stripped_stdout:
-        auto_configure_fail(
-            "empty output from command %s, stderr: (%s)" % (command, result.stderr),
-        )
+    if expect_empty_output != (not stripped_stdout):
+        if expect_empty_output:
+            auto_configure_fail(
+                "non-empty output from command %s, stdout: (%s), stderr: (%s)" % (command, result.stdout, result.stderr),
+            )
+        else:
+            auto_configure_fail(
+                "empty output from command %s, stderr: (%s)" % (command, result.stderr),
+            )
     return stripped_stdout
 
 def get_cpu_value(repository_ctx):
@@ -222,25 +230,34 @@ def get_cpu_value(repository_ctx):
     Returns:
       One of (darwin, freebsd, x64_windows, ppc, s390x, arm, aarch64, k8, piii)
     """
-    os_name = repository_ctx.os.name.lower()
+    os_name = repository_ctx.os.name
+    arch = repository_ctx.os.arch
     if os_name.startswith("mac os"):
-        return "darwin"
+        # Check if we are on x86_64 or arm64 and return the corresponding cpu value.
+        return "darwin_" + ("arm64" if arch == "aarch64" else "x86_64")
     if os_name.find("freebsd") != -1:
         return "freebsd"
+    if os_name.find("openbsd") != -1:
+        return "openbsd"
     if os_name.find("windows") != -1:
-        return "x64_windows"
+        if arch == "aarch64":
+            return "arm64_windows"
+        else:
+            return "x64_windows"
 
-    # Use uname to figure out whether we are on x86_32 or x86_64
-    result = repository_ctx.execute(["uname", "-m"])
-    if result.stdout.strip() in ["power", "ppc64le", "ppc", "ppc64"]:
+    if arch in ["power", "ppc64le", "ppc", "ppc64"]:
         return "ppc"
-    if result.stdout.strip() in ["s390x"]:
+    if arch in ["s390x"]:
         return "s390x"
-    if result.stdout.strip() in ["arm", "armv7l"]:
+    if arch in ["mips64"]:
+        return "mips64"
+    if arch in ["riscv64"]:
+        return "riscv64"
+    if arch in ["arm", "armv7l"]:
         return "arm"
-    if result.stdout.strip() in ["aarch64"]:
+    if arch in ["aarch64"]:
         return "aarch64"
-    return "k8" if result.stdout.strip() in ["amd64", "x86_64", "x64"] else "piii"
+    return "k8" if arch in ["amd64", "x86_64", "x64"] else "piii"
 
 def is_cc_configure_debug(repository_ctx):
     """Returns True if CC_CONFIGURE_DEBUG is set to 1."""

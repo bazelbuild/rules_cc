@@ -29,9 +29,9 @@ Example:
     name = "foo",
     srcs = ["foo.cc"],
     copts = select({
-        "@rules_cc//cc/compiler:gcc": [...],
-        "@rules_cc//cc/compiler:clang": [...],
-        "@rules_cc//cc/compiler:msvc-cl": [...],
+        "//cc/compiler:gcc": [...],
+        "//cc/compiler:clang": [...],
+        "//cc/compiler:msvc-cl": [...],
         # Fallback case for an undetected compiler.
         "//conditions:default": [...],
     }),
@@ -47,25 +47,25 @@ licenses(["notice"])
 
 config_setting(
     name = "clang",
-    flag_values = {"@bazel_tools//tools/cpp:compiler": "clang"},
+    flag_values = {"@rules_cc//cc/private/toolchain:compiler": "clang"},
 )
 
 config_setting(
     name = "clang-cl",
-    flag_values = {"@bazel_tools//tools/cpp:compiler": "clang-cl"},
+    flag_values = {"@rules_cc//cc/private/toolchain:compiler": "clang-cl"},
 )
 
 config_setting(
     name = "gcc",
-    flag_values = {"@bazel_tools//tools/cpp:compiler": "gcc"},
+    flag_values = {"@rules_cc//cc/private/toolchain:compiler": "gcc"},
 )
 
 config_setting(
     name = "mingw-gcc",
-    flag_values = {"@bazel_tools//tools/cpp:compiler": "mingw-gcc"},
+    flag_values = {"@rules_cc//cc/private/toolchain:compiler": "mingw-gcc"},
 )
 
 config_setting(
     name = "msvc-cl",
-    flag_values = {"@bazel_tools//tools/cpp:compiler": "msvc-cl"},
+    flag_values = {"@rules_cc//cc/private/toolchain:compiler": "msvc-cl"},
 )

@@ -102,4 +102,9 @@ bzl_library(
 
 cc_toolchain_alias(name = "current_cc_toolchain")
 
+cc_toolchain_alias(
+    name = "optional_current_cc_toolchain",
+    mandatory = False,
+)
+
 cc_libc_top_alias(name = "current_libc_top")

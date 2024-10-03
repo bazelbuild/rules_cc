@@ -5,16 +5,16 @@ toolchain(
     exec_compatible_with = HOST_CONSTRAINTS,
     target_compatible_with = HOST_CONSTRAINTS,
     toolchain = "@local_config_cc//:cc-compiler-%{name}",
-    toolchain_type = "@rules_cc//cc:toolchain_type",
+    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
 )
 
 toolchain(
     name = "cc-toolchain-armeabi-v7a",
     exec_compatible_with = HOST_CONSTRAINTS,
     target_compatible_with = [
-        "@platforms//cpu:arm",
+        "@platforms//cpu:armv7",
         "@platforms//os:android",
     ],
     toolchain = "@local_config_cc//:cc-compiler-armeabi-v7a",
-    toolchain_type = "@rules_cc//cc:toolchain_type",
+    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
 )

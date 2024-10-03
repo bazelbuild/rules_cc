@@ -1,2 +1,3 @@
 /bazel-*
 /examples/rule_based_toolchain/bazel-*
+MODULE.bazel.lock
