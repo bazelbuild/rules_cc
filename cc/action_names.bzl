@@ -133,6 +133,7 @@ ACTION_NAMES = struct(
     objcpp_compile = OBJCPP_COMPILE_ACTION_NAME,
     clif_match = CLIF_MATCH_ACTION_NAME,
     objcopy_embed_data = OBJ_COPY_ACTION_NAME,
+    validate_static_library = VALIDATE_STATIC_LIBRARY,
 )
 
 # Names of actions that parse or compile C++ code.
