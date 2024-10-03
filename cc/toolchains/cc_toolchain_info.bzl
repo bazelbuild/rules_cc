@@ -156,6 +156,16 @@ ToolInfo = provider(
         "runfiles": "(runfiles) The files required to run the tool",
         "execution_requirements": "(Sequence[str]) A set of execution requirements of the tool",
         "allowlist_include_directories": "(depset[DirectoryInfo]) Built-in include directories implied by this tool that should be allowlisted in Bazel's include checker",
+        "capabilities": "(Sequence[ToolCapabilityInfo]) Capabilities supported by the tool.",
+    },
+)
+
+ToolCapabilityInfo = provider(
+    doc = "A capability associated with a tool (eg. supports_pic).",
+    # @unsorted-dict-items
+    fields = {
+        "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
+        "feature": "(FeatureInfo) The feature this capability defines",
     },
 )
 

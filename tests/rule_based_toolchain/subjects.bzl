@@ -26,6 +26,7 @@ load(
     "FeatureSetInfo",
     "MutuallyExclusiveCategoryInfo",
     "NestedArgsInfo",
+    "ToolCapabilityInfo",
     "ToolConfigInfo",
     "ToolInfo",
     "ToolchainConfigInfo",
@@ -179,6 +180,15 @@ _FeatureFactory = generate_factory(
 )
 
 # buildifier: disable=name-conventions
+_ToolCapabilityFactory = generate_factory(
+    ToolCapabilityInfo,
+    "ToolCapabilityInfo",
+    dict(
+        name = _subjects.str,
+    ),
+)
+
+# buildifier: disable=name-conventions
 _ToolFactory = generate_factory(
     ToolInfo,
     "ToolInfo",
@@ -187,6 +197,7 @@ _ToolFactory = generate_factory(
         runfiles = runfiles_subject,
         execution_requirements = _subjects.collection,
         allowlist_include_directories = _FakeDirectoryDepset,
+        capabilities = ProviderSequence(_ToolCapabilityFactory),
     ),
 )
 

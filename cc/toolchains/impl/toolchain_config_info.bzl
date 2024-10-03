@@ -54,9 +54,9 @@ def _feature_key(feature):
     # This should be sufficiently unique.
     return (feature.label, feature.name)
 
-def _get_known_features(features, fail):
+def _get_known_features(features, capability_features, fail):
     feature_names = {}
-    for ft in features:
+    for ft in capability_features + features:
         if ft.name in feature_names:
             other = feature_names[ft.name]
             if other.overrides != ft and ft.overrides != other:
@@ -113,7 +113,10 @@ def _validate_feature(self, known_features, fail):
     _validate_implies(self, known_features, fail = fail)
 
 def _validate_toolchain(self, fail = fail):
-    known_features = _get_known_features(self.features, fail = fail)
+    capabilities = []
+    for tool in self.tool_map.configs.values():
+        capabilities.extend([cap.feature for cap in tool.capabilities])
+    known_features = _get_known_features(self.features, capabilities, fail = fail)
 
     for feature in self.features:
         _validate_feature(feature, known_features, fail = fail)

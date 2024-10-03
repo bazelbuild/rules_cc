@@ -22,12 +22,14 @@ load("//cc/toolchains:feature_set.bzl", _cc_feature_set = "cc_feature_set")
 load("//cc/toolchains:mutually_exclusive_category.bzl", _cc_mutually_exclusive_category = "cc_mutually_exclusive_category")
 load("//cc/toolchains:nested_args.bzl", _cc_nested_args = "cc_nested_args")
 load("//cc/toolchains:tool.bzl", _cc_tool = "cc_tool")
+load("//cc/toolchains:tool_capability.bzl", _cc_tool_capability = "cc_tool_capability")
 load("//cc/toolchains:tool_map.bzl", _cc_tool_map = "cc_tool_map")
 load("//cc/toolchains/impl:external_feature.bzl", _cc_external_feature = "cc_external_feature")
 load("//cc/toolchains/impl:variables.bzl", _cc_variable = "cc_variable")
 
 cc_tool_map = _cc_tool_map
 cc_tool = _cc_tool
+cc_tool_capability = _cc_tool_capability
 cc_args = _cc_args
 cc_nested_args = _cc_nested_args
 cc_args_list = _cc_args_list
@@ -46,6 +48,7 @@ cc_external_feature = _cc_external_feature
 DOCUMENTED_TOOLCHAIN_RULES = [
     "cc_tool_map",
     "cc_tool",
+    "cc_tool_capability",
     "cc_args",
     "cc_nested_args",
     "cc_args_list",

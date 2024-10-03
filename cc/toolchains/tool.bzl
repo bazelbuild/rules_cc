@@ -14,9 +14,10 @@
 """Implementation of cc_tool"""
 
 load("@bazel_skylib//rules/directory:providers.bzl", "DirectoryInfo")
-load("//cc/toolchains/impl:collect.bzl", "collect_data")
+load("//cc/toolchains/impl:collect.bzl", "collect_data", "collect_provider")
 load(
     ":cc_toolchain_info.bzl",
+    "ToolCapabilityInfo",
     "ToolInfo",
 )
 
@@ -38,6 +39,7 @@ def _cc_tool_impl(ctx):
         allowlist_include_directories = depset(
             direct = [d[DirectoryInfo] for d in ctx.attr.allowlist_include_directories],
         ),
+        capabilities = tuple(collect_provider(ctx.attr.capabilities, ToolCapabilityInfo)),
     )
 
     link = ctx.actions.declare_file(ctx.label.name)
@@ -96,6 +98,13 @@ This can help work around errors like:
 (if these are builtin files, make sure these paths are in your toolchain)`.
 """,
         ),
+        "capabilities": attr.label_list(
+            providers = [ToolCapabilityInfo],
+            doc = """Declares that a tool is capable of doing something.
+
+For example, `//cc/toolchains/capabilities:supports_pic`.
+""",
+        ),
     },
     provides = [ToolInfo],
     doc = """Declares a tool for use by toolchain actions.
@@ -120,6 +129,7 @@ cc_tool(
     # Suppose clang needs libc to run.
     data = ["@llvm_toolchain//:lib/x86_64-linux-gnu/libc.so.6"]
     tags = ["requires-network"],
+    capabilities = ["//cc/toolchains/capabilities:supports_pic"],
 )
 ```
 """,

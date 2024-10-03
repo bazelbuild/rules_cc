@@ -42,32 +42,8 @@ cc_external_feature(
 )
 
 cc_external_feature(
-    name = "supports_start_end_lib",
-    feature_name = "supports_start_end_lib",
-    overridable = True,
-)
-
-cc_external_feature(
-    name = "supports_interface_shared_libraries",
-    feature_name = "supports_interface_shared_libraries",
-    overridable = True,
-)
-
-cc_external_feature(
-    name = "supports_dynamic_linker",
-    feature_name = "supports_dynamic_linker",
-    overridable = True,
-)
-
-cc_external_feature(
     name = "static_link_cpp_runtimes",
     feature_name = "static_link_cpp_runtimes",
-    overridable = True,
-)
-
-cc_external_feature(
-    name = "supports_pic",
-    feature_name = "supports_pic",
     overridable = True,
 )
 
@@ -80,11 +56,7 @@ cc_feature_set(
         ":static_linking_mode",
         ":dynamic_linking_mode",
         ":per_object_debug_info",
-        ":supports_start_end_lib",
-        ":supports_interface_shared_libraries",
-        ":supports_dynamic_linker",
         ":static_link_cpp_runtimes",
-        ":supports_pic",
     ],
     visibility = ["//visibility:private"],
 )

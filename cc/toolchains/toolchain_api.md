@@ -380,7 +380,7 @@ cc_feature(
 ## cc_tool
 
 <pre>
-cc_tool(<a href="#cc_tool-name">name</a>, <a href="#cc_tool-src">src</a>, <a href="#cc_tool-data">data</a>, <a href="#cc_tool-allowlist_include_directories">allowlist_include_directories</a>)
+cc_tool(<a href="#cc_tool-name">name</a>, <a href="#cc_tool-src">src</a>, <a href="#cc_tool-data">data</a>, <a href="#cc_tool-allowlist_include_directories">allowlist_include_directories</a>, <a href="#cc_tool-capabilities">capabilities</a>)
 </pre>
 
 Declares a tool for use by toolchain actions.
@@ -405,6 +405,7 @@ cc_tool(
     # Suppose clang needs libc to run.
     data = ["@llvm_toolchain//:lib/x86_64-linux-gnu/libc.so.6"]
     tags = ["requires-network"],
+    capabilities = ["@rules_cc//cc/toolchains/capabilities:supports_pic"],
 )
 ```
 
@@ -417,6 +418,49 @@ cc_tool(
 | <a id="cc_tool-src"></a>src |  The underlying binary that this tool represents.<br><br>Usually just a single prebuilt (eg. @toolchain//:bin/clang), but may be any executable label.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="cc_tool-data"></a>data |  Additional files that are required for this tool to run.<br><br>Frequently, clang and gcc require additional files to execute as they often shell out to other binaries (e.g. `cc1`).   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="cc_tool-allowlist_include_directories"></a>allowlist_include_directories |  Include paths implied by using this tool.<br><br>Compilers may include a set of built-in headers that are implicitly available unless flags like `-nostdinc` are provided. Bazel checks that all included headers are properly provided by a dependency or allowlisted through this mechanism.<br><br>As a rule of thumb, only use this if Bazel is complaining about absolute paths in your toolchain and you've ensured that the toolchain is compiling with the `-no-canonical-prefixes` and/or `-fno-canonical-system-headers` arguments.<br><br>This can help work around errors like: `the source file 'main.c' includes the following non-builtin files with absolute paths (if these are builtin files, make sure these paths are in your toolchain)`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="cc_tool-capabilities"></a>capabilities |  Declares that a tool is capable of doing something.<br><br>For example, `@rules_cc//cc/toolchains/capabilities:supports_pic`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+
+
+<a id="cc_tool_capability"></a>
+
+## cc_tool_capability
+
+<pre>
+cc_tool_capability(<a href="#cc_tool_capability-name">name</a>, <a href="#cc_tool_capability-feature_name">feature_name</a>)
+</pre>
+
+A capability is an optional feature that a tool supports.
+
+For example, not all compilers support PIC, so to handle this, we write:
+
+```
+cc_tool(
+    name = "clang",
+    src = "@host_tools/bin/clang",
+    capabilities = [
+        "@rules_cc//cc/toolchains/capabilities:supports_pic",
+    ],
+)
+
+cc_args(
+    name = "pic",
+    requires = [
+        "@rules_cc//cc/toolchains/capabilities:supports_pic"
+    ],
+    args = ["-fPIC"],
+)
+```
+
+This ensures that `-fPIC` is added to the command-line only when we are using a
+tool that supports PIC.
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="cc_tool_capability-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="cc_tool_capability-feature_name"></a>feature_name |  The name of the feature to generate for this capability   | String | optional |  `""`  |
 
 
 <a id="cc_args"></a>

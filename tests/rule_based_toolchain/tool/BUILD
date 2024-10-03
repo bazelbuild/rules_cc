@@ -6,6 +6,7 @@ load(":tool_test.bzl", "TARGETS", "TESTS")
 cc_tool(
     name = "tool",
     src = "//tests/rule_based_toolchain/testdata:bin_wrapper.sh",
+    capabilities = ["//cc/toolchains/capabilities:supports_pic"],
     data = ["//tests/rule_based_toolchain/testdata:bin"],
     tags = ["requires-network"],
 )
