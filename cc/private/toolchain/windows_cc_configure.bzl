@@ -198,18 +198,17 @@ def _find_vc_path(repository_ctx):
             repository_ctx,
             "'PROGRAMFILES(X86)' environment variable is not set, using '%s' as default" % program_files_dir,
         )
-    for path in [
-        "Microsoft Visual Studio\\2019\\Preview\\VC",
-        "Microsoft Visual Studio\\2019\\BuildTools\\VC",
-        "Microsoft Visual Studio\\2019\\Community\\VC",
-        "Microsoft Visual Studio\\2019\\Professional\\VC",
-        "Microsoft Visual Studio\\2019\\Enterprise\\VC",
-        "Microsoft Visual Studio\\2017\\BuildTools\\VC",
-        "Microsoft Visual Studio\\2017\\Community\\VC",
-        "Microsoft Visual Studio\\2017\\Professional\\VC",
-        "Microsoft Visual Studio\\2017\\Enterprise\\VC",
-        "Microsoft Visual Studio 14.0\\VC",
-    ]:
+    all_vc_locations = []
+    for vs_year in ["2022", "2019", "2017"]:
+        all_vc_locations.extend([
+            "Microsoft Visual Studio\\{vs_year}\\Preview\\VC".format(vs_year = vs_year),
+            "Microsoft Visual Studio\\{vs_year}\\BuildTools\\VC".format(vs_year = vs_year),
+            "Microsoft Visual Studio\\{vs_year}\\Community\\VC".format(vs_year = vs_year),
+            "Microsoft Visual Studio\\{vs_year}\\Professional\\VC".format(vs_year = vs_year),
+            "Microsoft Visual Studio\\{vs_year}\\Enterprise\\VC".format(vs_year = vs_year),
+        ])
+    all_vc_locations.append("Microsoft Visual Studio 14.0\\VC")
+    for path in all_vc_locations:
         path = program_files_dir + "\\" + path
         if repository_ctx.path(path).exists:
             vc_dir = path
@@ -221,18 +220,21 @@ def _find_vc_path(repository_ctx):
     auto_configure_warning_maybe(repository_ctx, "Visual C++ build tools found at %s" % vc_dir)
     return vc_dir
 
-def _is_vs_2017_or_2019(vc_path):
-    """Check if the installed VS version is Visual Studio 2017."""
+def _is_vs_newer_than_2017(vc_path):
+    """Check if the installed VS version is Visual Studio 2017 or newer."""
 
-    # In VS 2017 and 2019, the location of VC is like:
+    # In VS 2017, 2019 and 2022, the location of VC is like:
     # C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\
     # In VS 2015 or older version, it is like:
     # C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\
-    return vc_path.find("2017") != -1 or vc_path.find("2019") != -1
+    for vs_year in ["2017", "2019", "2022"]:
+        if vc_path.find(vs_year) != -1:
+            return True
+    return False
 
 def _find_vcvars_bat_script(repository_ctx, vc_path):
     """Find batch script to set up environment variables for VC. Doesn't %-escape the result."""
-    if _is_vs_2017_or_2019(vc_path):
+    if _is_vs_newer_than_2017(vc_path):
         vcvars_script = vc_path + "\\Auxiliary\\Build\\VCVARSALL.BAT"
     else:
         vcvars_script = vc_path + "\\VCVARSALL.BAT"
@@ -250,7 +252,7 @@ def _is_support_vcvars_ver(vc_full_version):
 
 def _is_support_winsdk_selection(repository_ctx, vc_path):
     """Windows SDK selection is supported with VC 2017 / 2019 or with full VS 2015 installation."""
-    if _is_vs_2017_or_2019(vc_path):
+    if _is_vs_newer_than_2017(vc_path):
         return True
 
     # By checking the source code of VCVARSALL.BAT in VC 2015, we know that
@@ -292,7 +294,7 @@ def setup_vc_env_vars(repository_ctx, vc_path, envvars = [], allow_empty = False
 
     # Get VC version set by user. Only supports VC 2017 & 2019.
     vcvars_ver = ""
-    if _is_vs_2017_or_2019(vc_path):
+    if _is_vs_newer_than_2017(vc_path):
         full_version = _get_vc_full_version(repository_ctx, vc_path)
 
         # Because VCVARSALL.BAT is from the latest VC installed, so we check if the latest
@@ -363,7 +365,7 @@ def _get_winsdk_full_version(repository_ctx):
 def _find_msvc_tool(repository_ctx, vc_path, tool):
     """Find the exact path of a specific build tool in MSVC. Doesn't %-escape the result."""
     tool_path = None
-    if _is_vs_2017_or_2019(vc_path):
+    if _is_vs_newer_than_2017(vc_path):
         full_version = _get_vc_full_version(repository_ctx, vc_path)
         if full_version:
             tool_path = "%s\\Tools\\MSVC\\%s\\bin\\HostX64\\x64\\%s" % (vc_path, full_version, tool)
