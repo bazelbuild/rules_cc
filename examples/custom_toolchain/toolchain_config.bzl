@@ -12,7 +12,7 @@ https://docs.bazel.build/versions/main/tutorial/cc-toolchain-config.html for
 advanced usage.
 """
 
-load("@bazel_tools//tools/cpp:cc_toolchain_config_lib.bzl", "tool_path")
+load("@rules_cc//cc:cc_toolchain_config_lib.bzl", "tool_path")  # buildifier: disable=deprecated-function
 
 def _impl(ctx):
     tool_paths = [

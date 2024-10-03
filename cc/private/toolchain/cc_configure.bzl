@@ -46,7 +46,6 @@ def cc_autoconf_toolchains_impl(repository_ctx):
 
 cc_autoconf_toolchains = repository_rule(
     environ = [
-        "BAZEL_USE_CPP_ONLY_TOOLCHAIN",
         "BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN",
     ],
     implementation = cc_autoconf_toolchains_impl,
@@ -65,24 +64,26 @@ def cc_autoconf_impl(repository_ctx, overriden_tools = dict()):
     cpu_value = get_cpu_value(repository_ctx)
     if "BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN" in env and env["BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN"] == "1":
         paths = resolve_labels(repository_ctx, [
-            "@rules_cc//cc/private/toolchain:BUILD.empty",
+            "@rules_cc//cc/private/toolchain:BUILD.empty.tpl",
             "@rules_cc//cc/private/toolchain:empty_cc_toolchain_config.bzl",
         ])
         repository_ctx.symlink(paths["@rules_cc//cc/private/toolchain:empty_cc_toolchain_config.bzl"], "cc_toolchain_config.bzl")
-        repository_ctx.symlink(paths["@rules_cc//cc/private/toolchain:BUILD.empty"], "BUILD")
-    elif cpu_value == "freebsd":
+        repository_ctx.template("BUILD", paths["@rules_cc//cc/private/toolchain:BUILD.empty.tpl"], {
+            "%{cpu}": get_cpu_value(repository_ctx),
+        })
+    elif cpu_value == "freebsd" or cpu_value == "openbsd":
         paths = resolve_labels(repository_ctx, [
-            "@rules_cc//cc/private/toolchain:BUILD.static.freebsd",
-            "@rules_cc//cc/private/toolchain:freebsd_cc_toolchain_config.bzl",
+            "@rules_cc//cc/private/toolchain:BUILD.static.bsd",
+            "@rules_cc//cc/private/toolchain:bsd_cc_toolchain_config.bzl",
         ])
 
-        # This is defaulting to a static crosstool, we should eventually
-        # autoconfigure this platform too.  Theorically, FreeBSD should be
-        # straightforward to add but we cannot run it in a docker container so
-        # skipping until we have proper tests for FreeBSD.
-        repository_ctx.symlink(paths["@rules_cc//cc/private/toolchain:freebsd_cc_toolchain_config.bzl"], "cc_toolchain_config.bzl")
-        repository_ctx.symlink(paths["@rules_cc//cc/private/toolchain:BUILD.static.freebsd"], "BUILD")
-    elif cpu_value == "x64_windows":
+        # This is defaulting to a static crosstool. We should eventually
+        # autoconfigure this platform too. Theoretically, FreeBSD and OpenBSD
+        # should be straightforward to add but we cannot run them in a Docker
+        # container so skipping until we have proper tests for these platforms.
+        repository_ctx.symlink(paths["@rules_cc//cc/private/toolchain:bsd_cc_toolchain_config.bzl"], "cc_toolchain_config.bzl")
+        repository_ctx.symlink(paths["@rules_cc//cc/private/toolchain:BUILD.static.bsd"], "BUILD")
+    elif cpu_value in ["x64_windows", "arm64_windows"]:
         # TODO(ibiryukov): overriden_tools are only supported in configure_unix_toolchain.
         # We might want to add that to Windows too(at least for msys toolchain).
         configure_windows_toolchain(repository_ctx)
@@ -111,16 +112,17 @@ cc_autoconf = repository_rule(
         "ABI_VERSION",
         "BAZEL_COMPILER",
         "BAZEL_HOST_SYSTEM",
+        "BAZEL_CONLYOPTS",
         "BAZEL_CXXOPTS",
         "BAZEL_LINKOPTS",
         "BAZEL_LINKLIBS",
+        "BAZEL_LLVM_COV",
+        "BAZEL_LLVM_PROFDATA",
         "BAZEL_PYTHON",
         "BAZEL_SH",
         "BAZEL_TARGET_CPU",
         "BAZEL_TARGET_LIBC",
         "BAZEL_TARGET_SYSTEM",
-        "BAZEL_USE_CPP_ONLY_TOOLCHAIN",
-        "BAZEL_USE_XCODE_TOOLCHAIN",
         "BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN",
         "BAZEL_USE_LLVM_NATIVE_COVERAGE",
         "BAZEL_LLVM",
@@ -130,9 +132,12 @@ cc_autoconf = repository_rule(
         "CC_CONFIGURE_DEBUG",
         "CC_TOOLCHAIN_NAME",
         "CPLUS_INCLUDE_PATH",
+        "DEVELOPER_DIR",
         "GCOV",
+        "LIBTOOL",
         "HOMEBREW_RUBY_PATH",
         "SYSTEMROOT",
+        "USER",
     ] + MSVC_ENVVARS,
     implementation = cc_autoconf_impl,
     configure = True,

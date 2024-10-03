@@ -13,10 +13,13 @@
 # limitations under the License.
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_toolchain", "cc_toolchain_suite")
+load(":cc_toolchain_config.bzl", "cc_toolchain_config")
 
 package(default_visibility = ["//visibility:public"])
 
-load(":cc_toolchain_config.bzl", "cc_toolchain_config")
+cc_library(
+    name = "link_extra_lib",
+)
 
 cc_library(
     name = "malloc",
@@ -30,8 +33,8 @@ filegroup(
 cc_toolchain_suite(
     name = "toolchain",
     toolchains = {
-        "local": ":local",
-        "local|local": ":local",
+        "%{cpu}|local": ":local",
+        "%{cpu}": ":local",
     },
 )
 
