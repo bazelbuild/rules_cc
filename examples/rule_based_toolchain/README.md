@@ -11,3 +11,5 @@ with the following command:
 ```
 $ bazel test //...
 ```
+
+This example currently only supports Linux.

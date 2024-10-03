@@ -14,21 +14,10 @@
 
 load("@bazel_skylib//rules/directory:directory.bzl", "directory")
 load("@bazel_skylib//rules/directory:subdirectory.bzl", "subdirectory")
-load("@rules_cc//cc/toolchains/args:sysroot.bzl", "cc_sysroot")
 
 package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
-
-cc_sysroot(
-    name = "sysroot",
-    data = [
-        ":root",
-        ":usr-include-x86_64-linux-gnu",
-        ":usr-include",
-    ],
-    sysroot = ":root",
-)
 
 directory(
     name = "root",

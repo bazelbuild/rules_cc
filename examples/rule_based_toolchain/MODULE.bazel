@@ -23,6 +23,14 @@ http_archive(
 )
 
 http_archive(
+    name = "clang-linux-aarch64",
+    build_file = "//toolchain:clang.BUILD",
+    sha256 = "61abb915821190baddafa973c69a9db9acda5a16ed3a89489ea2b3b030a2330b",
+    type = "zip",
+    url = "https://chrome-infra-packages.appspot.com/dl/fuchsia/third_party/clang/linux-arm64/+/git_revision:0cfd03ac0d3f9713090a581bda07584754c73a49",
+)
+
+http_archive(
     name = "linux_sysroot",
     build_file = "//toolchain:linux_sysroot.BUILD",
     sha256 = "f45ca0d8b46810b94d2a7dbc65f9092337d6a9568b260b51173a5ab9314da25e",
@@ -31,6 +39,6 @@ http_archive(
 )
 
 register_toolchains(
-    "//toolchain:host-linux-x86_64",
+    "//toolchain:host_cc_toolchain",
     dev_dependency = True,
 )
