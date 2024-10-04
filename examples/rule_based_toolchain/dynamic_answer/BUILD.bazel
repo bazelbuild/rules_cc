@@ -14,8 +14,6 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_shared_library")
 
-package(default_visibility = ["//visibility:public"])
-
 licenses(["notice"])
 
 cc_library(
@@ -42,5 +40,6 @@ cc_shared_library(
 cc_library(
     name = "dynamic_answer",
     srcs = [":shared_library"],
+    visibility = ["//visibility:public"],
     deps = [":headers"],
 )

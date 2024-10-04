@@ -15,8 +15,6 @@
 load("@rules_cc//cc/toolchains:args.bzl", "cc_args")
 load("@rules_cc//cc/toolchains/args:sysroot.bzl", "cc_sysroot")
 
-package(default_visibility = ["//visibility:public"])
-
 cc_sysroot(
     name = "linux_sysroot",
     data = [
@@ -25,6 +23,7 @@ cc_sysroot(
         "@linux_sysroot//:usr-include-x86_64-linux-gnu",
     ],
     sysroot = "@linux_sysroot//:root",
+    visibility = ["//visibility:public"],
 )
 
 cc_args(
@@ -39,6 +38,7 @@ cc_args(
         "-Wextra",
         "-Wpedantic",
     ],
+    visibility = ["//visibility:public"],
 )
 
 cc_args(
@@ -48,4 +48,5 @@ cc_args(
         "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
     ],
     args = ["-no-canonical-prefixes"],
+    visibility = ["//visibility:public"],
 )

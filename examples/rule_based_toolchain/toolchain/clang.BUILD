@@ -78,5 +78,8 @@ filegroup(
 # binary doesn't exist.
 filegroup(
     name = "multicall_support_files",
-    srcs = glob(["bin/llvm"]),
+    srcs = glob(
+        ["bin/llvm"],
+        allow_empty = True,
+    ),
 )

@@ -15,8 +15,6 @@
 load("@rules_cc//cc/toolchains:tool.bzl", "cc_tool")
 load("@rules_cc//cc/toolchains:tool_map.bzl", "cc_tool_map")
 
-package(default_visibility = ["//visibility:public"])
-
 licenses(["notice"])
 
 # This `select` happens under the target configuration. For macOS,
@@ -28,6 +26,7 @@ alias(
         "@platforms//os:macos": ":macos_tools",
         "//conditions:default": ":default_tools",
     }),
+    visibility = ["//visibility:public"],
 )
 
 COMMON_TOOLS = {
