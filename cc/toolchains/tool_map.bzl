@@ -75,7 +75,7 @@ def cc_tool_map(name, tools, **kwargs):
     `CXX=/path/to/clang++` environment variables that most build systems use to determine which
     tools to use for a given action. To simplify usage, some actions have been grouped together (for
     example,
-    [//cc/toolchains/actions:cpp_compile_actions](https://github.com/bazelbuild/rules_cc/tree/main/cc/toolchains/actions/BUILD)) to
+    [//third_party/bazel_rules/rules_cc/cc/toolchains/actions:cpp_compile_actions](https://github.com/bazelbuild/rules_cc/tree/main/cc/toolchains/actions/BUILD)) to
     logically express "all the C++ compile actions".
 
     In Bazel, there is a little more granularity to the mapping, so the mapping doesn't follow the
