@@ -19,11 +19,6 @@ load("//cc/private/toolchain:windows_cc_configure.bzl", _find_vc_path = "find_vc
 
 MSVC_ENVVARS = _MSVC_ENVVARS
 
-def find_vc_path(repository_ctx):
-    return _find_vc_path(repository_ctx)
-
-def setup_vc_env_vars(repository_ctx):
-    return _setup_vc_env_vars(repository_ctx)
-
-def escape_string(string):
-    return _escape_string(string)
+find_vc_path = _find_vc_path
+setup_vc_env_vars = _setup_vc_env_vars
+escape_string = _escape_string
