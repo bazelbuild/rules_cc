@@ -75,7 +75,7 @@ def cc_variable(name, type, **kwargs):
     it's not possible to declare custom variables.
 
     For a full list of available variables, see
-    [//cc/toolchains/varaibles:BUILD](https://github.com/bazelbuild/rules_cc/tree/main/cc/toolchains/variables/BUILD).
+    [//third_party/bazel_rules/rules_cc/cc/toolchains/varaibles:BUILD](https://github.com/bazelbuild/rules_cc/tree/main/cc/toolchains/variables/BUILD).
 
     Example:
     ```
@@ -91,7 +91,7 @@ def cc_variable(name, type, **kwargs):
     Args:
         name: (str) The name of the outer variable, and the rule.
         type: The type of the variable, constructed using `types` factory in
-            [//cc/toolchains/impl:variables.bzl](https://github.com/bazelbuild/rules_cc/tree/main/cc/toolchains/impl/variables.bzl).
+            [//third_party/bazel_rules/rules_cc/cc/toolchains/impl:variables.bzl](https://github.com/bazelbuild/rules_cc/tree/main/cc/toolchains/impl/variables.bzl).
         **kwargs: [common attributes](https://bazel.build/reference/be/common-definitions#common-attributes) that should be applied to this rule.
     """
     _cc_variable(name = name, type = json.encode(type), **kwargs)

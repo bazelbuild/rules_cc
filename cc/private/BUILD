@@ -15,7 +15,6 @@
 filegroup(
     name = "srcs",
     srcs = glob([
-        "**/*.bzl",
         "**/BUILD",
     ]) + [
         "//cc/private/rules_impl:srcs",

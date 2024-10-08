@@ -40,7 +40,7 @@ cc_action_type = rule(
 `cc_action_type` rules are used to associate arguments and tools together to
 perform a specific action. Bazel prescribes a set of known action types that are used to drive
 typical C/C++/ObjC actions like compiling, linking, and archiving. The set of well-known action
-types can be found in [//cc/toolchains/actions:BUILD](https://github.com/bazelbuild/rules_cc/tree/main/cc/toolchains/actions/BUILD).
+types can be found in [//third_party/bazel_rules/rules_cc/cc/toolchains/actions:BUILD](https://github.com/bazelbuild/rules_cc/tree/main/cc/toolchains/actions/BUILD).
 
 It's possible to create project-specific action types for use in toolchains. Be careful when
 doing this, because every toolchain that encounters the action will need to be configured to

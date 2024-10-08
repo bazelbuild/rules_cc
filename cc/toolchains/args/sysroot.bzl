@@ -17,13 +17,14 @@ load("//cc/toolchains:args.bzl", "cc_args")
 
 visibility("public")
 
-def cc_sysroot(name, sysroot, **kwargs):
+def cc_sysroot(name, sysroot, args = [], **kwargs):
     """Creates args for a sysroot.
 
     Args:
       name: (str) The name of the target
       sysroot: (bazel_skylib's directory rule) The directory that should be the
         sysroot.
+      args: (List[str]) Extra command-line args to add.
       **kwargs: kwargs to pass to cc_args.
     """
     cc_args(
@@ -33,7 +34,7 @@ def cc_sysroot(name, sysroot, **kwargs):
             Label("//cc/toolchains/actions:c_compile"),
             Label("//cc/toolchains/actions:link_actions"),
         ],
-        args = ["--sysroot={sysroot}"],
+        args = ["--sysroot={sysroot}"] + args,
         format = {"sysroot": sysroot},
         **kwargs
     )

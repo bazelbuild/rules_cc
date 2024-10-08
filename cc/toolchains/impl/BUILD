@@ -9,7 +9,7 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 exports_files(
     ["documented_api.bzl"],
-    visibility = ["//cc/toolchains:__subpackages__"],
+    visibility = ["//docs:__pkg__"],
 )
 
 bzl_library(
