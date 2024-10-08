@@ -52,6 +52,13 @@ cc_tool(
 
 cc_sysroot(
     name = "sysroot",
+    actions = [
+        "//cc/toolchains/actions:cpp_compile_actions",
+        "//cc/toolchains/actions:c_compile",
+        "//cc/toolchains/actions:link_actions",
+        "//tests/rule_based_toolchain/actions:c_compile",
+        "//tests/rule_based_toolchain/actions:cpp_compile",
+    ],
     sysroot = "//tests/rule_based_toolchain/testdata:directory",
 )
 

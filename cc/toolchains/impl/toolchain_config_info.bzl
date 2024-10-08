@@ -120,7 +120,7 @@ def _validate_toolchain(self, fail = fail):
 
     for feature in self.features:
         _validate_feature(feature, known_features, fail = fail)
-    for args in self.args:
+    for args in self.args.args:
         _validate_args(args, known_features, fail = fail)
 
 def _collect_files_for_action_type(action_type, tool_map, features, args):
@@ -176,7 +176,7 @@ def toolchain_config_info(label, known_features = [], enabled_features = [], arg
         features = features,
         enabled_features = enabled_features,
         tool_map = tool_map[ToolConfigInfo],
-        args = args.args,
+        args = args,
         files = files,
         allowlist_include_directories = allowlist_include_directories,
     )

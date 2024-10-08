@@ -24,11 +24,6 @@ load(
     legacy_tool = "tool",
     legacy_with_feature_set = "with_feature_set",
 )
-load(
-    "//cc/toolchains:cc_toolchain_info.bzl",
-    "ArgsListInfo",
-    "FeatureInfo",
-)
 
 visibility([
     "//cc/toolchains/...",
@@ -49,11 +44,12 @@ def convert_feature_constraint(constraint):
         not_features = sorted([ft.name for ft in constraint.none_of.to_list()]),
     )
 
-def convert_args(args):
+def convert_args(args, strip_actions = False):
     """Converts an ArgsInfo to flag_sets and env_sets.
 
     Args:
         args: (ArgsInfo) The args to convert
+        strip_actions: (bool) Whether to strip the actions from the resulting flag_set.
     Returns:
         struct(flag_sets = List[flag_set], env_sets = List[env_sets])
     """
@@ -66,7 +62,7 @@ def convert_args(args):
     flag_sets = []
     if args.nested != None:
         flag_sets.append(legacy_flag_set(
-            actions = actions,
+            actions = [] if strip_actions else actions,
             with_features = with_features,
             flag_groups = [args.nested.legacy_flag_group],
         ))
@@ -89,11 +85,11 @@ def convert_args(args):
         env_sets = env_sets,
     )
 
-def _convert_args_sequence(args_sequence):
+def _convert_args_sequence(args_sequence, strip_actions = False):
     flag_sets = []
     env_sets = []
     for args in args_sequence:
-        legacy_args = convert_args(args)
+        legacy_args = convert_args(args, strip_actions)
         flag_sets.extend(legacy_args.flag_sets)
         env_sets.extend(legacy_args.env_sets)
 
@@ -137,13 +133,16 @@ def convert_capability(capability):
         enabled = False,
     )
 
-def _convert_tool_map(tool_map):
+def _convert_tool_map(tool_map, args_by_action):
     action_configs = []
     caps = {}
     for action_type, tool in tool_map.configs.items():
+        action_args = args_by_action.get(action_type.name, default = None)
+        flag_sets = action_args.flag_sets if action_args != None else []
         action_configs.append(legacy_action_config(
             action_name = action_type.name,
             enabled = True,
+            flag_sets = flag_sets,
             tools = [convert_tool(tool)],
             implies = [cap.feature.name for cap in tool.capabilities],
         ))
@@ -165,24 +164,37 @@ def convert_toolchain(toolchain):
         A struct containing parameters suitable to pass to
           cc_common.create_cc_toolchain_config_info.
     """
+
+    # Ordering of arguments is important! Intended argument ordering is:
+    #   1. Arguments listed in `args`.
+    #   2. Legacy/built-in features.
+    #   3. User-defined features.
+    # While we could just attach arguments to a feature, legacy/built-in features will appear
+    # before the user-defined features if we do not bind args directly to the action configs.
+    # For that reason, there's additional logic in this function to ensure that the args are
+    # attached to the action configs directly, as that is the only way to ensure the correct
+    # ordering.
+    args_by_action = {}
+    for a in toolchain.args.by_action:
+        args = args_by_action.setdefault(a.action.name, struct(flag_sets = [], env_sets = []))
+        new_args = _convert_args_sequence(a.args, strip_actions = True)
+        args.flag_sets.extend(new_args.flag_sets)
+        args.env_sets.extend(new_args.env_sets)
+
+    action_configs, cap_features = _convert_tool_map(toolchain.tool_map, args_by_action)
     features = [
         convert_feature(feature, enabled = feature in toolchain.enabled_features)
         for feature in toolchain.features
     ]
-    action_configs, cap_features = _convert_tool_map(toolchain.tool_map)
     features.extend(cap_features)
-    features.append(convert_feature(FeatureInfo(
+
+    features.append(legacy_feature(
         # We reserve names starting with implied_by. This ensures we don't
         # conflict with the name of a feature the user creates.
-        name = "implied_by_always_enabled",
+        name = "implied_by_always_enabled_env_sets",
         enabled = True,
-        args = ArgsListInfo(args = toolchain.args),
-        implies = depset([]),
-        requires_any_of = [],
-        mutually_exclusive = [],
-        external = False,
-        allowlist_include_directories = depset(),
-    )))
+        env_sets = _convert_args_sequence(toolchain.args.args).env_sets,
+    ))
 
     cxx_builtin_include_directories = [
         d.path

@@ -212,39 +212,8 @@ def _toolchain_collects_files_test(env, targets):
             enabled = False,
         ),
         legacy_feature(
-            name = "implied_by_always_enabled",
+            name = "implied_by_always_enabled_env_sets",
             enabled = True,
-            flag_sets = [
-                legacy_flag_set(
-                    actions = [
-                        "c++-compile",
-                        "c++-header-parsing",
-                        "c++-link-dynamic-library",
-                        "c++-link-executable",
-                        "c++-link-nodeps-dynamic-library",
-                        "c++-module-codegen",
-                        "c++-module-compile",
-                        "c-compile",
-                        "clif-match",
-                        "linkstamp-compile",
-                        "lto-backend",
-                        "lto-index-for-dynamic-library",
-                        "lto-index-for-executable",
-                        "lto-index-for-nodeps-dynamic-library",
-                    ],
-                    flag_groups = [
-                        legacy_flag_group(flags = [
-                            "--sysroot=tests/rule_based_toolchain/testdata",
-                        ]),
-                    ],
-                ),
-                legacy_flag_set(
-                    actions = ["c_compile"],
-                    flag_groups = [
-                        legacy_flag_group(flags = ["c_compile_args"]),
-                    ],
-                ),
-            ],
         ),
     ]).in_order()
 
@@ -257,12 +226,35 @@ def _toolchain_collects_files_test(env, targets):
             enabled = True,
             tools = [legacy_tool(tool = exe)],
             implies = ["supports_pic"],
+            flag_sets = [
+                legacy_flag_set(
+                    flag_groups = [
+                        legacy_flag_group(flags = [
+                            "--sysroot=tests/rule_based_toolchain/testdata",
+                        ]),
+                    ],
+                ),
+                legacy_flag_set(
+                    flag_groups = [
+                        legacy_flag_group(flags = ["c_compile_args"]),
+                    ],
+                ),
+            ],
         ),
         legacy_action_config(
             action_name = "cpp_compile",
             enabled = True,
             tools = [legacy_tool(tool = exe)],
             implies = [],
+            flag_sets = [
+                legacy_flag_set(
+                    flag_groups = [
+                        legacy_flag_group(flags = [
+                            "--sysroot=tests/rule_based_toolchain/testdata",
+                        ]),
+                    ],
+                ),
+            ],
         ),
     ]).in_order()
 
