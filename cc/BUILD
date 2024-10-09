@@ -102,9 +102,10 @@ bzl_library(
 
 cc_toolchain_alias(name = "current_cc_toolchain")
 
-cc_toolchain_alias(
+# Use alias, because it doesn't build on Bazel 6.
+alias(
     name = "optional_current_cc_toolchain",
-    mandatory = False,
+    actual = "//cc/private/bazel7:optional_current_cc_toolchain",
 )
 
 cc_libc_top_alias(name = "current_libc_top")

@@ -11,7 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""CcSharedLibraryInfo"""
 
-# Backward compatibility with Bazel 6
-CcSharedLibraryHintInfo = getattr(cc_common, "CcSharedLibraryHintInfo", provider("CcSharedLibraryHintInfo", fields = ["attributes", "owners"]))
+package(default_visibility = ["//visibility:public"])
+
+licenses(["notice"])  # Apache 2.0
+
+# The target is here, because it's doesn't build on Bazel 6.
+# Unfortunately, rules_cc doesn't have a WORKSPACE setup and thus can't use bazel_features check.
+cc_toolchain_alias(
+    name = "optional_current_cc_toolchain",
+    mandatory = False,
+)

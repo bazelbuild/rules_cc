@@ -102,7 +102,7 @@ This can help work around errors like:
             providers = [ToolCapabilityInfo],
             doc = """Declares that a tool is capable of doing something.
 
-For example, `//third_party/bazel_rules/rules_cc/cc/toolchains/capabilities:supports_pic`.
+For example, `@rules_cc//cc/toolchains/capabilities:supports_pic`.
 """,
         ),
     },

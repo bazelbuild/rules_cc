@@ -81,7 +81,7 @@ filegroup(
 cc_toolchain_suite(
     name = "legacy_selector",
     toolchains = {
-        "x86": ":my_custom_toolchain",
+        "k8": ":my_custom_toolchain",
     },
 )
 
