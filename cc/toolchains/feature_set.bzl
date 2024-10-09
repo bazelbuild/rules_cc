@@ -45,7 +45,7 @@ cc_feature_set = rule(
     doc = """Defines a set of features.
 
 This may be used by both `cc_feature` and `cc_args` rules, and is effectively a way to express
-a logical `AND` operation across multiple requred features.
+a logical `AND` operation across multiple required features.
 
 Example:
 ```

@@ -24,6 +24,7 @@ load("//cc/toolchains:nested_args.bzl", _cc_nested_args = "cc_nested_args")
 load("//cc/toolchains:tool.bzl", _cc_tool = "cc_tool")
 load("//cc/toolchains:tool_capability.bzl", _cc_tool_capability = "cc_tool_capability")
 load("//cc/toolchains:tool_map.bzl", _cc_tool_map = "cc_tool_map")
+load("//cc/toolchains:toolchain.bzl", _cc_toolchain = "cc_toolchain")
 load("//cc/toolchains/impl:external_feature.bzl", _cc_external_feature = "cc_external_feature")
 load("//cc/toolchains/impl:variables.bzl", _cc_variable = "cc_variable")
 
@@ -41,6 +42,7 @@ cc_feature_constraint = _cc_feature_constraint
 cc_feature_set = _cc_feature_set
 cc_mutually_exclusive_category = _cc_mutually_exclusive_category
 cc_external_feature = _cc_external_feature
+cc_toolchain = _cc_toolchain
 
 # This list is used to automatically remap instances of `foo` to [`foo`](#foo)
 # links in the generated documentation so that maintainers don't need to manually
@@ -60,4 +62,5 @@ DOCUMENTED_TOOLCHAIN_RULES = [
     "cc_feature_set",
     "cc_mutually_exclusive_category",
     "cc_external_feature",
+    "cc_toolchain",
 ]

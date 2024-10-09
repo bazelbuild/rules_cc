@@ -13,7 +13,7 @@
 # limitations under the License.
 """Implementation of the cc_toolchain rule."""
 
-load("//cc:defs.bzl", _cc_toolchain = "cc_toolchain")
+load("//cc/toolchains:cc_toolchain.bzl", _cc_toolchain = "cc_toolchain")
 load(
     "//cc/toolchains/impl:toolchain_config.bzl",
     "cc_legacy_file_group",
@@ -53,21 +53,49 @@ _LEGACY_FILE_GROUPS = {
 }
 
 def cc_toolchain(
+        *,
         name,
-        dynamic_runtime_lib = None,
-        libc_top = None,
-        module_map = None,
-        output_licenses = [],
-        static_runtime_lib = None,
-        supports_header_parsing = False,
-        supports_param_files = True,
-        target_compatible_with = None,
-        exec_compatible_with = None,
-        compatible_with = None,
-        tags = [],
-        visibility = None,
+        tool_map,
+        args,
+        known_features,
+        enabled_features,
+        libc_top,
+        module_map,
+        dynamic_runtime_lib,
+        static_runtime_lib,
+        supports_header_parsing,
+        supports_param_files,
         **kwargs):
-    """A macro that invokes native.cc_toolchain under the hood.
+    """A C/C++ toolchain configuration.
+
+    This rule is the core declaration of a complete C/C++ toolchain. It collects together
+    tool configuration, which arguments to pass to each tool, and how
+    [features](https://bazel.build/docs/cc-toolchain-config-reference#features)
+    (dynamically-toggleable argument lists) interact.
+
+    A single `cc_toolchain` may support a wide variety of platforms and configurations through
+    [configurable build attributes](https://bazel.build/docs/configurable-attributes) and
+    [feature relationships](https://bazel.build/docs/cc-toolchain-config-reference#feature-relationships).
+
+    Arguments are applied to commandline invocation of tools in the following order:
+
+    1. Arguments in the order they are listed in listed in [`args`](#cc_toolchain-args).
+    2. Any legacy/built-in features that have been implicitly or explicitly enabled.
+    3. User-defined features in the order they are listed in
+       [`known_features`](#cc_toolchain-known_features).
+
+    When building a `cc_toolchain` configuration, it's important to understand how `select`
+    statements will be evaluated:
+
+    * Most attributes and dependencies of a `cc_toolchain` are evaluated under the target platform.
+      This means that a `@platforms//os:linux` constraint will be satisfied when
+      the final compiled binaries are intended to be ran from a Linux machine. This means that
+      a different operating system (e.g. Windows) may be cross-compiling to linux.
+    * The `cc_tool_map` rule performs a transition to the exec platform when evaluating tools. This
+      means that a if a `@platforms//os:linux` constraint is satisfied in a
+      `select` statement on a `cc_tool`, that means the machine that will run the tool is a Linux
+      machine. This means that a Linux machine may be cross-compiling to a different OS
+      like Windows.
 
     Generated rules:
         {name}: A `cc_toolchain` for this toolchain.
@@ -78,38 +106,65 @@ def cc_toolchain(
             normally enumerated as part of the `cc_toolchain` rule.
 
     Args:
-        name: str: The name of the label for the toolchain.
-        dynamic_runtime_lib: See cc_toolchain.dynamic_runtime_lib
-        libc_top: See cc_toolchain.libc_top
-        module_map: See cc_toolchain.module_map
-        output_licenses: See cc_toolchain.output_licenses
-        static_runtime_lib: See cc_toolchain.static_runtime_lib
-        supports_header_parsing: See cc_toolchain.supports_header_parsing
-        supports_param_files: See cc_toolchain.supports_param_files
-        target_compatible_with: target_compatible_with to apply to all generated
-          rules
-        exec_compatible_with: exec_compatible_with to apply to all generated
-          rules
-        compatible_with: compatible_with to apply to all generated rules
-        tags: Tags to apply to all generated rules
-        visibility: Visibility of toolchain rule
-        **kwargs: Args to be passed through to cc_toolchain_config.
+        name: (str) The name of the label for the toolchain.
+        tool_map: (Label) The `cc_tool_map` that specifies the tools to use for various toolchain
+            actions.
+        args: (List[Label]) A list of `cc_args` and `cc_arg_list` to apply across this toolchain.
+        known_features: (List[Label]) A list of `cc_feature` rules that this toolchain supports.
+            Whether or not these
+            [features](https://bazel.build/docs/cc-toolchain-config-reference#features)
+            are enabled may change over the course of a build. See the documentation for
+            `cc_feature` for more information.
+        enabled_features: (List[Label]) A list of `cc_feature` rules whose initial state should
+            be `enabled`. Note that it is still possible for these
+            [features](https://bazel.build/docs/cc-toolchain-config-reference#features)
+            to be disabled over the course of a build through other mechanisms. See the
+            documentation for `cc_feature` for more information.
+        libc_top: (Label) A collection of artifacts for libc passed as inputs to compile/linking
+            actions. See
+            [`cc_toolchain.libc_top`](https://bazel.build/reference/be/c-cpp#cc_toolchain.libc_top)
+            for more information.
+        module_map: (Label) Module map artifact to be used for modular builds. See
+            [`cc_toolchain.module_map`](https://bazel.build/reference/be/c-cpp#cc_toolchain.module_map)
+            for more information.
+        dynamic_runtime_lib: (Label) Dynamic library to link when the `static_link_cpp_runtimes`
+            and `dynamic_linking_mode`
+            [features](https://bazel.build/docs/cc-toolchain-config-reference#features) are both
+            enabled. See
+            [`cc_toolchain.dynamic_runtime_lib`](https://bazel.build/reference/be/c-cpp#cc_toolchain.dynamic_runtime_lib)
+            for more information.
+        static_runtime_lib: (Label) Static library to link when the `static_link_cpp_runtimes`
+            and `static_linking_mode`
+            [features](https://bazel.build/docs/cc-toolchain-config-reference#features) are both
+            enabled. See
+            [`cc_toolchain.dynamic_runtime_lib`](https://bazel.build/reference/be/c-cpp#cc_toolchain.dynamic_runtime_lib)
+            for more information.
+        supports_header_parsing: (bool) Whether or not this toolchain supports header parsing
+            actions. See
+            [`cc_toolchain.supports_header_parsing`](https://bazel.build/reference/be/c-cpp#cc_toolchain.supports_header_parsing)
+            for more information.
+        supports_param_files: (bool) Whether or not this toolchain supports linking via param files.
+            See
+            [`cc_toolchain.supports_param_files`](https://bazel.build/reference/be/c-cpp#cc_toolchain.supports_param_files)
+            for more information.
+        **kwargs: [common attributes](https://bazel.build/reference/be/common-definitions#common-attributes)
+            that should be applied to all rules created by this macro.
     """
-    all_kwargs = {
-        "compatible_with": compatible_with,
-        "exec_compatible_with": exec_compatible_with,
-        "tags": tags,
-        "target_compatible_with": target_compatible_with,
-    }
+    cc_toolchain_visibility = kwargs.pop("visibility", default = None)
+
     for group in _LEGACY_FILE_GROUPS:
         if group in kwargs:
-            fail("Don't use legacy file groups such as %s. Instead, associate files with tools, actions, and args." % group)
+            fail("Don't use legacy file groups such as %s. Instead, associate files with `cc_tool` or `cc_args` rules." % group)
 
     config_name = "_{}_config".format(name)
     cc_toolchain_config(
         name = config_name,
+        tool_map = tool_map,
+        args = args,
+        known_features = known_features,
+        enabled_features = enabled_features,
         visibility = ["//visibility:private"],
-        **(all_kwargs | kwargs)
+        **kwargs
     )
 
     # Provides ar_files, compiler_files, linker_files, ...
@@ -121,12 +176,9 @@ def cc_toolchain(
             config = config_name,
             actions = actions,
             visibility = ["//visibility:private"],
-            **all_kwargs
+            **kwargs
         )
         legacy_file_groups[group] = group_name
-
-    if visibility != None:
-        all_kwargs["visibility"] = visibility
 
     _cc_toolchain(
         name = name,
@@ -135,11 +187,11 @@ def cc_toolchain(
         dynamic_runtime_lib = dynamic_runtime_lib,
         libc_top = libc_top,
         module_map = module_map,
-        output_licenses = output_licenses,
         static_runtime_lib = static_runtime_lib,
         supports_header_parsing = supports_header_parsing,
         supports_param_files = supports_param_files,
         # This is required for Bazel versions <= 7.x.x. It is ignored in later versions.
         exec_transition_for_inputs = False,
-        **(all_kwargs | legacy_file_groups)
+        visibility = cc_toolchain_visibility,
+        **(kwargs | legacy_file_groups)
     )

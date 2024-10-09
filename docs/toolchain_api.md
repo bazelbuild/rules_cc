@@ -200,7 +200,7 @@ A feature may be enabled or disabled through the following mechanisms:
 
 Note that a feature may alternate between enabled and disabled dynamically over the course of a
 build. Because of their toggleable nature, it's generally best to avoid adding arguments to a
-`cc_toolchain` as a [`cc_feature`](#cc_feature) unless strictly necessary. Instead, prefer to express arguments
+[`cc_toolchain`](#cc_toolchain) as a [`cc_feature`](#cc_feature) unless strictly necessary. Instead, prefer to express arguments
 via [`cc_toolchain.args`](#cc_toolchain-args) whenever possible.
 
 You should use a [`cc_feature`](#cc_feature) when any of the following apply:
@@ -301,7 +301,7 @@ cc_feature_set(<a href="#cc_feature_set-name">name</a>, <a href="#cc_feature_set
 Defines a set of features.
 
 This may be used by both [`cc_feature`](#cc_feature) and [`cc_args`](#cc_args) rules, and is effectively a way to express
-a logical `AND` operation across multiple requred features.
+a logical `AND` operation across multiple required features.
 
 Example:
 ```
@@ -386,7 +386,7 @@ cc_tool(<a href="#cc_tool-name">name</a>, <a href="#cc_tool-src">src</a>, <a hre
 Declares a tool for use by toolchain actions.
 
 [`cc_tool`](#cc_tool) rules are used in a [`cc_tool_map`](#cc_tool_map) rule to ensure all files and
-metadata required to run a tool are available when constructing a `cc_toolchain`.
+metadata required to run a tool are available when constructing a [`cc_toolchain`](#cc_toolchain).
 
 In general, include all files that are always required to run a tool (e.g. libexec/** and
 cross-referenced tools in bin/*) in the [data](#cc_tool-data) attribute. If some files are only
@@ -473,13 +473,13 @@ cc_args(<a href="#cc_args-name">name</a>, <a href="#cc_args-actions">actions</a>
         <a href="#cc_args-requires_equal_value">requires_equal_value</a>, <a href="#cc_args-requires_any_of">requires_any_of</a>, <a href="#cc_args-kwargs">kwargs</a>)
 </pre>
 
-Action-specific arguments for use with a cc_toolchain.
+Action-specific arguments for use with a [`cc_toolchain`](#cc_toolchain).
 
 This rule is the fundamental building building block for every toolchain tool invocation. Each
 argument expressed in a toolchain tool invocation (e.g. `gcc`, `llvm-ar`) is declared in a
 [`cc_args`](#cc_args) rule that applies an ordered list of arguments to a set of toolchain
 actions. [`cc_args`](#cc_args) rules can be added unconditionally to a
-`cc_toolchain`, conditionally via `select()` statements, or dynamically via an
+[`cc_toolchain`](#cc_toolchain), conditionally via `select()` statements, or dynamically via an
 intermediate [`cc_feature`](#cc_feature).
 
 Conceptually, this is similar to the old `CFLAGS`, `CPPFLAGS`, etc. environment variables that
@@ -671,6 +671,75 @@ Note:
 | <a id="cc_tool_map-name"></a>name |  (str) The name of the target.   |  none |
 | <a id="cc_tool_map-tools"></a>tools |  (Dict[Label, Label]) A mapping between [`cc_action_type`](#cc_action_type)/[`cc_action_type_set`](#cc_action_type_set) targets and the [`cc_tool`](#cc_tool) or executable target that implements that action.   |  none |
 | <a id="cc_tool_map-kwargs"></a>kwargs |  [common attributes](https://bazel.build/reference/be/common-definitions#common-attributes) that should be applied to this rule.   |  none |
+
+
+<a id="cc_toolchain"></a>
+
+## cc_toolchain
+
+<pre>
+cc_toolchain(<a href="#cc_toolchain-name">name</a>, <a href="#cc_toolchain-tool_map">tool_map</a>, <a href="#cc_toolchain-args">args</a>, <a href="#cc_toolchain-known_features">known_features</a>, <a href="#cc_toolchain-enabled_features">enabled_features</a>, <a href="#cc_toolchain-libc_top">libc_top</a>, <a href="#cc_toolchain-module_map">module_map</a>,
+             <a href="#cc_toolchain-dynamic_runtime_lib">dynamic_runtime_lib</a>, <a href="#cc_toolchain-static_runtime_lib">static_runtime_lib</a>, <a href="#cc_toolchain-supports_header_parsing">supports_header_parsing</a>, <a href="#cc_toolchain-supports_param_files">supports_param_files</a>,
+             <a href="#cc_toolchain-kwargs">kwargs</a>)
+</pre>
+
+A C/C++ toolchain configuration.
+
+This rule is the core declaration of a complete C/C++ toolchain. It collects together
+tool configuration, which arguments to pass to each tool, and how
+[features](https://bazel.build/docs/cc-toolchain-config-reference#features)
+(dynamically-toggleable argument lists) interact.
+
+A single [`cc_toolchain`](#cc_toolchain) may support a wide variety of platforms and configurations through
+[configurable build attributes](https://bazel.build/docs/configurable-attributes) and
+[feature relationships](https://bazel.build/docs/cc-toolchain-config-reference#feature-relationships).
+
+Arguments are applied to commandline invocation of tools in the following order:
+
+1. Arguments in the order they are listed in listed in [`args`](#cc_toolchain-args).
+2. Any legacy/built-in features that have been implicitly or explicitly enabled.
+3. User-defined features in the order they are listed in
+   [`known_features`](#cc_toolchain-known_features).
+
+When building a [`cc_toolchain`](#cc_toolchain) configuration, it's important to understand how `select`
+statements will be evaluated:
+
+* Most attributes and dependencies of a [`cc_toolchain`](#cc_toolchain) are evaluated under the target platform.
+  This means that a `//third_party/bazel_platforms/os:linux` constraint will be satisfied when
+  the final compiled binaries are intended to be ran from a Linux machine. This means that
+  a different operating system (e.g. Windows) may be cross-compiling to linux.
+* The [`cc_tool_map`](#cc_tool_map) rule performs a transition to the exec platform when evaluating tools. This
+  means that a if a `//third_party/bazel_platforms/os:linux` constraint is satisfied in a
+  `select` statement on a [`cc_tool`](#cc_tool), that means the machine that will run the tool is a Linux
+  machine. This means that a Linux machine may be cross-compiling to a different OS
+  like Windows.
+
+Generated rules:
+    {name}: A [`cc_toolchain`](#cc_toolchain) for this toolchain.
+    _{name}_config: A `cc_toolchain_config` for this toolchain.
+    _{name}_*_files: Generated rules that group together files for
+        "ar_files", "as_files", "compiler_files", "coverage_files",
+        "dwp_files", "linker_files", "objcopy_files", and "strip_files"
+        normally enumerated as part of the [`cc_toolchain`](#cc_toolchain) rule.
+
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="cc_toolchain-name"></a>name |  (str) The name of the label for the toolchain.   |  none |
+| <a id="cc_toolchain-tool_map"></a>tool_map |  (Label) The [`cc_tool_map`](#cc_tool_map) that specifies the tools to use for various toolchain actions.   |  none |
+| <a id="cc_toolchain-args"></a>args |  (List[Label]) A list of [`cc_args`](#cc_args) and `cc_arg_list` to apply across this toolchain.   |  none |
+| <a id="cc_toolchain-known_features"></a>known_features |  (List[Label]) A list of [`cc_feature`](#cc_feature) rules that this toolchain supports. Whether or not these [features](https://bazel.build/docs/cc-toolchain-config-reference#features) are enabled may change over the course of a build. See the documentation for [`cc_feature`](#cc_feature) for more information.   |  none |
+| <a id="cc_toolchain-enabled_features"></a>enabled_features |  (List[Label]) A list of [`cc_feature`](#cc_feature) rules whose initial state should be `enabled`. Note that it is still possible for these [features](https://bazel.build/docs/cc-toolchain-config-reference#features) to be disabled over the course of a build through other mechanisms. See the documentation for [`cc_feature`](#cc_feature) for more information.   |  none |
+| <a id="cc_toolchain-libc_top"></a>libc_top |  (Label) A collection of artifacts for libc passed as inputs to compile/linking actions. See [`cc_toolchain.libc_top`](https://bazel.build/reference/be/c-cpp#cc_toolchain.libc_top) for more information.   |  none |
+| <a id="cc_toolchain-module_map"></a>module_map |  (Label) Module map artifact to be used for modular builds. See [`cc_toolchain.module_map`](https://bazel.build/reference/be/c-cpp#cc_toolchain.module_map) for more information.   |  none |
+| <a id="cc_toolchain-dynamic_runtime_lib"></a>dynamic_runtime_lib |  (Label) Dynamic library to link when the `static_link_cpp_runtimes` and `dynamic_linking_mode` [features](https://bazel.build/docs/cc-toolchain-config-reference#features) are both enabled. See [`cc_toolchain.dynamic_runtime_lib`](https://bazel.build/reference/be/c-cpp#cc_toolchain.dynamic_runtime_lib) for more information.   |  none |
+| <a id="cc_toolchain-static_runtime_lib"></a>static_runtime_lib |  (Label) Static library to link when the `static_link_cpp_runtimes` and `static_linking_mode` [features](https://bazel.build/docs/cc-toolchain-config-reference#features) are both enabled. See [`cc_toolchain.dynamic_runtime_lib`](https://bazel.build/reference/be/c-cpp#cc_toolchain.dynamic_runtime_lib) for more information.   |  none |
+| <a id="cc_toolchain-supports_header_parsing"></a>supports_header_parsing |  (bool) Whether or not this toolchain supports header parsing actions. See [`cc_toolchain.supports_header_parsing`](https://bazel.build/reference/be/c-cpp#cc_toolchain.supports_header_parsing) for more information.   |  none |
+| <a id="cc_toolchain-supports_param_files"></a>supports_param_files |  (bool) Whether or not this toolchain supports linking via param files. See [`cc_toolchain.supports_param_files`](https://bazel.build/reference/be/c-cpp#cc_toolchain.supports_param_files) for more information.   |  none |
+| <a id="cc_toolchain-kwargs"></a>kwargs |  [common attributes](https://bazel.build/reference/be/common-definitions#common-attributes) that should be applied to all rules created by this macro.   |  none |
 
 
 <a id="cc_variable"></a>

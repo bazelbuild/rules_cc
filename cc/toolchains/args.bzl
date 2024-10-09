@@ -135,7 +135,7 @@ def cc_args(
         requires_equal_value = None,
         requires_any_of = None,
         **kwargs):
-    """Action-specific arguments for use with a cc_toolchain.
+    """Action-specific arguments for use with a `cc_toolchain`.
 
     This rule is the fundamental building building block for every toolchain tool invocation. Each
     argument expressed in a toolchain tool invocation (e.g. `gcc`, `llvm-ar`) is declared in a
