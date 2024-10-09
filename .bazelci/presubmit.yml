@@ -49,3 +49,13 @@ tasks:
       - "--ignore_dev_dependency"
     build_targets:
       - "//cc/..."
+  ubuntu_rule_based_toolchains:
+    name: Ubuntu rule-based toolchains
+    platform: ubuntu1804
+    working_directory: examples/rule_based_toolchain
+    build_flags:
+      - "--enable_bzlmod"
+    build_targets:
+      - "//..."
+    test_targets:
+      - "//..."
