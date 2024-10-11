@@ -55,16 +55,16 @@ _LEGACY_FILE_GROUPS = {
 def cc_toolchain(
         *,
         name,
-        tool_map,
-        args,
-        known_features,
-        enabled_features,
-        libc_top,
-        module_map,
-        dynamic_runtime_lib,
-        static_runtime_lib,
-        supports_header_parsing,
-        supports_param_files,
+        tool_map = None,
+        args = [],
+        known_features = [],
+        enabled_features = [],
+        libc_top = None,
+        module_map = None,
+        dynamic_runtime_lib = None,
+        static_runtime_lib = None,
+        supports_header_parsing = False,
+        supports_param_files = False,
         **kwargs):
     """A C/C++ toolchain configuration.
 
