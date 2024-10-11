@@ -13,11 +13,16 @@
 # limitations under the License.
 """Module extension for cc auto configuration."""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("//cc/private/toolchain:cc_configure.bzl", "cc_autoconf", "cc_autoconf_toolchains")
 
 def _cc_configure_extension_impl(ctx):
     cc_autoconf_toolchains(name = "local_config_cc_toolchains")
     cc_autoconf(name = "local_config_cc")
-    return ctx.extension_metadata(reproducible = True)
+
+    has_reproducible = bazel_features.external_deps.extension_metadata_has_reproducible
+    return ctx.extension_metadata(
+        **(dict(reproducible = True) if has_reproducible else {})
+    )
 
 cc_configure_extension = module_extension(implementation = _cc_configure_extension_impl)
