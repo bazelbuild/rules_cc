@@ -13,7 +13,7 @@
 # limitations under the License.
 """Starlark rules for building C++ projects."""
 
-load("@protobuf//bazel:cc_proto_library.bzl", _cc_proto_library = "cc_proto_library")
+load("@com_google_protobuf//bazel:cc_proto_library.bzl", _cc_proto_library = "cc_proto_library")
 load("//cc:cc_binary.bzl", _cc_binary = "cc_binary")
 load("//cc:cc_import.bzl", _cc_import = "cc_import")
 load("//cc:cc_library.bzl", _cc_library = "cc_library")

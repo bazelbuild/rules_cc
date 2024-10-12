@@ -117,6 +117,17 @@ tasks:
       EXP_USE_CQUERY: 1 # Don't build incompatible targets
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
+  ubuntu2004_bazel_6_bzlmod:
+    name: Ubuntu 20.04 (Bazel 6, Bzlmod)
+    bazel: 6.5.0
+    platform: ubuntu2004
+    environment:
+      EXP_USE_CQUERY: 1 # Don't build incompatible targets
+    build_flags:
+      - "--enable_bzlmod"
+      - "--ignore_dev_dependency"
+    build_targets: *build_targets_bazel_6
+    test_targets: *test_targets_bazel_6
 
   ubuntu_rule_based_toolchains:
     name: Ubuntu rule-based toolchains
