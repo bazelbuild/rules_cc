@@ -23,6 +23,7 @@ _C_COMPILE = "//cc/toolchains/actions:c_compile"
 _CPP_COMPILE = "//cc/toolchains/actions:cpp_compile"
 _ALL_CPP_COMPILE = "//cc/toolchains/actions:cpp_compile_actions"
 _STRIP = "//cc/toolchains/actions:strip"
+_LINK_DYNAMIC_LIBRARY = "//cc/toolchains/actions:cpp_link_executable"
 _BIN = "//tests/rule_based_toolchain/testdata:bin"
 _BIN_WRAPPER = "//tests/rule_based_toolchain/testdata:bin_wrapper"
 
@@ -31,6 +32,7 @@ def valid_config_test(name):
     cc_tool_map(
         name = subject_name,
         tools = {
+            _LINK_DYNAMIC_LIBRARY: _BIN,
             _C_COMPILE: _BIN_WRAPPER,
             _ALL_CPP_COMPILE: _BIN,
         },
@@ -42,6 +44,7 @@ def valid_config_test(name):
         targets = {
             "c_compile": _C_COMPILE,
             "cpp_compile": _CPP_COMPILE,
+            "link_dynamic_library": _LINK_DYNAMIC_LIBRARY,
             "strip": _STRIP,
             "subject": subject_name,
         },
@@ -53,8 +56,9 @@ def _valid_config_test_impl(env, targets):
     configs.contains(targets.strip[ActionTypeInfo]).equals(False)
     configs.get(targets.c_compile[ActionTypeInfo]).exe().path().split("/").offset(-1, subjects.str).equals("bin_wrapper")
     configs.get(targets.cpp_compile[ActionTypeInfo]).exe().path().split("/").offset(-1, subjects.str).equals("bin")
+    configs.get(targets.link_dynamic_library[ActionTypeInfo]).exe().path().split("/").offset(-1, subjects.str).equals("bin")
 
-def duplicate_tool_test(name):
+def duplicate_action_test(name):
     subject_name = "_%s_subject" % name
     helper_target(
         cc_tool_map,

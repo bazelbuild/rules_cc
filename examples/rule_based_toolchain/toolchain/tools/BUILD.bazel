@@ -30,7 +30,7 @@ alias(
 )
 
 COMMON_TOOLS = {
-    "@rules_cc//cc/toolchains/actions:assembly_actions": ":asm",
+    "@rules_cc//cc/toolchains/actions:assembly_actions": ":clang",
     "@rules_cc//cc/toolchains/actions:c_compile": ":clang",
     "@rules_cc//cc/toolchains/actions:cpp_compile_actions": ":clang++",
     "@rules_cc//cc/toolchains/actions:link_actions": ":lld",
@@ -52,13 +52,6 @@ cc_tool_map(
         "@rules_cc//cc/toolchains/actions:ar_actions": ":llvm-libtool-darwin",
     },
     visibility = ["//visibility:private"],
-)
-
-# TODO: https://github.com/bazelbuild/rules_cc/issues/235 - Workaround until
-# Bazel has a more robust way to implement `cc_tool_map`.
-alias(
-    name = "asm",
-    actual = ":clang",
 )
 
 cc_tool(
