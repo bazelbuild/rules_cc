@@ -223,17 +223,11 @@ def _sanitizer_feature(name = "", specific_compile_flags = [], specific_link_fla
                         "-fno-sanitize-recover=all",
                     ] + specific_compile_flags),
                 ],
-                with_features = [
-                    with_feature_set(features = [name]),
-                ],
             ),
             flag_set(
                 actions = all_link_actions,
                 flag_groups = [
                     flag_group(flags = specific_link_flags),
-                ],
-                with_features = [
-                    with_feature_set(features = [name]),
                 ],
             ),
         ],
