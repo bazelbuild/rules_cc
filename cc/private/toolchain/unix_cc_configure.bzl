@@ -611,6 +611,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     repository_ctx.template(
         "BUILD",
         paths["@rules_cc//cc/private/toolchain:BUILD.tpl"],
+        # @unsorted-dict-items
         {
             "%{abi_libc_version}": escape_string(get_env_var(
                 repository_ctx,
