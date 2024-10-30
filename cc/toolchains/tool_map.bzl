@@ -32,7 +32,7 @@ def _cc_tool_map_impl(ctx):
     action_to_as = {}
     for i in range(len(action_sets)):
         action_set = action_sets[i]
-        tool = tools[i]
+        tool = tools[ctx.attr.tool_index_for_action[i]]
 
         for action in action_set.actions.to_list():
             if action in action_to_as:
@@ -62,6 +62,10 @@ See //cc/toolchains/actions:BUILD for valid options.
 
 The tool may be a `cc_tool` or other executable rule.
 """,
+        ),
+        "tool_index_for_action": attr.int_list(
+            mandatory = True,
+            doc = """The index of the tool in `tools` for the action in `actions`.""",
         ),
     },
     provides = [ToolConfigInfo],
@@ -100,11 +104,6 @@ def cc_tool_map(name, tools, **kwargs):
     )
     ```
 
-    Note:
-       Due to an implementation limitation, if you need to map the same tool to multiple actions,
-       you will need to create an intermediate alias for the tool for each set of actions. See
-       https://github.com/bazelbuild/rules_cc/issues/235 for more details.
-
     Args:
         name: (str) The name of the target.
         tools: (Dict[Label, Label]) A mapping between
@@ -112,9 +111,20 @@ def cc_tool_map(name, tools, **kwargs):
             and the `cc_tool` or executable target that implements that action.
         **kwargs: [common attributes](https://bazel.build/reference/be/common-definitions#common-attributes) that should be applied to this rule.
     """
+    actions = []
+    tool_index_for_action = []
+    deduplicated_tools = {}
+    for action, tool in tools.items():
+        actions.append(action)
+        label = native.package_relative_label(tool)
+        if label not in deduplicated_tools:
+            deduplicated_tools[label] = len(deduplicated_tools)
+        tool_index_for_action.append(deduplicated_tools[label])
+
     _cc_tool_map(
         name = name,
-        actions = tools.keys(),
-        tools = tools.values(),
+        actions = actions,
+        tools = deduplicated_tools.keys(),
+        tool_index_for_action = tool_index_for_action,
         **kwargs
     )

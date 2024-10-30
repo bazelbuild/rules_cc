@@ -657,11 +657,6 @@ cc_tool_map(
 )
 ```
 
-Note:
-   Due to an implementation limitation, if you need to map the same tool to multiple actions,
-   you will need to create an intermediate alias for the tool for each set of actions. See
-   https://github.com/bazelbuild/rules_cc/issues/235 for more details.
-
 
 **PARAMETERS**
 
