@@ -42,8 +42,8 @@ This is non-hermetic, and may have varying behaviors depending on the versions o
 
 There are third-party contributed hermetic toolchains you may want to investigate:
 
-- LLVM: <https://github.com/grailbio/bazel-toolchain>
-- GCC (Linux only): <https://github.com/aspect-build/gcc-toolchain>
+- LLVM: <https://github.com/bazel-contrib/toolchains_llvm>
+- GCC (Linux only): <https://github.com/f0rmiga/gcc-toolchain>
 - zig cc: <https://github.com/uber/hermetic_cc_toolchain>
 
 If you'd like to use the cc toolchain defined in this repo, add this to
