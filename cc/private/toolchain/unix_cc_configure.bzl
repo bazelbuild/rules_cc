@@ -628,9 +628,8 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
                 ":builtin_include_directory_paths",
                 ":cc_wrapper",
                 ":deps_scanner_wrapper",
-            ] + (
-                [":validate_static_library"] if "validate_static_library" in tool_paths else []
-            )),
+            ]),
+            "%{ar_deps}": get_starlark_list([":validate_static_library"] if "validate_static_library" in tool_paths else []),
             "%{cc_toolchain_identifier}": cc_toolchain_identifier,
             "%{compile_flags}": get_starlark_list(
                 [
