@@ -69,3 +69,8 @@ config_setting(
     name = "msvc-cl",
     flag_values = {"@rules_cc//cc/private/toolchain:compiler": "msvc-cl"},
 )
+
+config_setting(
+    name = "emscripten",
+    flag_values = {"@rules_cc//cc/private/toolchain:compiler": "emscripten"},
+)
