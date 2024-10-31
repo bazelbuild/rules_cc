@@ -30,3 +30,10 @@ http_archive(
     strip_prefix = "rules_testing-0.6.0",
     url = "https://github.com/bazelbuild/rules_testing/releases/download/v0.6.0/rules_testing-v0.6.0.tar.gz",
 )
+
+http_archive(
+    name = "googletest",
+    integrity = "sha256-e0K01u1IgQxTYsJloX+uvpDcI3PIheUhZDnTeSfwKSY=",
+    strip_prefix = "googletest-1.15.2",
+    url = "https://github.com/google/googletest/releases/download/v1.15.2/googletest-1.15.2.tar.gz",
+)
