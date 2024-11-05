@@ -1,4 +1,2 @@
 # Required by abseil-cpp.
 common --cxxopt=-std=c++14
-# Silence some warnings.
-common --per_file_copt=.*/absl/strings/string_view.h@-Wno-unreachable-code
