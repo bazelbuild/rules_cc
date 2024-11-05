@@ -25,9 +25,9 @@
 //
 // 2.  Include the runfiles library.
 //
-//       #include "tools/cpp/runfiles/runfiles.h"
+//       #include "rules_cc/cc/runfiles/runfiles.h"
 //
-//       using bazel::tools::cpp::runfiles::Runfiles;
+//       using rules_cc::cc::runfiles::Runfiles;
 //
 // 3.  Create a Runfiles object and use rlocation to look up runfile paths:
 //
@@ -77,8 +77,8 @@
 //       execv(args[0], args);
 //     }
 
-#ifndef TOOLS_CPP_RUNFILES_RUNFILES_H_
-#define TOOLS_CPP_RUNFILES_RUNFILES_H_ 1
+#ifndef RULES_CC_CC_RUNFILES_RUNFILES_H_
+#define RULES_CC_CC_RUNFILES_RUNFILES_H_ 1
 
 #include <functional>
 #include <map>
@@ -86,9 +86,8 @@
 #include <string>
 #include <vector>
 
-namespace bazel {
-namespace tools {
-namespace cpp {
+namespace rules_cc {
+namespace cc {
 namespace runfiles {
 
 class Runfiles {
@@ -259,8 +258,7 @@ bool TestOnly_IsAbsolute(const std::string& path);
 
 }  // namespace testing
 }  // namespace runfiles
-}  // namespace cpp
-}  // namespace tools
-}  // namespace bazel
+}  // namespace cc
+}  // namespace rules_cc
 
-#endif  // TOOLS_CPP_RUNFILES_RUNFILES_H_
+#endif  // RULES_CC_CC_RUNFILES_RUNFILES_H_

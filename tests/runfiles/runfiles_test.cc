@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "tools/cpp/runfiles/runfiles.h"
+#include "rules_cc/cc/runfiles/runfiles.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -29,14 +29,13 @@
 #define RUNFILES_TEST_TOSTRING(x) RUNFILES_TEST_TOSTRING_HELPER(x)
 #define LINE_AS_STRING() RUNFILES_TEST_TOSTRING(__LINE__)
 
-namespace bazel {
-namespace tools {
-namespace cpp {
+namespace rules_cc {
+namespace cc {
 namespace runfiles {
 namespace {
 
-using bazel::tools::cpp::runfiles::testing::TestOnly_IsAbsolute;
-using bazel::tools::cpp::runfiles::testing::TestOnly_PathsFrom;
+using rules_cc::cc::runfiles::testing::TestOnly_IsAbsolute;
+using rules_cc::cc::runfiles::testing::TestOnly_PathsFrom;
 using std::cerr;
 using std::endl;
 using std::function;
@@ -877,6 +876,5 @@ TEST_F(RunfilesTest, InvalidRepoMapping) {
 
 }  // namespace
 }  // namespace runfiles
-}  // namespace cpp
-}  // namespace tools
-}  // namespace bazel
+}  // namespace cc
+}  // namespace rules_cc

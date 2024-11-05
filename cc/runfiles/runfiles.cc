@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "tools/cpp/runfiles/runfiles.h"
+#include "rules_cc/cc/runfiles/runfiles.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -34,9 +34,8 @@
 #include <memory>
 #endif  // _WIN32
 
-namespace bazel {
-namespace tools {
-namespace cpp {
+namespace rules_cc {
+namespace cc {
 namespace runfiles {
 
 using std::function;
@@ -479,6 +478,5 @@ bool PathsFrom(const string& argv0, string mf, string dir,
 }  // namespace
 
 }  // namespace runfiles
-}  // namespace cpp
-}  // namespace tools
-}  // namespace bazel
+}  // namespace cc
+}  // namespace rules_cc
