@@ -1,5 +1,3 @@
-load("//cc:defs.bzl", "cc_flags_supplier", "cc_library", "compiler_flag")
-
 # Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +12,11 @@ load("//cc:defs.bzl", "cc_flags_supplier", "cc_library", "compiler_flag")
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+load("//cc:cc_library.bzl", "cc_library")
+load("//cc/toolchains:cc_flags_supplier.bzl", "cc_flags_supplier")
+load("//cc/toolchains:compiler_flag.bzl", "compiler_flag")
+
 package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])  # Apache 2.0

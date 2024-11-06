@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("//cc:defs.bzl", "cc_library")
+load("//cc:cc_library.bzl", "cc_library")
 load(":tags.bzl", "TAGS")
 
 licenses(["notice"])

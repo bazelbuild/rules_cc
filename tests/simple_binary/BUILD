@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//cc:defs.bzl", "cc_binary")
+load("//cc:cc_binary.bzl", "cc_binary")
 
 licenses(["notice"])
 
