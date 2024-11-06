@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//third_party/bazel_rules/rules_shell/shell:sh_test.bzl", "sh_test")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
 
 sh_test(
     name = "system_library_test",
