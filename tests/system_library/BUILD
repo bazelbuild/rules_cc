@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("//third_party/rules_shell/shell:sh_test.bzl", "sh_test")
+
 sh_test(
     name = "system_library_test",
     size = "small",
