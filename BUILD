@@ -1,4 +1,4 @@
-load("//cc:defs.bzl", "cc_library")
+load("//cc:cc_library.bzl", "cc_library")
 
 package(default_visibility = ["//visibility:public"])
 
