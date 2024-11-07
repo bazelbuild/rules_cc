@@ -396,7 +396,7 @@ cc_toolchain(
     name = "universal_cc_toolchain",
     # Assume no operating system means no dynamic loader support.
     enabled_features = select({
-        "@platforms//os:none": [],
+        "//third_party/bazel_platforms/os:none": [],
         "//conditions:default": [
             "@rules_cc//cc/toolchains/capabilities:supports_dynamic_linker",
         ],
