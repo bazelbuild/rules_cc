@@ -17,6 +17,7 @@ load(
     "//cc/toolchains:cc_toolchain_info.bzl",
     "ArgsListInfo",
     "FeatureConstraintInfo",
+    "FeatureImplyabilityInfo",
     "FeatureInfo",
     "FeatureSetInfo",
 )
@@ -47,6 +48,7 @@ def _cc_external_feature_impl(ctx):
     )
     providers = [
         feature,
+        FeatureImplyabilityInfo(),
         FeatureSetInfo(label = ctx.label, features = depset([feature])),
         FeatureConstraintInfo(
             label = ctx.label,
