@@ -9,11 +9,3 @@ cc_tool_capability(
 cc_tool_capability(
     name = "supports_interface_shared_libraries",
 )
-
-cc_tool_capability(
-    name = "supports_dynamic_linker",
-)
-
-cc_tool_capability(
-    name = "supports_pic",
-)
