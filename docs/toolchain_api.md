@@ -761,11 +761,11 @@ When building a [`cc_toolchain`](#cc_toolchain) configuration, it's important to
 statements will be evaluated:
 
 * Most attributes and dependencies of a [`cc_toolchain`](#cc_toolchain) are evaluated under the target platform.
-  This means that a `@platforms//os:linux` constraint will be satisfied when
+  This means that a `//third_party/bazel_platforms/os:linux` constraint will be satisfied when
   the final compiled binaries are intended to be ran from a Linux machine. This means that
   a different operating system (e.g. Windows) may be cross-compiling to linux.
 * The [`cc_tool_map`](#cc_tool_map) rule performs a transition to the exec platform when evaluating tools. This
-  means that a if a `@platforms//os:linux` constraint is satisfied in a
+  means that a if a `//third_party/bazel_platforms/os:linux` constraint is satisfied in a
   `select` statement on a [`cc_tool`](#cc_tool), that means the machine that will run the tool is a Linux
   machine. This means that a Linux machine may be cross-compiling to a different OS
   like Windows.
