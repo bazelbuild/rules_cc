@@ -1,6 +1,6 @@
 module(
     name = "rules_cc",
-    version = "0.0.14",
+    version = "0.0.0",
     compatibility_level = 1,
 )
 
