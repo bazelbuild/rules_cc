@@ -7,8 +7,6 @@ This is a list of rules/macros that should be exported as documentation.
 ## cc_action_type
 
 <pre>
-load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_action_type")
-
 cc_action_type(<a href="#cc_action_type-name">name</a>, <a href="#cc_action_type-action_name">action_name</a>)
 </pre>
 
@@ -49,8 +47,6 @@ cc_action_type(
 ## cc_action_type_set
 
 <pre>
-load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_action_type_set")
-
 cc_action_type_set(<a href="#cc_action_type_set-name">name</a>, <a href="#cc_action_type_set-actions">actions</a>, <a href="#cc_action_type_set-allow_empty">allow_empty</a>)
 </pre>
 
@@ -87,8 +83,6 @@ cc_action_type_set(
 ## cc_args_list
 
 <pre>
-load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_args_list")
-
 cc_args_list(<a href="#cc_args_list-name">name</a>, <a href="#cc_args_list-args">args</a>)
 </pre>
 
@@ -145,8 +139,6 @@ cc_args_list(
 ## cc_external_feature
 
 <pre>
-load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_external_feature")
-
 cc_external_feature(<a href="#cc_external_feature-name">name</a>, <a href="#cc_external_feature-feature_name">feature_name</a>, <a href="#cc_external_feature-overridable">overridable</a>)
 </pre>
 
@@ -187,8 +179,6 @@ cc_external_feature(
 ## cc_feature
 
 <pre>
-load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_feature")
-
 cc_feature(<a href="#cc_feature-name">name</a>, <a href="#cc_feature-args">args</a>, <a href="#cc_feature-feature_name">feature_name</a>, <a href="#cc_feature-implies">implies</a>, <a href="#cc_feature-mutually_exclusive">mutually_exclusive</a>, <a href="#cc_feature-overrides">overrides</a>, <a href="#cc_feature-requires_any_of">requires_any_of</a>)
 </pre>
 
@@ -265,8 +255,6 @@ cc_feature(
 ## cc_feature_constraint
 
 <pre>
-load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_feature_constraint")
-
 cc_feature_constraint(<a href="#cc_feature_constraint-name">name</a>, <a href="#cc_feature_constraint-all_of">all_of</a>, <a href="#cc_feature_constraint-none_of">none_of</a>)
 </pre>
 
@@ -307,8 +295,6 @@ cc_feature_constraint(
 ## cc_feature_set
 
 <pre>
-load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_feature_set")
-
 cc_feature_set(<a href="#cc_feature_set-name">name</a>, <a href="#cc_feature_set-all_of">all_of</a>)
 </pre>
 
@@ -344,8 +330,6 @@ cc_feature_set(
 ## cc_mutually_exclusive_category
 
 <pre>
-load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_mutually_exclusive_category")
-
 cc_mutually_exclusive_category(<a href="#cc_mutually_exclusive_category-name">name</a>)
 </pre>
 
@@ -396,8 +380,6 @@ cc_feature(
 ## cc_target_capability
 
 <pre>
-load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_target_capability")
-
 cc_target_capability(<a href="#cc_target_capability-name">name</a>, <a href="#cc_target_capability-feature_name">feature_name</a>)
 </pre>
 
@@ -446,8 +428,6 @@ implementations that expect these options to be exposed as
 ## cc_tool
 
 <pre>
-load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_tool")
-
 cc_tool(<a href="#cc_tool-name">name</a>, <a href="#cc_tool-src">src</a>, <a href="#cc_tool-data">data</a>, <a href="#cc_tool-allowlist_include_directories">allowlist_include_directories</a>, <a href="#cc_tool-capabilities">capabilities</a>)
 </pre>
 
@@ -494,8 +474,6 @@ cc_tool(
 ## cc_tool_capability
 
 <pre>
-load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_tool_capability")
-
 cc_tool_capability(<a href="#cc_tool_capability-name">name</a>, <a href="#cc_tool_capability-feature_name">feature_name</a>)
 </pre>
 
@@ -551,8 +529,6 @@ constructs to enable the feature at the
 ## cc_args
 
 <pre>
-load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_args")
-
 cc_args(<a href="#cc_args-name">name</a>, <a href="#cc_args-actions">actions</a>, <a href="#cc_args-allowlist_include_directories">allowlist_include_directories</a>, <a href="#cc_args-args">args</a>, <a href="#cc_args-data">data</a>, <a href="#cc_args-env">env</a>, <a href="#cc_args-format">format</a>, <a href="#cc_args-iterate_over">iterate_over</a>, <a href="#cc_args-nested">nested</a>,
         <a href="#cc_args-requires_not_none">requires_not_none</a>, <a href="#cc_args-requires_none">requires_none</a>, <a href="#cc_args-requires_true">requires_true</a>, <a href="#cc_args-requires_false">requires_false</a>, <a href="#cc_args-requires_equal">requires_equal</a>,
         <a href="#cc_args-requires_equal_value">requires_equal_value</a>, <a href="#cc_args-requires_any_of">requires_any_of</a>, <a href="#cc_args-kwargs">kwargs</a>)
@@ -660,8 +636,6 @@ For more extensive examples, see the usages here:
 ## cc_nested_args
 
 <pre>
-load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_nested_args")
-
 cc_nested_args(<a href="#cc_nested_args-name">name</a>, <a href="#cc_nested_args-args">args</a>, <a href="#cc_nested_args-data">data</a>, <a href="#cc_nested_args-format">format</a>, <a href="#cc_nested_args-iterate_over">iterate_over</a>, <a href="#cc_nested_args-nested">nested</a>, <a href="#cc_nested_args-requires_not_none">requires_not_none</a>, <a href="#cc_nested_args-requires_none">requires_none</a>,
                <a href="#cc_nested_args-requires_true">requires_true</a>, <a href="#cc_nested_args-requires_false">requires_false</a>, <a href="#cc_nested_args-requires_equal">requires_equal</a>, <a href="#cc_nested_args-requires_equal_value">requires_equal_value</a>, <a href="#cc_nested_args-kwargs">kwargs</a>)
 </pre>
@@ -709,8 +683,6 @@ use this rule.
 ## cc_tool_map
 
 <pre>
-load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_tool_map")
-
 cc_tool_map(<a href="#cc_tool_map-name">name</a>, <a href="#cc_tool_map-tools">tools</a>, <a href="#cc_tool_map-kwargs">kwargs</a>)
 </pre>
 
@@ -762,8 +734,6 @@ cc_tool_map(
 ## cc_toolchain
 
 <pre>
-load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_toolchain")
-
 cc_toolchain(<a href="#cc_toolchain-name">name</a>, <a href="#cc_toolchain-tool_map">tool_map</a>, <a href="#cc_toolchain-args">args</a>, <a href="#cc_toolchain-known_features">known_features</a>, <a href="#cc_toolchain-enabled_features">enabled_features</a>, <a href="#cc_toolchain-libc_top">libc_top</a>, <a href="#cc_toolchain-module_map">module_map</a>,
              <a href="#cc_toolchain-dynamic_runtime_lib">dynamic_runtime_lib</a>, <a href="#cc_toolchain-static_runtime_lib">static_runtime_lib</a>, <a href="#cc_toolchain-supports_header_parsing">supports_header_parsing</a>, <a href="#cc_toolchain-supports_param_files">supports_param_files</a>,
              <a href="#cc_toolchain-kwargs">kwargs</a>)
@@ -833,8 +803,6 @@ Generated rules:
 ## cc_variable
 
 <pre>
-load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_variable")
-
 cc_variable(<a href="#cc_variable-name">name</a>, <a href="#cc_variable-type">type</a>, <a href="#cc_variable-kwargs">kwargs</a>)
 </pre>
 
