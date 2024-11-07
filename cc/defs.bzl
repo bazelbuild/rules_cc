@@ -43,7 +43,12 @@ cc_shared_library = _cc_shared_library
 objc_library = _objc_library
 objc_import = _objc_import
 
-cc_proto_library = _cc_proto_library  # For compatibility with current users
+# DEPRECATED: use rule from com_google_protobuf repository
+def cc_proto_library(**kwargs):
+    if "deprecation" not in kwargs:
+        _cc_proto_library(deprecation = "Use cc_proto_library from com_google_protobuf", **kwargs)
+    else:
+        _cc_proto_library(**kwargs)
 
 # Toolchain rules
 
