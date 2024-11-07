@@ -70,7 +70,7 @@ cc_external_feature = rule(
             mandatory = True,
         ),
     },
-    provides = [FeatureInfo, FeatureSetInfo, FeatureConstraintInfo],
+    provides = [FeatureInfo, FeatureImplyabilityInfo, FeatureSetInfo, FeatureConstraintInfo],
     doc = """A declaration that a [feature](https://bazel.build/docs/cc-toolchain-config-reference#features) with this name is defined elsewhere.
 
 This rule communicates that a feature has been defined externally to make it possible to reference

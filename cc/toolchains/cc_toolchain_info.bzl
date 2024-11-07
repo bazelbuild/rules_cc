@@ -122,6 +122,7 @@ FeatureInfo = provider(
 
 FeatureImplyabilityInfo = provider(
     doc = "Provider used to constrain which kinds of features can be implied",
+    fields = {},
 )
 
 FeatureSetInfo = provider(
