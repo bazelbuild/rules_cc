@@ -13,6 +13,7 @@
 # limitations under the License.
 """Starlark rules for building C++ projects."""
 
+load("@com_google_protobuf//bazel:cc_proto_library.bzl", _cc_proto_library = "cc_proto_library")
 load("//cc:cc_binary.bzl", _cc_binary = "cc_binary")
 load("//cc:cc_import.bzl", _cc_import = "cc_import")
 load("//cc:cc_library.bzl", _cc_library = "cc_library")
@@ -41,6 +42,13 @@ cc_shared_library = _cc_shared_library
 
 objc_library = _objc_library
 objc_import = _objc_import
+
+# DEPRECATED: use rule from com_google_protobuf repository
+def cc_proto_library(**kwargs):
+    if "deprecation" not in kwargs:
+        _cc_proto_library(deprecation = "Use cc_proto_library from com_google_protobuf", **kwargs)
+    else:
+        _cc_proto_library(**kwargs)
 
 # Toolchain rules
 
