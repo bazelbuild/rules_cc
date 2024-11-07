@@ -119,6 +119,11 @@ FeatureInfo = provider(
         "allowlist_include_directories": "(depset[DirectoryInfo]) Include directories implied by this feature that should be allowlisted in Bazel's include checker",
     },
 )
+
+FeatureImplyabilityInfo = provider(
+    doc = "Provider used to constrain which kinds of features can be implied",
+)
+
 FeatureSetInfo = provider(
     doc = "A set of features",
     # @unsorted-dict-items
@@ -161,7 +166,16 @@ ToolInfo = provider(
 )
 
 ToolCapabilityInfo = provider(
-    doc = "A capability associated with a tool (eg. supports_pic).",
+    doc = "A capability associated with a tool (eg. supports_start_end_lib).",
+    # @unsorted-dict-items
+    fields = {
+        "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
+        "feature": "(FeatureInfo) The feature this capability defines",
+    },
+)
+
+TargetCapabilityInfo = provider(
+    doc = "A capability associated with a target (eg. supports_pic).",
     # @unsorted-dict-items
     fields = {
         "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
