@@ -42,23 +42,9 @@ cc_external_feature(
 )
 
 cc_external_feature(
-    name = "supports_dynamic_linker",
-    feature_name = "supports_dynamic_linker",
-    # This is a sentinel feature with no associated implementation.
-    overridable = False,
-)
-
-cc_external_feature(
     name = "static_link_cpp_runtimes",
     feature_name = "static_link_cpp_runtimes",
     overridable = True,
-)
-
-cc_external_feature(
-    name = "supports_pic",
-    feature_name = "supports_pic",
-    # This is a sentinel feature with no associated implementation.
-    overridable = False,
 )
 
 cc_feature_set(
@@ -70,9 +56,7 @@ cc_feature_set(
         ":static_linking_mode",
         ":dynamic_linking_mode",
         ":per_object_debug_info",
-        ":supports_dynamic_linker",
         ":static_link_cpp_runtimes",
-        ":supports_pic",
     ],
     visibility = ["//visibility:private"],
 )
