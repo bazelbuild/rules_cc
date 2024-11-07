@@ -86,7 +86,7 @@ a tool that supports the argument.
 [`cc_feature.implies`](#cc_feature-implies) list, or in
 [`cc_toolchain.enabled_features`](#cc_toolchain-enabled_features).
 
-Note: Because [`cc_tool`](#cc_tool) rules are always evaluated under the exec
+Note: Because `cc_tool` rules are always evaluated under the exec
 configuration, a `select()` to guide capabilities will `select()` on the
 properties of the exec configuration. If you need a capability that is
 conditionally guided by the target configuration, prefer using configurabilty

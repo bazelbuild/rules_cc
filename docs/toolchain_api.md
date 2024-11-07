@@ -7,6 +7,8 @@ This is a list of rules/macros that should be exported as documentation.
 ## cc_action_type
 
 <pre>
+load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_action_type")
+
 cc_action_type(<a href="#cc_action_type-name">name</a>, <a href="#cc_action_type-action_name">action_name</a>)
 </pre>
 
@@ -47,6 +49,8 @@ cc_action_type(
 ## cc_action_type_set
 
 <pre>
+load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_action_type_set")
+
 cc_action_type_set(<a href="#cc_action_type_set-name">name</a>, <a href="#cc_action_type_set-actions">actions</a>, <a href="#cc_action_type_set-allow_empty">allow_empty</a>)
 </pre>
 
@@ -83,6 +87,8 @@ cc_action_type_set(
 ## cc_args_list
 
 <pre>
+load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_args_list")
+
 cc_args_list(<a href="#cc_args_list-name">name</a>, <a href="#cc_args_list-args">args</a>)
 </pre>
 
@@ -139,6 +145,8 @@ cc_args_list(
 ## cc_external_feature
 
 <pre>
+load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_external_feature")
+
 cc_external_feature(<a href="#cc_external_feature-name">name</a>, <a href="#cc_external_feature-feature_name">feature_name</a>, <a href="#cc_external_feature-overridable">overridable</a>)
 </pre>
 
@@ -179,6 +187,8 @@ cc_external_feature(
 ## cc_feature
 
 <pre>
+load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_feature")
+
 cc_feature(<a href="#cc_feature-name">name</a>, <a href="#cc_feature-args">args</a>, <a href="#cc_feature-feature_name">feature_name</a>, <a href="#cc_feature-implies">implies</a>, <a href="#cc_feature-mutually_exclusive">mutually_exclusive</a>, <a href="#cc_feature-overrides">overrides</a>, <a href="#cc_feature-requires_any_of">requires_any_of</a>)
 </pre>
 
@@ -255,6 +265,8 @@ cc_feature(
 ## cc_feature_constraint
 
 <pre>
+load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_feature_constraint")
+
 cc_feature_constraint(<a href="#cc_feature_constraint-name">name</a>, <a href="#cc_feature_constraint-all_of">all_of</a>, <a href="#cc_feature_constraint-none_of">none_of</a>)
 </pre>
 
@@ -295,6 +307,8 @@ cc_feature_constraint(
 ## cc_feature_set
 
 <pre>
+load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_feature_set")
+
 cc_feature_set(<a href="#cc_feature_set-name">name</a>, <a href="#cc_feature_set-all_of">all_of</a>)
 </pre>
 
@@ -330,6 +344,8 @@ cc_feature_set(
 ## cc_mutually_exclusive_category
 
 <pre>
+load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_mutually_exclusive_category")
+
 cc_mutually_exclusive_category(<a href="#cc_mutually_exclusive_category-name">name</a>)
 </pre>
 
@@ -375,11 +391,63 @@ cc_feature(
 | <a id="cc_mutually_exclusive_category-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 
 
+<a id="cc_target_capability"></a>
+
+## cc_target_capability
+
+<pre>
+load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_target_capability")
+
+cc_target_capability(<a href="#cc_target_capability-name">name</a>, <a href="#cc_target_capability-feature_name">feature_name</a>)
+</pre>
+
+A target capability is an optional feature that a target platform supports.
+
+For example, not all target platforms have dynamic loaders (e.g. microcontroller
+firmware), so a toolchain may conditionally enable the capabilty to communicate
+the capability to C/C++ rule implementations.
+
+```
+load("@rules_cc//cc/toolchains:toolchain.bzl", "cc_toolchain")
+
+cc_toolchain(
+    name = "universal_cc_toolchain",
+    # Assume no operating system means no dynamic loader support.
+    enabled_features = select({
+        "@platforms//os:none": [],
+        "//conditions:default": [
+            "@rules_cc//cc/toolchains/capabilities:supports_dynamic_linker",
+        ],
+    }),
+    # ...
+)
+```
+
+[`cc_target_capability`](#cc_target_capability) rules cannot be listed in a
+[`cc_feature.implies`](#cc_feature-implies) list.
+
+Note: User-defined capabilities should prefer traditional
+[user-defined build settings](https://bazel.build/extending/config#user-defined-build-settings).
+This construct exists to communicate these features to preexisting C/C++ rule
+implementations that expect these options to be exposed as
+[features](https://bazel.build/docs/cc-toolchain-config-reference#features).
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="cc_target_capability-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="cc_target_capability-feature_name"></a>feature_name |  The name of the feature to generate for this capability   | String | optional |  `""`  |
+
+
 <a id="cc_tool"></a>
 
 ## cc_tool
 
 <pre>
+load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_tool")
+
 cc_tool(<a href="#cc_tool-name">name</a>, <a href="#cc_tool-src">src</a>, <a href="#cc_tool-data">data</a>, <a href="#cc_tool-allowlist_include_directories">allowlist_include_directories</a>, <a href="#cc_tool-capabilities">capabilities</a>)
 </pre>
 
@@ -426,33 +494,48 @@ cc_tool(
 ## cc_tool_capability
 
 <pre>
+load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_tool_capability")
+
 cc_tool_capability(<a href="#cc_tool_capability-name">name</a>, <a href="#cc_tool_capability-feature_name">feature_name</a>)
 </pre>
 
 A capability is an optional feature that a tool supports.
 
-For example, not all compilers support PIC, so to handle this, we write:
+For example, not all linkers support --start-lib, so to handle this, we write:
 
 ```
+load("@rules_cc//cc/toolchains:args.bzl", "cc_args")
+load("@rules_cc//cc/toolchains:tool.bzl", "cc_tool")
+
 cc_tool(
     name = "clang",
     src = "@host_tools/bin/clang",
     capabilities = [
-        "@rules_cc//cc/toolchains/capabilities:supports_pic",
+        "@rules_cc//cc/toolchains/capabilities:supports_start_end_lib",
     ],
 )
 
 cc_args(
     name = "pic",
-    requires = [
-        "@rules_cc//cc/toolchains/capabilities:supports_pic"
-    ],
-    args = ["-fPIC"],
+    requires = ["@rules_cc//cc/toolchains/capabilities:supports_start_end_lib"],
+    args = ["-Wl,--start-lib"],
 )
 ```
 
-This ensures that `-fPIC` is added to the command-line only when we are using a
-tool that supports PIC.
+This ensures that `-Wl,--start-lib` is added to the command-line only when using
+a tool that supports the argument.
+
+
+[`cc_target_capability`](#cc_target_capability) rules cannot be listed in a
+[`cc_feature.implies`](#cc_feature-implies) list, or in
+[`cc_toolchain.enabled_features`](#cc_toolchain-enabled_features).
+
+Note: Because [`cc_tool`](#cc_tool) rules are always evaluated under the exec
+configuration, a `select()` to guide capabilities will `select()` on the
+properties of the exec configuration. If you need a capability that is
+conditionally guided by the target configuration, prefer using configurabilty
+constructs to enable the feature at the
+[`cc_toolchain.enabled_features`](#cc_toolchain-enabled_features) level.
 
 **ATTRIBUTES**
 
@@ -468,6 +551,8 @@ tool that supports PIC.
 ## cc_args
 
 <pre>
+load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_args")
+
 cc_args(<a href="#cc_args-name">name</a>, <a href="#cc_args-actions">actions</a>, <a href="#cc_args-allowlist_include_directories">allowlist_include_directories</a>, <a href="#cc_args-args">args</a>, <a href="#cc_args-data">data</a>, <a href="#cc_args-env">env</a>, <a href="#cc_args-format">format</a>, <a href="#cc_args-iterate_over">iterate_over</a>, <a href="#cc_args-nested">nested</a>,
         <a href="#cc_args-requires_not_none">requires_not_none</a>, <a href="#cc_args-requires_none">requires_none</a>, <a href="#cc_args-requires_true">requires_true</a>, <a href="#cc_args-requires_false">requires_false</a>, <a href="#cc_args-requires_equal">requires_equal</a>,
         <a href="#cc_args-requires_equal_value">requires_equal_value</a>, <a href="#cc_args-requires_any_of">requires_any_of</a>, <a href="#cc_args-kwargs">kwargs</a>)
@@ -575,6 +660,8 @@ For more extensive examples, see the usages here:
 ## cc_nested_args
 
 <pre>
+load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_nested_args")
+
 cc_nested_args(<a href="#cc_nested_args-name">name</a>, <a href="#cc_nested_args-args">args</a>, <a href="#cc_nested_args-data">data</a>, <a href="#cc_nested_args-format">format</a>, <a href="#cc_nested_args-iterate_over">iterate_over</a>, <a href="#cc_nested_args-nested">nested</a>, <a href="#cc_nested_args-requires_not_none">requires_not_none</a>, <a href="#cc_nested_args-requires_none">requires_none</a>,
                <a href="#cc_nested_args-requires_true">requires_true</a>, <a href="#cc_nested_args-requires_false">requires_false</a>, <a href="#cc_nested_args-requires_equal">requires_equal</a>, <a href="#cc_nested_args-requires_equal_value">requires_equal_value</a>, <a href="#cc_nested_args-kwargs">kwargs</a>)
 </pre>
@@ -622,6 +709,8 @@ use this rule.
 ## cc_tool_map
 
 <pre>
+load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_tool_map")
+
 cc_tool_map(<a href="#cc_tool_map-name">name</a>, <a href="#cc_tool_map-tools">tools</a>, <a href="#cc_tool_map-kwargs">kwargs</a>)
 </pre>
 
@@ -673,6 +762,8 @@ cc_tool_map(
 ## cc_toolchain
 
 <pre>
+load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_toolchain")
+
 cc_toolchain(<a href="#cc_toolchain-name">name</a>, <a href="#cc_toolchain-tool_map">tool_map</a>, <a href="#cc_toolchain-args">args</a>, <a href="#cc_toolchain-known_features">known_features</a>, <a href="#cc_toolchain-enabled_features">enabled_features</a>, <a href="#cc_toolchain-libc_top">libc_top</a>, <a href="#cc_toolchain-module_map">module_map</a>,
              <a href="#cc_toolchain-dynamic_runtime_lib">dynamic_runtime_lib</a>, <a href="#cc_toolchain-static_runtime_lib">static_runtime_lib</a>, <a href="#cc_toolchain-supports_header_parsing">supports_header_parsing</a>, <a href="#cc_toolchain-supports_param_files">supports_param_files</a>,
              <a href="#cc_toolchain-kwargs">kwargs</a>)
@@ -700,11 +791,11 @@ When building a [`cc_toolchain`](#cc_toolchain) configuration, it's important to
 statements will be evaluated:
 
 * Most attributes and dependencies of a [`cc_toolchain`](#cc_toolchain) are evaluated under the target platform.
-  This means that a `//third_party/bazel_platforms/os:linux` constraint will be satisfied when
+  This means that a `@platforms//os:linux` constraint will be satisfied when
   the final compiled binaries are intended to be ran from a Linux machine. This means that
   a different operating system (e.g. Windows) may be cross-compiling to linux.
 * The [`cc_tool_map`](#cc_tool_map) rule performs a transition to the exec platform when evaluating tools. This
-  means that a if a `//third_party/bazel_platforms/os:linux` constraint is satisfied in a
+  means that a if a `@platforms//os:linux` constraint is satisfied in a
   `select` statement on a [`cc_tool`](#cc_tool), that means the machine that will run the tool is a Linux
   machine. This means that a Linux machine may be cross-compiling to a different OS
   like Windows.
@@ -742,6 +833,8 @@ Generated rules:
 ## cc_variable
 
 <pre>
+load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_variable")
+
 cc_variable(<a href="#cc_variable-name">name</a>, <a href="#cc_variable-type">type</a>, <a href="#cc_variable-kwargs">kwargs</a>)
 </pre>
 
