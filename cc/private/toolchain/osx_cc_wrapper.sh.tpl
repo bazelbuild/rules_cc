@@ -113,9 +113,9 @@ function call_install_name() {
 for rpath in ${RPATHS}; do
     for lib in ${LIBS}; do
         unset libname
-        if [ -f "$(dirname ${OUTPUT})/${rpath}/lib${lib}.so" ]; then
+        if [ -f "$(/usr/bin/dirname ${OUTPUT})/${rpath}/lib${lib}.so" ]; then
             libname="lib${lib}.so"
-        elif [ -f "$(dirname ${OUTPUT})/${rpath}/lib${lib}.dylib" ]; then
+        elif [ -f "$(/usr/bin/dirname ${OUTPUT})/${rpath}/lib${lib}.dylib" ]; then
             libname="lib${lib}.dylib"
         fi
         # ${libname-} --> return $libname if defined, or undefined otherwise. This is to make
@@ -129,8 +129,8 @@ for rpath in ${RPATHS}; do
     done
     for libpath in ${LIB_PATHS}; do
         if [ -f "$libpath" ]; then
-            libname=$(basename "$libpath")
-            if [ -f "$(dirname ${OUTPUT})/${rpath}/${libname}" ]; then
+            libname=$(/usr/bin/basename "$libpath")
+            if [ -f "$(/usr/bin/dirname ${OUTPUT})/${rpath}/${libname}" ]; then
                 call_install_name "${libpath}" "${rpath}" "${libname}"
             fi
         fi
