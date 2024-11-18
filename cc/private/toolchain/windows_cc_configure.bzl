@@ -649,7 +649,6 @@ def _get_msys_mingw_vars(repository_ctx):
 
 def _get_msvc_vars(repository_ctx, paths, target_arch = "x64", msvc_vars_x64 = None):
     """Get the variables we need to populate the MSVC toolchains."""
-    msvc_vars = dict()
     vc_path = find_vc_path(repository_ctx)
     missing_tools = None
 
