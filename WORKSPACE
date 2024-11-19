@@ -50,3 +50,10 @@ http_archive(
     strip_prefix = "protobuf-27.0",
     url = "https://github.com/protocolbuffers/protobuf/releases/download/v27.0/protobuf-27.0.tar.gz",
 )
+
+http_archive(
+    name = "googletest",
+    integrity = "sha256-e0K01u1IgQxTYsJloX+uvpDcI3PIheUhZDnTeSfwKSY=",
+    strip_prefix = "googletest-1.15.2",
+    url = "https://github.com/google/googletest/releases/download/v1.15.2/googletest-1.15.2.tar.gz",
+)

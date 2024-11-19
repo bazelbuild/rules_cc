@@ -1,7 +1,12 @@
+load("//cc:cc_library.bzl", "cc_library")
+
 licenses(["notice"])
 
-alias(
+cc_library(
     name = "runfiles",
-    actual = "@bazel_tools//tools/cpp/runfiles",
+    srcs = ["runfiles.cc"],
+    hdrs = ["runfiles.h"],
+    include_prefix = "rules_cc/cc/runfiles",
+    strip_include_prefix = ".",
     visibility = ["//visibility:public"],
 )
