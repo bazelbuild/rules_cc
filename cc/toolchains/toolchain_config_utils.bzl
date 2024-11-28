@@ -14,7 +14,7 @@
 """Exposing some helper functions for configure cc toolchains."""
 
 load("//cc/private/toolchain:cc_configure.bzl", _MSVC_ENVVARS = "MSVC_ENVVARS")
-load("//cc/private/toolchain:lib_cc_configure.bzl", _escape_string = "escape_string")
+load("//cc/private/toolchain:lib_cc_configure.bzl", _escape_string = "escape_string", _get_cpu_value = "get_cpu_value")
 load("//cc/private/toolchain:windows_cc_configure.bzl", _find_vc_path = "find_vc_path", _setup_vc_env_vars = "setup_vc_env_vars")
 
 MSVC_ENVVARS = _MSVC_ENVVARS
@@ -22,3 +22,4 @@ MSVC_ENVVARS = _MSVC_ENVVARS
 find_vc_path = _find_vc_path
 setup_vc_env_vars = _setup_vc_env_vars
 escape_string = _escape_string
+get_cpu_value = _get_cpu_value
