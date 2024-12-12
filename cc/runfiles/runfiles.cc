@@ -73,6 +73,9 @@ bool ends_with(const string& s, const string& suffix) {
   if (s.empty()) {
     return false;
   }
+  if (suffix.size() > s.size()) {
+    return false;
+  }
   return s.rfind(suffix) == s.size() - suffix.size();
 }
 
