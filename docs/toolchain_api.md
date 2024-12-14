@@ -401,7 +401,7 @@ load("@rules_cc//cc/toolchains:tool.bzl", "cc_tool")
 
 cc_tool(
     name = "clang_tool",
-    executable = "@llvm_toolchain//:bin/clang",
+    src = "@llvm_toolchain//:bin/clang",
     # Suppose clang needs libc to run.
     data = ["@llvm_toolchain//:lib/x86_64-linux-gnu/libc.so.6"]
     tags = ["requires-network"],
