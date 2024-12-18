@@ -15,7 +15,7 @@
 """Example showing how to create a rule that rules_cc can depend on."""
 
 load("@rules_cc//cc:action_names.bzl", "CPP_LINK_STATIC_LIBRARY_ACTION_NAME")
-load("@rules_cc//cc:find_cc_toolchain.bzl", "find_cpp_toolchain", "use_cc_toolchain")
+load("@rules_cc//cc:find_cc_toolchain.bzl", "CC_TOOLCHAIN_ATTRS", "find_cpp_toolchain", "use_cc_toolchain")
 load("//examples/my_c_compile:my_c_compile.bzl", "MyCCompileInfo")
 
 def _my_c_archive_impl(ctx):
@@ -92,8 +92,7 @@ my_c_archive = rule(
     attrs = {
         "deps": attr.label_list(providers = [CcInfo]),
         "object": attr.label(mandatory = True, providers = [MyCCompileInfo]),
-        "_cc_toolchain": attr.label(default = Label("@rules_cc//cc:current_cc_toolchain")),
-    },
+    } | CC_TOOLCHAIN_ATTRS,
     fragments = ["cpp"],
     toolchains = use_cc_toolchain(),
 )
