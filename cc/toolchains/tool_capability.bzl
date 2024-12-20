@@ -69,8 +69,12 @@ cc_tool(
 
 cc_args(
     name = "pic",
-    requires = [
-        "//cc/toolchains/capabilities:supports_pic"
+    actions = [
+        # Applies to all C/C++ compile actions.
+        "@rules_cc//cc/toolchains/actions:compile_actions",
+    ],
+    requires_any_of = [
+        "@rules_cc//cc/toolchains/capabilities:supports_pic"
     ],
     args = ["-fPIC"],
 )
