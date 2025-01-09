@@ -1,4 +1,4 @@
-load("@local_config_platform//:constraints.bzl", "HOST_CONSTRAINTS")
+load("@platforms//host:constraints.bzl", "HOST_CONSTRAINTS")
 
 toolchain(
     name = "cc-toolchain-%{name}",
