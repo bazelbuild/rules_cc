@@ -423,6 +423,17 @@ def _impl(ctx):
                     ),
                 ] if ctx.attr.cxx_flags else []),
             ),
+            flag_set(
+                # When using a sysroot with clang, the C++ system headers come before
+                # the C system headers.  The C++ ones only get included conditionally,
+                # hence needing to split these out.
+                actions = all_compile_actions,
+                flag_groups = ([
+                    flag_group(
+                        flags = ctx.attr.compile_flags_post_language,
+                    ),
+                ] if ctx.attr.compile_flags_post_language else []),
+            ),
         ],
     )
 
@@ -1919,6 +1930,7 @@ cc_toolchain_config = rule(
         "cpu": attr.string(mandatory = True),
         "cxx_builtin_include_directories": attr.string_list(),
         "cxx_flags": attr.string_list(),
+        "compile_flags_post_language": attr.string_list(),
         "dbg_compile_flags": attr.string_list(),
         "extra_flags_per_feature": attr.string_list_dict(),
         "host_system_name": attr.string(mandatory = True),
