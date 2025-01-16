@@ -39,7 +39,7 @@ def _get_list_from_env_var(repo_ctx, var_name, key):
     return _split_env_var(repo_ctx, var_name).get(key, default = [])
 
 def _execute_bash(repo_ctx, cmd):
-    return repo_ctx.execute(["/bin/bash", "-c", cmd]).stdout.strip("\n")
+    return repo_ctx.execute(["/usr/bin/env", "bash", "-c", cmd]).stdout.strip("\n")
 
 def _find_linker(repo_ctx):
     ld = _execute_bash(repo_ctx, "which ld")
