@@ -13,3 +13,9 @@ $ bazel test //...
 ```
 
 This example currently only supports Linux.
+
+By default, it will build with `clang`. To use `gcc`, try the following command:
+
+```
+$ bazel test --config=gcc //...
+```

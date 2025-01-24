@@ -85,7 +85,6 @@ cc_tool(
         "//constraint:linux_x86_64": "@clang-linux-x86_64//:bin/clang++",
     }),
     data = [
-        ":exec_platform_builtin_headers",
         ":exec_platform_linker_builtins",
         ":exec_platform_multicall_support_files",
     ],
