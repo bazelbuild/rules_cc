@@ -29,7 +29,7 @@
 #
 # This example demonstrates both approaches.
 
-load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc/toolchains:cc_toolchain.bzl", "cc_toolchain")
 load("@rules_cc//cc/toolchains:cc_toolchain_suite.bzl", "cc_toolchain_suite")
 
@@ -40,7 +40,7 @@ load(":toolchain_config.bzl", "cc_toolchain_config")
 
 # The library we want to build. Building this calls two C++ actions: compile (.cc ->
 # .o) and archive (.o -> .a).
-cc_library(
+cc_binary(
     name = "buildme",
     srcs = ["buildme.cc"],
 )

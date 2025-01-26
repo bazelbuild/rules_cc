@@ -12,12 +12,20 @@ echo "$0: running sample cc_library linker (produces .a output)."
 #
 # examples/custom_toolchain/sample_linker @bazel-out/x86-fastbuild/bin/examples/custom_toolchain/libbuildme.a-2.params.
 
-# Get "@bazel-out/.../libbuildme.a-2.params".
-PARAMS_FILE=${@: -1}
-# Remove the "@" prefix.
-OUTFILE=${PARAMS_FILE#?}
-# Replace "libbuildme.a-2.params" with "libbuildme.a".
-OUTFILE=${OUTFILE%-*}
+for arg in "$@"; do
+    if [[ "$arg" == *.a ]]; then
+        OUTFILE="$arg"
+        break
+    fi
+done
+
+# if [[ -n "$OUTFILE" ]]; then
+#     echo "Output file is: $OUTFILE"
+# else
+#     echo "No '.a' file found in the arguments."
+# fi
+
+echo "kaki = $OUTFILE"
 
 echo "$0: sample output"  >  $OUTFILE
-
+echo "$0: sample output changed"  >  $OUTFILE.change

@@ -12,10 +12,24 @@ echo "$0: running sample cc_library compiler (produces .o output)."
 #
 # examples/custom_toolchain/sample_compiler <various compiler flags> -o bazel-out/x86-fastbuild/bin/examples/custom_toolchain/_objs/buildme/buildme.o.
 
-# The .o is the last parameter.
-OBJECT_FILE=${@: -1}
-# Swap out .o for .d to get expected .d (source dependency output).
-DOTD_FILE=${OBJECT_FILE%?}d
+#!/bin/bash
 
-echo "$0: sample .o output" > $OBJECT_FILE
+OUTFILE=${!#}
+
+if [[ "$OUTFILE" == @* ]]; then
+    # Remove @
+    OUTFILE=${OUTFILE#@}
+    OUTFILE=${OUTFILE%-*}
+
+    DOTD_FILE=${OUTFILE%.o}.d
+else
+    OUTFILE=${OUTFILE}
+    DOTD_FILE=${OUTFILE%.o}.d
+fi
+
+# echo kaki = $OUTFILE
+# echo kaki = $DOTD_FILE
+
+echo "$0: sample output" > $OUTFILE
+echo "$0: sample output changed" > $OUTFILE.change
 echo "sample .d output ($0)" > $DOTD_FILE
