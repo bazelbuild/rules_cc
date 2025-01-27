@@ -65,6 +65,7 @@ def cc_toolchain(
         static_runtime_lib = None,
         supports_header_parsing = False,
         supports_param_files = False,
+        compiler = "",
         **kwargs):
     """A C/C++ toolchain configuration.
 
@@ -147,6 +148,9 @@ def cc_toolchain(
             See
             [`cc_toolchain.supports_param_files`](https://bazel.build/reference/be/c-cpp#cc_toolchain.supports_param_files)
             for more information.
+        compiler: (str) The compiler string (e.g. "gcc", "clang") The current
+            toolchain's compiler is exposed to `@bazel_tools//tools/cpp:compiler
+            (compiler_flag)` as a flag value.
         **kwargs: [common attributes](https://bazel.build/reference/be/common-definitions#common-attributes)
             that should be applied to all rules created by this macro.
     """
@@ -163,6 +167,7 @@ def cc_toolchain(
         args = args,
         known_features = known_features,
         enabled_features = enabled_features,
+        compiler = compiler,
         visibility = ["//visibility:private"],
         **kwargs
     )
