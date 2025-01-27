@@ -2,7 +2,8 @@
 #
 # Sample script demonstrating custom C++ toolchain selection: handles
 # the command that translates a cc_library's .cc (source file) into .o  (object
-# file).
+# file) or the command used to link .o files into the final executable
+# (just like gcc is used as a front to the linker).
 
 echo "$0: running sample cc_library compiler (produces .o output)."
 
@@ -12,10 +13,26 @@ echo "$0: running sample cc_library compiler (produces .o output)."
 #
 # examples/custom_toolchain/sample_compiler <various compiler flags> -o bazel-out/x86-fastbuild/bin/examples/custom_toolchain/_objs/buildme/buildme.o.
 
-# The .o is the last parameter.
-OBJECT_FILE=${@: -1}
-# Swap out .o for .d to get expected .d (source dependency output).
-DOTD_FILE=${OBJECT_FILE%?}d
+# Get last command-line argument
+OUTFILE=${!#}
 
-echo "$0: sample .o output" > $OBJECT_FILE
-echo "sample .d output ($0)" > $DOTD_FILE
+if [[ "$OUTFILE" == @* ]]; then
+    # This means we are creating an executable.
+
+    # Remove leading @ and param file suffix.
+    OUTFILE=${OUTFILE#@}
+    OUTFILE=${OUTFILE%-*}
+    
+    # Do not create a .d file
+    DOTD_FILE=
+else
+    # This means we're creating a .o file
+    OUTFILE=${OUTFILE}
+    DOTD_FILE=${OUTFILE%.o}.d
+fi
+
+echo "$0: sample output" > $OUTFILE
+
+if [[ -n $DOTD_FILE ]]; then
+    echo "sample .d output ($0)" > $DOTD_FILE
+fi
