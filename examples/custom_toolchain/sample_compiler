@@ -32,6 +32,7 @@ else
 fi
 
 echo "$0: sample output" > $OUTFILE
+echo "$0: sample output changed" > $OUTFILE.change
 
 if [[ -n $DOTD_FILE ]]; then
     echo "sample .d output ($0)" > $DOTD_FILE
