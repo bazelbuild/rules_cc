@@ -20,10 +20,13 @@ load("//cc/toolchains/impl:markdown_helpers.bzl", "xref_substitutions")
 
 filegroup(
     name = "srcs",
-    srcs = glob([
-        "**/*.bzl",
-        "**/BUILD",
-    ]),
+    srcs = glob(
+        [
+            "**/*.bzl",
+            "**/BUILD",
+        ],
+        allow_empty = True,
+    ),
     visibility = ["//visibility:public"],
 )
 
