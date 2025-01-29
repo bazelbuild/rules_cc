@@ -20,6 +20,7 @@ cc_feature(
         "//cc/toolchains/args/linker_param_file",
         "//cc/toolchains/args/runtime_library_search_directories",
         "//cc/toolchains/args/shared_flag",
+        "//cc/toolchains/args/preprocessor_defines",
     ],
     feature_name = "experimental_replace_legacy_action_config_features",
     # TODO: Convert remaining items in this list into their actual args.
