@@ -148,7 +148,7 @@ def cc_toolchain(
             See
             [`cc_toolchain.supports_param_files`](https://bazel.build/reference/be/c-cpp#cc_toolchain.supports_param_files)
             for more information.
-        compiler: (str) The compiler string (e.g. "gcc", "clang") The current
+        compiler: (str) The type of compiler used by this toolchain (e.g. "gcc", "clang"). The current
             toolchain's compiler is exposed to `@bazel_tools//tools/cpp:compiler
             (compiler_flag)` as a flag value.
         **kwargs: [common attributes](https://bazel.build/reference/be/common-definitions#common-attributes)
