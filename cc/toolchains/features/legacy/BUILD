@@ -236,6 +236,12 @@ cc_external_feature(
     overridable = True,
 )
 
+cc_external_feature(
+    name = "random_seed",
+    feature_name = "random_seed",
+    overridable = True,
+)
+
 cc_feature_set(
     name = "all_legacy_builtin_features",
     all_of = [
@@ -263,6 +269,7 @@ cc_feature_set(
         ":libraries_to_link",
         ":force_pic_flags",
         ":user_link_flags",
+        ":random_seed",
         ":legacy_link_flags",
         ":static_libgcc",
         ":fission_support",
