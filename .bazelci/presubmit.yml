@@ -38,7 +38,7 @@ buildifier:
   warnings: "all"
 
 tasks:
-  ubuntu2004:
+  ubuntu2004_docs:
     name: Docs
     test_targets:
       - "//docs/..."
