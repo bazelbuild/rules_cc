@@ -1,8 +1,16 @@
 load("//cc/toolchains:args.bzl", "cc_args")
 load("//cc/toolchains:args_list.bzl", "cc_args_list")
+load("//cc/toolchains:feature.bzl", "cc_feature")
 load("//cc/toolchains:nested_args.bzl", "cc_nested_args")
 
 package(default_visibility = ["//visibility:private"])
+
+cc_feature(
+    name = "feature",
+    args = [":archiver_flags"],
+    overrides = "//cc/toolchains/features/legacy:archiver_flags",
+    visibility = ["//visibility:public"],
+)
 
 cc_args_list(
     name = "archiver_flags",

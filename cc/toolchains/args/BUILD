@@ -1,4 +1,5 @@
 load("//cc/toolchains:feature.bzl", "cc_feature")
+load("//cc/toolchains:feature_set.bzl", "cc_feature_set")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -11,16 +12,21 @@ package(default_visibility = ["//visibility:public"])
 # Note that some other legacy features are still hidden and enabled by default,
 # and others exist that are NOT enabled at all by default. As args are built
 # out, the `implies` entry should be removed and then moved into `args`.
-cc_feature(
+cc_feature_set(
     name = "experimental_replace_legacy_action_config_features",
-    args = [
-        "//cc/toolchains/args/archiver_flags",
-        "//cc/toolchains/args/force_pic_flags",
-        "//cc/toolchains/args/libraries_to_link",
-        "//cc/toolchains/args/linker_param_file",
-        "//cc/toolchains/args/runtime_library_search_directories",
-        "//cc/toolchains/args/shared_flag",
+    all_of = [
+        ":backfill_legacy_args",
+        "//cc/toolchains/args/archiver_flags:feature",
+        "//cc/toolchains/args/force_pic_flags:feature",
+        "//cc/toolchains/args/libraries_to_link:feature",
+        "//cc/toolchains/args/linker_param_file:feature",
+        "//cc/toolchains/args/runtime_library_search_directories:feature",
+        "//cc/toolchains/args/shared_flag:feature",
     ],
+)
+
+cc_feature(
+    name = "backfill_legacy_args",
     feature_name = "experimental_replace_legacy_action_config_features",
     # TODO: Convert remaining items in this list into their actual args.
     implies = [
@@ -39,4 +45,5 @@ cc_feature(
         "//cc/toolchains/features/legacy:user_compile_flags",
         "//cc/toolchains/features/legacy:user_link_flags",
     ],
+    visibility = ["//visibility:private"],
 )
