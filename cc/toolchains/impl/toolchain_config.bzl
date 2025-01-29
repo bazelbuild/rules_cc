@@ -14,6 +14,11 @@
 """Implementation of the cc_toolchain rule."""
 
 load(
+    "//cc:cc_toolchain_config_lib.bzl",
+    "artifact_name_pattern",
+    "make_variable",
+)
+load(
     "//cc/toolchains:cc_toolchain_info.bzl",
     "ActionTypeSetInfo",
     "ArgsListInfo",
@@ -61,6 +66,25 @@ def _cc_toolchain_config_impl(ctx):
 
     legacy = convert_toolchain(toolchain_config)
 
+    # NOTE: hack: https://github.com/bazelbuild/rules_cc/issues/332
+    make_variables = []
+    artifact_name_patterns = []
+    if "macos" in ctx.attr.target_system_name:
+        make_variables = [
+            make_variable(
+                name = "STACK_FRAME_UNLIMITED",
+                value = "-Wframe-larger-than=100000000 -Wno-vla",
+            ),
+        ]
+
+        artifact_name_patterns = [
+            artifact_name_pattern(
+                category_name = "dynamic_library",
+                prefix = "lib",
+                extension = ".dylib",
+            ),
+        ]
+
     return [
         toolchain_config,
         cc_common.create_cc_toolchain_config_info(
@@ -79,6 +103,8 @@ def _cc_toolchain_config_impl(ctx):
             compiler = "",
             abi_version = "",
             abi_libc_version = "",
+            artifact_name_patterns = artifact_name_patterns,
+            make_variables = make_variables,
         ),
         # This allows us to support all_files.
         # If all_files was simply an alias to
