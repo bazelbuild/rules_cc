@@ -42,7 +42,6 @@ tasks:
     name: Docs
     test_targets:
       - "//docs/..."
-      - "-//docs:toolchain_api_diff_test" # Bazel adds loads statements in examples
 
 # Bazel LTS
   ubuntu2004:
