@@ -35,6 +35,7 @@ cc_args(
         "{output_file}",
     ],
     format = {"output_file": "//cc/toolchains/variables:output_file"},
+    requires_not_none = "//cc/toolchains/variables:output_file",
 )
 
 cc_args(
