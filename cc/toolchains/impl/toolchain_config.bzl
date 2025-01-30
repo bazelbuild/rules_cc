@@ -72,11 +72,14 @@ def _cc_toolchain_config_impl(ctx):
             # in an error that it expected a string, and for safety's sake, I'd
             # prefer to provide something unique.
             toolchain_identifier = str(ctx.label),
+            # This can be accessed by users through
+            # @rules_cc//cc/private/toolchain:compiler to select() on the current
+            # compiler
+            compiler = ctx.attr.compiler,
             # These fields are only relevant for legacy toolchain resolution.
             target_system_name = "",
             target_cpu = "",
             target_libc = "",
-            compiler = "",
             abi_version = "",
             abi_libc_version = "",
         ),
@@ -93,6 +96,7 @@ cc_toolchain_config = rule(
     # @unsorted-dict-items
     attrs = {
         # Attributes new to this rule.
+        "compiler": attr.string(default = ""),
         "tool_map": attr.label(providers = [ToolConfigInfo], mandatory = True),
         "args": attr.label_list(providers = [ArgsListInfo]),
         "known_features": attr.label_list(providers = [FeatureSetInfo]),
