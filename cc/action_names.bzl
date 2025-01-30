@@ -49,7 +49,12 @@ ASSEMBLE_ACTION_NAME = "assemble"
 # Name of the assembly preprocessing action.
 PREPROCESS_ASSEMBLE_ACTION_NAME = "preprocess-assemble"
 
+DWP = "dwp"
+GCOV = "gcov"
 LLVM_COV = "llvm-cov"
+LLVM_PROFDATA = "llvm-profdata"
+NM = "nm"
+OBJDUMP = "objdump"
 
 # Name of the action producing ThinLto index.
 LTO_INDEXING_ACTION_NAME = "lto-indexing"
@@ -116,7 +121,12 @@ ACTION_NAMES = struct(
     cpp_module_compile = CPP_MODULE_COMPILE_ACTION_NAME,
     assemble = ASSEMBLE_ACTION_NAME,
     preprocess_assemble = PREPROCESS_ASSEMBLE_ACTION_NAME,
+    dwp = DWP,
+    gcov = GCOV,
     llvm_cov = LLVM_COV,
+    llvm_profdata = LLVM_PROFDATA,
+    nm = NM,
+    objdump = OBJDUMP,
     lto_indexing = LTO_INDEXING_ACTION_NAME,
     lto_backend = LTO_BACKEND_ACTION_NAME,
     lto_index_for_executable = LTO_INDEX_FOR_EXECUTABLE_ACTION_NAME,
