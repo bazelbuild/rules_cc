@@ -115,7 +115,7 @@ def _validate_feature(self, known_features, fail):
 def _validate_toolchain(self, fail = fail):
     capabilities = []
     for tool in self.tool_map.configs.values():
-        capabilities.extend([cap.feature for cap in tool.capabilities])
+        capabilities.extend([cap.feature for cap in tool.capabilities if cap.feature not in capabilities])
     known_features = _get_known_features(self.features, capabilities, fail = fail)
 
     for feature in self.features:
