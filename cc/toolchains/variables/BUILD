@@ -325,7 +325,7 @@ cc_variable(
         "//cc/toolchains/actions:compile_actions",
         "//cc/toolchains/actions:strip",
     ],
-    type = types.file,
+    type = types.option(types.file),
 )
 
 cc_variable(
