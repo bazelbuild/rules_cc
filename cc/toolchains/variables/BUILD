@@ -305,6 +305,18 @@ cc_variable(
 )
 
 cc_variable(
+    name = "no_objc_arc",
+    actions = ["//cc/toolchains/actions:compile_actions"],
+    type = types.option(types.string),
+)
+
+cc_variable(
+    name = "objc_arc",
+    actions = ["//cc/toolchains/actions:compile_actions"],
+    type = types.option(types.string),
+)
+
+cc_variable(
     name = "output_assembly_file",
     actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.file,
@@ -509,6 +521,8 @@ cc_builtin_variables(
         ":module_files",
         ":module_map_file",
         ":module_name",
+        ":no_objc_arc",
+        ":objc_arc",
         ":output_assembly_file",
         ":output_execpath",
         ":output_file",
