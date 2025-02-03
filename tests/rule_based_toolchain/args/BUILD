@@ -31,6 +31,16 @@ util.helper_target(
 
 util.helper_target(
     cc_args,
+    name = "iterate_over_optional",
+    actions = ["//cc/toolchains/actions:compile_actions"],
+    args = ["{user_compile_flags}"],
+    format = {"user_compile_flags": "//cc/toolchains/variables:user_compile_flags"},
+    iterate_over = "//cc/toolchains/variables:user_compile_flags",
+    requires_not_none = "//cc/toolchains/variables:user_compile_flags",
+)
+
+util.helper_target(
+    cc_args,
     name = "with_dir",
     actions = ["//tests/rule_based_toolchain/actions:all_compile"],
     allowlist_include_directories = ["//tests/rule_based_toolchain/testdata:directory"],

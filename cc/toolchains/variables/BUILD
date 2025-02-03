@@ -145,7 +145,7 @@ cc_variable(
 cc_variable(
     name = "legacy_compile_flags",
     actions = ["//cc/toolchains/actions:compile_actions"],
-    type = types.list(types.string),
+    type = types.option(types.list(types.string)),
 )
 
 cc_variable(
@@ -460,13 +460,13 @@ cc_variable(
 cc_variable(
     name = "unfiltered_compile_flags",
     actions = ["//cc/toolchains/actions:compile_actions"],
-    type = types.list(types.string),
+    type = types.option(types.list(types.string)),
 )
 
 cc_variable(
     name = "user_compile_flags",
     actions = ["//cc/toolchains/actions:compile_actions"],
-    type = types.list(types.string),
+    type = types.option(types.list(types.string)),
 )
 
 cc_variable(
