@@ -1,7 +1,6 @@
 load("//cc/toolchains:args.bzl", "cc_args")
 load("//cc/toolchains:feature.bzl", "cc_feature")
 load("//cc/toolchains:feature_set.bzl", "cc_feature_set")
-load("//cc/toolchains:nested_args.bzl", "cc_nested_args")
 
 cc_feature_set(
     name = "feature",
@@ -22,15 +21,10 @@ cc_feature(
 cc_args(
     name = "legacy_compile_flags",
     actions = ["//cc/toolchains/actions:compile_actions"],
-    nested = [":iterate_over_legacy_compile_flags"],
-    requires_not_none = "//cc/toolchains/variables:legacy_compile_flags",
-)
-
-cc_nested_args(
-    name = "iterate_over_legacy_compile_flags",
     args = ["{legacy_compile_flags}"],
     format = {"legacy_compile_flags": "//cc/toolchains/variables:legacy_compile_flags"},
     iterate_over = "//cc/toolchains/variables:legacy_compile_flags",
+    requires_not_none = "//cc/toolchains/variables:legacy_compile_flags",
 )
 
 cc_feature(
@@ -42,15 +36,10 @@ cc_feature(
 cc_args(
     name = "user_compile_flags",
     actions = ["//cc/toolchains/actions:compile_actions"],
-    nested = [":iterate_over_user_compile_flags"],
-    requires_not_none = "//cc/toolchains/variables:user_compile_flags",
-)
-
-cc_nested_args(
-    name = "iterate_over_user_compile_flags",
     args = ["{user_compile_flags}"],
     format = {"user_compile_flags": "//cc/toolchains/variables:user_compile_flags"},
     iterate_over = "//cc/toolchains/variables:user_compile_flags",
+    requires_not_none = "//cc/toolchains/variables:user_compile_flags",
 )
 
 cc_feature(
@@ -62,13 +51,7 @@ cc_feature(
 cc_args(
     name = "unfiltered_compile_flags",
     actions = ["//cc/toolchains/actions:compile_actions"],
-    nested = [":iterate_over_unfiltered_compile_flags"],
-    requires_not_none = "//cc/toolchains/variables:unfiltered_compile_flags",
-)
-
-cc_nested_args(
-    name = "iterate_over_unfiltered_compile_flags",
-    args = ["{unfiltered_compile_flags}"],
     format = {"unfiltered_compile_flags": "//cc/toolchains/variables:unfiltered_compile_flags"},
     iterate_over = "//cc/toolchains/variables:unfiltered_compile_flags",
+    requires_not_none = "//cc/toolchains/variables:unfiltered_compile_flags",
 )
