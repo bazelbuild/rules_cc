@@ -484,7 +484,7 @@ cc_variable(
 cc_variable(
     name = "user_link_flags",
     actions = ["//cc/toolchains/actions:link_actions"],
-    type = types.list(types.string),
+    type = types.option(types.list(types.string)),
 )
 
 cc_builtin_variables(
