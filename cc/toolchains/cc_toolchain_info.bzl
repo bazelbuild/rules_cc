@@ -191,3 +191,23 @@ ToolchainConfigInfo = provider(
         "allowlist_include_directories": "(depset[DirectoryInfo]) Built-in include directories implied by this toolchain's args and tools that should be allowlisted in Bazel's include checker",
     },
 )
+
+CoverageTypeInfo = provider(
+    doc = "A type of coverage (eg. gcov)",
+    # @unsorted-dict-items
+    fields = {
+        "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
+        "name": "(str) The name of the coverage type",
+    },
+)
+
+CoverageConfigInfo = provider(
+    doc = "A type of coverage (eg. gcov)",
+    # @unsorted-dict-items
+    fields = {
+        "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
+        "type": "(CoverageTypeInfo) A provider defining the type of coverage config",
+        "exe": "(File) The file corresponding to the coverage tool",
+        "runfiles": "(runfiles) The files required to run the coverage tool",
+    },
+)
