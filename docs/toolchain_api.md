@@ -703,7 +703,7 @@ load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_toolchain")
 
 cc_toolchain(*, <a href="#cc_toolchain-name">name</a>, <a href="#cc_toolchain-tool_map">tool_map</a>, <a href="#cc_toolchain-args">args</a>, <a href="#cc_toolchain-known_features">known_features</a>, <a href="#cc_toolchain-enabled_features">enabled_features</a>, <a href="#cc_toolchain-libc_top">libc_top</a>, <a href="#cc_toolchain-module_map">module_map</a>,
              <a href="#cc_toolchain-dynamic_runtime_lib">dynamic_runtime_lib</a>, <a href="#cc_toolchain-static_runtime_lib">static_runtime_lib</a>, <a href="#cc_toolchain-supports_header_parsing">supports_header_parsing</a>, <a href="#cc_toolchain-supports_param_files">supports_param_files</a>,
-             <a href="#cc_toolchain-kwargs">**kwargs</a>)
+             <a href="#cc_toolchain-compiler">compiler</a>, <a href="#cc_toolchain-kwargs">**kwargs</a>)
 </pre>
 
 A C/C++ toolchain configuration.
@@ -762,6 +762,7 @@ Generated rules:
 | <a id="cc_toolchain-static_runtime_lib"></a>static_runtime_lib |  (Label) Static library to link when the `static_link_cpp_runtimes` and `static_linking_mode` [features](https://bazel.build/docs/cc-toolchain-config-reference#features) are both enabled. See [`cc_toolchain.dynamic_runtime_lib`](https://bazel.build/reference/be/c-cpp#cc_toolchain.dynamic_runtime_lib) for more information.   |  `None` |
 | <a id="cc_toolchain-supports_header_parsing"></a>supports_header_parsing |  (bool) Whether or not this toolchain supports header parsing actions. See [`cc_toolchain.supports_header_parsing`](https://bazel.build/reference/be/c-cpp#cc_toolchain.supports_header_parsing) for more information.   |  `False` |
 | <a id="cc_toolchain-supports_param_files"></a>supports_param_files |  (bool) Whether or not this toolchain supports linking via param files. See [`cc_toolchain.supports_param_files`](https://bazel.build/reference/be/c-cpp#cc_toolchain.supports_param_files) for more information.   |  `False` |
+| <a id="cc_toolchain-compiler"></a>compiler |  (str) The type of compiler used by this toolchain (e.g. "gcc", "clang"). The current toolchain's compiler is exposed to `@rules_cc//cc/private/toolchain:compiler (compiler_flag)` as a flag value.   |  `""` |
 | <a id="cc_toolchain-kwargs"></a>kwargs |  [common attributes](https://bazel.build/reference/be/common-definitions#common-attributes) that should be applied to all rules created by this macro.   |  none |
 
 

@@ -38,9 +38,10 @@ buildifier:
   warnings: "all"
 
 tasks:
-  ubuntu2004:
+  ubuntu2004_docs:
     name: Docs
-    test_targets:
+    platform: ubuntu2004
+    build_targets:
       - "//docs/..."
       - "-//docs:toolchain_api_diff_test" # Bazel adds loads statements in examples
 

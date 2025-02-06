@@ -114,6 +114,7 @@ TARGETS = [
     ":simple",
     ":env_only",
     ":with_dir",
+    ":iterate_over_optional",
     "//tests/rule_based_toolchain/actions:c_compile",
     "//tests/rule_based_toolchain/actions:cpp_compile",
 ]

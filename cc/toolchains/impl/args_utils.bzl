@@ -74,8 +74,8 @@ def validate_nested_args(*, nested_args, variables, actions, label, fail = fail)
                 # to a T.
                 overrides[nested_args.iterate_over] = type["elements"]
             elif type["name"] == "option" and type["elements"]["name"] == "list":
-                # Rewrite Option[List[T]] to T.
-                overrides[nested_args.iterate_over] = type["elements"]["elements"]
+                # Rewritten below after requires_not_none is checked
+                pass
             else:
                 fail("Attempting to iterate over %s, but it was not a list - it was a %s" % (nested_args.iterate_over, type["repr"]))
 
@@ -114,7 +114,10 @@ def validate_nested_args(*, nested_args, variables, actions, label, fail = fail)
                         nested_label = nested_args.label,
                         fail = fail,
                     )
-                    if type["name"] == "option":
+                    if nested_args.iterate_over and type["name"] == "option" and type["elements"]["name"] == "list":
+                        # Rewrite Option[List[T]] to T.
+                        overrides[nested_args.iterate_over] = type["elements"]["elements"]
+                    elif type["name"] == "option":
                         overrides[var] = type["elements"]
 
         for child in nested_args.nested:

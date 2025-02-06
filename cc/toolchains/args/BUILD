@@ -20,6 +20,7 @@ cc_feature_set(
         "//cc/toolchains/args/force_pic_flags:feature",
         "//cc/toolchains/args/libraries_to_link:feature",
         "//cc/toolchains/args/linker_param_file:feature",
+        "//cc/toolchains/args/preprocessor_defines:feature",
         "//cc/toolchains/args/runtime_library_search_directories:feature",
         "//cc/toolchains/args/shared_flag:feature",
     ],
