@@ -13,6 +13,7 @@
 # limitations under the License.
 """Implementation of the cc_toolchain rule."""
 
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load(
     "//cc/toolchains:cc_toolchain_info.bzl",
     "ActionTypeSetInfo",

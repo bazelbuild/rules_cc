@@ -14,4 +14,4 @@
 """objc_import rule"""
 
 def objc_import(**kwargs):
-    native.objc_import(**kwargs)  # buildifier: disable=native-cc
+    native.objc_import(**kwargs)  # buildifier: disable=native-cc-objc-import

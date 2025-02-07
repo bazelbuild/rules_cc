@@ -40,5 +40,5 @@ def cc_test(**attrs):
         else:
             attrs["deps"] = [_LINK_EXTRA_LIB]
 
-    # buildifier: disable=native-cc
+    # buildifier: disable=native-cc-test
     native.cc_test(**attrs)

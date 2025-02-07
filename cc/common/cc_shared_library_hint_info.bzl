@@ -13,5 +13,7 @@
 # limitations under the License.
 """CcSharedLibraryInfo"""
 
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+
 # Backward compatibility with Bazel 6
 CcSharedLibraryHintInfo = getattr(cc_common, "CcSharedLibraryHintInfo", provider("CcSharedLibraryHintInfo", fields = ["attributes", "owners"]))

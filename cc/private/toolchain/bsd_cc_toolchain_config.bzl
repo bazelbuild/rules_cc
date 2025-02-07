@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """A Starlark cc_toolchain configuration rule for FreeBSD and OpenBSD."""
 
 load("@rules_cc//cc:action_names.bzl", "ACTION_NAMES")
@@ -25,6 +24,7 @@ load(
     "tool_path",
     "with_feature_set",
 )  # buildifier: disable=deprecated-function
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 
 all_compile_actions = [
     ACTION_NAMES.c_compile,

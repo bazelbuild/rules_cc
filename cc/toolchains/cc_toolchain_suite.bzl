@@ -15,4 +15,4 @@
 """cc_toolchain_suite rule"""
 
 def cc_toolchain_suite(**kwargs):
-    native.cc_toolchain_suite(**kwargs)  # buildifier: disable=native-cc
+    native.cc_toolchain_suite(**kwargs)  # buildifier: disable=native-cc-toolchain-suite
