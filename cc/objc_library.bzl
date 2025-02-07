@@ -14,4 +14,4 @@
 """objc_library rule"""
 
 def objc_library(**kwargs):
-    native.objc_library(**kwargs)  # buildifier: disable=native-cc
+    native.objc_library(**kwargs)  # buildifier: disable=native-cc-objc-library

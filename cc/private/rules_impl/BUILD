@@ -23,6 +23,7 @@ bzl_library(
     name = "cc_flags_supplier_lib_bzl",
     srcs = ["cc_flags_supplier_lib.bzl"],
     visibility = ["//cc:__subpackages__"],
+    deps = ["//cc/common"],
 )
 
 bzl_library(

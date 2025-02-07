@@ -15,4 +15,4 @@
 """fdo_prefetch_hints rule"""
 
 def fdo_prefetch_hints(**kwargs):
-    native.fdo_prefetch_hints(**kwargs)  # buildifier: disable=native-cc
+    native.fdo_prefetch_hints(**kwargs)  # buildifier: disable=native-cc-fdo-prefetch-hints

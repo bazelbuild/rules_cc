@@ -12,6 +12,7 @@ test_targets: &test_targets
   - "//examples/..."
   - "//tests/..."
   - "-//examples/custom_toolchain:legacy_selector" # Example only works on Linux
+  - "-//tests/system_library:system_library_test" # Only intended to work in WORKSPACE files
   - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
 
 build_targets_bazel_6: &build_targets_bazel_6

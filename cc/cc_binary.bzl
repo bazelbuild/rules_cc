@@ -39,5 +39,5 @@ def cc_binary(**attrs):
         else:
             attrs["deps"] = [_LINK_EXTRA_LIB]
 
-    # buildifier: disable=native-cc
+    # buildifier: disable=native-cc-binary
     native.cc_binary(**attrs)

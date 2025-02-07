@@ -14,4 +14,4 @@
 """cc_library rule"""
 
 def cc_library(**kwargs):
-    native.cc_library(**kwargs)  # buildifier: disable=native-cc
+    native.cc_library(**kwargs)  # buildifier: disable=native-cc-library

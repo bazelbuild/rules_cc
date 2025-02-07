@@ -14,4 +14,4 @@
 """cc_import rule"""
 
 def cc_import(**kwargs):
-    native.cc_import(**kwargs)  # buildifier: disable=native-cc
+    native.cc_import(**kwargs)  # buildifier: disable=native-cc-import

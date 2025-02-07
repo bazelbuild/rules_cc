@@ -15,4 +15,4 @@
 """fdo_profile rule"""
 
 def fdo_profile(**kwargs):
-    native.fdo_profile(**kwargs)  # buildifier: disable=native-cc
+    native.fdo_profile(**kwargs)  # buildifier: disable=native-cc-fdo-profile
