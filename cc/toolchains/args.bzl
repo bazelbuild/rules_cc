@@ -214,8 +214,8 @@ def cc_args(
             arguments should be applied to.
         allowlist_include_directories: (List[Label]) A list of include paths that are implied by
             using this rule. These must point to a skylib
-            [directory](https://github.com/bazelbuild/bazel-skylib/tree/main/doc/directory_doc.md#directory)
-            or [subdirectory](https://github.com/bazelbuild/bazel-skylib/tree/main/doc/directory_subdirectory_doc.md#subdirectory) rule.
+            [directory](https://github.com/bazelbuild/bazel-skylib/tree/main/docs/directory_doc.md#directory)
+            or [subdirectory](https://github.com/bazelbuild/bazel-skylib/tree/main/docs/directory_subdirectory_doc.md#subdirectory) rule.
             Some flags (e.g. --sysroot) imply certain include paths are available despite
             not explicitly specifying a normal include path flag (`-I`, `-isystem`, etc.).
             Bazel checks that all included headers are properly provided by a dependency or

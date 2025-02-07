@@ -223,7 +223,7 @@ You should use a `cc_feature` when any of the following apply:
 
 If you only need to configure flags via the Bazel command-line, instead
 consider adding a
-[`bool_flag`](https://github.com/bazelbuild/bazel-skylib/tree/main/doc/common_settings_doc.md#bool_flag)
+[`bool_flag`](https://github.com/bazelbuild/bazel-skylib/tree/main/docs/common_settings_doc.md#bool_flag)
 paired with a [`config_setting`](https://bazel.build/reference/be/general#config_setting)
 and then make your `cc_args` rule `select` on the `config_setting`.
 
