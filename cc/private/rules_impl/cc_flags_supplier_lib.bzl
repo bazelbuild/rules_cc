@@ -13,7 +13,7 @@
 # limitations under the License.
 """Library of functions that provide the CC_FLAGS Make variable."""
 
-load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("//cc/common:cc_common.bzl", "cc_common")
 
 # This should match the logic in CcCommon.computeCcFlags:
 def build_cc_flags(ctx, cc_toolchain, action_name):
