@@ -13,7 +13,7 @@
 # limitations under the License.
 """Helper functions to create and validate a ToolchainConfigInfo."""
 
-load("//cc/toolchains:cc_toolchain_info.bzl", "ToolConfigInfo", "ToolchainConfigInfo")
+load("//cc/toolchains:cc_toolchain_info.bzl", "ArtifactNamePatternInfo", "ToolConfigInfo", "ToolchainConfigInfo")
 load(":args_utils.bzl", "get_action_type")
 load(":collect.bzl", "collect_args_lists", "collect_features")
 
@@ -130,7 +130,7 @@ def _collect_files_for_action_type(action_type, tool_map, features, args):
 
     return depset(transitive = transitive_files)
 
-def toolchain_config_info(label, known_features = [], enabled_features = [], args = [], tool_map = None, fail = fail):
+def toolchain_config_info(label, known_features = [], enabled_features = [], args = [], artifact_name_patterns = [], tool_map = None, fail = fail):
     """Generates and validates a ToolchainConfigInfo from lists of labels.
 
     Args:
@@ -139,6 +139,7 @@ def toolchain_config_info(label, known_features = [], enabled_features = [], arg
         enabled_features: (List[Target]) A list of features that are enabled by
           default. Every enabled feature is implicitly also a known feature.
         args: (List[Target]) A list of targets providing ArgsListInfo
+        artifact_name_patterns: (List[Target]) A list of targets providing ArtifactNamePatternInfo.
         tool_map: (Target) A target providing ToolMapInfo.
         fail: A fail function. Use only during tests.
     Returns:
@@ -179,6 +180,7 @@ def toolchain_config_info(label, known_features = [], enabled_features = [], arg
         args = args,
         files = files,
         allowlist_include_directories = allowlist_include_directories,
+        artifact_name_patterns = [t[ArtifactNamePatternInfo] for t in artifact_name_patterns],
     )
     _validate_toolchain(toolchain_config, fail = fail)
     return toolchain_config
