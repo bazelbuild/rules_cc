@@ -1888,7 +1888,7 @@ def _impl(ctx):
     if symbol_check:
         features.append(symbol_check)
 
-    return cc_common.create_cc_toolchain_config_info(
+    return [cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
         features = features,
         action_configs = action_configs,
@@ -1904,7 +1904,7 @@ def _impl(ctx):
         abi_libc_version = ctx.attr.abi_libc_version,
         tool_paths = tool_paths,
         builtin_sysroot = ctx.attr.builtin_sysroot,
-    )
+    )]
 
 cc_toolchain_config = rule(
     implementation = _impl,

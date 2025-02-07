@@ -55,7 +55,7 @@ def _impl(ctx):
     #
     # create_cc_toolchain_config_info is the public interface for registering
     # C++ toolchain behavior.
-    return cc_common.create_cc_toolchain_config_info(
+    return [cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
         toolchain_identifier = "custom-toolchain-identifier",
         host_system_name = "local",
@@ -66,7 +66,7 @@ def _impl(ctx):
         abi_version = "unknown",
         abi_libc_version = "unknown",
         tool_paths = tool_paths,
-    )
+    )]
 
 cc_toolchain_config = rule(
     implementation = _impl,

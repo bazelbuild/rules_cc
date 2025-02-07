@@ -1618,7 +1618,7 @@ def _impl(ctx):
         ],
         enabled = True,
     )
-    return cc_common.create_cc_toolchain_config_info(
+    return [cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
         features = features + [cpp_modules_feature, cpp_module_modmap_file_feature, cpp20_module_compile_flags_feature],
         action_configs = action_configs,
@@ -1634,7 +1634,7 @@ def _impl(ctx):
         abi_libc_version = ctx.attr.abi_libc_version,
         tool_paths = tool_paths,
         make_variables = make_variables,
-    )
+    )]
 
 cc_toolchain_config = rule(
     implementation = _impl,

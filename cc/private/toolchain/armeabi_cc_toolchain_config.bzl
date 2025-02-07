@@ -56,7 +56,7 @@ def _impl(ctx):
         tool_path(name = "strip", path = "/bin/false"),
     ]
 
-    return cc_common.create_cc_toolchain_config_info(
+    return [cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
         features = features,
         action_configs = action_configs,
@@ -74,7 +74,7 @@ def _impl(ctx):
         make_variables = make_variables,
         builtin_sysroot = builtin_sysroot,
         cc_target_os = cc_target_os,
-    )
+    )]
 
 armeabi_cc_toolchain_config = rule(
     implementation = _impl,
