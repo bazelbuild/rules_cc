@@ -1,5 +1,8 @@
 load("//cc/toolchains:args.bzl", "cc_args")
 load("//cc/toolchains:args_list.bzl", "cc_args_list")
+load("//cc/toolchains:feature.bzl", "cc_feature")
+
+package(default_visibility = ["//visibility:public"])
 
 cc_feature(
     name = "feature",
