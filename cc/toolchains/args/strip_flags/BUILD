@@ -1,6 +1,11 @@
 load("//cc/toolchains:args.bzl", "cc_args")
 load("//cc/toolchains:args_list.bzl", "cc_args_list")
 
+cc_feature(
+    name = "feature",
+    args = [":strip_flags"],
+)
+
 cc_args_list(
     name = "strip_flags",
     args = [
