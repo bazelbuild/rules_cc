@@ -7,6 +7,7 @@ package(default_visibility = ["//visibility:public"])
 cc_feature(
     name = "feature",
     args = [":strip_flags"],
+    feature_name = "strip_flags_feature",
 )
 
 cc_args_list(
