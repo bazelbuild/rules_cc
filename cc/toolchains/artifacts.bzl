@@ -18,33 +18,6 @@ load(":cc_toolchain_info.bzl", "ArtifactCategoryInfo", "ArtifactNamePatternInfo"
 
 visibility("public")
 
-def _cc_artifact_category_impl(ctx):
-    return [
-        ArtifactCategoryInfo(
-            label = ctx.label,
-            name = ctx.attr.name,
-        ),
-    ]
-
-cc_artifact_category = rule(
-    implementation = _cc_artifact_category_impl,
-    doc = """
-An artifact category (eg. static_library, executable, object_file).
-
-Example:
-```
-load("//cc/toolchains:artifacts.bzl", "cc_artifact_category")
-
-cc_artifact_category(
-    name = "static_library",
-)
-```
-""",
-    provides = [
-        ArtifactCategoryInfo,
-    ],
-)
-
 def _cc_artifact_name_pattern_impl(ctx):
     return [
         ArtifactNamePatternInfo(

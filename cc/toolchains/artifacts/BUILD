@@ -14,7 +14,7 @@
 
 # Derived from @bazel//src/main/starlark/builtins_bzl/common/cc:cc_helper_internal.bzl
 
-load("//cc/toolchains:artifacts.bzl", "cc_artifact_category")
+load("//cc/toolchains/impl:cc_artifact_category.bzl", "cc_artifact_category")
 
 cc_artifact_category(
     name = "alwayslink_static_library",
