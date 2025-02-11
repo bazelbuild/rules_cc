@@ -7,6 +7,8 @@ package(default_visibility = ["//visibility:public"])
 cc_feature(
     name = "feature",
     args = [":strip_flags"],
+    # This does not override a feature since these arguments are directly bound
+    # to the strip action in CppActionConfigs.java.
     feature_name = "strip_flags_feature",
 )
 
