@@ -1760,6 +1760,8 @@ def _impl(ctx):
         enabled = True,
     )
 
+    no_dotd_file_feature = feature(name = "no_dotd_file")
+
     # TODO(#8303): Mac crosstool should also declare every feature.
     if is_linux:
         # Linux artifact name patterns are the default.
@@ -1826,6 +1828,7 @@ def _impl(ctx):
             treat_warnings_as_errors_feature,
             archive_param_file_feature,
             set_install_name_feature,
+            no_dotd_file_feature,
         ] + layering_check_features(ctx.attr.compiler, ctx.attr.extra_flags_per_feature, is_macos = False)
     else:
         # macOS artifact name patterns differ from the defaults only for dynamic
@@ -1877,6 +1880,7 @@ def _impl(ctx):
             treat_warnings_as_errors_feature,
             archive_param_file_feature,
             generate_linkmap_feature,
+            no_dotd_file_feature,
         ] + layering_check_features(ctx.attr.compiler, ctx.attr.extra_flags_per_feature, is_macos = True)
 
     parse_headers_action_configs, parse_headers_features = parse_headers_support(
