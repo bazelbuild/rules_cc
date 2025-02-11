@@ -69,6 +69,30 @@ system_library(
 )
 EOF
 
+  cat << EOF > MODULE.bazel
+system_library = use_repo_rule("//:cc/system_library.bzl", "system_library")
+
+system_library(
+    name = "foo",
+    hdrs = [
+        "foo.h",
+    ],
+    static_lib_names = ["libfoo.a"],
+    shared_lib_names = ["libfoo.so"]
+)
+
+system_library(
+    name = "foo_hardcoded_path",
+    hdrs = [
+        "foo.h",
+    ],
+    static_lib_names = ["libfoo.a"],
+    shared_lib_names = ["libfoo.so"],
+    lib_path_hints = ["${PWD}/systemlib"],
+    includes = ["${PWD}/systemlib"]
+)
+EOF
+
   cat << EOF > BUILD
 cc_binary(
     name = "test",
