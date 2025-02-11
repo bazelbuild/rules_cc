@@ -18,8 +18,8 @@ licenses(["notice"])
 
 cc_library(
     name = "asm_answer",
+    srcs = ["asm_answer.S"],
     hdrs = ["public/asm_answer.h"],
     strip_include_prefix = "public",
-    srcs = ["asm_answer.S"],
     visibility = ["//visibility:public"],
 )
