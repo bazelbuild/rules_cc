@@ -66,6 +66,7 @@ def _cc_args_impl(ctx):
             direct = [d[DirectoryInfo] for d in ctx.attr.allowlist_include_directories],
         ),
     )
+
     return [
         args,
         ArgsListInfo(
