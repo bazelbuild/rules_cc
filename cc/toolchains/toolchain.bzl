@@ -112,6 +112,8 @@ def cc_toolchain(
         tool_map: (Label) The `cc_tool_map` that specifies the tools to use for various toolchain
             actions.
         args: (List[Label]) A list of `cc_args` and `cc_arg_list` to apply across this toolchain.
+        artifact_name_patterns: (List[Label]) A list of `cc_artifact_name_pattern` defining patterns
+            for names of artifacts created by this toolchain.
         known_features: (List[Label]) A list of `cc_feature` rules that this toolchain supports.
             Whether or not these
             [features](https://bazel.build/docs/cc-toolchain-config-reference#features)
