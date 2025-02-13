@@ -226,6 +226,7 @@ cc_action_type_set(
         ":cpp_module_codegen",
         ":lto_backend",
         ":clif_match",
+        ":objcpp_compile",
     ],
 )
 

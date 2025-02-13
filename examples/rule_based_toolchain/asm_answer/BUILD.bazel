@@ -1,4 +1,4 @@
-# Copyright 2024 The Bazel Authors. All rights reserved.
+# Copyright 2025 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,18 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:cc_test.bzl", "cc_test")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
 licenses(["notice"])
 
-cc_test(
-    name = "quick_test",
-    srcs = ["quick_test.cc"],
-    deps = [
-        "//asm_answer",
-        "//dynamic_answer",
-        "//static_answer",
-        "@googletest//:gtest",
-        "@googletest//:gtest_main",
-    ],
+cc_library(
+    name = "asm_answer",
+    srcs = ["asm_answer.S"],
+    hdrs = ["public/asm_answer.h"],
+    strip_include_prefix = "public",
+    visibility = ["//visibility:public"],
 )

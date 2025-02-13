@@ -80,7 +80,6 @@ tasks:
       - "//examples/..."
       - "//tests/..."
       - "-//examples/custom_toolchain:legacy_selector" # Example only works on Linux
-      - "-//tests/system_library:system_library_test" # Fails because of repo setup
       - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
   macos_head:
     name: MacOS (Bazel HEAD)
