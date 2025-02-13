@@ -40,6 +40,8 @@ _UNKNOWN_FEATURE_ERR = """{self} implies the feature {ft}, which was unable to b
 Implied features are not implicitly added to your toolchain. You likely need to add features = ["{ft}"] to your cc_toolchain rule.
 """
 
+_ARTIFACT_NAME_PATTERN_ERR = """The artifact name pattern {name} was defined by both {lhs} and {rhs}."""
+
 # Equality comparisons with bazel do not evaluate depsets.
 # s = struct()
 # d = depset([s])
@@ -130,6 +132,20 @@ def _collect_files_for_action_type(action_type, tool_map, features, args):
 
     return depset(transitive = transitive_files)
 
+def _collect_artifact_name_patterns(targets, fail):
+    artifact_name_patterns = {}
+    for t in targets:
+        info = t[ArtifactNamePatternInfo]
+        if info.category.name in artifact_name_patterns:
+            fail(_ARTIFACT_NAME_PATTERN_ERR.format(
+                name = info.category.name,
+                lhs = artifact_name_patterns[info.category.name].label,
+                rhs = info.label,
+            ))
+        artifact_name_patterns[info.category.name] = info
+
+    return artifact_name_patterns.values()
+
 def toolchain_config_info(label, known_features = [], enabled_features = [], args = [], artifact_name_patterns = [], tool_map = None, fail = fail):
     """Generates and validates a ToolchainConfigInfo from lists of labels.
 
@@ -180,7 +196,7 @@ def toolchain_config_info(label, known_features = [], enabled_features = [], arg
         args = args,
         files = files,
         allowlist_include_directories = allowlist_include_directories,
-        artifact_name_patterns = [t[ArtifactNamePatternInfo] for t in artifact_name_patterns],
+        artifact_name_patterns = _collect_artifact_name_patterns(artifact_name_patterns, fail),
     )
     _validate_toolchain(toolchain_config, fail = fail)
     return toolchain_config
