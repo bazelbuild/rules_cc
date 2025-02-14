@@ -37,10 +37,10 @@ cc_artifact_name_pattern = rule(
                 ArtifactCategoryInfo,
             ],
         ),
-        "prefix": attr.string(
+        "extension": attr.string(
             mandatory = True,
         ),
-        "extension": attr.string(
+        "prefix": attr.string(
             mandatory = True,
         ),
     },
