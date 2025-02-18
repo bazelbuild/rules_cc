@@ -164,6 +164,7 @@ ALL_CC_LINK_ACTION_NAMES = [
     ACTION_NAMES.lto_index_for_executable,
     ACTION_NAMES.lto_index_for_dynamic_library,
     ACTION_NAMES.lto_index_for_nodeps_dynamic_library,
+    ACTION_NAMES.objc_executable,
 ]
 
 # Names of actions that link entire programs.
@@ -193,6 +194,7 @@ TRANSITIVE_LINK_ACTION_NAMES = [
     ACTION_NAMES.cpp_link_dynamic_library,
     ACTION_NAMES.lto_index_for_executable,
     ACTION_NAMES.lto_index_for_dynamic_library,
+    ACTION_NAMES.objc_executable,
 ]
 
 ACTION_NAME_GROUPS = struct(
