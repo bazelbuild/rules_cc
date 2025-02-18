@@ -29,6 +29,42 @@ bzl_library(
     ],
 )
 
+config_setting(
+    name = "darwin_x86_64",
+    constraint_values = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:macos",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "darwin_aarch64",
+    constraint_values = [
+        "@platforms//cpu:aarch64",
+        "@platforms//os:macos",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "linux_x86_64",
+    constraint_values = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:linux",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "linux_aarch64",
+    constraint_values = [
+        "@platforms//cpu:aarch64",
+        "@platforms//os:linux",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 filegroup(
     name = "srcs",
     srcs = glob([
