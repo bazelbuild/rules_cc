@@ -45,6 +45,26 @@ ActionTypeSetInfo = provider(
     },
 )
 
+ArtifactCategoryInfo = provider(
+    doc = "A category of artifacts (eg. static_library, executable, object_file)",
+    # @unsorted-dict-items
+    fields = {
+        "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
+        "name": "(str) The name of the artifact category, as defined by Bazel",
+    },
+)
+
+ArtifactNamePatternInfo = provider(
+    doc = "A name pattern for artifacts",
+    # @unsorted-dict-items
+    fields = {
+        "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
+        "category": "(ArtifactCategoryInfo) The artifact category this pattern is for",
+        "prefix": "(str) The prefix for creating the artifact",
+        "extension": "(str) The extension for creating the artifact",
+    },
+)
+
 VariableInfo = provider(
     """A variable defined by the toolchain""",
     # @unsorted-dict-items
@@ -187,6 +207,7 @@ ToolchainConfigInfo = provider(
         "enabled_features": "(Sequence[FeatureInfo]) The features That are enabled by default for this toolchain",
         "tool_map": "(ToolConfigInfo) A provider mapping toolchain action types to tools.",
         "args": "(Sequence[ArgsInfo]) A list of arguments to be unconditionally applied to the toolchain.",
+        "artifact_name_patterns": "Sequence[ArtifactNamePatternInfo] A artifact name patterns for this toolchain",
         "files": "(dict[ActionTypeInfo, depset[File]]) Files required for the toolchain, keyed by the action type.",
         "allowlist_include_directories": "(depset[DirectoryInfo]) Built-in include directories implied by this toolchain's args and tools that should be allowlisted in Bazel's include checker",
     },

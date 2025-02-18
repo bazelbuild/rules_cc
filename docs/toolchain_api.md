@@ -140,6 +140,52 @@ cc_args_list(
 | <a id="cc_args_list-args"></a>args |  (ordered) cc_args to include in this list.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 
 
+<a id="cc_artifact_name_pattern"></a>
+
+## cc_artifact_name_pattern
+
+<pre>
+load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_artifact_name_pattern")
+
+cc_artifact_name_pattern(<a href="#cc_artifact_name_pattern-name">name</a>, <a href="#cc_artifact_name_pattern-category">category</a>, <a href="#cc_artifact_name_pattern-extension">extension</a>, <a href="#cc_artifact_name_pattern-prefix">prefix</a>)
+</pre>
+
+The name for an artifact of a given category of input or output artifacts to an
+action.
+
+This is used to declare that executables should follow `<name>.exe` on Windows,
+or shared libraries should follow `lib<name>.dylib` on macOS.
+
+Example:
+```
+load("@rules_cc//cc/toolchains:artifacts.bzl", "cc_artifact_name_pattern")
+
+cc_artifact_name_pattern(
+    name = "static_library",
+    category = "@rules_cc//cc/toolchains/artifacts:static_library",
+    prefix = "lib",
+    extension = ".a",
+)
+
+cc_artifact_name_pattern(
+    name = "executable",
+    category = "@rules_cc//cc/toolchains/artifacts:executable",
+    prefix = "",
+    extension = "",
+)
+```
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="cc_artifact_name_pattern-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="cc_artifact_name_pattern-category"></a>category |  -   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
+| <a id="cc_artifact_name_pattern-extension"></a>extension |  -   | String | required |  |
+| <a id="cc_artifact_name_pattern-prefix"></a>prefix |  -   | String | required |  |
+
+
 <a id="cc_external_feature"></a>
 
 ## cc_external_feature
@@ -701,9 +747,9 @@ cc_tool_map(
 <pre>
 load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_toolchain")
 
-cc_toolchain(*, <a href="#cc_toolchain-name">name</a>, <a href="#cc_toolchain-tool_map">tool_map</a>, <a href="#cc_toolchain-args">args</a>, <a href="#cc_toolchain-known_features">known_features</a>, <a href="#cc_toolchain-enabled_features">enabled_features</a>, <a href="#cc_toolchain-libc_top">libc_top</a>, <a href="#cc_toolchain-module_map">module_map</a>,
-             <a href="#cc_toolchain-dynamic_runtime_lib">dynamic_runtime_lib</a>, <a href="#cc_toolchain-static_runtime_lib">static_runtime_lib</a>, <a href="#cc_toolchain-supports_header_parsing">supports_header_parsing</a>, <a href="#cc_toolchain-supports_param_files">supports_param_files</a>,
-             <a href="#cc_toolchain-compiler">compiler</a>, <a href="#cc_toolchain-kwargs">**kwargs</a>)
+cc_toolchain(*, <a href="#cc_toolchain-name">name</a>, <a href="#cc_toolchain-tool_map">tool_map</a>, <a href="#cc_toolchain-args">args</a>, <a href="#cc_toolchain-artifact_name_patterns">artifact_name_patterns</a>, <a href="#cc_toolchain-known_features">known_features</a>, <a href="#cc_toolchain-enabled_features">enabled_features</a>,
+             <a href="#cc_toolchain-libc_top">libc_top</a>, <a href="#cc_toolchain-module_map">module_map</a>, <a href="#cc_toolchain-dynamic_runtime_lib">dynamic_runtime_lib</a>, <a href="#cc_toolchain-static_runtime_lib">static_runtime_lib</a>, <a href="#cc_toolchain-supports_header_parsing">supports_header_parsing</a>,
+             <a href="#cc_toolchain-supports_param_files">supports_param_files</a>, <a href="#cc_toolchain-compiler">compiler</a>, <a href="#cc_toolchain-kwargs">**kwargs</a>)
 </pre>
 
 A C/C++ toolchain configuration.
@@ -754,6 +800,7 @@ Generated rules:
 | <a id="cc_toolchain-name"></a>name |  (str) The name of the label for the toolchain.   |  none |
 | <a id="cc_toolchain-tool_map"></a>tool_map |  (Label) The [`cc_tool_map`](#cc_tool_map) that specifies the tools to use for various toolchain actions.   |  `None` |
 | <a id="cc_toolchain-args"></a>args |  (List[Label]) A list of [`cc_args`](#cc_args) and `cc_arg_list` to apply across this toolchain.   |  `[]` |
+| <a id="cc_toolchain-artifact_name_patterns"></a>artifact_name_patterns |  (List[Label]) A list of `cc_artifact_name_pattern` defining patterns for names of artifacts created by this toolchain.   |  `[]` |
 | <a id="cc_toolchain-known_features"></a>known_features |  (List[Label]) A list of [`cc_feature`](#cc_feature) rules that this toolchain supports. Whether or not these [features](https://bazel.build/docs/cc-toolchain-config-reference#features) are enabled may change over the course of a build. See the documentation for [`cc_feature`](#cc_feature) for more information.   |  `[]` |
 | <a id="cc_toolchain-enabled_features"></a>enabled_features |  (List[Label]) A list of [`cc_feature`](#cc_feature) rules whose initial state should be `enabled`. Note that it is still possible for these [features](https://bazel.build/docs/cc-toolchain-config-reference#features) to be disabled over the course of a build through other mechanisms. See the documentation for [`cc_feature`](#cc_feature) for more information.   |  `[]` |
 | <a id="cc_toolchain-libc_top"></a>libc_top |  (Label) A collection of artifacts for libc passed as inputs to compile/linking actions. See [`cc_toolchain.libc_top`](https://bazel.build/reference/be/c-cpp#cc_toolchain.libc_top) for more information.   |  `None` |

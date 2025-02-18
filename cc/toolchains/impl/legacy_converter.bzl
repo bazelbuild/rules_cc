@@ -16,6 +16,7 @@
 load(
     "//cc:cc_toolchain_config_lib.bzl",
     legacy_action_config = "action_config",
+    legacy_artifact_name_pattern = "artifact_name_pattern",
     legacy_env_entry = "env_entry",
     legacy_env_set = "env_set",
     legacy_feature = "feature",
@@ -201,8 +202,18 @@ def convert_toolchain(toolchain):
         for d in toolchain.allowlist_include_directories.to_list()
     ]
 
+    artifact_name_patterns = [
+        legacy_artifact_name_pattern(
+            category_name = p.category.name,
+            prefix = p.prefix,
+            extension = p.extension,
+        )
+        for p in toolchain.artifact_name_patterns
+    ]
+
     return struct(
         features = [ft for ft in features if ft != None],
         action_configs = sorted(action_configs, key = lambda ac: ac.action_name),
         cxx_builtin_include_directories = cxx_builtin_include_directories,
+        artifact_name_patterns = artifact_name_patterns,
     )
