@@ -11,8 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """fdo_prefetch_hints rule"""
 
-def fdo_prefetch_hints(**kwargs):
-    native.fdo_prefetch_hints(**kwargs)  # buildifier: disable=native-cc-fdo-prefetch-hints
+fdo_prefetch_hints = native.fdo_prefetch_hints  # buildifier: disable=native-cc-fdo-prefetch-hints
