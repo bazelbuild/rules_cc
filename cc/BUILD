@@ -129,6 +129,9 @@ bzl_library(
         "objc_library.bzl",
     ],
     visibility = ["//visibility:public"],
+    deps = [
+        "//cc/private/rules_impl:core_rules",
+    ],
 )
 
 cc_toolchain_alias(name = "current_cc_toolchain")

@@ -13,5 +13,7 @@
 # limitations under the License.
 """objc_library rule"""
 
+load("//cc/private/rules_impl:objc_library.bzl", _objc_library = "objc_library")
+
 def objc_library(**kwargs):
-    native.objc_library(**kwargs)  # buildifier: disable=native-cc-objc-library
+    _objc_library(**kwargs)
