@@ -29,6 +29,7 @@
 #
 # This example demonstrates both approaches.
 
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc/toolchains:cc_toolchain.bzl", "cc_toolchain")
 load("@rules_cc//cc/toolchains:cc_toolchain_suite.bzl", "cc_toolchain_suite")
@@ -43,6 +44,13 @@ load(":toolchain_config.bzl", "cc_toolchain_config")
 cc_library(
     name = "buildme",
     srcs = ["buildme.cc"],
+)
+
+# The binary we want to build. Building this calls two C++ actions: compile (.cc ->
+# .o) and link (.o -> executable).
+cc_binary(
+    name = "buildme-bin",
+    srcs = ["buildme-main.cc"],
 )
 
 # This example intentionally makes the cc_toolchain_config definition
