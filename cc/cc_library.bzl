@@ -13,5 +13,7 @@
 # limitations under the License.
 """cc_library rule"""
 
+load("//cc/private/rules_impl:cc_library.bzl", _cc_library = "cc_library")
+
 def cc_library(**kwargs):
-    native.cc_library(**kwargs)  # buildifier: disable=native-cc-library
+    _cc_library(**kwargs)

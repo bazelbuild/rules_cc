@@ -11,8 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """cc_test rule"""
+
+load("//cc/private/rules_impl:cc_test.bzl", _cc_test = "cc_test")
 
 # TODO(bazel-team): To avoid breaking changes, if the below are no longer
 # forwarding to native rules, flag @bazel_tools//tools/cpp:link_extra_libs
@@ -40,5 +41,4 @@ def cc_test(**attrs):
         else:
             attrs["deps"] = [_LINK_EXTRA_LIB]
 
-    # buildifier: disable=native-cc-test
-    native.cc_test(**attrs)
+    _cc_test(**attrs)

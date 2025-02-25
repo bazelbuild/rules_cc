@@ -1,4 +1,4 @@
-# Copyright 2024 The Bazel Authors. All rights reserved.
+# Copyright 2025 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,9 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""objc_import rule"""
+"""cc_test rule without a macro"""
 
-load("//cc/private/rules_impl:objc_import.bzl", _objc_import = "objc_import")
-
-def objc_import(**kwargs):
-    _objc_import(**kwargs)
+# buildifier: disable=native-cc-test
+cc_test = native.cc_test
