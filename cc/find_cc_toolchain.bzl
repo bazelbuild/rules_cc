@@ -111,7 +111,7 @@ def find_cpp_toolchain(ctx):
     """
     return find_cc_toolchain(ctx)
 
-def use_cc_toolchain(mandatory = False):
+def use_cc_toolchain(mandatory = True):
     """
     Helper to depend on the cc toolchain.
 
