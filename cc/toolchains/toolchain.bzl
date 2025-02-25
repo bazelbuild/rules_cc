@@ -169,10 +169,10 @@ def cc_toolchain(
         enabled_features = enabled_features,
         compiler = compiler,
         cpu = select({
-            "@rules_cc//cc/toolchains:darwin_aarch64": "darwin_arm64",
-            "@rules_cc//cc/toolchains:darwin_x86_64": "darwin_x86_64",
-            "@rules_cc//cc/toolchains:linux_aarch64": "aarch64",
-            "@rules_cc//cc/toolchains:linux_x86_64": "k8",
+            "@rules_cc//cc/toolchains/impl:darwin_aarch64": "darwin_arm64",
+            "@rules_cc//cc/toolchains/impl:darwin_x86_64": "darwin_x86_64",
+            "@rules_cc//cc/toolchains/impl:linux_aarch64": "aarch64",
+            "@rules_cc//cc/toolchains/impl:linux_x86_64": "k8",
         }),
         visibility = ["//visibility:private"],
         **kwargs
