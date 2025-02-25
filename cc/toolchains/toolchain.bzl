@@ -173,6 +173,9 @@ def cc_toolchain(
             "@rules_cc//cc/toolchains/impl:darwin_x86_64": "darwin_x86_64",
             "@rules_cc//cc/toolchains/impl:linux_aarch64": "aarch64",
             "@rules_cc//cc/toolchains/impl:linux_x86_64": "k8",
+            "@rules_cc//cc/toolchains/impl:windows_x86_32": "win32",
+            "@rules_cc//cc/toolchains/impl:windows_x86_64": "win64",
+            "//conditions:default": "unknown",
         }),
         visibility = ["//visibility:private"],
         **kwargs

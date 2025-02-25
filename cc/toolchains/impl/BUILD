@@ -54,3 +54,21 @@ config_setting(
     ],
     visibility = ["//visibility:public"],
 )
+
+config_setting(
+    name = "windows_x86_32",
+    constraint_values = [
+        "@platforms//os:windows",
+        "@platforms//cpu:x86_32",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "windows_x86_64",
+    constraint_values = [
+        "@platforms//os:windows",
+        "@platforms//cpu:x86_64",
+    ],
+    visibility = ["//visibility:public"],
+)
