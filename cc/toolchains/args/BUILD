@@ -21,8 +21,11 @@ cc_feature_set(
         "//cc/toolchains/args/libraries_to_link:feature",
         "//cc/toolchains/args/linker_param_file:feature",
         "//cc/toolchains/args/preprocessor_defines:feature",
+        "//cc/toolchains/args/random_seed:feature",
         "//cc/toolchains/args/runtime_library_search_directories:feature",
         "//cc/toolchains/args/shared_flag:feature",
+        "//cc/toolchains/args/strip_debug_symbols:feature",
+        "//cc/toolchains/args/strip_flags:feature",
     ],
 )
 

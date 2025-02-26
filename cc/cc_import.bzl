@@ -13,5 +13,7 @@
 # limitations under the License.
 """cc_import rule"""
 
+load("//cc/private/rules_impl:cc_import.bzl", _cc_import = "cc_import")
+
 def cc_import(**kwargs):
-    native.cc_import(**kwargs)  # buildifier: disable=native-cc-import
+    _cc_import(**kwargs)

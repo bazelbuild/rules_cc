@@ -1,4 +1,4 @@
-// Copyright 2024 The Bazel Authors. All rights reserved.
+// Copyright 2025 The Bazel Authors. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,20 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <gtest/gtest.h>
-
-#include "asm_answer.h"
-#include "dynamic_answer.h"
-#include "static_answer.h"
-
-TEST(Static, ProperlyLinked) {
-  EXPECT_EQ(static_answer(), 42);
-}
-
-TEST(Dynamic, ProperlyLinked) {
-  EXPECT_EQ(dynamic_answer(), 24);
-}
-
-TEST(Asm, ProperlyLinked) {
-  EXPECT_EQ(asm_answer, 0xFE4B67C4);
-}
+.global asm_answer
+asm_answer:
+.int 0xFE4B67C4

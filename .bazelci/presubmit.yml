@@ -33,6 +33,7 @@ test_targets_bazel_6: &test_targets_bazel_6
   - "-//tests/rule_based_toolchain/..." # proto.encode_text doesn't support None
   - "-//cc:optional_current_cc_toolchain" # Not supported in Bazel 6
   - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
+  - "-//tests/system_library:system_library_test" # Should be skipped on Windows and MacOS
 
 buildifier:
   version: latest
@@ -71,8 +72,6 @@ tasks:
     name: Ubuntu 20.04 (Bazel HEAD)
     bazel: last_green
     platform: ubuntu2004
-    environment:
-      EXP_USE_CQUERY: 1 # Don't build incompatible targets
     build_targets: *build_targets
     test_targets:
       - "//:all"
@@ -80,22 +79,17 @@ tasks:
       - "//examples/..."
       - "//tests/..."
       - "-//examples/custom_toolchain:legacy_selector" # Example only works on Linux
-      - "-//tests/system_library:system_library_test" # Fails because of repo setup
       - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
   macos_head:
     name: MacOS (Bazel HEAD)
     bazel: last_green
     platform: macos
-    environment:
-      EXP_USE_CQUERY: 1 # Don't build incompatible targets
     build_targets: *build_targets
     test_targets: *test_targets
   windows_head:
     name: Windows (Bazel HEAD)
     bazel: last_green
     platform: macos
-    environment:
-      EXP_USE_CQUERY: 1 # Don't build incompatible targets
     build_targets: *build_targets
     test_targets: *test_targets
 
@@ -104,24 +98,18 @@ tasks:
     name: Ubuntu 20.04 (Bazel 6)
     bazel: 6.3.0
     platform: ubuntu2004
-    environment:
-      EXP_USE_CQUERY: 1 # Don't build incompatible targets
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
   macos_bazel_6:
     name: MacOS (Bazel 6)
     bazel: 6.3.0
     platform: macos
-    environment:
-      EXP_USE_CQUERY: 1 # Don't build incompatible targets
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
   windows_bazel_6:
     name: Windows (Bazel 6)
     bazel: 6.3.0
     platform: macos
-    environment:
-      EXP_USE_CQUERY: 1 # Don't build incompatible targets
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
 

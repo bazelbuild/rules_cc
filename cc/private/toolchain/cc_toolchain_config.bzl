@@ -798,7 +798,6 @@ def _impl(ctx):
                             flags = [
                                 "-m64",
                                 "/D__inline__=__inline",
-                                "/DCOMPILER_MSVC",
                                 "/DNOGDI",
                                 "/DNOMINMAX",
                                 "/DPRAGMA_SUPPORTED",

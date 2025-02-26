@@ -12,8 +12,7 @@ For the list of C++ rules, see the Bazel
 
 # Getting Started
 
-There is no need to use rules from this repository just yet. If you want to use
-`rules_cc` anyway, add the following to your `WORKSPACE` file:
+Add the following to your `WORKSPACE` file:
 
 ```starlark
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
@@ -47,7 +46,7 @@ There are third-party contributed hermetic toolchains you may want to investigat
 - zig cc: <https://github.com/uber/hermetic_cc_toolchain>
 
 If you'd like to use the cc toolchain defined in this repo, add this to
-your WORKSPACE after you include rules_cc:
+your `WORKSPACE` after you include rules_cc:
 
 ```bzl
 load("@rules_cc//cc:repositories.bzl", "rules_cc_dependencies", "rules_cc_toolchains")

@@ -1,4 +1,4 @@
-# Copyright 2024 The Bazel Authors. All rights reserved.
+# Copyright 2025 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,9 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""objc_import rule"""
 
-load("//cc/private/rules_impl:objc_import.bzl", _objc_import = "objc_import")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
-def objc_import(**kwargs):
-    _objc_import(**kwargs)
+licenses(["notice"])
+
+cc_library(
+    name = "asm_answer",
+    srcs = ["asm_answer.S"],
+    hdrs = ["public/asm_answer.h"],
+    strip_include_prefix = "public",
+    visibility = ["//visibility:public"],
+)
