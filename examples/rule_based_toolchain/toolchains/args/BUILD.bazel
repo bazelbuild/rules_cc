@@ -40,3 +40,16 @@ cc_args(
     }),
     visibility = ["//visibility:public"],
 )
+
+cc_args(
+    name = "target",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:compile_actions",
+        "@rules_cc//cc/toolchains/actions:link_actions",
+    ],
+    args = select({
+        "//constraint:linux_aarch64": ["--target=aarch64-unknown-linux-gnu"],
+        "//constraint:linux_x86_64": ["--target=x86_64-unknown-linux-gnu"],
+    }),
+    visibility = ["//visibility:public"],
+)
