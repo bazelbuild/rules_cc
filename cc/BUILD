@@ -29,7 +29,6 @@ filegroup(
 exports_files([
     "defs.bzl",
     "action_names.bzl",
-    "system_library.bzl",
 ])
 
 # The toolchain type used to distinguish cc toolchains.
