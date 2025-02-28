@@ -172,6 +172,15 @@ def cc_toolchain(
         known_features = known_features,
         enabled_features = enabled_features,
         compiler = compiler,
+        cpu = select({
+            Label("//cc/toolchains/impl:darwin_aarch64"): "darwin_arm64",
+            Label("//cc/toolchains/impl:darwin_x86_64"): "darwin_x86_64",
+            Label("//cc/toolchains/impl:linux_aarch64"): "aarch64",
+            Label("//cc/toolchains/impl:linux_x86_64"): "k8",
+            Label("//cc/toolchains/impl:windows_x86_32"): "win32",
+            Label("//cc/toolchains/impl:windows_x86_64"): "win64",
+            "//conditions:default": "",
+        }),
         visibility = ["//visibility:private"],
         **kwargs
     )
