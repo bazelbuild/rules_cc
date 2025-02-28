@@ -6,6 +6,7 @@ flag_sets {
   actions: "lto-index-for-dynamic-library"
   actions: "lto-index-for-executable"
   actions: "lto-index-for-nodeps-dynamic-library"
+  actions: "objc-executable"
   flag_groups {
     flag_groups {
       expand_if_available: "thinlto_param_file"
