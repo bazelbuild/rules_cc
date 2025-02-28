@@ -123,3 +123,12 @@ tasks:
       - "//..."
     test_targets:
       - "//..."
+
+  macos_rule_based_toolchains:
+    name: macOS rule-based toolchains
+    platform: macos
+    working_directory: examples/rule_based_toolchain
+    build_flags:
+      - "--enable_bzlmod"
+    build_targets:
+      - "//..."
