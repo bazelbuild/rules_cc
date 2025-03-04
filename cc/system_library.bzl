@@ -128,7 +128,7 @@ def _find_header_path(repo_ctx, lib_name, header_name, includes):
     return None
 
 def _system_library_impl(repo_ctx):
-    repo_name = repo_ctx.attr.name
+    repo_name = repo_ctx.attr.name.split("+")[-1]
     includes = repo_ctx.attr.includes
     hdrs = repo_ctx.attr.hdrs
     optional_hdrs = repo_ctx.attr.optional_hdrs

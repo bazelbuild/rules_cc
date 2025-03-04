@@ -20,6 +20,7 @@ cc_test(
     name = "quick_test",
     srcs = ["quick_test.cc"],
     deps = [
+        "//asm_answer",
         "//dynamic_answer",
         "//static_answer",
         "@googletest//:gtest",

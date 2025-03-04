@@ -1,8 +1,16 @@
 load("//cc/toolchains:args.bzl", "cc_args")
+load("//cc/toolchains:feature.bzl", "cc_feature")
 load("//cc/toolchains:nested_args.bzl", "cc_nested_args")
 load("//cc/toolchains/args/libraries_to_link/private:library_link_args.bzl", "library_link_args")
 
 package(default_visibility = ["//visibility:private"])
+
+cc_feature(
+    name = "feature",
+    args = [":libraries_to_link"],
+    overrides = "//cc/toolchains/features/legacy:libraries_to_link",
+    visibility = ["//visibility:public"],
+)
 
 cc_args(
     name = "libraries_to_link",

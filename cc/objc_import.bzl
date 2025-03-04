@@ -13,5 +13,7 @@
 # limitations under the License.
 """objc_import rule"""
 
+load("//cc/private/rules_impl:objc_import.bzl", _objc_import = "objc_import")
+
 def objc_import(**kwargs):
-    native.objc_import(**kwargs)  # buildifier: disable=native-cc
+    _objc_import(**kwargs)
