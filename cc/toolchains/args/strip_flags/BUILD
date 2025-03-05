@@ -54,4 +54,5 @@ cc_args(
     actions = ["//cc/toolchains/actions:strip"],
     args = ["{input_file}"],
     format = {"input_file": "//cc/toolchains/variables:input_file"},
+    requires_not_none = "//cc/toolchains/variables:input_file",
 )
