@@ -67,6 +67,9 @@ def _impl(ctx):
         abi_version = "unknown",
         abi_libc_version = "unknown",
         tool_paths = tool_paths,
+        additional_link_outputs = [
+            ".change",
+        ],
     )
 
 cc_toolchain_config = rule(
