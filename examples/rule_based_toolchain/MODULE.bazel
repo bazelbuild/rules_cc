@@ -31,6 +31,22 @@ http_archive(
 )
 
 http_archive(
+    name = "clang-macos-aarch64",
+    build_file = "//toolchains/clang:clang.BUILD",
+    sha256 = "3cc4425e1234b558adca120aa31abb994ed6b11e0f88e0f58c43ed1723e643a6",
+    type = "zip",
+    url = "https://chrome-infra-packages.appspot.com/dl/fuchsia/third_party/clang/mac-arm64/+/git_revision:0cfd03ac0d3f9713090a581bda07584754c73a49",
+)
+
+http_archive(
+    name = "clang-macos-x86_64",
+    build_file = "//toolchains/clang:clang.BUILD",
+    sha256 = "001d510113e3b24844f6b9959fcd37cc9bf7faeb966f910a592363be99d228ea",
+    type = "zip",
+    url = "https://chrome-infra-packages.appspot.com/dl/fuchsia/third_party/clang/mac-amd64/+/git_revision:0cfd03ac0d3f9713090a581bda07584754c73a49",
+)
+
+http_archive(
     name = "linux_sysroot",
     build_file = "//toolchains/clang:linux_sysroot.BUILD",
     sha256 = "f45ca0d8b46810b94d2a7dbc65f9092337d6a9568b260b51173a5ab9314da25e",
