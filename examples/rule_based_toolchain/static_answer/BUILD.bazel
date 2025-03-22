@@ -20,6 +20,7 @@ cc_library(
     name = "answer",
     srcs = ["static_answer.cc"],
     hdrs = ["public/static_answer.h"],
+    copts = ["$(EXAMPLE_SUBSTITUTION)"],
     includes = ["public"],
     linkstatic = True,
     visibility = ["//visibility:private"],

@@ -222,6 +222,7 @@ _ToolchainConfigFactory = generate_factory(
         files = dict_key_subject(_subjects.depset_file),
         allowlist_include_directories = _FakeDirectoryDepset,
         artifact_name_patterns = [],
+        make_variables = [],
     ),
 )
 
