@@ -22,6 +22,7 @@ load(
     legacy_feature = "feature",
     legacy_feature_set = "feature_set",
     legacy_flag_set = "flag_set",
+    legacy_make_variable = "make_variable",
     legacy_tool = "tool",
     legacy_with_feature_set = "with_feature_set",
 )
@@ -211,9 +212,18 @@ def convert_toolchain(toolchain):
         for p in toolchain.artifact_name_patterns
     ]
 
+    make_variables = [
+        legacy_make_variable(
+            name = m.key,
+            value = m.value,
+        )
+        for m in toolchain.make_variables
+    ]
+
     return struct(
         features = [ft for ft in features if ft != None],
         action_configs = sorted(action_configs, key = lambda ac: ac.action_name),
         cxx_builtin_include_directories = cxx_builtin_include_directories,
         artifact_name_patterns = artifact_name_patterns,
+        make_variables = make_variables,
     )
