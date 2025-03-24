@@ -1,5 +1,13 @@
 load("//cc/toolchains:args.bzl", "cc_args")
+load("//cc/toolchains:feature.bzl", "cc_feature")
 load("//cc/toolchains:nested_args.bzl", "cc_nested_args")
+
+cc_feature(
+    name = "feature",
+    args = [":external_include_paths"],
+    feature_name = "external_include_paths",
+    visibility = ["//visibility:public"],
+)
 
 cc_args(
     name = "external_include_paths",
