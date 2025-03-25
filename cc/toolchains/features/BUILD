@@ -1,3 +1,4 @@
+load("//cc/toolchains:feature.bzl", "cc_feature")
 load("//cc/toolchains:feature_set.bzl", "cc_feature_set")
 load("//cc/toolchains/impl:external_feature.bzl", "cc_external_feature")
 
@@ -47,6 +48,11 @@ cc_external_feature(
     overridable = True,
 )
 
+cc_feature(
+    name = "external_include_paths",
+    feature_name = "external_include_paths",
+)
+
 cc_feature_set(
     name = "all_non_legacy_builtin_features",
     all_of = [
@@ -57,6 +63,7 @@ cc_feature_set(
         ":dynamic_linking_mode",
         ":per_object_debug_info",
         ":static_link_cpp_runtimes",
+        ":external_include_paths",
     ],
     visibility = ["//visibility:private"],
 )
