@@ -208,6 +208,10 @@ def _toolchain_collects_files_test(env, targets):
             )],
         ),
         legacy_feature(
+            name = "external_include_paths",
+            enabled = False,
+        ),
+        legacy_feature(
             name = "supports_pic",
             enabled = False,
         ),
