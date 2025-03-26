@@ -51,6 +51,7 @@ cc_feature(
 cc_args(
     name = "unfiltered_compile_flags",
     actions = ["//cc/toolchains/actions:compile_actions"],
+    args = ["{unfiltered_compile_flags}"],
     format = {"unfiltered_compile_flags": "//cc/toolchains/variables:unfiltered_compile_flags"},
     iterate_over = "//cc/toolchains/variables:unfiltered_compile_flags",
     requires_not_none = "//cc/toolchains/variables:unfiltered_compile_flags",
