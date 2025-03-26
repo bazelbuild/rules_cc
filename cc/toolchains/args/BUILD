@@ -26,6 +26,7 @@ cc_feature_set(
         "//cc/toolchains/args/shared_flag:feature",
         "//cc/toolchains/args/strip_debug_symbols:feature",
         "//cc/toolchains/args/strip_flags:feature",
+        "//cc/toolchains/args/objc_arc_flags:feature",
     ],
 )
 
