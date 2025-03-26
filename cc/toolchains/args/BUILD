@@ -17,7 +17,7 @@ cc_feature_set(
     all_of = [
         ":backfill_legacy_args",
         "//cc/toolchains/args/archiver_flags:feature",
-        "//cc/toolchains/args/force_pic_flags:feature",
+        "//cc/toolchains/args/pic_flags:feature",
         "//cc/toolchains/args/libraries_to_link:feature",
         "//cc/toolchains/args/linker_param_file:feature",
         "//cc/toolchains/args/preprocessor_defines:feature",
