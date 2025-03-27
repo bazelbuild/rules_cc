@@ -97,7 +97,7 @@ def _get_escaped_windows_msys_starlark_content(repository_ctx, use_mingw = False
 
     prefix = "usr"
     if use_mingw:
-        mingw_prefix = _get_env_var(repostory_ctx, "BAZEL_MSYS_PREFIX", default = "mingw64")
+        mingw_prefix = _get_env_var(repository_ctx, "BAZEL_MSYS_PREFIX", default = "mingw64")
 
         supported_prefixes = ["mingw64", "ucrt64", "clang64", "mingw32"]
         if mingw_prefix not in supported_prefixes:
