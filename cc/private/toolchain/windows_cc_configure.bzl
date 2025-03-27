@@ -86,9 +86,29 @@ def _get_escaped_windows_msys_starlark_content(repository_ctx, use_mingw = False
         if tokens[0].endswith("/usr/bin"):
             msys_root = tokens[0][:len(tokens[0]) - len("usr/bin")]
         elif tokens[0].endswith("/bin"):
-            msys_root = tokens[0][:len(tokens[0]) - len("bin")]
+            potential_root = tokens[0][:len(tokens[0]) - len("/bin")]
+            if potential_root.endswith("/mingw64") or \
+               potential_root.endswith("/ucrt64") or \
+               potential_root.endswith("/clang64") or \
+               potential_root.endswith("/mingw32"):
+                msys_root = potential_root.rsplit("/", 1)[0] + "/"
+            else:
+                msys_root = potential_root + "/"
 
-    prefix = "mingw64" if use_mingw else "usr"
+    prefix = "usr"
+    if use_mingw:
+        mingw_prefix = _get_env_var(repostory_ctx, "BAZEL_MSYS_PREFIX", default = "mingw64")
+
+        supported_prefixes = ["mingw64", "ucrt64", "clang64", "mingw32"]
+        if mingw_prefix not in supported_prefixes:
+            auto_configure_warning_maybe(
+                repository_ctx,
+                "Environment variable BAZEL_MSYS_PREFIX is set to '{}'. ".format(mingw_prefix) +
+                "Expected values are typically {}.".format(", ".join(supported_prefixes)) +
+                " Proceeding, but tool paths might be incorrect if this prefix doesn't exist in your MSYS2 installation.",
+            )
+        prefix = mingw_prefix
+
     tool_path_prefix = escape_string(msys_root) + prefix
     tool_bin_path = tool_path_prefix + "/bin"
     tool_path = {}
