@@ -23,6 +23,7 @@ load(
     ":cc_toolchain_info.bzl",
     "ArgsListInfo",
     "FeatureConstraintInfo",
+    "FeatureImplyabilityInfo",
     "FeatureInfo",
     "FeatureSetInfo",
     "MutuallyExclusiveCategoryInfo",
@@ -87,6 +88,7 @@ def _cc_feature_impl(ctx):
 
     return [
         feature,
+        FeatureImplyabilityInfo(),
         FeatureSetInfo(label = ctx.label, features = depset([feature])),
         FeatureConstraintInfo(
             label = ctx.label,
@@ -144,7 +146,7 @@ be enabled.
             providers = [FeatureSetInfo],
         ),
         "implies": attr.label_list(
-            providers = [FeatureSetInfo],
+            providers = [FeatureSetInfo, FeatureImplyabilityInfo],
             doc = """List of features enabled along with this feature.
 
 Warning: If any of the features cannot be enabled, this feature is
@@ -186,6 +188,7 @@ cc_feature(
         ),
     },
     provides = [
+        FeatureImplyabilityInfo,
         FeatureInfo,
         FeatureSetInfo,
         FeatureConstraintInfo,
