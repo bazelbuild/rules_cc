@@ -115,7 +115,7 @@ def _get_escaped_windows_msys_starlark_content(repository_ctx, use_mingw = False
 
     for tool in ["ar", "cpp", "dwp", "gcc", "gcov", "ld", "nm", "objcopy", "objdump", "strip"]:
         if msys_root:
-            tool_path[tool] = tool_bin_path + "/" + tool
+            tool_path[tool] = tool_bin_path + "/" + tool + ".exe"
         else:
             tool_path[tool] = "msys_gcc_installation_error.bat"
     tool_paths = ",\n        ".join(['"%s": "%s"' % (k, v) for k, v in tool_path.items()])
