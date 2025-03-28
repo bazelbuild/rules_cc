@@ -81,7 +81,7 @@ def _get_escaped_windows_msys_starlark_content(repository_ctx, use_mingw = False
     msys_root = ""
     bazel_sh = _get_path_env_var(repository_ctx, "BAZEL_SH")
     if bazel_sh:
-        bazel_sh = bazel_sh.replace("\\", "/").lower()
+        bazel_sh = bazel_sh.replace("\\", "/")
         tokens = bazel_sh.rsplit("/", 1)
         if tokens[0].endswith("/usr/bin"):
             msys_root = tokens[0][:len(tokens[0]) - len("usr/bin")]
