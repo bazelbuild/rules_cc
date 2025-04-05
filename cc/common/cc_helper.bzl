@@ -285,11 +285,83 @@ def _should_use_pic(ctx, cc_toolchain, feature_configuration):
         )
     )
 
+def _tool_path(cc_toolchain, tool):
+    return cc_toolchain._tool_paths.get(tool, None)
+
+def _is_code_coverage_enabled(ctx):
+    if ctx.coverage_instrumented():
+        return True
+    if hasattr(ctx.attr, "deps"):
+        for dep in ctx.attr.deps:
+            if CcInfo in dep:
+                if ctx.coverage_instrumented(dep):
+                    return True
+    return False
+
+def _get_coverage_environment(ctx, cc_config, cc_toolchain):
+    if not ctx.configuration.coverage_enabled:
+        return {}
+    env = {
+        "COVERAGE_GCOV_PATH": _tool_path(cc_toolchain, "gcov"),
+        "GENERATE_LLVM_LCOV": "1" if cc_config.generate_llvm_lcov() else "0",
+        "LLVM_COV": _tool_path(cc_toolchain, "llvm-cov"),
+        "LLVM_PROFDATA": _tool_path(cc_toolchain, "llvm-profdata"),
+    }
+    for k in list(env.keys()):
+        if env[k] == None:
+            env.pop(k)
+    if cc_config.fdo_instrument():
+        env["FDO_DIR"] = cc_config.fdo_instrument()
+    return env
+
+CC_SOURCE = [".cc", ".cpp", ".cxx", ".c++", ".C", ".cu", ".cl"]
+C_SOURCE = [".c"]
+OBJC_SOURCE = [".m"]
+OBJCPP_SOURCE = [".mm"]
+CLIF_INPUT_PROTO = [".ipb"]
+CLIF_OUTPUT_PROTO = [".opb"]
+CC_HEADER = [".h", ".hh", ".hpp", ".ipp", ".hxx", ".h++", ".inc", ".inl", ".tlh", ".tli", ".H", ".tcc"]
+ASSESMBLER_WITH_C_PREPROCESSOR = [".S"]
+ASSEMBLER = [".s", ".asm"]
+ARCHIVE = [".a", ".lib"]
+PIC_ARCHIVE = [".pic.a"]
+ALWAYSLINK_LIBRARY = [".lo"]
+ALWAYSLINK_PIC_LIBRARY = [".pic.lo"]
+SHARED_LIBRARY = [".so", ".dylib", ".dll", ".wasm"]
+INTERFACE_SHARED_LIBRARY = [".ifso", ".tbd", ".lib", ".dll.a"]
+OBJECT_FILE = [".o", ".obj"]
+PIC_OBJECT_FILE = [".pic.o"]
+
+def _create_cc_instrumented_files_info(ctx, cc_config, cc_toolchain, compilation_outputs, metadata_files, source_attributes = ["srcs", "hdrs"], dependency_attributes = ["implementation_deps", "deps", "data"], virtual_to_original_headers = None):
+    extensions = CC_SOURCE + \
+                 C_SOURCE + \
+                 CC_HEADER + \
+                 ASSESMBLER_WITH_C_PREPROCESSOR + \
+                 ASSEMBLER
+    coverage_environment = {}
+    if ctx.configuration.coverage_enabled:
+        coverage_environment = _get_coverage_environment(ctx, cc_config, cc_toolchain)
+    coverage_support_files = cc_toolchain._coverage_files if ctx.configuration.coverage_enabled else depset([])
+    info = coverage_common.instrumented_files_info(
+        ctx = ctx,
+        source_attributes = source_attributes,
+        dependency_attributes = dependency_attributes,
+        extensions = extensions,
+        metadata_files = metadata_files + compilation_outputs.gcno_files() + compilation_outputs.pic_gcno_files(),
+        coverage_support_files = coverage_support_files,
+        coverage_environment = coverage_environment,
+        reported_to_actual_sources = virtual_to_original_headers,
+    )
+    return info
+
 cc_helper = struct(
     create_strip_action = _create_strip_action,
     get_expanded_env = _get_expanded_env,
     get_static_mode_params_for_dynamic_library_libraries = _get_static_mode_params_for_dynamic_library_libraries,
     should_use_pic = _should_use_pic,
+    is_code_coverage_enabled = _is_code_coverage_enabled,
+    get_coverage_environment = _get_coverage_environment,
+    create_cc_instrumented_files_info = _create_cc_instrumented_files_info,
     tokenize = _tokenize,
 )
 # LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/cc_helper.bzl:forked_exports)
