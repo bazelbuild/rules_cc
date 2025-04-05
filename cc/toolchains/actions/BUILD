@@ -148,6 +148,31 @@ cc_action_type(
     action_name = ACTION_NAMES.validate_static_library,
 )
 
+cc_action_type(
+    name = "dwp",
+    action_name = ACTION_NAMES.dwp,
+)
+
+cc_action_type(
+    name = "gcov",
+    action_name = ACTION_NAMES.gcov,
+)
+
+cc_action_type(
+    name = "llvm_profdata",
+    action_name = ACTION_NAMES.llvm_profdata,
+)
+
+cc_action_type(
+    name = "nm",
+    action_name = ACTION_NAMES.nm,
+)
+
+cc_action_type(
+    name = "objdump",
+    action_name = ACTION_NAMES.objdump,
+)
+
 # ld_embed_data is only available within google.
 cc_action_type(
     # # copybara-comment-this-out-please
