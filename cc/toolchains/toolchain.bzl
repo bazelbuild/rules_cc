@@ -58,6 +58,7 @@ def cc_toolchain(
         tool_map = None,
         args = [],
         artifact_name_patterns = [],
+        make_variables = [],
         known_features = [],
         enabled_features = [],
         libc_top = None,
@@ -114,6 +115,7 @@ def cc_toolchain(
         args: (List[Label]) A list of `cc_args` and `cc_arg_list` to apply across this toolchain.
         artifact_name_patterns: (List[Label]) A list of `cc_artifact_name_pattern` defining patterns
             for names of artifacts created by this toolchain.
+        make_variables: (List[Label]) A list of `cc_make_variable` defining variable substitutions.
         known_features: (List[Label]) A list of `cc_feature` rules that this toolchain supports.
             Whether or not these
             [features](https://bazel.build/docs/cc-toolchain-config-reference#features)
@@ -169,6 +171,7 @@ def cc_toolchain(
         tool_map = tool_map,
         args = args,
         artifact_name_patterns = artifact_name_patterns,
+        make_variables = make_variables,
         known_features = known_features,
         enabled_features = enabled_features,
         compiler = compiler,
