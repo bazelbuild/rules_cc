@@ -27,3 +27,12 @@ cc_library(
         ":link_extra_libs",
     ],
 )
+
+filegroup(
+    name = "for_bazel_tests",
+    testonly = 1,
+    srcs = [
+        "BUILD",
+    ],
+    visibility = ["//:__subpackages__"],
+)
