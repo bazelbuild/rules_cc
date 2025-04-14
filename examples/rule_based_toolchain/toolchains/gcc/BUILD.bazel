@@ -12,9 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@rules_cc//cc/toolchains:make_variable.bzl", "cc_make_variable")
 load("@rules_cc//cc/toolchains:toolchain.bzl", "cc_toolchain")
 
 licenses(["notice"])
+
+cc_make_variable(
+    name = "example_variable",
+    value = "-DEXAMPLE=1",
+    variable_name = "EXAMPLE_SUBSTITUTION",
+)
 
 cc_toolchain(
     name = "host_gcc",
@@ -25,6 +32,7 @@ cc_toolchain(
     ],
     enabled_features = ["@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features"],
     known_features = ["@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features"],
+    make_variables = [":example_variable"],
     tool_map = "//toolchains/gcc/tools:all_tools",
 )
 
