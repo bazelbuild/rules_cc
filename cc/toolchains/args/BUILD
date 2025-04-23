@@ -28,6 +28,7 @@ cc_feature_set(
         "//cc/toolchains/args/strip_flags:feature",
         "//cc/toolchains/args/objc_arc_flags:feature",
         "//cc/toolchains/args/soname_flags:feature",
+        "//cc/toolchains/args/external_include_paths:feature",
     ],
 )
 
