@@ -28,6 +28,7 @@ cc_feature_set(
         "//cc/toolchains/args/strip_flags:feature",
         "//cc/toolchains/args/objc_arc_flags:feature",
         "//cc/toolchains/args/soname_flags:feature",
+        "//cc/toolchains/args/compile_flags:feature",  # NOTE: This should come below default flags so user flags can override them
     ],
 )
 
@@ -41,14 +42,11 @@ cc_feature(
         "//cc/toolchains/features/legacy:compiler_output_flags",
         "//cc/toolchains/features/legacy:dynamic_library_linker_tool",
         "//cc/toolchains/features/legacy:fission_support",
-        "//cc/toolchains/features/legacy:legacy_compile_flags",
         "//cc/toolchains/features/legacy:legacy_link_flags",
         "//cc/toolchains/features/legacy:library_search_directories",
         "//cc/toolchains/features/legacy:linkstamps",
         "//cc/toolchains/features/legacy:output_execpath_flags",
         "//cc/toolchains/features/legacy:strip_debug_symbols",
-        "//cc/toolchains/features/legacy:unfiltered_compile_flags",
-        "//cc/toolchains/features/legacy:user_compile_flags",
         "//cc/toolchains/features/legacy:user_link_flags",
     ],
     visibility = ["//visibility:private"],
