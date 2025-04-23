@@ -17,6 +17,7 @@ load(
     "//cc:cc_toolchain_config_lib.bzl",
     legacy_action_config = "action_config",
     legacy_feature = "feature",
+    legacy_feature_set = "feature_set",
     legacy_flag_group = "flag_group",
     legacy_flag_set = "flag_set",
     legacy_tool = "tool",
@@ -206,6 +207,22 @@ def _toolchain_collects_files_test(env, targets):
                     legacy_flag_group(flags = ["compile_args"]),
                 ],
             )],
+        ),
+        legacy_feature(
+            name = "coverage",
+            enabled = False,
+        ),
+        legacy_feature(
+            name = "llvm_coverage_map_format",
+            enabled = False,
+            requires = [legacy_feature_set(["coverage"])],
+            provides = ["@@//cc/toolchains/features:profile"],
+        ),
+        legacy_feature(
+            name = "gcc_coverage_map_format",
+            enabled = False,
+            requires = [legacy_feature_set(["coverage"])],
+            provides = ["@@//cc/toolchains/features:profile"],
         ),
         legacy_feature(
             name = "supports_pic",

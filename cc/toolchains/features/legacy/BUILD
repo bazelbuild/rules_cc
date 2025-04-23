@@ -174,24 +174,6 @@ cc_external_feature(
 )
 
 cc_external_feature(
-    name = "coverage",
-    feature_name = "coverage",
-    overridable = True,
-)
-
-cc_external_feature(
-    name = "llvm_coverage_map_format",
-    feature_name = "llvm_coverage_map_format",
-    overridable = True,
-)
-
-cc_external_feature(
-    name = "gcc_coverage_map_format",
-    feature_name = "gcc_coverage_map_format",
-    overridable = True,
-)
-
-cc_external_feature(
     name = "fully_static_link",
     feature_name = "fully_static_link",
     overridable = True,
@@ -268,9 +250,6 @@ cc_feature_set(
         ":static_libgcc",
         ":fission_support",
         ":strip_debug_symbols",
-        ":coverage",
-        ":llvm_coverage_map_format",
-        ":gcc_coverage_map_format",
         ":fully_static_link",
         ":user_compile_flags",
         ":unfiltered_compile_flags",
