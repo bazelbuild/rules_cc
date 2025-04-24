@@ -29,6 +29,7 @@ cc_feature_set(
         "//cc/toolchains/args/objc_arc_flags:feature",
         "//cc/toolchains/args/soname_flags:feature",
         "//cc/toolchains/args/static_libgcc:feature",
+        "//cc/toolchains/args/include_flags:feature",
         "//cc/toolchains/args/compiler_input_flags:feature",
         "//cc/toolchains/args/compiler_output_flags:feature",
         "//cc/toolchains/args/fission_flags:feature",
