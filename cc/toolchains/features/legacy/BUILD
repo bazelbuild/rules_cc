@@ -168,6 +168,12 @@ cc_external_feature(
 )
 
 cc_external_feature(
+    name = "per_object_debug_info",
+    feature_name = "per_object_debug_info",
+    overridable = True,
+)
+
+cc_external_feature(
     name = "strip_debug_symbols",
     feature_name = "strip_debug_symbols",
     overridable = True,
