@@ -262,7 +262,7 @@ cc_variable(
 cc_variable(
     name = "library_search_directories",
     actions = ["//cc/toolchains/actions:link_actions"],
-    type = types.list(types.directory),
+    type = types.option(types.list(types.directory)),
 )
 
 cc_variable(
@@ -277,7 +277,7 @@ cc_variable(
 cc_variable(
     name = "linkstamp_paths",
     actions = ["//cc/toolchains/actions:link_actions"],
-    type = types.list(types.directory),
+    type = types.option(types.list(types.file)),
 )
 
 cc_variable(
@@ -328,7 +328,7 @@ cc_variable(
         "//cc/toolchains/actions:cpp_link_static_library",
         "//cc/toolchains/actions:link_actions",
     ],
-    type = types.option(types.directory),
+    type = types.option(types.file),
 )
 
 cc_variable(
