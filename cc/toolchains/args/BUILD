@@ -17,7 +17,7 @@ cc_feature_set(
     all_of = [
         ":backfill_legacy_args",
         "//cc/toolchains/args/archiver_flags:feature",
-        "//cc/toolchains/args/force_pic_flags:feature",
+        "//cc/toolchains/args/pic_flags:feature",
         "//cc/toolchains/args/libraries_to_link:feature",
         "//cc/toolchains/args/linker_param_file:feature",
         "//cc/toolchains/args/preprocessor_defines:feature",
@@ -29,6 +29,14 @@ cc_feature_set(
         "//cc/toolchains/args/objc_arc_flags:feature",
         "//cc/toolchains/args/soname_flags:feature",
         "//cc/toolchains/args/static_libgcc:feature",
+        "//cc/toolchains/args/compiler_input_flags:feature",
+        "//cc/toolchains/args/compiler_output_flags:feature",
+        "//cc/toolchains/args/fission_flags:feature",
+        "//cc/toolchains/args/link_flags:feature",
+        "//cc/toolchains/args/linkstamp_flags:feature",
+        "//cc/toolchains/args/library_search_directories:feature",
+        "//cc/toolchains/args/dependency_file:feature",
+        "//cc/toolchains/args/compile_flags:feature",  # NOTE: This should come below default flags so user flags can override them
     ],
 )
 
@@ -38,19 +46,7 @@ cc_feature(
     # TODO: Convert remaining items in this list into their actual args.
     implies = [
         "//cc/toolchains/features/legacy:build_interface_libraries",
-        "//cc/toolchains/features/legacy:compiler_input_flags",
-        "//cc/toolchains/features/legacy:compiler_output_flags",
         "//cc/toolchains/features/legacy:dynamic_library_linker_tool",
-        "//cc/toolchains/features/legacy:fission_support",
-        "//cc/toolchains/features/legacy:legacy_compile_flags",
-        "//cc/toolchains/features/legacy:legacy_link_flags",
-        "//cc/toolchains/features/legacy:library_search_directories",
-        "//cc/toolchains/features/legacy:linkstamps",
-        "//cc/toolchains/features/legacy:output_execpath_flags",
-        "//cc/toolchains/features/legacy:strip_debug_symbols",
-        "//cc/toolchains/features/legacy:unfiltered_compile_flags",
-        "//cc/toolchains/features/legacy:user_compile_flags",
-        "//cc/toolchains/features/legacy:user_link_flags",
     ],
     visibility = ["//visibility:private"],
 )
