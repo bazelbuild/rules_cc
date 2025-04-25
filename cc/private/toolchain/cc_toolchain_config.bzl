@@ -385,8 +385,6 @@ def _impl(ctx):
                         flag_group(
                             flags = [
                                 "-lstdc++",
-                                "-undefined",
-                                "dynamic_lookup",
                                 "-headerpad_max_install_names",
                                 "-no-canonical-prefixes",
                             ],
