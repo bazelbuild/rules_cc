@@ -15,6 +15,7 @@ config_setting(
     name = "use_libtool_on_macos_setting",
     constraint_values = ["@platforms//os:macos"],
     flag_values = {":use_libtool_on_macos": "true"},
+    visibility = ["//visibility:public"],
 )
 
 cc_feature(
