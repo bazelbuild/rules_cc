@@ -60,6 +60,9 @@ cc_tool(
         "//constraint:linux_aarch64": "@clang-linux-aarch64//:bin/clang",
         "//constraint:linux_x86_64": "@clang-linux-x86_64//:bin/clang",
     }),
+    capabilities = [
+        "@rules_cc//cc/toolchains/capabilities:supports_pic",
+    ],
     data = [
         ":exec_platform_builtin_headers",
         ":exec_platform_multicall_support_files",
@@ -72,6 +75,9 @@ cc_tool(
         "//constraint:linux_aarch64": "@clang-linux-aarch64//:bin/clang++",
         "//constraint:linux_x86_64": "@clang-linux-x86_64//:bin/clang++",
     }),
+    capabilities = [
+        "@rules_cc//cc/toolchains/capabilities:supports_pic",
+    ],
     data = [
         ":exec_platform_builtin_headers",
         ":exec_platform_multicall_support_files",

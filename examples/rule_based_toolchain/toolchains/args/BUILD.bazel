@@ -40,3 +40,15 @@ cc_args(
     }),
     visibility = ["//visibility:public"],
 )
+
+cc_args(
+    name = "pic",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:c_compile",
+        "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
+    ],
+    args = ["-fPIC"],
+    requires_any_of = [
+        "@rules_cc//cc/toolchains/capabilities:supports_pic",
+    ],
+)
