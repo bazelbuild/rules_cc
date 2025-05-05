@@ -33,11 +33,15 @@ cc_toolchain(
     enabled_features = ["@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features"],
     known_features = ["@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features"],
     make_variables = [":example_variable"],
+    tags = ["manual"],
     tool_map = "//toolchains/gcc/tools:all_tools",
 )
 
 toolchain(
     name = "host_gcc_toolchain",
+    exec_compatible_with = [
+        "@platforms//os:linux",
+    ],
     toolchain = ":host_gcc",
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
     visibility = ["//visibility:public"],
