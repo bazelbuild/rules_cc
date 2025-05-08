@@ -13,14 +13,14 @@ cc_feature(
 
 cc_args(
     name = "objc_arc",
-    actions = ["@rules_cc//cc/toolchains/actions:compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     args = ["-fobjc-arc"],
-    requires_not_none = "@rules_cc//cc/toolchains/variables:objc_arc",
+    requires_not_none = "//cc/toolchains/variables:objc_arc",
 )
 
 cc_args(
     name = "no_objc_arc",
-    actions = ["@rules_cc//cc/toolchains/actions:compile_actions"],
+    actions = ["//cc/toolchains/actions:compile_actions"],
     args = ["-fno-objc-arc"],
-    requires_not_none = "@rules_cc//cc/toolchains/variables:no_objc_arc",
+    requires_not_none = "//cc/toolchains/variables:no_objc_arc",
 )
