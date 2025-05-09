@@ -13,6 +13,7 @@ cc_configure = use_extension("//cc:extensions.bzl", "cc_configure_extension")
 use_repo(cc_configure, "local_config_cc", "local_config_cc_toolchains")
 
 register_toolchains("@local_config_cc_toolchains//:all")
+register_toolchains("//examples/custom_toolchain:platform_based_toolchain")
 
 bazel_dep(name = "rules_shell", version = "0.2.0", dev_dependency = True)
 bazel_dep(name = "googletest", version = "1.15.2", dev_dependency = True)
