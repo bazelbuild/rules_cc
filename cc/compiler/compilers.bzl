@@ -13,7 +13,9 @@
 # limitations under the License.
 """Known cc compilers"""
 
-visibility("private")
+visibility([
+    "//cc/cxx_standard/..."
+])
 
 COMPILERS = [
     # keep sorted
