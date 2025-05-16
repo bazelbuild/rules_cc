@@ -14,15 +14,15 @@
 """Known cc compilers"""
 
 visibility([
-    "//cc/cxx_standard/..."
+    "//cc/cxx_standard/...",
 ])
 
 COMPILERS = [
     # keep sorted
     "clang",
     "clang-cl",
+    "emscripten",
     "gcc",
     "mingw-gcc",
     "msvc-cl",
-    "emscripten",
 ]
