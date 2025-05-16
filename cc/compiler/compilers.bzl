@@ -13,6 +13,8 @@
 # limitations under the License.
 """Known cc compilers"""
 
+visibility("private")
+
 COMPILERS = [
     "clang",
     "clang-cl",
