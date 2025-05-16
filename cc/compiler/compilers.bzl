@@ -16,6 +16,7 @@
 visibility("private")
 
 COMPILERS = [
+    # keep sorted
     "clang",
     "clang-cl",
     "gcc",
