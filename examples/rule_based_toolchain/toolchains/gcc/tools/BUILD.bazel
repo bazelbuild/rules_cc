@@ -19,6 +19,7 @@ licenses(["notice"])
 
 cc_tool_map(
     name = "all_tools",
+    tags = ["manual"],
     tools = {
         "@rules_cc//cc/toolchains/actions:ar_actions": ":ar",
         "@rules_cc//cc/toolchains/actions:assembly_actions": ":gcc",
@@ -42,6 +43,7 @@ cc_tool(
         ":exec_platform_builtin_headers",
         ":exec_platform_multicall_support_files",
     ],
+    tags = ["manual"],
 )
 
 cc_tool(
@@ -53,6 +55,7 @@ cc_tool(
         ":exec_platform_builtin_headers",
         ":exec_platform_multicall_support_files",
     ],
+    tags = ["manual"],
 )
 
 cc_tool(
@@ -64,6 +67,7 @@ cc_tool(
         ":exec_platform_linker_builtins",
         ":exec_platform_multicall_support_files",
     ],
+    tags = ["manual"],
 )
 
 cc_tool(
@@ -71,6 +75,7 @@ cc_tool(
     src = select({
         "//constraint:linux_x86_64": "@gcc-linux-x86_64//:bin/x86_64-linux-ar",
     }),
+    tags = ["manual"],
 )
 
 cc_tool(
@@ -78,6 +83,7 @@ cc_tool(
     src = select({
         "//constraint:linux_x86_64": "@gcc-linux-x86_64//:bin/x86_64-linux-objcopy",
     }),
+    tags = ["manual"],
 )
 
 cc_tool(
@@ -85,6 +91,7 @@ cc_tool(
     src = select({
         "//constraint:linux_x86_64": "@gcc-linux-x86_64//:bin/x86_64-linux-objdump",
     }),
+    tags = ["manual"],
 )
 
 cc_tool(
@@ -92,6 +99,7 @@ cc_tool(
     src = select({
         "//constraint:linux_x86_64": "@gcc-linux-x86_64//:bin/x86_64-linux-gcov",
     }),
+    tags = ["manual"],
 )
 
 cc_tool(
@@ -99,6 +107,7 @@ cc_tool(
     src = select({
         "//constraint:linux_x86_64": "@gcc-linux-x86_64//:bin/x86_64-linux-strip",
     }),
+    tags = ["manual"],
 )
 
 #################################
@@ -114,6 +123,7 @@ alias(
     actual = select({
         "//constraint:linux_x86_64": "@gcc-linux-x86_64//:builtin_headers",
     }),
+    tags = ["manual"],
     visibility = ["//visibility:private"],
 )
 
@@ -122,6 +132,7 @@ alias(
     actual = select({
         "//constraint:linux_x86_64": "@gcc-linux-x86_64//:multicall_support_files",
     }),
+    tags = ["manual"],
     visibility = ["//visibility:private"],
 )
 
@@ -130,5 +141,6 @@ alias(
     actual = select({
         "//constraint:linux_x86_64": "@gcc-linux-x86_64//:linker_builtins",
     }),
+    tags = ["manual"],
     visibility = ["//visibility:private"],
 )

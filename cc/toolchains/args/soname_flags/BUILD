@@ -13,19 +13,19 @@ cc_feature(
 
 cc_args(
     name = "macos_set_install_name",
-    actions = ["@rules_cc//cc/toolchains/actions:link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     args = ["-Wl,-install_name,@rpath/{runtime_solib_name}"],
-    format = {"runtime_solib_name": "@rules_cc//cc/toolchains/variables:runtime_solib_name"},
-    requires_not_none = "@rules_cc//cc/toolchains/variables:runtime_solib_name",
+    format = {"runtime_solib_name": "//cc/toolchains/variables:runtime_solib_name"},
+    requires_not_none = "//cc/toolchains/variables:runtime_solib_name",
     target_compatible_with = ["@platforms//os:macos"],
 )
 
 cc_args(
     name = "set_soname",
-    actions = ["@rules_cc//cc/toolchains/actions:link_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     args = ["-Wl,-soname,{runtime_solib_name}"],
-    format = {"runtime_solib_name": "@rules_cc//cc/toolchains/variables:runtime_solib_name"},
-    requires_not_none = "@rules_cc//cc/toolchains/variables:runtime_solib_name",
+    format = {"runtime_solib_name": "//cc/toolchains/variables:runtime_solib_name"},
+    requires_not_none = "//cc/toolchains/variables:runtime_solib_name",
     target_compatible_with = ["@platforms//os:linux"],
     visibility = ["//visibility:public"],
 )

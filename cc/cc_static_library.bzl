@@ -11,17 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""cc_library rule"""
 
-load("@rules_cc//cc/toolchains/args:sysroot.bzl", "cc_sysroot")
+load("//cc/private/rules_impl:cc_static_library.bzl", _cc_static_library = "cc_static_library")
 
-cc_sysroot(
-    name = "linux_sysroot",
-    data = [
-        "@linux_sysroot//:root",
-        "@linux_sysroot//:usr-include",
-        "@linux_sysroot//:usr-include-aarch64-linux-gnu",
-        "@linux_sysroot//:usr-include-x86_64-linux-gnu",
-    ],
-    sysroot = "@linux_sysroot//:root",
-    visibility = ["//visibility:public"],
-)
+def cc_static_library(**kwargs):
+    _cc_static_library(**kwargs)
