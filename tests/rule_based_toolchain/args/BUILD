@@ -5,7 +5,7 @@ load("//tests/rule_based_toolchain:analysis_test_suite.bzl", "analysis_test_suit
 load(":args_test.bzl", "TARGETS", "TESTS")
 
 cc_variable(
-    name = "foo",
+    name = "some_variable",
     type = types.string,
 )
 

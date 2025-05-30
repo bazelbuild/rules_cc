@@ -84,22 +84,13 @@ def _var(target):
 
 # TODO: Consider replacing this with a subrule in the future. However, maybe not
 # for a long time, since it'll break compatibility with all bazel versions < 7.
-def nested_args_provider_from_ctx(ctx):
+def nested_args_provider_from_ctx(ctx, maybe_unneeded_vars = []):
     """Gets the nested args provider from a rule that has NESTED_ARGS_ATTRS.
 
     Args:
         ctx: The rule context
-    Returns:
-        NestedArgsInfo
-    """
-    return nested_args_provider_from_ctx_and_used_format_vars(ctx)
+        maybe_unneeded_vars: (List[str]) A list of format variables that might not need to be used during args formatting.
 
-def nested_args_provider_from_ctx_and_used_format_vars(ctx, used_vars = []):
-    """Gets the nested args provider from a rule that has NESTED_ARGS_ATTRS.
-
-    Args:
-        ctx: The rule context
-        used_vars: The format variables that have already been used.
     Returns:
         NestedArgsInfo
     """
@@ -116,7 +107,7 @@ def nested_args_provider_from_ctx_and_used_format_vars(ctx, used_vars = []):
         requires_false = _var(ctx.attr.requires_false),
         requires_equal = _var(ctx.attr.requires_equal),
         requires_equal_value = ctx.attr.requires_equal_value,
-        used_vars = used_vars,
+        maybe_unneeded_vars = maybe_unneeded_vars,
     )
 
 def nested_args_provider(
@@ -133,7 +124,7 @@ def nested_args_provider(
         requires_false = None,
         requires_equal = None,
         requires_equal_value = "",
-        used_vars = [],
+        maybe_unneeded_vars = [],
         fail = fail):
     """Creates a validated NestedArgsInfo.
 
@@ -161,7 +152,7 @@ def nested_args_provider(
           be ignored if the variable is not equal to requires_equal_value.
         requires_equal_value: (str) The value to compare the requires_equal
           variable with
-        used_vars: (List[str]) The format variables that have already been used.
+        maybe_unneeded_vars: (List[str]) A list of format variables that might not need to be used during args formatting.
         fail: A fail function. Use only for testing.
     Returns:
         NestedArgsInfo
@@ -197,10 +188,10 @@ def nested_args_provider(
     #     args = ["{}"],
     #     iterate_over = "//cc/toolchains/variables:libraries_to_link.object_files",
     # )
-    args = format_args(
+    formatted_args, _ = format_list(
         args,
         replacements,
-        must_use = [var for var in format.values() if var not in used_vars],
+        must_use = [var for var in format.values() if var not in maybe_unneeded_vars],
         fail = fail,
     )
 
@@ -222,8 +213,8 @@ def nested_args_provider(
 
     kwargs = {}
 
-    if args:
-        kwargs["flags"] = args
+    if formatted_args:
+        kwargs["flags"] = formatted_args
 
     requires_types = {}
     if nested:
@@ -351,10 +342,10 @@ def _format_string(arg, format, used_vars, fail = fail):
 
     return "".join(out)
 
-def format_args(args, format, must_use = [], fail = fail):
+def format_list(args, format, must_use = [], fail = fail):
     """Lists all of the variables referenced by an argument.
 
-    Eg: format_args(["--foo", "--bar={bar}"], {"bar": VariableInfo(name="bar")})
+    Eg: format_list(["--foo", "--bar={bar}"], {"bar": VariableInfo(name="bar")})
       => ["--foo", "--bar=%{bar}"]
 
     Args:
@@ -376,17 +367,18 @@ def format_args(args, format, must_use = [], fail = fail):
     if unused_vars:
         fail("The variable %r was not used in the format string." % unused_vars[0])
 
-    return formatted
+    return formatted, used_vars.keys()
 
-def format_env(env, format, fail = fail):
+def format_dict_values(env, format, must_use = [], fail = fail):
     """Formats the environment variables.
 
-    Eg: format_env({"FOO": "some/path", "BAR": "{bar}"}, {"bar": DirectoryInfo(path="path/to/bar")})
+    Eg: format_dict_values({"FOO": "some/path", "BAR": "{bar}"}, {"bar": DirectoryInfo(path="path/to/bar")})
       => {"FOO": "some/path", "BAR": "path/to/bar"}
 
     Args:
       env: (Dict[str, str]) The environment variables.
       format: (Dict[str, Target]) A mapping of substitutions from key to target.
+      must_use: (List[str]) A list of substitutions that must be used.
       fail: The fail function. Used for tests
 
     Returns:
@@ -398,4 +390,8 @@ def format_env(env, format, fail = fail):
     for key, value in env.items():
         formatted[key] = _format_string(value, format, used_vars, fail)
 
-    return formatted, used_vars
+    unused_vars = [var for var in must_use if var not in used_vars]
+    if unused_vars:
+        fail("The variable %r was not used in the format string." % unused_vars[0])
+
+    return formatted, used_vars.keys()
