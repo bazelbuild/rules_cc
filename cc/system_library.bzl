@@ -268,7 +268,7 @@ genrule(
         executable = False,
         content =
             """
-load("@bazel_tools//tools/build_defs/cc:cc_import.bzl", "cc_import")
+load("//tools/build_defs/cc:cc_import.bzl", "cc_import")
 cc_import(
     name = "local_includes",
     {static_library}
