@@ -24,8 +24,8 @@ load(
 load(
     "//cc/toolchains/impl:nested_args.bzl",
     "NESTED_ARGS_ATTRS",
-    "format_env",
-    "nested_args_provider_from_ctx_and_used_format_vars",
+    "format_dict_values",
+    "nested_args_provider_from_ctx",
 )
 load(
     ":cc_toolchain_info.bzl",
@@ -41,14 +41,17 @@ visibility("public")
 def _cc_args_impl(ctx):
     actions = collect_action_types(ctx.attr.actions)
 
-    formatted, used_vars = format_env(
+    formatted_env, used_format_vars = format_dict_values(
         env = ctx.attr.env,
+        must_use = [],  # checking for unused variables in done when formatting `args`.
         format = {k: v for v, k in ctx.attr.format.items()},
     )
 
     nested = None
     if ctx.attr.args or ctx.attr.nested:
-        nested = nested_args_provider_from_ctx_and_used_format_vars(ctx, used_vars)
+        # Forward the format variables used by the env formatting so they don't trigger
+        # errors if they go unused during the argument formatting.
+        nested = nested_args_provider_from_ctx(ctx, used_format_vars)
         validate_nested_args(
             variables = ctx.attr._variables[BuiltinVariablesInfo].variables,
             nested_args = nested,
@@ -66,7 +69,7 @@ def _cc_args_impl(ctx):
         actions = actions,
         requires_any_of = tuple(requires),
         nested = nested,
-        env = formatted,
+        env = formatted_env,
         files = files,
         allowlist_include_directories = depset(
             direct = [d[DirectoryInfo] for d in ctx.attr.allowlist_include_directories],

@@ -33,7 +33,7 @@ load(
 )
 load(
     "//cc/toolchains/impl:nested_args.bzl",
-    "format_env",
+    "format_dict_values",
 )
 load("//tests/rule_based_toolchain:generics.bzl", "struct_subject")
 load(
@@ -122,7 +122,7 @@ def _with_dir_test(env, targets):
 
 TARGETS = [
     ":simple",
-    ":foo",
+    ":some_variable",
     ":env_only",
     ":with_dir",
     ":iterate_over_optional",
@@ -132,26 +132,26 @@ TARGETS = [
     "//tests/rule_based_toolchain/testdata:bin_wrapper",
 ]
 
-def _format_env(args, format, fail = fail):
+def _format_dict_values(args, format, must_use = [], fail = fail):
     # return the formatted dict as a list because the test framework
     # doesn't appear to support dicts
-    formatted, used_items = format_env(args, format, fail)
+    formatted, used_items = format_dict_values(args, format, must_use = must_use, fail = fail)
     return struct(
         env = formatted.items(),
-        used_items = used_items.keys(),
+        used_items = used_items,
     )
 
-def _expect_that_formatted(env, args, format, expr = None):
+def _expect_that_formatted(env, args, format, must_use = [], expr = None):
     return env.expect.that_value(
-        result_fn_wrapper(_format_env)(args, format),
+        result_fn_wrapper(_format_dict_values)(args, format, must_use = must_use),
         factory = subjects.result(struct_subject(
             env = subjects.collection,
             used_items = subjects.collection,
         )),
-        expr = expr or "format_env(%r, %r)" % (args, format),
+        expr = expr or "format_dict_values(%r, %r)" % (args, format),
     )
 
-def _format_env_test(env, targets):
+def _format_dict_values_test(env, targets):
     res = _expect_that_formatted(
         env,
         {"foo": "bar"},
@@ -185,10 +185,10 @@ def _format_env_test(env, targets):
     res = _expect_that_formatted(
         env,
         {"foo": "{bar}"},
-        {"bar": targets.foo},
+        {"bar": targets.some_variable},
     ).ok()
     res.env().contains_exactly([
-        ("foo", "%{foo}"),
+        ("foo", "%{some_variable}"),
     ])
     res.used_items().contains_exactly(["bar"])
 
@@ -201,14 +201,14 @@ def _format_env_test(env, targets):
         },
         {
             "bar": targets.directory,
-            "quuz": targets.foo,
+            "quuz": targets.some_variable,
             "qux": targets.bin_wrapper,
         },
     ).ok()
     res.env().contains_exactly([
         ("foo", targets.directory[DirectoryInfo].path),
         ("baz", targets.bin_wrapper[DefaultInfo].files.to_list()[0].path),
-        ("bat", "%{foo}"),
+        ("bat", "%{some_variable}"),
     ])
     res.used_items().contains_exactly(["bar", "quuz", "qux"])
 
@@ -233,13 +233,20 @@ def _format_env_test(env, targets):
     _expect_that_formatted(
         env,
         {"foo": "{var} {var}"},
-        {"var": targets.foo},
+        {"var": targets.some_variable},
     ).err().contains('"{var} {var}" contained multiple variables')
+
+    _expect_that_formatted(
+        env,
+        {},
+        {"var": targets.some_variable},
+        must_use = ["var"],
+    ).err().contains('"var" was not used')
 
 # @unsorted-dict-items
 TESTS = {
     "simple_test": _simple_test,
-    "format_env_test": _format_env_test,
+    "format_dict_values_test": _format_dict_values_test,
     "env_only_test": _env_only_test,
     "with_dir_test": _with_dir_test,
 }
