@@ -1,7 +1,13 @@
 load("@rules_testing//lib:util.bzl", "util")
 load("//cc/toolchains:args.bzl", "cc_args")
+load("//cc/toolchains/impl:variables.bzl", "cc_variable", "types")
 load("//tests/rule_based_toolchain:analysis_test_suite.bzl", "analysis_test_suite")
 load(":args_test.bzl", "TARGETS", "TESTS")
+
+cc_variable(
+    name = "foo",
+    type = types.string,
+)
 
 util.helper_target(
     cc_args,
