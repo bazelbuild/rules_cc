@@ -14,7 +14,11 @@
 """Tests for variables rule."""
 
 load("//cc/toolchains:cc_toolchain_info.bzl", "ActionTypeInfo", "BuiltinVariablesInfo", "NestedArgsInfo", "VariableInfo")
-load("//cc/toolchains/impl:args_utils.bzl", _validate_nested_args = "validate_nested_args")
+load(
+    "//cc/toolchains/impl:args_utils.bzl",
+    _validate_env_vars = "validate_env_vars",
+    _validate_nested_args = "validate_nested_args",
+)
 load(
     "//cc/toolchains/impl:nested_args.bzl",
     "FORMAT_ARGS_ERR",
@@ -27,6 +31,7 @@ visibility("private")
 
 get_type = result_fn_wrapper(_get_type)
 validate_nested_args = result_fn_wrapper(_validate_nested_args)
+validate_env_vars = result_fn_wrapper(_validate_env_vars)
 
 _ARGS_LABEL = Label("//:args")
 _NESTED_LABEL = Label("//:nested_vars")
@@ -118,6 +123,38 @@ nested_str_list: List[string]""")
         },
     ).ok().equals(types.string)
 
+# buildifier: disable=unused-variable
+def _env_vars_validation_test(env, targets):
+    def _expect_validated(env_vars):
+        return env.expect.that_value(
+            validate_env_vars(env_vars),
+            # Type is Result[None]
+            factory = subjects.result(subjects.unknown),
+        )
+
+    _expect_validated({}).ok()
+    _expect_validated({
+        "foo": "bar",
+    }).ok()
+    _expect_validated({
+        "foo": "%{some_var}",
+    }).err().equals(
+        'Unsupported cc_variable substitution "%{some_var}" found in environment variable "foo"',
+    )
+    _expect_validated({
+        "bar": "baz",
+        "foo": "%{some_var}",
+    }).err().equals(
+        'Unsupported cc_variable substitution "%{some_var}" found in environment variable "foo"',
+    )
+    _expect_validated({
+        "bar": "baz",
+        "foo": "%{some_var}",
+        "quuz": "quux",
+    }).err().equals(
+        'Unsupported cc_variable substitution "%{some_var}" found in environment variable "foo"',
+    )
+
 def _variable_validation_test(env, targets):
     c_compile = targets.c_compile[ActionTypeInfo]
     cpp_compile = targets.cpp_compile[ActionTypeInfo]
@@ -197,4 +234,5 @@ TESTS = {
     "types_represent_correctly_test": _types_represent_correctly_test,
     "get_types_test": _get_types_test,
     "variable_validation_test": _variable_validation_test,
+    "env_vars_validation_test": _env_vars_validation_test,
 }

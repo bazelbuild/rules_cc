@@ -36,6 +36,21 @@ def get_action_type(args_list, action_type):
 
     return struct(action = action_type, args = tuple(), files = depset([]))
 
+def validate_env_vars(env, fail = fail):
+    """Validates the environment variables. Currently only checks that there are no cc_variables in the values.
+
+    Args:
+        env: (Dict[str, str]) The environment variables to validate.
+        fail: The fail function. Use for testing only.
+    """
+    for key, value in env.items():
+        lindex = value.find("%{")
+        if lindex == -1:
+            continue
+        rindex = value.find("}", lindex)
+        if rindex != -1:
+            fail("Unsupported cc_variable substitution %r found in environment variable %r" % (value[lindex:rindex + 1], key))
+
 def validate_nested_args(*, nested_args, variables, actions, label, fail = fail):
     """Validates the typing for an nested_args invocation.
 
