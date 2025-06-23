@@ -84,12 +84,12 @@ def _var(target):
 
 # TODO: Consider replacing this with a subrule in the future. However, maybe not
 # for a long time, since it'll break compatibility with all bazel versions < 7.
-def nested_args_provider_from_ctx(ctx, maybe_unneeded_vars = []):
+def nested_args_provider_from_ctx(ctx, maybe_used_vars = []):
     """Gets the nested args provider from a rule that has NESTED_ARGS_ATTRS.
 
     Args:
         ctx: The rule context
-        maybe_unneeded_vars: (List[str]) A list of format variables that might not need to be used during args formatting.
+        maybe_used_vars: (List[str]) A list of format variables that are not needed during args formatting.
 
     Returns:
         NestedArgsInfo
@@ -107,7 +107,7 @@ def nested_args_provider_from_ctx(ctx, maybe_unneeded_vars = []):
         requires_false = _var(ctx.attr.requires_false),
         requires_equal = _var(ctx.attr.requires_equal),
         requires_equal_value = ctx.attr.requires_equal_value,
-        maybe_unneeded_vars = maybe_unneeded_vars,
+        maybe_used_vars = maybe_used_vars,
     )
 
 def nested_args_provider(
@@ -124,7 +124,7 @@ def nested_args_provider(
         requires_false = None,
         requires_equal = None,
         requires_equal_value = "",
-        maybe_unneeded_vars = [],
+        maybe_used_vars = [],
         fail = fail):
     """Creates a validated NestedArgsInfo.
 
@@ -152,7 +152,7 @@ def nested_args_provider(
           be ignored if the variable is not equal to requires_equal_value.
         requires_equal_value: (str) The value to compare the requires_equal
           variable with
-        maybe_unneeded_vars: (List[str]) A list of format variables that might not need to be used during args formatting.
+        maybe_used_vars: (List[str]) A list of format variables that are not needed during args formatting.
         fail: A fail function. Use only for testing.
     Returns:
         NestedArgsInfo
@@ -191,7 +191,7 @@ def nested_args_provider(
     formatted_args, _ = format_list(
         args,
         replacements,
-        must_use = [var for var in format.values() if var not in maybe_unneeded_vars],
+        must_use = [var for var in format.values() if var not in maybe_used_vars],
         fail = fail,
     )
 
@@ -291,8 +291,10 @@ def nested_args_provider(
 def _escape(s):
     return s.replace("%", "%%")
 
-def _format_target(target, fail = fail):
+def _format_target(target, arg, allow_variables, fail = fail):
     if VariableInfo in target:
+        if not allow_variables:
+            fail("Unsupported cc_variable substitution %s in %r." % (target.label, arg))
         return "%%{%s}" % target[VariableInfo].name
     elif DirectoryInfo in target:
         return _escape(target[DirectoryInfo].path)
@@ -303,7 +305,7 @@ def _format_target(target, fail = fail):
 
     fail("%s should be either a variable, a directory, or a single file." % target.label)
 
-def _format_string(arg, format, used_vars, fail = fail):
+def _format_string(arg, format, used_vars, allow_variables, fail = fail):
     upto = 0
     out = []
     has_format = False
@@ -331,7 +333,7 @@ def _format_string(arg, format, used_vars, fail = fail):
             else:
                 used_vars[variable] = None
                 has_format = True
-                out.append(_format_target(format[variable], fail = fail))
+                out.append(_format_target(format[variable], arg, allow_variables, fail = fail))
                 upto += len(variable) + 2
 
         elif arg[upto] == "}":
@@ -361,7 +363,7 @@ def format_list(args, format, must_use = [], fail = fail):
     used_vars = {}
 
     for arg in args:
-        formatted.append(_format_string(arg, format, used_vars, fail))
+        formatted.append(_format_string(arg, format, used_vars, True, fail))
 
     unused_vars = [var for var in must_use if var not in used_vars]
     if unused_vars:
@@ -388,7 +390,7 @@ def format_dict_values(env, format, must_use = [], fail = fail):
     used_vars = {}
 
     for key, value in env.items():
-        formatted[key] = _format_string(value, format, used_vars, fail)
+        formatted[key] = _format_string(value, format, used_vars, False, fail)
 
     unused_vars = [var for var in must_use if var not in used_vars]
     if unused_vars:

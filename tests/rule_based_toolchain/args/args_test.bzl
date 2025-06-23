@@ -129,6 +129,7 @@ TARGETS = [
     "//tests/rule_based_toolchain/actions:c_compile",
     "//tests/rule_based_toolchain/actions:cpp_compile",
     "//tests/rule_based_toolchain/testdata:directory",
+    "//tests/rule_based_toolchain/testdata:subdirectory_1",
     "//tests/rule_based_toolchain/testdata:bin_wrapper",
 ]
 
@@ -184,16 +185,6 @@ def _format_dict_values_test(env, targets):
 
     res = _expect_that_formatted(
         env,
-        {"foo": "{bar}"},
-        {"bar": targets.some_variable},
-    ).ok()
-    res.env().contains_exactly([
-        ("foo", "%{some_variable}"),
-    ])
-    res.used_items().contains_exactly(["bar"])
-
-    res = _expect_that_formatted(
-        env,
         {
             "bat": "{quuz}",
             "baz": "{qux}",
@@ -201,16 +192,22 @@ def _format_dict_values_test(env, targets):
         },
         {
             "bar": targets.directory,
-            "quuz": targets.some_variable,
+            "quuz": targets.subdirectory_1,
             "qux": targets.bin_wrapper,
         },
     ).ok()
     res.env().contains_exactly([
         ("foo", targets.directory[DirectoryInfo].path),
         ("baz", targets.bin_wrapper[DefaultInfo].files.to_list()[0].path),
-        ("bat", "%{some_variable}"),
+        ("bat", targets.subdirectory_1[DirectoryInfo].path),
     ])
     res.used_items().contains_exactly(["bar", "quuz", "qux"])
+
+    res = _expect_that_formatted(
+        env,
+        {"foo": "{bar}"},
+        {"bar": targets.some_variable},
+    ).err().equals('Unsupported cc_variable substitution @@//tests/rule_based_toolchain/args:some_variable in "{bar}".')
 
     _expect_that_formatted(
         env,
@@ -233,7 +230,7 @@ def _format_dict_values_test(env, targets):
     _expect_that_formatted(
         env,
         {"foo": "{var} {var}"},
-        {"var": targets.some_variable},
+        {"var": targets.directory},
     ).err().contains('"{var} {var}" contained multiple variables')
 
     _expect_that_formatted(
