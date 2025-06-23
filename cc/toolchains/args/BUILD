@@ -36,8 +36,8 @@ cc_feature_set(
         "//cc/toolchains/args/library_search_directories:feature",
         "//cc/toolchains/args/dependency_file:feature",
         "//cc/toolchains/args/compile_flags:feature",  # NOTE: This should come below default flags so user flags can override them
-        "//cc/toolchains/args/compiler_input_flags:feature",
-        "//cc/toolchains/args/compiler_output_flags:feature",
+        "//cc/toolchains/args/compiler_input_flags:feature",  # NOTE: This should be after `compile_flags` to allow user flags like `-x c++` to apply
+        "//cc/toolchains/args/compiler_output_flags:feature",  # NOTE: This is just grouped nicely with the `input_flags`
     ],
 )
 
