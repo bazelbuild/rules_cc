@@ -1779,7 +1779,13 @@ def _impl(ctx):
     # TODO(#8303): Mac crosstool should also declare every feature.
     if is_linux:
         # Linux artifact name patterns are the default.
-        artifact_name_patterns = []
+        artifact_name_patterns = [
+            artifact_name_pattern(
+                category_name = "cpp_module",
+                prefix = "",
+                extension = ".pcm",
+            ),
+        ]
         features = [
             cpp_modules_feature,
             cpp_module_modmap_file_feature,
