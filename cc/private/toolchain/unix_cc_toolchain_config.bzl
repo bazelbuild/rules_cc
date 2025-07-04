@@ -563,6 +563,20 @@ def _impl(ctx):
                 ],
             ),
         ],
+        env_sets = [
+            env_set(
+                actions = [
+                    ACTION_NAMES.cpp_module_deps_scanning,
+                ],
+                env_entries = [
+                    env_entry(
+                        key = "DEPS_SCANNER_OUTPUT_FILE",
+                        value = "%{output_file}",
+                        expand_if_available = "output_file",
+                    ),
+                ],
+            ),
+        ],
     )
 
     fdo_optimize_feature = feature(
