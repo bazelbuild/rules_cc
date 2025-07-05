@@ -21,7 +21,9 @@ load(
     "auto_configure_warning_maybe",
     "escape_string",
     "execute",
+    "get_starlark_list",
     "resolve_labels",
+    "split_escaped",
     "write_builtin_include_directory_paths",
 )
 
@@ -848,6 +850,42 @@ def _get_msvc_deps_scanner_vars(repository_ctx, paths, template_vars, target_arc
         "%{msvc_deps_scanner_wrapper_path_" + target_arch + "}": "msvc_deps_scanner_wrapper_" + target_arch + ".bat",
     }
 
+def _get_copts(repository_ctx):
+    """Get the variables we need to populate the msys/mingw toolchains."""
+    conly_opts = split_escaped(_get_env_var(
+        repository_ctx,
+        "BAZEL_CONLYOPTS",
+        "",
+    ), ":")
+    c_opts = split_escaped(_get_env_var(
+        repository_ctx,
+        "BAZEL_COPTS",
+        "",
+    ), ":")
+    cxx_opts = split_escaped(_get_env_var(
+        repository_ctx,
+        "BAZEL_CXXOPTS",
+        "",
+    ), ":")
+    link_opts = split_escaped(_get_env_var(
+        repository_ctx,
+        "BAZEL_LINKOPTS",
+        "",
+    ), ":")
+    win32_winnt_opts = _get_env_var(
+        repository_ctx,
+        "BAZEL_WIN32_WINNT",
+        "/D_WIN32_WINNT=0x0601",
+    )
+    copts_vars = {
+        "%{c_flags}": get_starlark_list(c_opts),
+        "%{conly_flags}": get_starlark_list(conly_opts),
+        "%{cxx_flags}": get_starlark_list(cxx_opts),
+        "%{link_flags}": get_starlark_list(link_opts),
+        "%{win32_winnt_flag}": escape_string(win32_winnt_opts),
+    }
+    return copts_vars
+
 def configure_windows_toolchain(repository_ctx):
     """Configure C++ toolchain on Windows.
 
@@ -882,6 +920,7 @@ def configure_windows_toolchain(repository_ctx):
     template_vars.update(msvc_vars_x64)
     template_vars.update(_get_clang_cl_vars(repository_ctx, paths, msvc_vars_x64, "x64"))
     template_vars.update(_get_msys_mingw_vars(repository_ctx))
+    template_vars.update(_get_copts(repository_ctx))
     template_vars.update(_get_msvc_vars(repository_ctx, paths, "x86", msvc_vars_x64))
     template_vars.update(_get_msvc_vars(repository_ctx, paths, "arm", msvc_vars_x64))
     msvc_vars_arm64 = _get_msvc_vars(repository_ctx, paths, "arm64", msvc_vars_x64)
