@@ -203,11 +203,12 @@ def _format_dict_values_test(env, targets):
     ])
     res.used_items().contains_exactly(["bar", "quuz", "qux"])
 
+    expected_label = Label("//tests/rule_based_toolchain/args:some_variable")
     res = _expect_that_formatted(
         env,
         {"foo": "{bar}"},
         {"bar": targets.some_variable},
-    ).err().equals('Unsupported cc_variable substitution @@//tests/rule_based_toolchain/args:some_variable in "{bar}".')
+    ).err().equals('Unsupported cc_variable substitution ' + str(expected_label) + ' in "{bar}".')
 
     _expect_that_formatted(
         env,
