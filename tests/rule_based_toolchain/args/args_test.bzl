@@ -208,7 +208,7 @@ def _format_dict_values_test(env, targets):
         env,
         {"foo": "{bar}"},
         {"bar": targets.some_variable},
-    ).err().equals('Unsupported cc_variable substitution ' + str(expected_label) + ' in "{bar}".')
+    ).err().equals("Unsupported cc_variable substitution " + str(expected_label) + ' in "{bar}".')
 
     _expect_that_formatted(
         env,
