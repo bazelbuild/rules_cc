@@ -77,6 +77,7 @@ cc_nested_args(
     name = "single_library_args",
     nested = select({
         "@platforms//os:macos": [],
+        "@platforms//os:windows": [],
         "//conditions:default": [":optional_whole_archive_start"],
     }) + [
         ":optional_object_file_group",
@@ -85,11 +86,14 @@ cc_nested_args(
         ":optional_static_library",
         ":optional_dynamic_library",
     ] + select({
-        # maOS has a minor nuance where it uses the path to the library instead of `-l:{library_name}`.
+        # macOS has a minor nuance where it uses the path to the library instead of `-l:{library_name}`.
         "@platforms//os:macos": [":macos_optional_versioned_dynamic_library"],
+        # Windows references the interface library (if.lib) rather than the dynamic library (dll)
+        "@platforms//os:windows": [],
         "//conditions:default": [":generic_optional_versioned_dynamic_library"],
     }) + select({
         "@platforms//os:macos": [],
+        "@platforms//os:windows": [],
         "//conditions:default": [":optional_whole_archive_end"],
     }),
 )

@@ -12,6 +12,9 @@ cc_feature(
 cc_args(
     name = "strip_debug_symbols",
     actions = ["//cc/toolchains/actions:link_actions"],
-    args = ["-Wl,-S"],
+    args = select({
+        "@platforms//os:windows": ["-Wl,/DEBUG:NONE"],
+        "//conditions:default": ["-Wl,-S"],
+    }),
     requires_not_none = "//cc/toolchains/variables:strip_debug_symbols",
 )
