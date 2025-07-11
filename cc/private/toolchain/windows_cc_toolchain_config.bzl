@@ -943,6 +943,11 @@ def _impl(ctx):
             enabled = True,
         )
 
+        shorten_virtual_includes_feature = feature(
+            name = "shorten_virtual_includes",
+            enabled = ctx.attr.shorten_virtual_includes,
+        )
+
         treat_warnings_as_errors_feature = feature(
             name = "treat_warnings_as_errors",
             flag_sets = [
@@ -1277,6 +1282,7 @@ def _impl(ctx):
             preprocessor_defines_feature,
             parse_showincludes_feature,
             no_dotd_file_feature,
+            shorten_virtual_includes_feature,
             generate_pdb_file_feature,
             generate_linkmap_feature,
             shared_flag_feature,
@@ -1657,6 +1663,7 @@ cc_toolchain_config = rule(
         "msvc_lib_path": attr.string(default = "vc_installation_error.bat"),
         "msvc_link_path": attr.string(default = "vc_installation_error.bat"),
         "msvc_ml_path": attr.string(default = "vc_installation_error.bat"),
+        "shorten_virtual_includes": attr.bool(default = False),
         "supports_parse_showincludes": attr.bool(),
         "target_libc": attr.string(),
         "target_system_name": attr.string(),
