@@ -25,6 +25,12 @@ directory(
 )
 
 subdirectory(
+    name = "usr-include-aarch64-linux-gnu",
+    parent = ":root",
+    path = "usr/include/aarch64-linux-gnu",
+)
+
+subdirectory(
     name = "usr-include-x86_64-linux-gnu",
     parent = ":root",
     path = "usr/include/x86_64-linux-gnu",

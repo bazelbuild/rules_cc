@@ -19,6 +19,7 @@ cc_sysroot(
     data = [
         "@linux_sysroot//:root",
         "@linux_sysroot//:usr-include",
+        "@linux_sysroot//:usr-include-aarch64-linux-gnu",
         "@linux_sysroot//:usr-include-x86_64-linux-gnu",
     ],
     sysroot = "@linux_sysroot//:root",

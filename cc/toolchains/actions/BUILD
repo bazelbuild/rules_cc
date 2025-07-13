@@ -226,6 +226,7 @@ cc_action_type_set(
         ":cpp_module_codegen",
         ":lto_backend",
         ":clif_match",
+        ":objcpp_compile",
     ],
 )
 
@@ -253,6 +254,7 @@ cc_action_type_set(
     actions = [
         ":cpp_link_executable",
         ":lto_index_for_executable",
+        ":objc_executable",
     ],
 )
 
@@ -280,6 +282,7 @@ cc_action_type_set(
         ":cpp_link_dynamic_library",
         ":lto_index_for_executable",
         ":lto_index_for_dynamic_library",
+        ":objc_executable",
     ],
 )
 

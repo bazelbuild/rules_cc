@@ -1,9 +1,17 @@
 load("//cc/toolchains:args.bzl", "cc_args")
 load("//cc/toolchains:args_list.bzl", "cc_args_list")
+load("//cc/toolchains:feature.bzl", "cc_feature")
 load("//cc/toolchains:feature_constraint.bzl", "cc_feature_constraint")
 load("//cc/toolchains:nested_args.bzl", "cc_nested_args")
 
 package(default_visibility = ["//visibility:private"])
+
+cc_feature(
+    name = "feature",
+    args = [":runtime_library_search_directories"],
+    overrides = "//cc/toolchains/features/legacy:runtime_library_search_directories",
+    visibility = ["//visibility:public"],
+)
 
 # TODO: b/27153401 - The implementation of this is particularly complex because
 # of what appears to be a workaround where macOS cc_test targets with

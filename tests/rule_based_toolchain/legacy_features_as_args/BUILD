@@ -20,7 +20,7 @@ compare_feature_implementation(
 
 compare_feature_implementation(
     name = "force_pic_flags_test",
-    actual_implementation = "//cc/toolchains/args/force_pic_flags",
+    actual_implementation = "//cc/toolchains/args/pic_flags:force_pic_flags",
     expected = select({
         "@platforms//os:macos": "//tests/rule_based_toolchain/legacy_features_as_args:goldens/macos/force_pic_flags.textproto",
         "//conditions:default": "//tests/rule_based_toolchain/legacy_features_as_args:goldens/unix/force_pic_flags.textproto",

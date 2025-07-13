@@ -45,4 +45,4 @@ def cc_shared_library_permissions(**kwargs):
     native.cc_shared_library_permissions(**kwargs)
 
 def cc_shared_library(**kwargs):
-    native.cc_shared_library(**kwargs)
+    native.cc_shared_library(**kwargs)  # buildifier: disable=native-cc-shared-library
