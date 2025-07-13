@@ -1,7 +1,13 @@
 load("@rules_testing//lib:util.bzl", "util")
 load("//cc/toolchains:args.bzl", "cc_args")
+load("//cc/toolchains/impl:variables.bzl", "cc_variable", "types")
 load("//tests/rule_based_toolchain:analysis_test_suite.bzl", "analysis_test_suite")
 load(":args_test.bzl", "TARGETS", "TESTS")
+
+cc_variable(
+    name = "some_variable",
+    type = types.string,
+)
 
 util.helper_target(
     cc_args,
@@ -27,6 +33,16 @@ util.helper_target(
         "//tests/rule_based_toolchain/testdata:multiple",
     ],
     env = {"BAR": "bar"},
+)
+
+util.helper_target(
+    cc_args,
+    name = "iterate_over_optional",
+    actions = ["//cc/toolchains/actions:compile_actions"],
+    args = ["{user_compile_flags}"],
+    format = {"user_compile_flags": "//cc/toolchains/variables:user_compile_flags"},
+    iterate_over = "//cc/toolchains/variables:user_compile_flags",
+    requires_not_none = "//cc/toolchains/variables:user_compile_flags",
 )
 
 util.helper_target(

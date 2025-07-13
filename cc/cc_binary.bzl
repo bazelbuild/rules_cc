@@ -13,11 +13,13 @@
 # limitations under the License.
 """cc_binary rule"""
 
+load("//cc/private/rules_impl:cc_binary.bzl", _cc_binary = "cc_binary")
+
 # TODO(bazel-team): To avoid breaking changes, if the below are no longer
-# forwarding to native rules, flag @bazel_tools@bazel_tools//tools/cpp:link_extra_libs
+# forwarding to native rules, flag @bazel_tools//tools/cpp:link_extra_libs
 # should either: (a) alias the flag @rules_cc//:link_extra_libs, or (b) be
 # added as a dependency to @rules_cc//:link_extra_lib. The intermediate library
-# @bazel_tools@bazel_tools//tools/cpp:link_extra_lib should either be added as a dependency
+# @bazel_tools//tools/cpp:link_extra_lib should either be added as a dependency
 # to @rules_cc//:link_extra_lib, or removed entirely (if possible).
 _LINK_EXTRA_LIB = Label("//:link_extra_lib")
 
@@ -39,5 +41,4 @@ def cc_binary(**attrs):
         else:
             attrs["deps"] = [_LINK_EXTRA_LIB]
 
-    # buildifier: disable=native-cc
-    native.cc_binary(**attrs)
+    _cc_binary(**attrs)

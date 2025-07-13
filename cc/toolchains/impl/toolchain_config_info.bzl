@@ -13,7 +13,7 @@
 # limitations under the License.
 """Helper functions to create and validate a ToolchainConfigInfo."""
 
-load("//cc/toolchains:cc_toolchain_info.bzl", "ToolConfigInfo", "ToolchainConfigInfo")
+load("//cc/toolchains:cc_toolchain_info.bzl", "ArtifactNamePatternInfo", "MakeVariableInfo", "ToolConfigInfo", "ToolchainConfigInfo")
 load(":args_utils.bzl", "get_action_type")
 load(":collect.bzl", "collect_args_lists", "collect_features")
 
@@ -39,6 +39,10 @@ _UNKNOWN_FEATURE_ERR = """{self} implies the feature {ft}, which was unable to b
 
 Implied features are not implicitly added to your toolchain. You likely need to add features = ["{ft}"] to your cc_toolchain rule.
 """
+
+_ARTIFACT_NAME_PATTERN_ERR = """The artifact name pattern {name} was defined by both {lhs} and {rhs}."""
+
+_MAKE_VARIABLE_PATTERN_ERR = """The make variable key {key} was used by both {lhs} and {rhs}."""
 
 # Equality comparisons with bazel do not evaluate depsets.
 # s = struct()
@@ -130,7 +134,35 @@ def _collect_files_for_action_type(action_type, tool_map, features, args):
 
     return depset(transitive = transitive_files)
 
-def toolchain_config_info(label, known_features = [], enabled_features = [], args = [], tool_map = None, fail = fail):
+def _collect_artifact_name_patterns(targets, fail):
+    artifact_name_patterns = {}
+    for t in targets:
+        info = t[ArtifactNamePatternInfo]
+        if info.category.name in artifact_name_patterns:
+            fail(_ARTIFACT_NAME_PATTERN_ERR.format(
+                name = info.category.name,
+                lhs = artifact_name_patterns[info.category.name].label,
+                rhs = info.label,
+            ))
+        artifact_name_patterns[info.category.name] = info
+
+    return artifact_name_patterns.values()
+
+def _collect_make_variables(targets, fail):
+    make_variables = {}
+    for t in targets:
+        info = t[MakeVariableInfo]
+        if info.key in make_variables:
+            fail(_MAKE_VARIABLE_PATTERN_ERR.format(
+                key = info.key,
+                lhs = make_variables[info.key].label,
+                rhs = info.label,
+            ))
+        make_variables[info.key] = info
+
+    return make_variables.values()
+
+def toolchain_config_info(label, known_features = [], enabled_features = [], args = [], artifact_name_patterns = [], make_variables = [], tool_map = None, fail = fail):
     """Generates and validates a ToolchainConfigInfo from lists of labels.
 
     Args:
@@ -139,6 +171,8 @@ def toolchain_config_info(label, known_features = [], enabled_features = [], arg
         enabled_features: (List[Target]) A list of features that are enabled by
           default. Every enabled feature is implicitly also a known feature.
         args: (List[Target]) A list of targets providing ArgsListInfo
+        artifact_name_patterns: (List[Target]) A list of targets providing ArtifactNamePatternInfo.
+        make_variables: (List[Target]) A list of targets providing MakeVariableInfo.
         tool_map: (Target) A target providing ToolMapInfo.
         fail: A fail function. Use only during tests.
     Returns:
@@ -179,6 +213,8 @@ def toolchain_config_info(label, known_features = [], enabled_features = [], arg
         args = args,
         files = files,
         allowlist_include_directories = allowlist_include_directories,
+        artifact_name_patterns = _collect_artifact_name_patterns(artifact_name_patterns, fail),
+        make_variables = _collect_make_variables(make_variables, fail),
     )
     _validate_toolchain(toolchain_config, fail = fail)
     return toolchain_config

@@ -100,6 +100,41 @@ bzl_library(
     visibility = ["//cc/toolchains:__subpackages__"],
 )
 
+bzl_library(
+    name = "repositories_bzl",
+    srcs = ["repositories.bzl"],
+    visibility = ["//visibility:private"],
+)
+
+bzl_library(
+    name = "defs_bzl",
+    srcs = ["defs.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":core_rules",
+        "//cc/common",
+        "//cc/toolchains:toolchain_rules",
+    ],
+)
+
+bzl_library(
+    name = "core_rules",
+    srcs = [
+        "cc_binary.bzl",
+        "cc_import.bzl",
+        "cc_library.bzl",
+        "cc_shared_library.bzl",
+        "cc_static_library.bzl",
+        "cc_test.bzl",
+        "objc_import.bzl",
+        "objc_library.bzl",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//cc/private/rules_impl:core_rules",
+    ],
+)
+
 cc_toolchain_alias(name = "current_cc_toolchain")
 
 # Use alias, because it doesn't build on Bazel 6.

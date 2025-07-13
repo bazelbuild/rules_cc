@@ -12,6 +12,7 @@ test_targets: &test_targets
   - "//examples/..."
   - "//tests/..."
   - "-//examples/custom_toolchain:legacy_selector" # Example only works on Linux
+  - "-//tests/system_library:system_library_test" # Only intended to work in WORKSPACE files
   - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
 
 build_targets_bazel_6: &build_targets_bazel_6
@@ -32,15 +33,17 @@ test_targets_bazel_6: &test_targets_bazel_6
   - "-//tests/rule_based_toolchain/..." # proto.encode_text doesn't support None
   - "-//cc:optional_current_cc_toolchain" # Not supported in Bazel 6
   - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
+  - "-//tests/system_library:system_library_test" # Should be skipped on Windows and MacOS
 
 buildifier:
   version: latest
   warnings: "all"
 
 tasks:
-  ubuntu2004:
+  ubuntu2004_docs:
     name: Docs
-    test_targets:
+    platform: ubuntu2004
+    build_targets:
       - "//docs/..."
       - "-//docs:toolchain_api_diff_test" # Bazel adds loads statements in examples
 
@@ -69,8 +72,6 @@ tasks:
     name: Ubuntu 20.04 (Bazel HEAD)
     bazel: last_green
     platform: ubuntu2004
-    environment:
-      EXP_USE_CQUERY: 1 # Don't build incompatible targets
     build_targets: *build_targets
     test_targets:
       - "//:all"
@@ -78,22 +79,17 @@ tasks:
       - "//examples/..."
       - "//tests/..."
       - "-//examples/custom_toolchain:legacy_selector" # Example only works on Linux
-      - "-//tests/system_library:system_library_test" # Fails because of repo setup
       - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
   macos_head:
     name: MacOS (Bazel HEAD)
     bazel: last_green
     platform: macos
-    environment:
-      EXP_USE_CQUERY: 1 # Don't build incompatible targets
     build_targets: *build_targets
     test_targets: *test_targets
   windows_head:
     name: Windows (Bazel HEAD)
     bazel: last_green
     platform: macos
-    environment:
-      EXP_USE_CQUERY: 1 # Don't build incompatible targets
     build_targets: *build_targets
     test_targets: *test_targets
 
@@ -102,24 +98,18 @@ tasks:
     name: Ubuntu 20.04 (Bazel 6)
     bazel: 6.3.0
     platform: ubuntu2004
-    environment:
-      EXP_USE_CQUERY: 1 # Don't build incompatible targets
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
   macos_bazel_6:
     name: MacOS (Bazel 6)
     bazel: 6.3.0
     platform: macos
-    environment:
-      EXP_USE_CQUERY: 1 # Don't build incompatible targets
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
   windows_bazel_6:
     name: Windows (Bazel 6)
     bazel: 6.3.0
     platform: macos
-    environment:
-      EXP_USE_CQUERY: 1 # Don't build incompatible targets
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
 
@@ -132,4 +122,13 @@ tasks:
     build_targets:
       - "//..."
     test_targets:
+      - "//..."
+
+  macos_rule_based_toolchains:
+    name: macOS rule-based toolchains
+    platform: macos
+    working_directory: examples/rule_based_toolchain
+    build_flags:
+      - "--enable_bzlmod"
+    build_targets:
       - "//..."

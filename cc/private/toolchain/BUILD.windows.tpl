@@ -330,6 +330,7 @@ cc_toolchain_config(
     dbg_mode_debug_flag = "%{dbg_mode_debug_flag_x64}",
     fastbuild_mode_debug_flag = "%{fastbuild_mode_debug_flag_x64}",
     supports_parse_showincludes = %{msvc_parse_showincludes_x64},
+    shorten_virtual_includes = True,
 )
 
 toolchain(
@@ -399,6 +400,7 @@ cc_toolchain_config(
     dbg_mode_debug_flag = "%{dbg_mode_debug_flag_x86}",
     fastbuild_mode_debug_flag = "%{fastbuild_mode_debug_flag_x86}",
     supports_parse_showincludes = %{msvc_parse_showincludes_x86},
+    shorten_virtual_includes = True,
 )
 
 toolchain(
@@ -468,6 +470,7 @@ cc_toolchain_config(
     dbg_mode_debug_flag = "%{dbg_mode_debug_flag_arm}",
     fastbuild_mode_debug_flag = "%{fastbuild_mode_debug_flag_arm}",
     supports_parse_showincludes = %{msvc_parse_showincludes_arm},
+    shorten_virtual_includes = True,
 )
 
 toolchain(
@@ -537,6 +540,7 @@ cc_toolchain_config(
     dbg_mode_debug_flag = "%{dbg_mode_debug_flag_arm64}",
     fastbuild_mode_debug_flag = "%{fastbuild_mode_debug_flag_arm64}",
     supports_parse_showincludes = %{msvc_parse_showincludes_arm64},
+    shorten_virtual_includes = True,
 )
 
 toolchain(

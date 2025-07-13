@@ -145,6 +145,7 @@ ALL_CPP_COMPILE_ACTION_NAMES = [
     ACTION_NAMES.cpp_module_codegen,
     ACTION_NAMES.lto_backend,
     ACTION_NAMES.clif_match,
+    ACTION_NAMES.objcpp_compile,
 ]
 
 # Names of actions that parse or compile C, C++ and assembly code.
@@ -152,6 +153,7 @@ ALL_CC_COMPILE_ACTION_NAMES = ALL_CPP_COMPILE_ACTION_NAMES + [
     ACTION_NAMES.c_compile,
     ACTION_NAMES.preprocess_assemble,
     ACTION_NAMES.assemble,
+    ACTION_NAMES.objc_compile,
 ]
 
 # Names of actions that link C, C++ and assembly code.
@@ -162,12 +164,14 @@ ALL_CC_LINK_ACTION_NAMES = [
     ACTION_NAMES.lto_index_for_executable,
     ACTION_NAMES.lto_index_for_dynamic_library,
     ACTION_NAMES.lto_index_for_nodeps_dynamic_library,
+    ACTION_NAMES.objc_executable,
 ]
 
 # Names of actions that link entire programs.
 CC_LINK_EXECUTABLE_ACTION_NAMES = [
     ACTION_NAMES.cpp_link_executable,
     ACTION_NAMES.lto_index_for_executable,
+    ACTION_NAMES.objc_executable,
 ]
 
 # Names of actions that link dynamic libraries.
@@ -190,6 +194,7 @@ TRANSITIVE_LINK_ACTION_NAMES = [
     ACTION_NAMES.cpp_link_dynamic_library,
     ACTION_NAMES.lto_index_for_executable,
     ACTION_NAMES.lto_index_for_dynamic_library,
+    ACTION_NAMES.objc_executable,
 ]
 
 ACTION_NAME_GROUPS = struct(

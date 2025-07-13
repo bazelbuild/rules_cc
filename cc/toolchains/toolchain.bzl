@@ -57,6 +57,8 @@ def cc_toolchain(
         name,
         tool_map = None,
         args = [],
+        artifact_name_patterns = [],
+        make_variables = [],
         known_features = [],
         enabled_features = [],
         libc_top = None,
@@ -65,6 +67,7 @@ def cc_toolchain(
         static_runtime_lib = None,
         supports_header_parsing = False,
         supports_param_files = False,
+        compiler = "",
         **kwargs):
     """A C/C++ toolchain configuration.
 
@@ -110,6 +113,9 @@ def cc_toolchain(
         tool_map: (Label) The `cc_tool_map` that specifies the tools to use for various toolchain
             actions.
         args: (List[Label]) A list of `cc_args` and `cc_arg_list` to apply across this toolchain.
+        artifact_name_patterns: (List[Label]) A list of `cc_artifact_name_pattern` defining patterns
+            for names of artifacts created by this toolchain.
+        make_variables: (List[Label]) A list of `cc_make_variable` defining variable substitutions.
         known_features: (List[Label]) A list of `cc_feature` rules that this toolchain supports.
             Whether or not these
             [features](https://bazel.build/docs/cc-toolchain-config-reference#features)
@@ -147,6 +153,9 @@ def cc_toolchain(
             See
             [`cc_toolchain.supports_param_files`](https://bazel.build/reference/be/c-cpp#cc_toolchain.supports_param_files)
             for more information.
+        compiler: (str) The type of compiler used by this toolchain (e.g. "gcc", "clang"). The current
+            toolchain's compiler is exposed to `@rules_cc//cc/private/toolchain:compiler
+            (compiler_flag)` as a flag value.
         **kwargs: [common attributes](https://bazel.build/reference/be/common-definitions#common-attributes)
             that should be applied to all rules created by this macro.
     """
@@ -161,8 +170,20 @@ def cc_toolchain(
         name = config_name,
         tool_map = tool_map,
         args = args,
+        artifact_name_patterns = artifact_name_patterns,
+        make_variables = make_variables,
         known_features = known_features,
         enabled_features = enabled_features,
+        compiler = compiler,
+        cpu = select({
+            Label("//cc/toolchains/impl:darwin_aarch64"): "darwin_arm64",
+            Label("//cc/toolchains/impl:darwin_x86_64"): "darwin_x86_64",
+            Label("//cc/toolchains/impl:linux_aarch64"): "aarch64",
+            Label("//cc/toolchains/impl:linux_x86_64"): "k8",
+            Label("//cc/toolchains/impl:windows_x86_32"): "win32",
+            Label("//cc/toolchains/impl:windows_x86_64"): "win64",
+            "//conditions:default": "",
+        }),
         visibility = ["//visibility:private"],
         **kwargs
     )
