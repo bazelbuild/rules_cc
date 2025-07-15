@@ -162,15 +162,15 @@ function test_override_paths() {
   bazel run //:test \
   --experimental_starlark_cc_import \
   --experimental_repo_remote_exec \
-  --action_env=BAZEL_LIB_OVERRIDE_PATHS=foo="${PWD}"/systemlib \
-  --action_env=BAZEL_INCLUDE_OVERRIDE_PATHS=foo="${PWD}"/systemlib \
+  --repo_env=BAZEL_LIB_OVERRIDE_PATHS=foo="${PWD}"/systemlib \
+  --repo_env=BAZEL_INCLUDE_OVERRIDE_PATHS=foo="${PWD}"/systemlib \
   || fail "Expected test to run successfully"
 
   bazel run //:test_static \
   --experimental_starlark_cc_import \
   --experimental_repo_remote_exec \
-  --action_env=BAZEL_LIB_OVERRIDE_PATHS=foo="${PWD}"/systemlib \
-  --action_env=BAZEL_INCLUDE_OVERRIDE_PATHS=foo="${PWD}"/systemlib \
+  --repo_env=BAZEL_LIB_OVERRIDE_PATHS=foo="${PWD}"/systemlib \
+  --repo_env=BAZEL_INCLUDE_OVERRIDE_PATHS=foo="${PWD}"/systemlib \
   || fail "Expected test_static to run successfully"
 }
 
@@ -180,15 +180,15 @@ function test_additional_paths() {
   bazel run //:test \
   --experimental_starlark_cc_import \
   --experimental_repo_remote_exec \
-  --action_env=BAZEL_LIB_ADDITIONAL_PATHS=foo="${PWD}"/systemlib \
-  --action_env=BAZEL_INCLUDE_ADDITIONAL_PATHS=foo="${PWD}"/systemlib \
+  --repo_env=BAZEL_LIB_ADDITIONAL_PATHS=foo="${PWD}"/systemlib \
+  --repo_env=BAZEL_INCLUDE_ADDITIONAL_PATHS=foo="${PWD}"/systemlib \
   || fail "Expected test to run successfully"
 
   bazel run //:test_static \
   --experimental_starlark_cc_import \
   --experimental_repo_remote_exec \
-  --action_env=BAZEL_LIB_ADDITIONAL_PATHS=foo="${PWD}"/systemlib \
-  --action_env=BAZEL_INCLUDE_ADDITIONAL_PATHS=foo="${PWD}"/systemlib \
+  --repo_env=BAZEL_LIB_ADDITIONAL_PATHS=foo="${PWD}"/systemlib \
+  --repo_env=BAZEL_INCLUDE_ADDITIONAL_PATHS=foo="${PWD}"/systemlib \
   || fail "Expected test_static to run successfully"
 }
 
