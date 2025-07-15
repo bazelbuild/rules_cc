@@ -24,8 +24,7 @@ permissions:
   contents: write
 jobs:
   release:
-    # Re-use https://github.com/bazel-contrib/.github/blob/v7/.github/workflows/release_ruleset.yaml
-    uses: bazel-contrib/.github/.github/workflows/release_ruleset.yaml@v7
+    uses: bazel-contrib/.github/.github/workflows/release_ruleset.yaml@v7.2.2
     with:
       prerelease: false
       release_files: rules_cc-*.tar.gz
