@@ -32,7 +32,7 @@ cc_binary(
 cc_binary(
     name = "bar",
     srcs = ["bar.c"],
-    conlyopts = select({
+    copts = select({
         "@platforms//os:windows": ["/std:c11"],
         "//conditions:default": [],
     }),

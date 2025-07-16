@@ -24,7 +24,6 @@ build_targets_bazel_6: &build_targets_bazel_6
   - "-//tests/rule_based_toolchain/..." # proto.encode_text doesn't support None
   - "-//cc:optional_current_cc_toolchain" # Not supported in Bazel 6
   - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
-  - "-//tests/simple_binary:bar" # 'conlyopts' in 'cc_binary' rule not supported
 test_targets_bazel_6: &test_targets_bazel_6
   - "//:all"
   - "//cc:all"
