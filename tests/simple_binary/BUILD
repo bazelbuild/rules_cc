@@ -26,3 +26,14 @@ cc_binary(
     srcs = ["foo.cc"],
     linkshared = 1,
 )
+
+# Regression test for building C code
+# https://github.com/bazelbuild/rules_cc/pull/440#issuecomment-3075519628
+cc_binary(
+    name = "bar",
+    srcs = ["bar.c"],
+    conlyopts = select({
+        "@platforms//os:windows": ["/std:c11"],
+        "//conditions:default": [],
+    }),
+)
