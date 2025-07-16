@@ -1,4 +1,4 @@
-# Copyright 2024 The Bazel Authors. All rights reserved.
+# Copyright 2025 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,28 +12,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@rules_cc//cc/toolchains:make_variable.bzl", "cc_make_variable")
 load("@rules_cc//cc/toolchains:toolchain.bzl", "cc_toolchain")
 
 licenses(["notice"])
 
+cc_make_variable(
+    name = "example_variable",
+    value = "-DEXAMPLE=1",
+    variable_name = "EXAMPLE_SUBSTITUTION",
+)
+
 cc_toolchain(
-    name = "host_clang",
-    args = select({
-        "@platforms//os:linux": [
-            "//toolchain/args:linux_sysroot",
-        ],
-        "//conditions:default": [],
-    }) + [
-        "//toolchain/args:no_canonical_prefixes",
-        "//toolchain/args:warnings",
+    name = "host_gcc",
+    args = [
+        "//toolchains/gcc/args:linux_sysroot",
+        "//toolchains/args:no_absolute_paths_for_builtins",
+        "//toolchains/args:warnings",
     ],
     enabled_features = ["@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features"],
     known_features = ["@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features"],
-    tool_map = "//toolchain/tools:all_tools",
+    make_variables = [":example_variable"],
+    tags = ["manual"],
+    tool_map = "//toolchains/gcc/tools:all_tools",
 )
 
 toolchain(
-    name = "host_cc_toolchain",
-    toolchain = ":host_clang",
+    name = "host_gcc_toolchain",
+    exec_compatible_with = [
+        "@platforms//os:linux",
+    ],
+    toolchain = ":host_gcc",
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+    visibility = ["//visibility:public"],
 )

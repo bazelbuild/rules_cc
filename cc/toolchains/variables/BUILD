@@ -8,7 +8,7 @@ cc_variable(
         "//cc/toolchains/actions:link_actions",
         "//cc/toolchains/actions:compile_actions",
     ],
-    type = types.directory,
+    type = types.option(types.directory),
 )
 
 cc_variable(
@@ -20,7 +20,7 @@ cc_variable(
 cc_variable(
     name = "dependency_file",
     actions = ["//cc/toolchains/actions:compile_actions"],
-    type = types.file,
+    type = types.option(types.file),
 )
 
 cc_variable(
@@ -41,19 +41,19 @@ cc_variable(
         "//cc/toolchains/actions:link_actions",
         "//cc/toolchains/actions:compile_actions",
     ],
-    type = types.directory,
+    type = types.option(types.directory),
 )
 
 cc_variable(
     name = "fdo_prefetch_hints_path",
     actions = ["//cc/toolchains/actions:compile_actions"],
-    type = types.file,
+    type = types.option(types.file),
 )
 
 cc_variable(
     name = "fdo_profile_path",
     actions = ["//cc/toolchains/actions:compile_actions"],
-    type = types.file,
+    type = types.option(types.file),
 )
 
 cc_variable(
@@ -103,7 +103,7 @@ cc_variable(
 cc_variable(
     name = "input_file",
     actions = ["//cc/toolchains/actions:strip"],
-    type = types.file,
+    type = types.option(types.file),
 )
 
 cc_variable(
@@ -145,13 +145,13 @@ cc_variable(
 cc_variable(
     name = "legacy_compile_flags",
     actions = ["//cc/toolchains/actions:compile_actions"],
-    type = types.list(types.string),
+    type = types.option(types.list(types.string)),
 )
 
 cc_variable(
     name = "legacy_link_flags",
     actions = ["//cc/toolchains/actions:link_actions"],
-    type = types.list(types.string),
+    type = types.option(types.list(types.string)),
 )
 
 cc_variable(
@@ -262,7 +262,7 @@ cc_variable(
 cc_variable(
     name = "library_search_directories",
     actions = ["//cc/toolchains/actions:link_actions"],
-    type = types.list(types.directory),
+    type = types.option(types.list(types.directory)),
 )
 
 cc_variable(
@@ -277,7 +277,7 @@ cc_variable(
 cc_variable(
     name = "linkstamp_paths",
     actions = ["//cc/toolchains/actions:link_actions"],
-    type = types.list(types.directory),
+    type = types.option(types.list(types.file)),
 )
 
 cc_variable(
@@ -305,9 +305,21 @@ cc_variable(
 )
 
 cc_variable(
+    name = "no_objc_arc",
+    actions = ["//cc/toolchains/actions:compile_actions"],
+    type = types.option(types.string),
+)
+
+cc_variable(
+    name = "objc_arc",
+    actions = ["//cc/toolchains/actions:compile_actions"],
+    type = types.option(types.string),
+)
+
+cc_variable(
     name = "output_assembly_file",
     actions = ["//cc/toolchains/actions:compile_actions"],
-    type = types.file,
+    type = types.option(types.file),
 )
 
 cc_variable(
@@ -316,7 +328,7 @@ cc_variable(
         "//cc/toolchains/actions:cpp_link_static_library",
         "//cc/toolchains/actions:link_actions",
     ],
-    type = types.option(types.directory),
+    type = types.option(types.file),
 )
 
 cc_variable(
@@ -325,19 +337,19 @@ cc_variable(
         "//cc/toolchains/actions:compile_actions",
         "//cc/toolchains/actions:strip",
     ],
-    type = types.file,
+    type = types.option(types.file),
 )
 
 cc_variable(
     name = "output_preprocess_file",
     actions = ["//cc/toolchains/actions:compile_actions"],
-    type = types.file,
+    type = types.option(types.file),
 )
 
 cc_variable(
     name = "per_object_debug_info_file",
     actions = ["//cc/toolchains/actions:compile_actions"],
-    type = types.file,
+    type = types.option(types.file),
 )
 
 cc_variable(
@@ -385,7 +397,7 @@ cc_variable(
 cc_variable(
     name = "source_file",
     actions = ["//cc/toolchains/actions:compile_actions"],
-    type = types.file,
+    type = types.option(types.file),
 )
 
 cc_variable(
@@ -460,19 +472,19 @@ cc_variable(
 cc_variable(
     name = "unfiltered_compile_flags",
     actions = ["//cc/toolchains/actions:compile_actions"],
-    type = types.list(types.string),
+    type = types.option(types.list(types.string)),
 )
 
 cc_variable(
     name = "user_compile_flags",
     actions = ["//cc/toolchains/actions:compile_actions"],
-    type = types.list(types.string),
+    type = types.option(types.list(types.string)),
 )
 
 cc_variable(
     name = "user_link_flags",
     actions = ["//cc/toolchains/actions:link_actions"],
-    type = types.list(types.string),
+    type = types.option(types.list(types.string)),
 )
 
 cc_builtin_variables(
@@ -509,6 +521,8 @@ cc_builtin_variables(
         ":module_files",
         ":module_map_file",
         ":module_name",
+        ":no_objc_arc",
+        ":objc_arc",
         ":output_assembly_file",
         ":output_execpath",
         ":output_file",

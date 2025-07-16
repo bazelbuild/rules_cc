@@ -1,7 +1,6 @@
 # C++ rules for Bazel
 
 * Postsubmit [![Build status](https://badge.buildkite.com/f03592ae2d7d25a2abc2a2ba776e704823fa17fd3e061f5103.svg?branch=main)](https://buildkite.com/bazel/rules-cc)
-* Postsubmit + Current Bazel Incompatible flags [![Build status](https://badge.buildkite.com/5ba709cc33e5855078a1f8570adcf8e0a78ea93591bc0b4e81.svg?branch=master)](https://buildkite.com/bazel/rules-cc-plus-bazelisk-migrate)
 
 This repository contains a Starlark implementation of C++ rules in Bazel.
 
@@ -12,8 +11,7 @@ For the list of C++ rules, see the Bazel
 
 # Getting Started
 
-There is no need to use rules from this repository just yet. If you want to use
-`rules_cc` anyway, add the following to your `WORKSPACE` file:
+Add the following to your `WORKSPACE` file:
 
 ```starlark
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
@@ -47,7 +45,7 @@ There are third-party contributed hermetic toolchains you may want to investigat
 - zig cc: <https://github.com/uber/hermetic_cc_toolchain>
 
 If you'd like to use the cc toolchain defined in this repo, add this to
-your WORKSPACE after you include rules_cc:
+your `WORKSPACE` after you include rules_cc:
 
 ```bzl
 load("@rules_cc//cc:repositories.bzl", "rules_cc_dependencies", "rules_cc_toolchains")

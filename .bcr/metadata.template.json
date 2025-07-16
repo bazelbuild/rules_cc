@@ -5,8 +5,16 @@
       "email": "ilist@google.com",
       "github": "comius",
       "name": "Ivo Ristovski List"
+    },
+    {
+      "email": "pzembrod@google.com",
+      "github": "pzembrod",
+      "name": "Philip Zembrod"
     }
   ],
   "versions": [],
-  "yanked_versions": {}
+  "yanked_versions": {},
+  "repository": [
+    "github:bazelbuild/rules_cc"
+  ]
 }

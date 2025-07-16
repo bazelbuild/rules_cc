@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """A Starlark cc_toolchain configuration rule"""
 
 load("@rules_cc//cc:action_names.bzl", "ACTION_NAMES")
@@ -30,6 +29,7 @@ load(
     "variable_with_value",
     "with_feature_set",
 )
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 
 def _target_os_version(ctx):
     platform_type = ctx.fragments.apple.single_arch_platform.platform_type
@@ -393,6 +393,15 @@ def _impl(ctx):
                 actions = all_compile_actions,
                 flag_groups = ([
                     flag_group(
+                        flags = ctx.attr.fastbuild_compile_flags,
+                    ),
+                ] if ctx.attr.fastbuild_compile_flags else []),
+                with_features = [with_feature_set(features = ["fastbuild"])],
+            ),
+            flag_set(
+                actions = all_compile_actions,
+                flag_groups = ([
+                    flag_group(
                         flags = ctx.attr.dbg_compile_flags,
                     ),
                 ] if ctx.attr.dbg_compile_flags else []),
@@ -558,6 +567,20 @@ def _impl(ctx):
                     ),
                     flag_group(
                         flags = ["-o", "%{output_file}"],
+                        expand_if_available = "output_file",
+                    ),
+                ],
+            ),
+        ],
+        env_sets = [
+            env_set(
+                actions = [
+                    ACTION_NAMES.cpp_module_deps_scanning,
+                ],
+                env_entries = [
+                    env_entry(
+                        key = "DEPS_SCANNER_OUTPUT_FILE",
+                        value = "%{output_file}",
                         expand_if_available = "output_file",
                     ),
                 ],
@@ -1766,10 +1789,18 @@ def _impl(ctx):
         enabled = True,
     )
 
+    no_dotd_file_feature = feature(name = "no_dotd_file")
+
     # TODO(#8303): Mac crosstool should also declare every feature.
     if is_linux:
         # Linux artifact name patterns are the default.
-        artifact_name_patterns = []
+        artifact_name_patterns = [
+            artifact_name_pattern(
+                category_name = "cpp_module",
+                prefix = "",
+                extension = ".pcm",
+            ),
+        ]
         features = [
             cpp_modules_feature,
             cpp_module_modmap_file_feature,
@@ -1832,6 +1863,7 @@ def _impl(ctx):
             treat_warnings_as_errors_feature,
             archive_param_file_feature,
             set_install_name_feature,
+            no_dotd_file_feature,
         ] + layering_check_features(ctx.attr.compiler, ctx.attr.extra_flags_per_feature, is_macos = False)
     else:
         # macOS artifact name patterns differ from the defaults only for dynamic
@@ -1869,6 +1901,8 @@ def _impl(ctx):
             default_link_flags_feature,
             user_link_flags_feature,
             default_link_libs_feature,
+            includes_feature,
+            include_paths_feature,
             external_include_paths_feature,
             fdo_optimize_feature,
             dbg_feature,
@@ -1881,6 +1915,7 @@ def _impl(ctx):
             treat_warnings_as_errors_feature,
             archive_param_file_feature,
             generate_linkmap_feature,
+            no_dotd_file_feature,
         ] + layering_check_features(ctx.attr.compiler, ctx.attr.extra_flags_per_feature, is_macos = True)
 
     parse_headers_action_configs, parse_headers_features = parse_headers_support(
@@ -1928,6 +1963,7 @@ cc_toolchain_config = rule(
         "cxx_flags": attr.string_list(),
         "dbg_compile_flags": attr.string_list(),
         "extra_flags_per_feature": attr.string_list_dict(),
+        "fastbuild_compile_flags": attr.string_list(),
         "host_system_name": attr.string(mandatory = True),
         "link_flags": attr.string_list(),
         "link_libs": attr.string_list(),

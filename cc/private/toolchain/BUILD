@@ -13,6 +13,7 @@
 # limitations under the License.
 #
 
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//cc:cc_library.bzl", "cc_library")
 load("//cc/toolchains:cc_flags_supplier.bzl", "cc_flags_supplier")
 load("//cc/toolchains:compiler_flag.bzl", "compiler_flag")
@@ -86,6 +87,16 @@ filegroup(
 filegroup(
     name = "link_dynamic_library",
     srcs = ["link_dynamic_library.sh"],
+)
+
+bzl_library(
+    name = "cc_configure_bzl",
+    srcs = [
+        "cc_configure.bzl",
+        "lib_cc_configure.bzl",
+        "unix_cc_configure.bzl",
+        "windows_cc_configure.bzl",
+    ],
 )
 
 filegroup(
