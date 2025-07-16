@@ -23,6 +23,22 @@ bzl_library(
     name = "cc_flags_supplier_lib_bzl",
     srcs = ["cc_flags_supplier_lib.bzl"],
     visibility = ["//cc:__subpackages__"],
+    deps = ["//cc/common"],
+)
+
+bzl_library(
+    name = "core_rules",
+    srcs = [
+        "cc_binary.bzl",
+        "cc_import.bzl",
+        "cc_library.bzl",
+        "cc_shared_library.bzl",
+        "cc_static_library.bzl",
+        "cc_test.bzl",
+        "objc_import.bzl",
+        "objc_library.bzl",
+    ],
+    visibility = ["//cc:__subpackages__"],
 )
 
 bzl_library(

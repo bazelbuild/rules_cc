@@ -20,9 +20,26 @@ cc_test(
     name = "quick_test",
     srcs = ["quick_test.cc"],
     deps = [
+        "//asm_answer",
         "//dynamic_answer",
         "//static_answer",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
+    ],
+)
+
+platform(
+    name = "linux_aarch64",
+    constraint_values = [
+        "@platforms//cpu:aarch64",
+        "@platforms//os:linux",
+    ],
+)
+
+platform(
+    name = "linux_x86_64",
+    constraint_values = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:linux",
     ],
 )

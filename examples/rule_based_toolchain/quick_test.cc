@@ -14,6 +14,7 @@
 
 #include <gtest/gtest.h>
 
+#include "asm_answer.h"
 #include "dynamic_answer.h"
 #include "static_answer.h"
 
@@ -23,4 +24,8 @@ TEST(Static, ProperlyLinked) {
 
 TEST(Dynamic, ProperlyLinked) {
   EXPECT_EQ(dynamic_answer(), 24);
+}
+
+TEST(Asm, ProperlyLinked) {
+  EXPECT_EQ(asm_answer, 0xFE4B67C4);
 }

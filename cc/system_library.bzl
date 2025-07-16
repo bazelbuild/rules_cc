@@ -39,7 +39,7 @@ def _get_list_from_env_var(repo_ctx, var_name, key):
     return _split_env_var(repo_ctx, var_name).get(key, default = [])
 
 def _execute_bash(repo_ctx, cmd):
-    return repo_ctx.execute(["/bin/bash", "-c", cmd]).stdout.strip("\n")
+    return repo_ctx.execute(["/usr/bin/env", "bash", "-c", cmd]).stdout.strip("\n")
 
 def _find_linker(repo_ctx):
     ld = _execute_bash(repo_ctx, "which ld")
@@ -128,7 +128,7 @@ def _find_header_path(repo_ctx, lib_name, header_name, includes):
     return None
 
 def _system_library_impl(repo_ctx):
-    repo_name = repo_ctx.attr.name
+    repo_name = repo_ctx.attr.name.split("+")[-1]
     includes = repo_ctx.attr.includes
     hdrs = repo_ctx.attr.hdrs
     optional_hdrs = repo_ctx.attr.optional_hdrs
@@ -268,7 +268,6 @@ genrule(
         executable = False,
         content =
             """
-load("@bazel_tools//tools/build_defs/cc:cc_import.bzl", "cc_import")
 cc_import(
     name = "local_includes",
     {static_library}

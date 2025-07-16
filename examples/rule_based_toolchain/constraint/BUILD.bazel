@@ -63,3 +63,13 @@ selects.config_setting_group(
         "@platforms//cpu:aarch64",
     ],
 )
+
+config_setting(
+    name = "clang",
+    flag_values = {"//toolchains:compiler_kind": "clang"},
+)
+
+config_setting(
+    name = "gcc",
+    flag_values = {"//toolchains:compiler_kind": "gcc"},
+)

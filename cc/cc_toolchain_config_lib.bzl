@@ -394,7 +394,7 @@ def feature(
             explicitly marks it as unsupported.
         flag_sets: A FlagSet list - If the given feature is enabled, the flag
             sets will be applied for the actions are specified for.
-        env_sets: an EnvSet list - If the given feature is enabled, the env
+        env_sets: An EnvSet list - If the given feature is enabled, the env
             sets will be applied for the actions they are specified for.
         requires: A list of feature sets defining when this feature is
             supported by the  toolchain. The feature is supported if any of the

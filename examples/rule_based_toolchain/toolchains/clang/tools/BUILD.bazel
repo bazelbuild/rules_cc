@@ -26,6 +26,7 @@ alias(
         "@platforms//os:macos": ":macos_tools",
         "//conditions:default": ":default_tools",
     }),
+    tags = ["manual"],
     visibility = ["//visibility:public"],
 )
 
@@ -40,6 +41,7 @@ COMMON_TOOLS = {
 
 cc_tool_map(
     name = "default_tools",
+    tags = ["manual"],
     tools = COMMON_TOOLS | {
         "@rules_cc//cc/toolchains/actions:ar_actions": ":llvm-ar",
     },
@@ -48,6 +50,7 @@ cc_tool_map(
 
 cc_tool_map(
     name = "macos_tools",
+    tags = ["manual"],
     tools = COMMON_TOOLS | {
         "@rules_cc//cc/toolchains/actions:ar_actions": ":llvm-libtool-darwin",
     },
@@ -59,11 +62,14 @@ cc_tool(
     src = select({
         "//constraint:linux_aarch64": "@clang-linux-aarch64//:bin/clang",
         "//constraint:linux_x86_64": "@clang-linux-x86_64//:bin/clang",
+        "//constraint:macos_aarch64": "@clang-macos-aarch64//:bin/clang",
+        "//constraint:macos_x86_64": "@clang-macos-x86_64//:bin/clang",
     }),
     data = [
         ":exec_platform_builtin_headers",
         ":exec_platform_multicall_support_files",
     ],
+    tags = ["manual"],
 )
 
 cc_tool(
@@ -71,11 +77,14 @@ cc_tool(
     src = select({
         "//constraint:linux_aarch64": "@clang-linux-aarch64//:bin/clang++",
         "//constraint:linux_x86_64": "@clang-linux-x86_64//:bin/clang++",
+        "//constraint:macos_aarch64": "@clang-macos-aarch64//:bin/clang++",
+        "//constraint:macos_x86_64": "@clang-macos-x86_64//:bin/clang++",
     }),
     data = [
         ":exec_platform_builtin_headers",
         ":exec_platform_multicall_support_files",
     ],
+    tags = ["manual"],
 )
 
 cc_tool(
@@ -83,12 +92,14 @@ cc_tool(
     src = select({
         "//constraint:linux_aarch64": "@clang-linux-aarch64//:bin/clang++",
         "//constraint:linux_x86_64": "@clang-linux-x86_64//:bin/clang++",
+        "//constraint:macos_aarch64": "@clang-macos-aarch64//:bin/clang++",
+        "//constraint:macos_x86_64": "@clang-macos-x86_64//:bin/clang++",
     }),
     data = [
-        ":exec_platform_builtin_headers",
         ":exec_platform_linker_builtins",
         ":exec_platform_multicall_support_files",
     ],
+    tags = ["manual"],
 )
 
 cc_tool(
@@ -96,8 +107,11 @@ cc_tool(
     src = select({
         "//constraint:linux_aarch64": "@clang-linux-aarch64//:bin/llvm-ar",
         "//constraint:linux_x86_64": "@clang-linux-x86_64//:bin/llvm-ar",
+        "//constraint:macos_aarch64": "@clang-macos-aarch64//:bin/llvm-ar",
+        "//constraint:macos_x86_64": "@clang-macos-x86_64//:bin/llvm-ar",
     }),
     data = [":exec_platform_multicall_support_files"],
+    tags = ["manual"],
 )
 
 cc_tool(
@@ -105,8 +119,11 @@ cc_tool(
     src = select({
         "//constraint:linux_aarch64": "@clang-linux-aarch64//:bin/llvm-libtool-darwin",
         "//constraint:linux_x86_64": "@clang-linux-x86_64//:bin/llvm-libtool-darwin",
+        "//constraint:macos_aarch64": "@clang-macos-aarch64//:bin/llvm-libtool-darwin",
+        "//constraint:macos_x86_64": "@clang-macos-x86_64//:bin/llvm-libtool-darwin",
     }),
     data = [":exec_platform_multicall_support_files"],
+    tags = ["manual"],
 )
 
 cc_tool(
@@ -114,8 +131,11 @@ cc_tool(
     src = select({
         "//constraint:linux_aarch64": "@clang-linux-aarch64//:bin/llvm-objcopy",
         "//constraint:linux_x86_64": "@clang-linux-x86_64//:bin/llvm-objcopy",
+        "//constraint:macos_aarch64": "@clang-macos-aarch64//:bin/llvm-objcopy",
+        "//constraint:macos_x86_64": "@clang-macos-x86_64//:bin/llvm-objcopy",
     }),
     data = [":exec_platform_multicall_support_files"],
+    tags = ["manual"],
 )
 
 cc_tool(
@@ -123,8 +143,11 @@ cc_tool(
     src = select({
         "//constraint:linux_aarch64": "@clang-linux-aarch64//:bin/llvm-objdump",
         "//constraint:linux_x86_64": "@clang-linux-x86_64//:bin/llvm-objdump",
+        "//constraint:macos_aarch64": "@clang-macos-aarch64//:bin/llvm-objdump",
+        "//constraint:macos_x86_64": "@clang-macos-x86_64//:bin/llvm-objdump",
     }),
     data = [":exec_platform_multicall_support_files"],
+    tags = ["manual"],
 )
 
 cc_tool(
@@ -132,8 +155,11 @@ cc_tool(
     src = select({
         "//constraint:linux_aarch64": "@clang-linux-aarch64//:bin/llvm-cov",
         "//constraint:linux_x86_64": "@clang-linux-x86_64//:bin/llvm-cov",
+        "//constraint:macos_aarch64": "@clang-macos-aarch64//:bin/llvm-cov",
+        "//constraint:macos_x86_64": "@clang-macos-x86_64//:bin/llvm-cov",
     }),
     data = [":exec_platform_multicall_support_files"],
+    tags = ["manual"],
 )
 
 cc_tool(
@@ -141,8 +167,11 @@ cc_tool(
     src = select({
         "//constraint:linux_aarch64": "@clang-linux-aarch64//:bin/llvm-strip",
         "//constraint:linux_x86_64": "@clang-linux-x86_64//:bin/llvm-strip",
+        "//constraint:macos_aarch64": "@clang-macos-aarch64//:bin/llvm-strip",
+        "//constraint:macos_x86_64": "@clang-macos-x86_64//:bin/llvm-strip",
     }),
     data = [":exec_platform_multicall_support_files"],
+    tags = ["manual"],
 )
 
 cc_tool(
@@ -150,11 +179,14 @@ cc_tool(
     src = select({
         "//constraint:linux_aarch64": "@clang-linux-aarch64//:bin/clang-tidy",
         "//constraint:linux_x86_64": "@clang-linux-x86_64//:bin/clang-tidy",
+        "//constraint:macos_aarch64": "@clang-macos-aarch64//:bin/clang-tidy",
+        "//constraint:macos_x86_64": "@clang-macos-x86_64//:bin/clang-tidy",
     }),
     data = [
         ":exec_platform_builtin_headers",
         ":exec_platform_multicall_support_files",
     ],
+    tags = ["manual"],
 )
 
 #################################
@@ -170,7 +202,10 @@ alias(
     actual = select({
         "//constraint:linux_aarch64": "@clang-linux-aarch64//:builtin_headers",
         "//constraint:linux_x86_64": "@clang-linux-x86_64//:builtin_headers",
+        "//constraint:macos_aarch64": "@clang-macos-aarch64//:builtin_headers",
+        "//constraint:macos_x86_64": "@clang-macos-x86_64//:builtin_headers",
     }),
+    tags = ["manual"],
     visibility = ["//visibility:private"],
 )
 
@@ -179,7 +214,10 @@ alias(
     actual = select({
         "//constraint:linux_aarch64": "@clang-linux-aarch64//:multicall_support_files",
         "//constraint:linux_x86_64": "@clang-linux-x86_64//:multicall_support_files",
+        "//constraint:macos_aarch64": "@clang-macos-aarch64//:multicall_support_files",
+        "//constraint:macos_x86_64": "@clang-macos-x86_64//:multicall_support_files",
     }),
+    tags = ["manual"],
     visibility = ["//visibility:private"],
 )
 
@@ -188,6 +226,9 @@ alias(
     actual = select({
         "//constraint:linux_aarch64": "@clang-linux-aarch64//:linker_builtins",
         "//constraint:linux_x86_64": "@clang-linux-x86_64//:linker_builtins",
+        "//constraint:macos_aarch64": "@clang-macos-aarch64//:linker_builtins",
+        "//constraint:macos_x86_64": "@clang-macos-x86_64//:linker_builtins",
     }),
+    tags = ["manual"],
     visibility = ["//visibility:private"],
 )

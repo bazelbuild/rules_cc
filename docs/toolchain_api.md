@@ -140,6 +140,52 @@ cc_args_list(
 | <a id="cc_args_list-args"></a>args |  (ordered) cc_args to include in this list.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 
 
+<a id="cc_artifact_name_pattern"></a>
+
+## cc_artifact_name_pattern
+
+<pre>
+load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_artifact_name_pattern")
+
+cc_artifact_name_pattern(<a href="#cc_artifact_name_pattern-name">name</a>, <a href="#cc_artifact_name_pattern-category">category</a>, <a href="#cc_artifact_name_pattern-extension">extension</a>, <a href="#cc_artifact_name_pattern-prefix">prefix</a>)
+</pre>
+
+The name for an artifact of a given category of input or output artifacts to an
+action.
+
+This is used to declare that executables should follow `<name>.exe` on Windows,
+or shared libraries should follow `lib<name>.dylib` on macOS.
+
+Example:
+```
+load("@rules_cc//cc/toolchains:artifacts.bzl", "cc_artifact_name_pattern")
+
+cc_artifact_name_pattern(
+    name = "static_library",
+    category = "@rules_cc//cc/toolchains/artifacts:static_library",
+    prefix = "lib",
+    extension = ".a",
+)
+
+cc_artifact_name_pattern(
+    name = "executable",
+    category = "@rules_cc//cc/toolchains/artifacts:executable",
+    prefix = "",
+    extension = "",
+)
+```
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="cc_artifact_name_pattern-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="cc_artifact_name_pattern-category"></a>category |  -   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
+| <a id="cc_artifact_name_pattern-extension"></a>extension |  -   | String | required |  |
+| <a id="cc_artifact_name_pattern-prefix"></a>prefix |  -   | String | required |  |
+
+
 <a id="cc_external_feature"></a>
 
 ## cc_external_feature
@@ -224,7 +270,7 @@ You should use a [`cc_feature`](#cc_feature) when any of the following apply:
 
 If you only need to configure flags via the Bazel command-line, instead
 consider adding a
-[`bool_flag`](https://github.com/bazelbuild/bazel-skylib/tree/main/doc/common_settings_doc.md#bool_flag)
+[`bool_flag`](https://github.com/bazelbuild/bazel-skylib/tree/main/docs/common_settings_doc.md#bool_flag)
 paired with a [`config_setting`](https://bazel.build/reference/be/general#config_setting)
 and then make your [`cc_args`](#cc_args) rule `select` on the `config_setting`.
 
@@ -337,6 +383,43 @@ cc_feature_set(
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="cc_feature_set-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="cc_feature_set-all_of"></a>all_of |  A set of features   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+
+
+<a id="cc_make_variable"></a>
+
+## cc_make_variable
+
+<pre>
+load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_make_variable")
+
+cc_make_variable(<a href="#cc_make_variable-name">name</a>, <a href="#cc_make_variable-value">value</a>, <a href="#cc_make_variable-variable_name">variable_name</a>)
+</pre>
+
+This is used to declare that key / value substitutions for use in make-variable
+substitutions in `copts` and other attributes.
+
+See also: https://bazel.build/reference/be/make-variables
+
+Example:
+
+```
+load("@rules_cc//cc/toolchains:make_variable.bzl", "cc_make_variable")
+
+cc_make_variable(
+    name = "macos_stack_substitution",
+    value = "-Wframe-larger-than=100000000 -Wno-vla",
+    variable_name = "STACK_FRAME_UNLIMITED",
+)
+```
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="cc_make_variable-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="cc_make_variable-value"></a>value |  -   | String | required |  |
+| <a id="cc_make_variable-variable_name"></a>variable_name |  -   | String | required |  |
 
 
 <a id="cc_mutually_exclusive_category"></a>
@@ -575,11 +658,11 @@ For more extensive examples, see the usages here:
 | :------------- | :------------- | :------------- |
 | <a id="cc_args-name"></a>name |  (str) The name of the target.   |  none |
 | <a id="cc_args-actions"></a>actions |  (List[Label]) A list of labels of [`cc_action_type`](#cc_action_type) or [`cc_action_type_set`](#cc_action_type_set) rules that dictate which actions these arguments should be applied to.   |  `None` |
-| <a id="cc_args-allowlist_include_directories"></a>allowlist_include_directories |  (List[Label]) A list of include paths that are implied by using this rule. These must point to a skylib [directory](https://github.com/bazelbuild/bazel-skylib/tree/main/doc/directory_doc.md#directory) or [subdirectory](https://github.com/bazelbuild/bazel-skylib/tree/main/doc/directory_subdirectory_doc.md#subdirectory) rule. Some flags (e.g. --sysroot) imply certain include paths are available despite not explicitly specifying a normal include path flag (`-I`, `-isystem`, etc.). Bazel checks that all included headers are properly provided by a dependency or allowlisted through this mechanism.<br><br>As a rule of thumb, only use this if Bazel is complaining about absolute paths in your toolchain and you've ensured that the toolchain is compiling with the `-no-canonical-prefixes` and/or `-fno-canonical-system-headers` arguments.<br><br>This can help work around errors like: `the source file 'main.c' includes the following non-builtin files with absolute paths (if these are builtin files, make sure these paths are in your toolchain)`.   |  `None` |
+| <a id="cc_args-allowlist_include_directories"></a>allowlist_include_directories |  (List[Label]) A list of include paths that are implied by using this rule. These must point to a skylib [directory](https://github.com/bazelbuild/bazel-skylib/tree/main/docs/directory_doc.md#directory) or [subdirectory](https://github.com/bazelbuild/bazel-skylib/tree/main/docs/directory_subdirectory_doc.md#subdirectory) rule. Some flags (e.g. --sysroot) imply certain include paths are available despite not explicitly specifying a normal include path flag (`-I`, `-isystem`, etc.). Bazel checks that all included headers are properly provided by a dependency or allowlisted through this mechanism.<br><br>As a rule of thumb, only use this if Bazel is complaining about absolute paths in your toolchain and you've ensured that the toolchain is compiling with the `-no-canonical-prefixes` and/or `-fno-canonical-system-headers` arguments.<br><br>This can help work around errors like: `the source file 'main.c' includes the following non-builtin files with absolute paths (if these are builtin files, make sure these paths are in your toolchain)`.   |  `None` |
 | <a id="cc_args-args"></a>args |  (List[str]) The command-line arguments that are applied by using this rule. This is mutually exclusive with [nested](#cc_args-nested).   |  `None` |
 | <a id="cc_args-data"></a>data |  (List[Label]) A list of runtime data dependencies that are required for these arguments to work as intended.   |  `None` |
 | <a id="cc_args-env"></a>env |  (Dict[str, str]) Environment variables that should be set when the tool is invoked.   |  `None` |
-| <a id="cc_args-format"></a>format |  (Dict[str, Label]) A mapping of format strings to the label of the corresponding [`cc_variable`](#cc_variable) that the value should be pulled from. All instances of `{variable_name}` will be replaced with the expanded value of `variable_name` in this dictionary. The complete list of possible variables can be found in https://github.com/bazelbuild/rules_cc/tree/main/cc/toolchains/variables/BUILD. It is not possible to declare custom variables--these are inherent to Bazel itself.   |  `{}` |
+| <a id="cc_args-format"></a>format |  (Dict[str, Label]) A mapping of format strings to the label of a corresponding target. This target can be a `directory`, `subdirectory`, [`cc_variable`](#cc_variable), or a single file that the value should be pulled from. All instances of `{variable_name}` in the `args` list will be replaced with the expanded value in this dictionary. The complete list of possible variables can be found in https://github.com/bazelbuild/rules_cc/tree/main/cc/toolchains/variables/BUILD. It is not possible to declare custom variables--these are inherent to Bazel itself.   |  `{}` |
 | <a id="cc_args-iterate_over"></a>iterate_over |  (Label) The label of a [`cc_variable`](#cc_variable) that should be iterated over. This is intended for use with built-in variables that are lists.   |  `None` |
 | <a id="cc_args-nested"></a>nested |  (List[Label]) A list of [`cc_nested_args`](#cc_nested_args) rules that should be expanded to command-line arguments when this rule is used. This is mutually exclusive with [args](#cc_args-args).   |  `None` |
 | <a id="cc_args-requires_not_none"></a>requires_not_none |  (Label) The label of a [`cc_variable`](#cc_variable) that should be checked for existence before expanding this rule. If the variable is None, this rule will be ignored.   |  `None` |
@@ -701,9 +784,9 @@ cc_tool_map(
 <pre>
 load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_toolchain")
 
-cc_toolchain(*, <a href="#cc_toolchain-name">name</a>, <a href="#cc_toolchain-tool_map">tool_map</a>, <a href="#cc_toolchain-args">args</a>, <a href="#cc_toolchain-known_features">known_features</a>, <a href="#cc_toolchain-enabled_features">enabled_features</a>, <a href="#cc_toolchain-libc_top">libc_top</a>, <a href="#cc_toolchain-module_map">module_map</a>,
-             <a href="#cc_toolchain-dynamic_runtime_lib">dynamic_runtime_lib</a>, <a href="#cc_toolchain-static_runtime_lib">static_runtime_lib</a>, <a href="#cc_toolchain-supports_header_parsing">supports_header_parsing</a>, <a href="#cc_toolchain-supports_param_files">supports_param_files</a>,
-             <a href="#cc_toolchain-kwargs">**kwargs</a>)
+cc_toolchain(*, <a href="#cc_toolchain-name">name</a>, <a href="#cc_toolchain-tool_map">tool_map</a>, <a href="#cc_toolchain-args">args</a>, <a href="#cc_toolchain-artifact_name_patterns">artifact_name_patterns</a>, <a href="#cc_toolchain-make_variables">make_variables</a>, <a href="#cc_toolchain-known_features">known_features</a>,
+             <a href="#cc_toolchain-enabled_features">enabled_features</a>, <a href="#cc_toolchain-libc_top">libc_top</a>, <a href="#cc_toolchain-module_map">module_map</a>, <a href="#cc_toolchain-dynamic_runtime_lib">dynamic_runtime_lib</a>, <a href="#cc_toolchain-static_runtime_lib">static_runtime_lib</a>,
+             <a href="#cc_toolchain-supports_header_parsing">supports_header_parsing</a>, <a href="#cc_toolchain-supports_param_files">supports_param_files</a>, <a href="#cc_toolchain-compiler">compiler</a>, <a href="#cc_toolchain-kwargs">**kwargs</a>)
 </pre>
 
 A C/C++ toolchain configuration.
@@ -754,6 +837,8 @@ Generated rules:
 | <a id="cc_toolchain-name"></a>name |  (str) The name of the label for the toolchain.   |  none |
 | <a id="cc_toolchain-tool_map"></a>tool_map |  (Label) The [`cc_tool_map`](#cc_tool_map) that specifies the tools to use for various toolchain actions.   |  `None` |
 | <a id="cc_toolchain-args"></a>args |  (List[Label]) A list of [`cc_args`](#cc_args) and `cc_arg_list` to apply across this toolchain.   |  `[]` |
+| <a id="cc_toolchain-artifact_name_patterns"></a>artifact_name_patterns |  (List[Label]) A list of `cc_artifact_name_pattern` defining patterns for names of artifacts created by this toolchain.   |  `[]` |
+| <a id="cc_toolchain-make_variables"></a>make_variables |  (List[Label]) A list of `cc_make_variable` defining variable substitutions.   |  `[]` |
 | <a id="cc_toolchain-known_features"></a>known_features |  (List[Label]) A list of [`cc_feature`](#cc_feature) rules that this toolchain supports. Whether or not these [features](https://bazel.build/docs/cc-toolchain-config-reference#features) are enabled may change over the course of a build. See the documentation for [`cc_feature`](#cc_feature) for more information.   |  `[]` |
 | <a id="cc_toolchain-enabled_features"></a>enabled_features |  (List[Label]) A list of [`cc_feature`](#cc_feature) rules whose initial state should be `enabled`. Note that it is still possible for these [features](https://bazel.build/docs/cc-toolchain-config-reference#features) to be disabled over the course of a build through other mechanisms. See the documentation for [`cc_feature`](#cc_feature) for more information.   |  `[]` |
 | <a id="cc_toolchain-libc_top"></a>libc_top |  (Label) A collection of artifacts for libc passed as inputs to compile/linking actions. See [`cc_toolchain.libc_top`](https://bazel.build/reference/be/c-cpp#cc_toolchain.libc_top) for more information.   |  `None` |
@@ -762,6 +847,7 @@ Generated rules:
 | <a id="cc_toolchain-static_runtime_lib"></a>static_runtime_lib |  (Label) Static library to link when the `static_link_cpp_runtimes` and `static_linking_mode` [features](https://bazel.build/docs/cc-toolchain-config-reference#features) are both enabled. See [`cc_toolchain.dynamic_runtime_lib`](https://bazel.build/reference/be/c-cpp#cc_toolchain.dynamic_runtime_lib) for more information.   |  `None` |
 | <a id="cc_toolchain-supports_header_parsing"></a>supports_header_parsing |  (bool) Whether or not this toolchain supports header parsing actions. See [`cc_toolchain.supports_header_parsing`](https://bazel.build/reference/be/c-cpp#cc_toolchain.supports_header_parsing) for more information.   |  `False` |
 | <a id="cc_toolchain-supports_param_files"></a>supports_param_files |  (bool) Whether or not this toolchain supports linking via param files. See [`cc_toolchain.supports_param_files`](https://bazel.build/reference/be/c-cpp#cc_toolchain.supports_param_files) for more information.   |  `False` |
+| <a id="cc_toolchain-compiler"></a>compiler |  (str) The type of compiler used by this toolchain (e.g. "gcc", "clang"). The current toolchain's compiler is exposed to `@rules_cc//cc/private/toolchain:compiler (compiler_flag)` as a flag value.   |  `""` |
 | <a id="cc_toolchain-kwargs"></a>kwargs |  [common attributes](https://bazel.build/reference/be/common-definitions#common-attributes) that should be applied to all rules created by this macro.   |  none |
 
 

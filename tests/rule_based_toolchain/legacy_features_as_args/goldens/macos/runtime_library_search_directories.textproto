@@ -6,6 +6,7 @@ flag_sets {
   actions: "lto-index-for-dynamic-library"
   actions: "lto-index-for-executable"
   actions: "lto-index-for-nodeps-dynamic-library"
+  actions: "objc-executable"
   flag_groups {
     expand_if_available: "runtime_library_search_directories"
     flag_groups {
@@ -37,6 +38,7 @@ flag_sets {
   actions: "lto-index-for-dynamic-library"
   actions: "lto-index-for-executable"
   actions: "lto-index-for-nodeps-dynamic-library"
+  actions: "objc-executable"
   flag_groups {
     expand_if_available: "runtime_library_search_directories"
     flag_groups {

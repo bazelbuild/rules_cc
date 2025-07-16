@@ -1,4 +1,4 @@
-# Copyright 2024 The Bazel Authors. All rights reserved.
+# Copyright 2025 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc/toolchains:args.bzl", "cc_args")
 load("@rules_cc//cc/toolchains/args:sysroot.bzl", "cc_sysroot")
 
 cc_sysroot(
@@ -20,33 +19,9 @@ cc_sysroot(
     data = [
         "@linux_sysroot//:root",
         "@linux_sysroot//:usr-include",
+        "@linux_sysroot//:usr-include-aarch64-linux-gnu",
         "@linux_sysroot//:usr-include-x86_64-linux-gnu",
     ],
     sysroot = "@linux_sysroot//:root",
-    visibility = ["//visibility:public"],
-)
-
-cc_args(
-    name = "warnings",
-    actions = [
-        "@rules_cc//cc/toolchains/actions:c_compile",
-        "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
-    ],
-    args = [
-        "-Werror",
-        "-Wall",
-        "-Wextra",
-        "-Wpedantic",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-cc_args(
-    name = "no_canonical_prefixes",
-    actions = [
-        "@rules_cc//cc/toolchains/actions:c_compile",
-        "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
-    ],
-    args = ["-no-canonical-prefixes"],
     visibility = ["//visibility:public"],
 )
