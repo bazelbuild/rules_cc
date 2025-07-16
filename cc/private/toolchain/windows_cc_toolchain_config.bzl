@@ -733,17 +733,7 @@ def _impl(ctx):
             enabled = True,
             flag_sets = [
                 flag_set(
-                    actions = [
-                        ACTION_NAMES.cpp_compile,
-                        ACTION_NAMES.linkstamp_compile,
-                        ACTION_NAMES.cpp_header_parsing,
-                        ACTION_NAMES.cpp_module_compile,
-                        ACTION_NAMES.cpp_module_codegen,
-                        ACTION_NAMES.cpp_module_deps_scanning,
-                        ACTION_NAMES.cpp20_module_compile,
-                        ACTION_NAMES.cpp20_module_codegen,
-                        ACTION_NAMES.clif_match,
-                    ],
+                    actions = all_cpp_compile_actions,
                     flag_groups = [
                         flag_group(
                             flags = ["/std:c++17"],
