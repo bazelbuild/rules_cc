@@ -728,6 +728,21 @@ def _impl(ctx):
             ],
         )
 
+        default_cpp_std_feature = feature(
+            name = "default_cpp_std",
+            enabled = True,
+            flag_sets = [
+                flag_set(
+                    actions = all_cpp_compile_actions,
+                    flag_groups = [
+                        flag_group(
+                            flags = ["/std:c++17"],
+                        ),
+                    ],
+                ),
+            ],
+        )
+
         default_compile_flags_feature = feature(
             name = "default_compile_flags",
             enabled = True,
@@ -751,7 +766,6 @@ def _impl(ctx):
                     flag_groups = [
                         flag_group(
                             flags = [
-                                "/std:c++17",
                                 "/DNOMINMAX",
                                 "/D_WIN32_WINNT=0x0601",
                                 "/D_CRT_SECURE_NO_DEPRECATE",
@@ -1274,6 +1288,7 @@ def _impl(ctx):
             no_stripping_feature,
             targets_windows_feature,
             copy_dynamic_libraries_to_binary_feature,
+            default_cpp_std_feature,
             default_compile_flags_feature,
             msvc_env_feature,
             msvc_compile_env_feature,
