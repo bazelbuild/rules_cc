@@ -63,7 +63,7 @@ def _get_known_features(features, capability_features, fail):
     for ft in capability_features + features:
         if ft.name in feature_names:
             other = feature_names[ft.name]
-            if other.overrides != ft and ft.overrides != other:
+            if other.overrides != ft and ft.overrides != other and ft.label != other.label:
                 fail(_FEATURE_NAME_ERR.format(
                     name = ft.name,
                     lhs = ft.label,
