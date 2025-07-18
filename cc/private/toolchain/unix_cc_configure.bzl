@@ -459,6 +459,12 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
         },
     )
 
+    c_opts = split_escaped(get_env_var(
+        repository_ctx,
+        "BAZEL_COPTS",
+        "",
+        False,
+    ), ":")
     conly_opts = split_escaped(get_env_var(
         repository_ctx,
         "BAZEL_CONLYOPTS",
@@ -662,6 +668,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
                 False,
             )),
             "%{conly_flags}": get_starlark_list(conly_opts),
+            "%{c_flags}": get_starlark_list(c_opts),
             "%{coverage_compile_flags}": coverage_compile_flags,
             "%{coverage_link_flags}": coverage_link_flags,
             "%{cxx_builtin_include_directories}": get_starlark_list(builtin_include_directories),
