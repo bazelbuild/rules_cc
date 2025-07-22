@@ -13,7 +13,7 @@
 # limitations under the License.
 """cc_binary rule"""
 
-load("//cc/private/rules_impl:cc_binary.bzl", _cc_binary = "cc_binary")
+load("@cc_compatibility_proxy//:proxy.bzl", _cc_binary = "cc_binary")
 
 # TODO(bazel-team): To avoid breaking changes, if the below are no longer
 # forwarding to native rules, flag @bazel_tools//tools/cpp:link_extra_libs

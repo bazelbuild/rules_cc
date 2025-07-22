@@ -13,7 +13,7 @@
 # limitations under the License.
 """objc_library rule"""
 
-load("//cc/private/rules_impl:objc_library.bzl", _objc_library = "objc_library")
+load("@cc_compatibility_proxy//:proxy.bzl", _objc_library = "objc_library")
 
 def objc_library(**kwargs):
     _objc_library(**kwargs)

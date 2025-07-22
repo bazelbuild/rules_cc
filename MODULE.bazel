@@ -21,3 +21,7 @@ bazel_dep(name = "rules_shell", version = "0.2.0", dev_dependency = True)
 bazel_dep(name = "googletest", version = "1.15.2", dev_dependency = True)
 bazel_dep(name = "rules_testing", version = "0.6.0", dev_dependency = True)
 bazel_dep(name = "stardoc", version = "0.8.0", dev_dependency = True)
+
+# Compatibility layer
+compat = use_extension("//cc:extensions.bzl", "compatibility_proxy")
+use_repo(compat, "cc_compatibility_proxy")
