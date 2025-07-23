@@ -875,15 +875,18 @@ def _get_copts(repository_ctx):
     win32_winnt_opts = _get_env_var(
         repository_ctx,
         "BAZEL_WIN32_WINNT",
-        "/D_WIN32_WINNT=0x0601",
+        None,
     )
     copts_vars = {
         "%{c_flags}": get_starlark_list(c_opts),
         "%{conly_flags}": get_starlark_list(conly_opts),
         "%{cxx_flags}": get_starlark_list(cxx_opts),
         "%{link_flags}": get_starlark_list(link_opts),
-        "%{win32_winnt_flag}": escape_string(win32_winnt_opts),
+        # None means the user didn't provide the override.
+        # Fall back to the default in that case.
+        "%{win32_winnt_flag}": '    win32_winnt_flag = "' + escape_string(win32_winnt_opts) + '", ' if win32_winnt_opts != None else "",
     }
+
     return copts_vars
 
 def configure_windows_toolchain(repository_ctx):

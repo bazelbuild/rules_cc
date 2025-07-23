@@ -128,7 +128,7 @@ cc_toolchain_config(
     conly_flags = [%{conly_flags}],
     cxx_flags = [%{cxx_flags}],
     link_flags = [%{link_flags}],
-    win32_winnt_flag = "%{win32_winnt_flag}",
+%{win32_winnt_flag}
 )
 
 toolchain(
@@ -179,7 +179,7 @@ cc_toolchain_config(
     conly_flags = [%{conly_flags}],
     cxx_flags = [%{cxx_flags}],
     link_flags = [%{link_flags}],
-    win32_winnt_flag = "%{win32_winnt_flag}",
+%{win32_winnt_flag}
 )
 
 toolchain(
@@ -228,7 +228,7 @@ cc_toolchain_config(
     conly_flags = [%{conly_flags}],
     cxx_flags = [%{cxx_flags}],
     link_flags = [%{link_flags}],
-    win32_winnt_flag = "%{win32_winnt_flag}",
+%{win32_winnt_flag}
 )
 
 toolchain(
@@ -279,7 +279,7 @@ cc_toolchain_config(
     conly_flags = [%{conly_flags}],
     cxx_flags = [%{cxx_flags}],
     link_flags = [%{link_flags}],
-    win32_winnt_flag = "%{win32_winnt_flag}",
+%{win32_winnt_flag}
 )
 
 toolchain(
@@ -354,7 +354,7 @@ cc_toolchain_config(
     conly_flags = [%{conly_flags}],
     cxx_flags = [%{cxx_flags}],
     link_flags = [%{link_flags}],
-    win32_winnt_flag = "%{win32_winnt_flag}",
+%{win32_winnt_flag}
 )
 
 toolchain(
@@ -428,7 +428,7 @@ cc_toolchain_config(
     conly_flags = [%{conly_flags}],
     cxx_flags = [%{cxx_flags}],
     link_flags = [%{link_flags}],
-    win32_winnt_flag = "%{win32_winnt_flag}",
+%{win32_winnt_flag}
 )
 
 toolchain(
@@ -502,7 +502,7 @@ cc_toolchain_config(
     conly_flags = [%{conly_flags}],
     cxx_flags = [%{cxx_flags}],
     link_flags = [%{link_flags}],
-    win32_winnt_flag = "%{win32_winnt_flag}",
+%{win32_winnt_flag}
 )
 
 toolchain(
@@ -576,7 +576,7 @@ cc_toolchain_config(
     conly_flags = [%{conly_flags}],
     cxx_flags = [%{cxx_flags}],
     link_flags = [%{link_flags}],
-    win32_winnt_flag = "%{win32_winnt_flag}",
+%{win32_winnt_flag}
 )
 
 toolchain(
@@ -648,7 +648,7 @@ cc_toolchain_config(
     conly_flags = [%{conly_flags}],
     cxx_flags = [%{cxx_flags}],
     link_flags = [%{link_flags}],
-    win32_winnt_flag = "%{win32_winnt_flag}",
+%{win32_winnt_flag}
 )
 
 toolchain(
@@ -721,7 +721,7 @@ cc_toolchain_config(
     conly_flags = [%{conly_flags}],
     cxx_flags = [%{cxx_flags}],
     link_flags = [%{link_flags}],
-    win32_winnt_flag = "%{win32_winnt_flag}",
+%{win32_winnt_flag}
 )
 
 toolchain(
