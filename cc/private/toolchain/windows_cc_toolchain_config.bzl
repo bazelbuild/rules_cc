@@ -573,6 +573,30 @@ def _impl(ctx):
             name = "user_compile_flags",
             flag_sets = [
                 flag_set(
+                    actions = [ACTION_NAMES.c_compile],
+                    flag_groups = ([
+                        flag_group(
+                            flags = ctx.attr.conly_flags,
+                        ),
+                    ] if ctx.attr.conly_flags else []),
+                ),
+                flag_set(
+                    actions = [
+                        ACTION_NAMES.linkstamp_compile,
+                        ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cpp_header_parsing,
+                        ACTION_NAMES.cpp_module_compile,
+                        ACTION_NAMES.cpp_module_codegen,
+                        ACTION_NAMES.lto_backend,
+                        ACTION_NAMES.clif_match,
+                    ],
+                    flag_groups = ([
+                        flag_group(
+                            flags = ctx.attr.cxx_flags,
+                        ),
+                    ] if ctx.attr.cxx_flags else []),
+                ),
+                flag_set(
                     actions = [
                         ACTION_NAMES.preprocess_assemble,
                         ACTION_NAMES.c_compile,
@@ -596,30 +620,6 @@ def _impl(ctx):
                             expand_if_available = "user_compile_flags",
                         ),
                     ],
-                ),
-                flag_set(
-                    actions = [ACTION_NAMES.c_compile],
-                    flag_groups = ([
-                        flag_group(
-                            flags = ctx.attr.conly_flags,
-                        ),
-                    ] if ctx.attr.conly_flags else []),
-                ),
-                flag_set(
-                    actions = [
-                        ACTION_NAMES.linkstamp_compile,
-                        ACTION_NAMES.cpp_compile,
-                        ACTION_NAMES.cpp_header_parsing,
-                        ACTION_NAMES.cpp_module_compile,
-                        ACTION_NAMES.cpp_module_codegen,
-                        ACTION_NAMES.lto_backend,
-                        ACTION_NAMES.clif_match,
-                    ],
-                    flag_groups = ([
-                        flag_group(
-                            flags = ctx.attr.cxx_flags,
-                        ),
-                    ] if ctx.attr.cxx_flags else []),
                 ),
             ],
         )
@@ -750,6 +750,14 @@ def _impl(ctx):
             name = "user_link_flags",
             flag_sets = [
                 flag_set(
+                    actions = all_link_actions + lto_index_actions,
+                    flag_groups = ([
+                        flag_group(
+                            flags = ctx.attr.link_flags,
+                        ),
+                    ] if ctx.attr.link_flags else []),
+                ),
+                flag_set(
                     actions = all_link_actions,
                     flag_groups = [
                         flag_group(
@@ -759,13 +767,20 @@ def _impl(ctx):
                         ),
                     ],
                 ),
+            ],
+        )
+
+        default_cpp_std_feature = feature(
+            name = "default_cpp_std",
+            enabled = True,
+            flag_sets = [
                 flag_set(
-                    actions = all_link_actions + lto_index_actions,
-                    flag_groups = ([
+                    actions = all_cpp_compile_actions,
+                    flag_groups = [
                         flag_group(
-                            flags = ctx.attr.link_flags,
+                            flags = ["/std:c++17"],
                         ),
-                    ] if ctx.attr.link_flags else []),
+                    ],
                 ),
             ],
         )
@@ -986,6 +1001,11 @@ def _impl(ctx):
         no_dotd_file_feature = feature(
             name = "no_dotd_file",
             enabled = True,
+        )
+
+        shorten_virtual_includes_feature = feature(
+            name = "shorten_virtual_includes",
+            enabled = ctx.attr.shorten_virtual_includes,
         )
 
         treat_warnings_as_errors_feature = feature(
@@ -1313,6 +1333,7 @@ def _impl(ctx):
             no_stripping_feature,
             targets_windows_feature,
             copy_dynamic_libraries_to_binary_feature,
+            default_cpp_std_feature,
             default_compile_flags_feature,
             msvc_env_feature,
             msvc_compile_env_feature,
@@ -1322,6 +1343,7 @@ def _impl(ctx):
             preprocessor_defines_feature,
             parse_showincludes_feature,
             no_dotd_file_feature,
+            shorten_virtual_includes_feature,
             generate_pdb_file_feature,
             generate_linkmap_feature,
             shared_flag_feature,
@@ -1563,6 +1585,30 @@ def _impl(ctx):
                 enabled = True,
                 flag_sets = [
                     flag_set(
+                        actions = [ACTION_NAMES.c_compile],
+                        flag_groups = ([
+                            flag_group(
+                                flags = ctx.attr.conly_flags,
+                            ),
+                        ] if ctx.attr.conly_flags else []),
+                    ),
+                    flag_set(
+                        actions = [
+                            ACTION_NAMES.linkstamp_compile,
+                            ACTION_NAMES.cpp_compile,
+                            ACTION_NAMES.cpp_header_parsing,
+                            ACTION_NAMES.cpp_module_compile,
+                            ACTION_NAMES.cpp_module_codegen,
+                            ACTION_NAMES.lto_backend,
+                            ACTION_NAMES.clif_match,
+                        ],
+                        flag_groups = ([
+                            flag_group(
+                                flags = ctx.attr.cxx_flags,
+                            ),
+                        ] if ctx.attr.cxx_flags else []),
+                    ),
+                    flag_set(
                         actions = [
                             ACTION_NAMES.assemble,
                             ACTION_NAMES.preprocess_assemble,
@@ -1589,30 +1635,6 @@ def _impl(ctx):
                                 expand_if_available = "user_compile_flags",
                             ),
                         ],
-                    ),
-                    flag_set(
-                        actions = [ACTION_NAMES.c_compile],
-                        flag_groups = ([
-                            flag_group(
-                                flags = ctx.attr.conly_flags,
-                            ),
-                        ] if ctx.attr.conly_flags else []),
-                    ),
-                    flag_set(
-                        actions = [
-                            ACTION_NAMES.linkstamp_compile,
-                            ACTION_NAMES.cpp_compile,
-                            ACTION_NAMES.cpp_header_parsing,
-                            ACTION_NAMES.cpp_module_compile,
-                            ACTION_NAMES.cpp_module_codegen,
-                            ACTION_NAMES.lto_backend,
-                            ACTION_NAMES.clif_match,
-                        ],
-                        flag_groups = ([
-                            flag_group(
-                                flags = ctx.attr.cxx_flags,
-                            ),
-                        ] if ctx.attr.cxx_flags else []),
                     ),
                 ],
             )
@@ -1734,6 +1756,7 @@ cc_toolchain_config = rule(
         "msvc_lib_path": attr.string(default = "vc_installation_error.bat"),
         "msvc_link_path": attr.string(default = "vc_installation_error.bat"),
         "msvc_ml_path": attr.string(default = "vc_installation_error.bat"),
+        "shorten_virtual_includes": attr.bool(default = False),
         "supports_parse_showincludes": attr.bool(),
         "target_libc": attr.string(),
         "target_system_name": attr.string(),

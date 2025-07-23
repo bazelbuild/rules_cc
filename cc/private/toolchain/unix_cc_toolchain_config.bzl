@@ -393,6 +393,15 @@ def _impl(ctx):
                 actions = all_compile_actions,
                 flag_groups = ([
                     flag_group(
+                        flags = ctx.attr.fastbuild_compile_flags,
+                    ),
+                ] if ctx.attr.fastbuild_compile_flags else []),
+                with_features = [with_feature_set(features = ["fastbuild"])],
+            ),
+            flag_set(
+                actions = all_compile_actions,
+                flag_groups = ([
+                    flag_group(
                         flags = ctx.attr.dbg_compile_flags,
                     ),
                 ] if ctx.attr.dbg_compile_flags else []),
@@ -558,6 +567,20 @@ def _impl(ctx):
                     ),
                     flag_group(
                         flags = ["-o", "%{output_file}"],
+                        expand_if_available = "output_file",
+                    ),
+                ],
+            ),
+        ],
+        env_sets = [
+            env_set(
+                actions = [
+                    ACTION_NAMES.cpp_module_deps_scanning,
+                ],
+                env_entries = [
+                    env_entry(
+                        key = "DEPS_SCANNER_OUTPUT_FILE",
+                        value = "%{output_file}",
                         expand_if_available = "output_file",
                     ),
                 ],
@@ -1765,7 +1788,13 @@ def _impl(ctx):
     # TODO(#8303): Mac crosstool should also declare every feature.
     if is_linux:
         # Linux artifact name patterns are the default.
-        artifact_name_patterns = []
+        artifact_name_patterns = [
+            artifact_name_pattern(
+                category_name = "cpp_module",
+                prefix = "",
+                extension = ".pcm",
+            ),
+        ]
         features = [
             cpp_modules_feature,
             cpp_module_modmap_file_feature,
@@ -1927,6 +1956,7 @@ cc_toolchain_config = rule(
         "cxx_flags": attr.string_list(),
         "dbg_compile_flags": attr.string_list(),
         "extra_flags_per_feature": attr.string_list_dict(),
+        "fastbuild_compile_flags": attr.string_list(),
         "host_system_name": attr.string(mandatory = True),
         "link_flags": attr.string_list(),
         "link_libs": attr.string_list(),

@@ -13,7 +13,7 @@
 # limitations under the License.
 """cc_import rule"""
 
-load("//cc/private/rules_impl:cc_import.bzl", _cc_import = "cc_import")
+load("@cc_compatibility_proxy//:proxy.bzl", _cc_import = "cc_import")
 
 def cc_import(**kwargs):
     _cc_import(**kwargs)
