@@ -72,7 +72,7 @@ cc_variable(
 cc_variable(
     name = "gcov_gcno_file",
     actions = ["//cc/toolchains/actions:compile_actions"],
-    type = types.option(types.file),
+    type = types.file,
 )
 
 cc_variable(
@@ -85,13 +85,13 @@ cc_variable(
 cc_variable(
     name = "include",
     actions = ["//cc/toolchains/actions:compile_actions"],
-    type = types.option(types.list(types.file)),
+    type = types.list(types.file),
 )
 
 cc_variable(
     name = "include_paths",
     actions = ["//cc/toolchains/actions:compile_actions"],
-    type = types.option(types.list(types.directory)),
+    type = types.list(types.directory),
 )
 
 cc_variable(
@@ -361,7 +361,7 @@ cc_variable(
 cc_variable(
     name = "preprocessor_defines",
     actions = ["//cc/toolchains/actions:compile_actions"],
-    type = types.option(types.list(types.string)),
+    type = types.list(types.string),
 )
 
 cc_variable(
@@ -373,7 +373,7 @@ cc_variable(
 cc_variable(
     name = "quote_include_paths",
     actions = ["//cc/toolchains/actions:compile_actions"],
-    type = types.option(types.list(types.directory)),
+    type = types.list(types.directory),
 )
 
 cc_variable(
@@ -409,7 +409,7 @@ cc_variable(
 cc_variable(
     name = "stripopts",
     actions = ["//cc/toolchains/actions:strip"],
-    type = types.option(types.list(types.string)),
+    type = types.list(types.string),
 )
 
 # Instead of the "sysroot" variable, use the cc_sysroot macro in
@@ -418,7 +418,7 @@ cc_variable(
 cc_variable(
     name = "system_include_paths",
     actions = ["//cc/toolchains/actions:compile_actions"],
-    type = types.option(types.list(types.directory)),
+    type = types.list(types.directory),
 )
 
 cc_variable(
