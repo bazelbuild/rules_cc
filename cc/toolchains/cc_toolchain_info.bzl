@@ -224,15 +224,6 @@ ToolchainConfigInfo = provider(
     },
 )
 
-CoverageTypeInfo = provider(
-    doc = "A type of coverage (eg. gcov)",
-    # @unsorted-dict-items
-    fields = {
-        "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
-        "name": "(str) The name of the coverage type",
-    },
-)
-
 CoverageConfigInfo = provider(
     doc = "A type of coverage (eg. gcov)",
     # @unsorted-dict-items

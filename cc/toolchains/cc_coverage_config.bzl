@@ -15,7 +15,9 @@
 """Rules to configure cc coverage collection."""
 
 load("//cc/toolchains/impl:collect.bzl", "collect_data")
-load(":cc_toolchain_info.bzl", "CoverageTypeInfo", "CoverageConfigInfo")
+load(":cc_toolchain_info.bzl", "CoverageConfigInfo")
+
+visibility("public")
 
 def _cc_coverage_config_impl(ctx):
     exe_info = ctx.attr.src[DefaultInfo]
@@ -29,7 +31,7 @@ def _cc_coverage_config_impl(ctx):
     runfiles = collect_data(ctx, ctx.attr.data + [ctx.attr.src])
     config = CoverageConfigInfo(
         label = ctx.label,
-        type = ctx.attr.type[CoverageTypeInfo],
+        type = ctx.attr.type,
         exe = exe,
         runfiles = runfiles,
     )
@@ -54,15 +56,14 @@ def _cc_coverage_config_impl(ctx):
 cc_coverage_config = rule(
     implementation = _cc_coverage_config_impl,
     attrs = {
-        "type": attr.label(
+        "type": attr.string(
             mandatory = True,
-            providers = [
-                CoverageTypeInfo,
+            values = [
+                "gcov",
+                "llvm-cov",
             ],
             doc = """
 The type of coverage this config is for (e.g., gcov).
-
-See `@rules_cc//cc/coverage/type` for a list of supported types.
 """
         ),
         "src": attr.label(
@@ -90,7 +91,7 @@ load("//cc/toolchains:cc_coverage_config.bzl", "cc_coverage_config")
 
 cc_coverage_config(
     name = "gcov",
-    type = "//cc/coverage/type:gcov",
+    type = "gcov",
     src = "bin/gcov",
 )
 ```
