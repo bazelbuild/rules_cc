@@ -15,6 +15,15 @@
 
 load("//cc:find_cc_toolchain.bzl", "CC_TOOLCHAIN_TYPE")
 load(":cc_common.bzl", "cc_common")
+load(
+    ":cc_helper_internal.bzl",
+    "get_relative_path",
+    "is_versioned_shared_library_extension_valid",
+    "path_contains_up_level_references",
+    _package_source_root = "package_source_root",
+    _repository_exec_path = "repository_exec_path",
+)
+load(":cc_info.bzl", "CcInfo")
 load(":visibility.bzl", "INTERNAL_VISIBILITY")
 
 visibility(INTERNAL_VISIBILITY)
@@ -27,6 +36,62 @@ linker_mode = struct(
 # LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/cc_helper.bzl:linker_mode)
 
 # LINT.IfChange(forked_exports)
+
+def _get_compilation_contexts_from_deps(deps):
+    compilation_contexts = []
+    for dep in deps:
+        if CcInfo in dep:
+            compilation_contexts.append(dep[CcInfo].compilation_context)
+    return compilation_contexts
+
+def _tool_path(cc_toolchain, tool):
+    return cc_toolchain._tool_paths.get(tool, None)
+
+def _get_toolchain_global_make_variables(cc_toolchain):
+    result = {
+        "CC": _tool_path(cc_toolchain, "gcc"),
+        "AR": _tool_path(cc_toolchain, "ar"),
+        "NM": _tool_path(cc_toolchain, "nm"),
+        "LD": _tool_path(cc_toolchain, "ld"),
+        "STRIP": _tool_path(cc_toolchain, "strip"),
+        "C_COMPILER": cc_toolchain.compiler,
+    }  # buildifier: disable=unsorted-dict-items
+
+    obj_copy_tool = _tool_path(cc_toolchain, "objcopy")
+    if obj_copy_tool != None:
+        # objcopy is optional in Crostool.
+        result["OBJCOPY"] = obj_copy_tool
+    gcov_tool = _tool_path(cc_toolchain, "gcov-tool")
+    if gcov_tool != None:
+        # gcovtool is optional in Crostool.
+        result["GCOVTOOL"] = gcov_tool
+
+    libc = cc_toolchain.libc
+    if libc.startswith("glibc-"):
+        # Strip "glibc-" prefix.
+        result["GLIBC_VERSION"] = libc[6:]
+    else:
+        result["GLIBC_VERSION"] = libc
+
+    abi_glibc_version = cc_toolchain._abi_glibc_version
+    if abi_glibc_version != None:
+        result["ABI_GLIBC_VERSION"] = abi_glibc_version
+
+    abi = cc_toolchain._abi
+    if abi != None:
+        result["ABI"] = abi
+
+    result["CROSSTOOLTOP"] = cc_toolchain._crosstool_top_path
+    return result
+
+_SHARED_LIBRARY_EXTENSIONS = ["so", "dll", "dylib", "wasm"]
+
+def _is_valid_shared_library_artifact(shared_library):
+    if (shared_library.extension in _SHARED_LIBRARY_EXTENSIONS):
+        return True
+
+    return is_versioned_shared_library_extension_valid(shared_library.basename)
+
 def _get_static_mode_params_for_dynamic_library_libraries(libs):
     linker_inputs = []
     for lib in libs.to_list():
@@ -285,11 +350,79 @@ def _should_use_pic(ctx, cc_toolchain, feature_configuration):
         )
     )
 
+SYSROOT_FLAG = "--sysroot="
+
+def _contains_sysroot(original_cc_flags, feature_config_cc_flags):
+    if SYSROOT_FLAG in original_cc_flags:
+        return True
+    for flag in feature_config_cc_flags:
+        if SYSROOT_FLAG in flag:
+            return True
+
+    return False
+
+def _get_cc_flags_make_variable(_ctx, feature_configuration, cc_toolchain):
+    original_cc_flags = cc_toolchain._legacy_cc_flags_make_variable
+    sysroot_cc_flag = ""
+    if cc_toolchain.sysroot != None:
+        sysroot_cc_flag = SYSROOT_FLAG + cc_toolchain.sysroot
+
+    build_vars = cc_toolchain._build_variables
+    feature_config_cc_flags = cc_common.get_memory_inefficient_command_line(
+        feature_configuration = feature_configuration,
+        action_name = "cc-flags-make-variable",
+        variables = build_vars,
+    )
+    cc_flags = [original_cc_flags]
+
+    # Only add sysroots flag if nothing else adds sysroot, BUT it must appear
+    # before the feature config flags.
+    if not _contains_sysroot(original_cc_flags, feature_config_cc_flags):
+        cc_flags.append(sysroot_cc_flag)
+    cc_flags.extend(feature_config_cc_flags)
+    return {"CC_FLAGS": " ".join(cc_flags)}
+
+def _package_exec_path(ctx, package, sibling_repository_layout):
+    return get_relative_path(_repository_exec_path(ctx.label.workspace_name, sibling_repository_layout), package)
+
+def _system_include_dirs(ctx, additional_make_variable_substitutions):
+    result = []
+    sibling_repository_layout = ctx.configuration.is_sibling_repository_layout()
+    package = ctx.label.package
+    package_exec_path = _package_exec_path(ctx, package, sibling_repository_layout)
+    package_source_root = _package_source_root(ctx.label.workspace_name, package, sibling_repository_layout)
+    for include in ctx.attr.includes:
+        includes_attr = _expand(ctx, include, additional_make_variable_substitutions)
+        if includes_attr.startswith("/"):
+            continue
+        includes_path = get_relative_path(package_exec_path, includes_attr)
+        if not sibling_repository_layout and path_contains_up_level_references(includes_path):
+            fail("Path references a path above the execution root.", attr = "includes")
+
+        if includes_path == ".":
+            fail("'" + includes_attr + "' resolves to the workspace root, which would allow this rule and all of its " +
+                 "transitive dependents to include any file in your workspace. Please include only" +
+                 " what you need", attr = "includes")
+        result.append(includes_path)
+
+        # We don't need to perform the above checks against out_includes_path again since any errors
+        # must have manifested in includesPath already.
+        out_includes_path = get_relative_path(package_source_root, includes_attr)
+        if (ctx.configuration.has_separate_genfiles_directory()):
+            result.append(get_relative_path(ctx.genfiles_dir.path, out_includes_path))
+        result.append(get_relative_path(ctx.bin_dir.path, out_includes_path))
+    return result
+
 cc_helper = struct(
     create_strip_action = _create_strip_action,
     get_expanded_env = _get_expanded_env,
     get_static_mode_params_for_dynamic_library_libraries = _get_static_mode_params_for_dynamic_library_libraries,
     should_use_pic = _should_use_pic,
     tokenize = _tokenize,
+    is_valid_shared_library_artifact = _is_valid_shared_library_artifact,
+    get_toolchain_global_make_variables = _get_toolchain_global_make_variables,
+    get_cc_flags_make_variable = _get_cc_flags_make_variable,
+    get_compilation_contexts_from_deps = _get_compilation_contexts_from_deps,
+    system_include_dirs = _system_include_dirs,
 )
 # LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/cc_helper.bzl:forked_exports)
