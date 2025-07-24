@@ -13,7 +13,7 @@
 # limitations under the License.
 """Helper functions to create and validate a ToolchainConfigInfo."""
 
-load("//cc/toolchains:cc_toolchain_info.bzl", "ArtifactNamePatternInfo", "MakeVariableInfo", "ToolConfigInfo", "ToolchainConfigInfo")
+load("//cc/toolchains:cc_toolchain_info.bzl", "ArtifactNamePatternInfo", "CoverageConfigInfo", "MakeVariableInfo", "ToolConfigInfo", "ToolchainConfigInfo")
 load(":args_utils.bzl", "get_action_type")
 load(":collect.bzl", "collect_args_lists", "collect_features")
 
@@ -162,7 +162,7 @@ def _collect_make_variables(targets, fail):
 
     return make_variables.values()
 
-def toolchain_config_info(label, known_features = [], enabled_features = [], args = [], artifact_name_patterns = [], make_variables = [], tool_map = None, fail = fail):
+def toolchain_config_info(label, known_features = [], enabled_features = [], args = [], artifact_name_patterns = [], coverage_config = None, make_variables = [], tool_map = None, fail = fail):
     """Generates and validates a ToolchainConfigInfo from lists of labels.
 
     Args:
@@ -214,6 +214,7 @@ def toolchain_config_info(label, known_features = [], enabled_features = [], arg
         files = files,
         allowlist_include_directories = allowlist_include_directories,
         artifact_name_patterns = _collect_artifact_name_patterns(artifact_name_patterns, fail),
+        coverage_config = coverage_config[CoverageConfigInfo] if coverage_config else None,
         make_variables = _collect_make_variables(make_variables, fail),
     )
     _validate_toolchain(toolchain_config, fail = fail)
