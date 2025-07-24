@@ -20,6 +20,7 @@ load(
     "get_relative_path",
     "is_versioned_shared_library_extension_valid",
     "path_contains_up_level_references",
+    _artifact_category = "artifact_category",
     _package_source_root = "package_source_root",
     _repository_exec_path = "repository_exec_path",
 )
@@ -36,6 +37,8 @@ linker_mode = struct(
 # LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/cc_helper.bzl:linker_mode)
 
 # LINT.IfChange(forked_exports)
+
+artifact_category = _artifact_category
 
 def _get_compilation_contexts_from_deps(deps):
     compilation_contexts = []
