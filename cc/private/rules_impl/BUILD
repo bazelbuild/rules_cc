@@ -33,6 +33,7 @@ bzl_library(
         "cc_import.bzl",
         "cc_library.bzl",
         "cc_shared_library.bzl",
+        "cc_static_library.bzl",
         "cc_test.bzl",
         "objc_import.bzl",
         "objc_library.bzl",

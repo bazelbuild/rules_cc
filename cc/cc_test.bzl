@@ -13,7 +13,7 @@
 # limitations under the License.
 """cc_test rule"""
 
-load("//cc/private/rules_impl:cc_test.bzl", _cc_test = "cc_test")
+load("@cc_compatibility_proxy//:proxy.bzl", _cc_test = "cc_test")
 
 # TODO(bazel-team): To avoid breaking changes, if the below are no longer
 # forwarding to native rules, flag @bazel_tools//tools/cpp:link_extra_libs

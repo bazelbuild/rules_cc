@@ -86,6 +86,7 @@ bzl_library(
     name = "find_cc_toolchain_bzl",
     srcs = ["find_cc_toolchain.bzl"],
     visibility = ["//visibility:public"],
+    deps = ["//cc/common"],
 )
 
 bzl_library(
@@ -104,6 +105,10 @@ bzl_library(
     name = "repositories_bzl",
     srcs = ["repositories.bzl"],
     visibility = ["//visibility:private"],
+    deps = [
+        "//cc/common",
+        "//cc/private/toolchain:cc_configure_bzl",
+    ],
 )
 
 bzl_library(
@@ -124,6 +129,7 @@ bzl_library(
         "cc_import.bzl",
         "cc_library.bzl",
         "cc_shared_library.bzl",
+        "cc_static_library.bzl",
         "cc_test.bzl",
         "objc_import.bzl",
         "objc_library.bzl",
