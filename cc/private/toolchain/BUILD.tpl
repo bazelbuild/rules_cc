@@ -18,6 +18,7 @@ load(":cc_toolchain_config.bzl", "cc_toolchain_config")
 load(":armeabi_cc_toolchain_config.bzl", "armeabi_cc_toolchain_config")
 load("@rules_cc//cc/toolchains:cc_toolchain.bzl", "cc_toolchain")
 load("@rules_cc//cc/toolchains:cc_toolchain_suite.bzl", "cc_toolchain_suite")
+load(":generate_modmap_wrapper.bzl", _generate_modmap_wrapper = "generate_modmap_wrapper")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -64,6 +65,12 @@ filegroup(
     name = "deps_scanner_wrapper",
     srcs = ["deps_scanner_wrapper.sh"],
 )
+
+_generate_modmap_wrapper(
+    name = "generate_modmap_wrapper",
+    compiler = "%{compiler}",
+)
+
 filegroup(
     name = "compiler_deps",
     srcs = glob(["extra_tools/**"], allow_empty = True) + [%{cc_compiler_deps}],
@@ -97,6 +104,7 @@ cc_toolchain(
     supports_header_parsing = 1,
     supports_param_files = 1,
     module_map = %{modulemap},
+    generate_modmap = ":generate_modmap_wrapper",
 )
 
 cc_toolchain_config(
