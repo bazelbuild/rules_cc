@@ -84,6 +84,7 @@ _FEATURE_FLAGS = dict(
     external = _subjects.bool,
     overrides = None,
     allowlist_include_directories = _FakeDirectoryDepset,
+    allowlist_absolute_include_directories = ProviderDepset(_subjects.str),
 )
 
 # Break the dependency loop.
@@ -148,6 +149,7 @@ _ArgsFactory = generate_factory(
         nested = optional_subject(_NestedArgsFactory.factory),
         requires_any_of = ProviderSequence(_FeatureConstraintFactory),
         allowlist_include_directories = _FakeDirectoryDepset,
+        allowlist_absolute_include_directories = ProviderDepset(_subjects.str),
     ),
 )
 
@@ -163,6 +165,7 @@ _ArgsListFactory = generate_factory(
         ))({value.action: value for value in values}, meta = meta),
         files = _subjects.depset_file,
         allowlist_include_directories = _FakeDirectoryDepset,
+        allowlist_absolute_include_directories = ProviderDepset(_subjects.str),
     ),
 )
 
@@ -221,6 +224,7 @@ _ToolchainConfigFactory = generate_factory(
         args = ProviderSequence(_ArgsFactory),
         files = dict_key_subject(_subjects.depset_file),
         allowlist_include_directories = _FakeDirectoryDepset,
+        allowlist_absolute_include_directories = ProviderDepset(_subjects.str),
         artifact_name_patterns = [],
         make_variables = [],
     ),
