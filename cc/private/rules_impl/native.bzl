@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 # Redefine native symbols with a new name as a workaround for
-# exporting them in `//third_party/bazel_rules/rules_proto/proto:defs.bzl` with their original name.
+# exporting them in `//third_party/bazel_rules/rules_cc/cc:defs.bzl` with their original name.
 #
 # While we cannot force users to load these symbol due to the lack of a
 # allowlisting mechanism, we can still export them and tell users to
