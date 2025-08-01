@@ -23,6 +23,7 @@ load("//cc:objc_library.bzl", _objc_library = "objc_library")
 load("//cc/common:cc_common.bzl", _cc_common = "cc_common")
 load("//cc/common:cc_info.bzl", _CcInfo = "CcInfo")
 load("//cc/common:debug_package_info.bzl", _DebugPackageInfo = "DebugPackageInfo")
+load("//cc/private/rules_impl:failing_cc_proto_library.bzl", "cc_proto_library")
 load("//cc/toolchains:cc_flags_supplier.bzl", _cc_flags_supplier = "cc_flags_supplier")
 load("//cc/toolchains:cc_toolchain.bzl", _cc_toolchain = "cc_toolchain")
 load("//cc/toolchains:cc_toolchain_config_info.bzl", _CcToolchainConfigInfo = "CcToolchainConfigInfo")
@@ -44,16 +45,22 @@ objc_import = _objc_import
 
 # DEPRECATED: use rule from com_google_protobuf repository
 def cc_proto_library(**kwargs):
-    """cc_proto_library"""
+    """Deprecated redirection macro for cc_proto_library.
 
-    # Using the native rules, makes this work on Bazel <8
-    # With Bazel >=8 cc_proto_library was moved into com_google_protobuf
-    if not hasattr(native, "cc_proto_library"):
-        fail("Use cc_proto_library from com_google_protobuf")
+    Use cc_proto_library from com_google_protobuf.
+
+    On Bazel <8, redirects to native.cc_proto_library.
+    On Bazel >=8, redirects to a mock rule, that fails when analized.
+    This allows for a gradual migration away from this macro.
+
+    Args:
+      **kwargs: passed directly into cc_proto_library
+    """
+    _cc_proto_library = getattr(native, "cc_proto_library", cc_proto_library)
     if "deprecation" not in kwargs:
-        native.cc_proto_library(deprecation = "Use cc_proto_library from com_google_protobuf", **kwargs)  # buildifier: disable=native-cc-proto
+        _cc_proto_library(deprecation = "Use cc_proto_library from com_google_protobuf", **kwargs)
     else:
-        native.cc_proto_library(**kwargs)  # buildifier: disable=native-cc-proto
+        _cc_proto_library(**kwargs)
 
 # Toolchain rules
 
