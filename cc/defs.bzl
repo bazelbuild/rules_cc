@@ -44,14 +44,16 @@ objc_import = _objc_import
 
 # DEPRECATED: use rule from com_google_protobuf repository
 def cc_proto_library(**kwargs):
+    """cc_proto_library"""
+
     # Using the native rules, makes this work on Bazel <8
     # With Bazel >=8 cc_proto_library was moved into com_google_protobuf
     if not hasattr(native, "cc_proto_library"):
         fail("Use cc_proto_library from com_google_protobuf")
     if "deprecation" not in kwargs:
-        native.cc_proto_library(deprecation = "Use cc_proto_library from com_google_protobuf", **kwargs)
+        native.cc_proto_library(deprecation = "Use cc_proto_library from com_google_protobuf", **kwargs)  # buildifier: disable=native-cc-proto
     else:
-        native.cc_proto_library(**kwargs)
+        native.cc_proto_library(**kwargs)  # buildifier: disable=native-cc-proto
 
 # Toolchain rules
 
