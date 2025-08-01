@@ -13,6 +13,8 @@
 # limitations under the License.
 """A failing cc_proto_library rule."""
 
+load("//cc/common:cc_info.bzl", "CcInfo")
+
 def _impl(ctx):
     fail("Use cc_proto_library from com_google_protobuf")
 

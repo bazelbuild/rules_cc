@@ -40,6 +40,7 @@ bzl_library(
         "objc_library.bzl",
     ],
     visibility = ["//cc:__subpackages__"],
+    deps = ["//cc/common"],
 )
 
 bzl_library(
