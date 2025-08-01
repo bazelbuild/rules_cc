@@ -15,7 +15,7 @@
 
 load("//cc/common:cc_info.bzl", "CcInfo")
 
-def _impl(ctx):
+def _impl(_ctx):
     fail("Use cc_proto_library from com_google_protobuf")
 
 cc_proto_library = rule(
