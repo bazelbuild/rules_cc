@@ -20,7 +20,7 @@ def _impl(_ctx):
 
 cc_proto_library = rule(
     implementation = _impl,
-    providers = [CcInfo],
+    provides = [CcInfo],
     doc = "Do not use. The rule always fails",
     attrs = {
         "deps": attr.label_list(),
