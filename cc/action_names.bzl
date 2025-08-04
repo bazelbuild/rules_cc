@@ -103,6 +103,9 @@ OBJ_COPY_ACTION_NAME = "objcopy_embed_data"
 # A string constant for the validation action for cc_static_library.
 VALIDATE_STATIC_LIBRARY = "validate-static-library"
 
+# Name of the DWARF packaging utility action.
+DWP = "dwp"
+
 ACTION_NAMES = struct(
     c_compile = C_COMPILE_ACTION_NAME,
     cpp_compile = CPP_COMPILE_ACTION_NAME,
@@ -134,6 +137,7 @@ ACTION_NAMES = struct(
     clif_match = CLIF_MATCH_ACTION_NAME,
     objcopy_embed_data = OBJ_COPY_ACTION_NAME,
     validate_static_library = VALIDATE_STATIC_LIBRARY,
+    dwp = DWP,
 )
 
 # Names of actions that parse or compile C++ code.
