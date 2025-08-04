@@ -17,7 +17,7 @@ load("//cc/common:cc_info.bzl", "CcInfo")
 
 CC_PROTO_LIBRARY_DEPRECATION = (
     "cc_proto_library is removed from @rules_cc//cc:defs.bzl in Bazel 8. " +
-    "Please load the implementation from repository https://github.com/protocolbuffers/protobuf. " +
+    "Please load the implementation from https://github.com/protocolbuffers/protobuf. " +
     "After adding the dependency to WORKSPACE or MODULE.bazel use statement: " +
     '`load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")`'
 )
