@@ -350,7 +350,7 @@ in any way other than the "Make" variable substitution.
         doc = linkstatic_doc,
     ),
     "malloc": attr.label(
-        default = Label("@" + semantics.get_repo() + "@bazel_tools//tools/cpp:malloc"),
+        default = "@bazel_tools//tools/cpp:malloc",
         allow_files = False,
         providers = [CcInfo],
         allow_rules = ["cc_library"],
@@ -360,7 +360,7 @@ in any way other than the "Make" variable substitution.
         default = configuration_field(fragment = "cpp", name = "custom_malloc"),
     ),
     "link_extra_lib": attr.label(
-        default = Label("@" + semantics.get_repo() + "@bazel_tools//tools/cpp:link_extra_lib"),
+        default = "@bazel_tools//tools/cpp:link_extra_lib",
         providers = [CcInfo],
         doc = """
 Control linking of extra libraries.

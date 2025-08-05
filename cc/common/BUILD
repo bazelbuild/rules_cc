@@ -18,14 +18,20 @@ bzl_library(
     name = "common",
     srcs = glob(["*.bzl"]),
     visibility = ["//visibility:public"],
-    deps = ["//cc/private/rules_impl:native_bzl"],
+    deps = [
+        "//cc/private/rules_impl:native_bzl",
+        "//cc/private/rules_impl:objc_common",
+    ],
 )
 
 bzl_library(
     name = "cc_helper_bzl",
     srcs = ["cc_helper.bzl"],
     visibility = ["//visibility:public"],
-    deps = [":visibility_bzl"],
+    deps = [
+        ":visibility_bzl",
+        "//cc/private/rules_impl:objc_common",
+    ],
 )
 
 bzl_library(

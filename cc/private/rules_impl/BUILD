@@ -44,6 +44,15 @@ bzl_library(
 )
 
 bzl_library(
+    name = "objc_common",
+    srcs = [
+        "objc_common.bzl",
+        "objc_compilation_context_info.bzl",
+    ],
+    visibility = ["//cc:__subpackages__"],
+)
+
+bzl_library(
     name = "native_bzl",
     srcs = ["native.bzl"],
     visibility = ["//cc:__subpackages__"],
