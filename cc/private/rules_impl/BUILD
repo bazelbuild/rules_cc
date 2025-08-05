@@ -35,10 +35,12 @@ bzl_library(
         "cc_shared_library.bzl",
         "cc_static_library.bzl",
         "cc_test.bzl",
+        "failing_cc_proto_library.bzl",
         "objc_import.bzl",
         "objc_library.bzl",
     ],
     visibility = ["//cc:__subpackages__"],
+    deps = ["//cc/common"],
 )
 
 bzl_library(
