@@ -40,6 +40,78 @@ linker_mode = struct(
 
 artifact_category = _artifact_category
 
+def _is_non_empty_list_or_select(value, attr):
+    if type(value) == "list":
+        return len(value) > 0
+    elif type(value) == "select":
+        return True
+    else:
+        fail("Only select or list is valid for {} attr".format(attr))
+
+def _gen_empty_def_file(ctx):
+    trivial_def_file = ctx.actions.declare_file(ctx.label.name + ".gen.empty.def")
+    ctx.actions.write(trivial_def_file, "", False)
+    return trivial_def_file
+
+def _get_windows_def_file_for_linking(ctx, custom_def_file, generated_def_file, feature_configuration):
+    # 1. If a custom DEF file is specified in win_def_file attribute, use it.
+    # 2. If a generated DEF file is available and should be used, use it.
+    # 3. Otherwise, we use an empty DEF file to ensure the import library will be generated.
+    if custom_def_file != None:
+        return custom_def_file
+    elif generated_def_file != None and _should_generate_def_file(ctx, feature_configuration) == True:
+        return generated_def_file
+    else:
+        return _gen_empty_def_file(ctx)
+
+def _should_generate_def_file(ctx, feature_configuration):
+    windows_export_all_symbols_enabled = cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "windows_export_all_symbols")
+    no_windows_export_all_symbols_enabled = cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "no_windows_export_all_symbols")
+    return windows_export_all_symbols_enabled and (not no_windows_export_all_symbols_enabled) and (ctx.attr.win_def_file == None)
+
+def _generate_def_file(ctx, def_parser, object_files, dll_name):
+    def_file = ctx.actions.declare_file(ctx.label.name + ".gen.def")
+    args = ctx.actions.args()
+    args.add(def_file)
+    args.add(dll_name)
+    argv = ctx.actions.args()
+    argv.use_param_file("@%s", use_always = True)
+    argv.set_param_file_format("shell")
+    for object_file in object_files:
+        argv.add(object_file.path)
+
+    ctx.actions.run(
+        mnemonic = "DefParser",
+        executable = def_parser,
+        toolchain = None,
+        arguments = [args, argv],
+        inputs = object_files,
+        outputs = [def_file],
+        use_default_shell_env = True,
+    )
+    return def_file
+
+def _stringify_linker_input(linker_input):
+    parts = []
+    parts.append(str(linker_input.owner))
+    for library in linker_input.libraries:
+        if library.static_library != None:
+            parts.append(library.static_library.path)
+        if library.pic_static_library != None:
+            parts.append(library.pic_static_library.path)
+        if library.dynamic_library != None:
+            parts.append(library.dynamic_library.path)
+        if library.interface_library != None:
+            parts.append(library.interface_library.path)
+
+    for additional_input in linker_input.additional_inputs:
+        parts.append(additional_input.path)
+
+    for linkstamp in linker_input.linkstamps:
+        parts.append(linkstamp.file().path)
+
+    return "".join(parts)
+
 def _get_compilation_contexts_from_deps(deps):
     compilation_contexts = []
     for dep in deps:
@@ -427,5 +499,9 @@ cc_helper = struct(
     get_cc_flags_make_variable = _get_cc_flags_make_variable,
     get_compilation_contexts_from_deps = _get_compilation_contexts_from_deps,
     system_include_dirs = _system_include_dirs,
+    stringify_linker_input = _stringify_linker_input,
+    generate_def_file = _generate_def_file,
+    get_windows_def_file_for_linking = _get_windows_def_file_for_linking,
+    is_non_empty_list_or_select = _is_non_empty_list_or_select,
 )
 # LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/cc_helper.bzl:forked_exports)
