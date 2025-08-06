@@ -13,4 +13,17 @@
 # limitations under the License.
 """cc_toolchain rule"""
 
-cc_toolchain = native.cc_toolchain  # buildifier: disable=native-cc-toolchain
+load("@bazel_features//:features.bzl", "bazel_features")
+
+def cc_toolchain(**kwargs):
+    """
+    Wrapper around native.cc_toolchain that removes features that are not
+    supported by the C++ toolchain.
+
+    Args:
+        **kwargs: Arguments to pass to native.cc_toolchain.
+    """
+    if "generate_modmap" in kwargs:
+        if not bazel_features.cc.cc_toolchain_has_generate_modmap:
+            kwargs.pop("generate_modmap")
+    native.cc_toolchain(**kwargs)  # buildifier: disable=native-cc-toolchain
