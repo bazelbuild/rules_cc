@@ -111,6 +111,10 @@ artifact_category = struct(
     CLIF_OUTPUT_PROTO = "CLIF_OUTPUT_PROTO",
 )
 
+def should_create_per_object_debug_info(feature_configuration, cpp_configuration):
+    return cpp_configuration.fission_active_for_current_compilation_mode() and \
+           feature_configuration.is_enabled("per_object_debug_info")
+
 def is_versioned_shared_library_extension_valid(shared_library_name):
     """Validates the name against the regex "^.+\\.((so)|(dylib))(\\.\\d\\w*)+$",
 

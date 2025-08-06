@@ -21,6 +21,7 @@ load(
     "get_relative_path",
     "is_versioned_shared_library_extension_valid",
     "path_contains_up_level_references",
+    "should_create_per_object_debug_info",
     _artifact_category = "artifact_category",
     _extensions = "extensions",
     _package_source_root = "package_source_root",
@@ -40,8 +41,46 @@ linker_mode = struct(
 
 # LINT.IfChange(forked_exports)
 
+cpp_file_types = struct(
+    LINKER_SCRIPT = ["ld", "lds", "ldscript"],
+)
+
 artifact_category = _artifact_category
 extensions = _extensions
+
+def _replace_name(name, new_name):
+    last_slash = name.rfind("/")
+    if last_slash == -1:
+        return new_name
+    return name[:last_slash] + "/" + new_name
+
+def _get_base_name(name):
+    last_slash = name.rfind("/")
+    if last_slash == -1:
+        return name
+    return name[last_slash + 1:]
+
+def _get_artifact_name_for_category(cc_toolchain, is_dynamic_link_type, output_name):
+    linked_artifact_category = None
+    if is_dynamic_link_type:
+        linked_artifact_category = artifact_category.DYNAMIC_LIBRARY
+    else:
+        linked_artifact_category = artifact_category.EXECUTABLE
+
+    return cc_common.get_artifact_name_for_category(cc_toolchain = cc_toolchain, category = linked_artifact_category, output_name = output_name)
+
+def _get_linked_artifact(ctx, cc_toolchain, is_dynamic_link_type):
+    name = ctx.label.name
+    new_name = _get_artifact_name_for_category(cc_toolchain, is_dynamic_link_type, _get_base_name(name))
+    name = _replace_name(name, new_name)
+
+    return ctx.actions.declare_file(name)
+
+def _is_test_target(ctx):
+    if hasattr(ctx.attr, "testonly"):
+        return ctx.attr.testonly
+
+    return False
 
 def _create_save_feature_state_artifacts(
         output_groups_builder,
@@ -979,6 +1018,22 @@ def _get_local_defines_for_runfiles_lookup(ctx, all_deps):
             return ["BAZEL_CURRENT_REPOSITORY=\"{}\"".format(ctx.label.workspace_name)]
     return []
 
+def _linker_scripts(ctx):
+    result = []
+    for dep in ctx.attr.deps:
+        for f in dep[DefaultInfo].files.to_list():
+            if f.extension in cpp_file_types.LINKER_SCRIPT:
+                result.append(f)
+    return result
+
+def _is_stamping_enabled(ctx):
+    if ctx.configuration.is_tool_configuration():
+        return 0
+    stamp = 0
+    if hasattr(ctx.attr, "stamp"):
+        stamp = ctx.attr.stamp
+    return stamp
+
 cc_helper = struct(
     create_strip_action = _create_strip_action,
     get_expanded_env = _get_expanded_env,
@@ -1021,5 +1076,10 @@ cc_helper = struct(
     merge_output_groups = _merge_output_groups,
     extensions = extensions,
     get_local_defines_for_runfiles_lookup = _get_local_defines_for_runfiles_lookup,
+    linker_scripts = _linker_scripts,
+    is_stamping_enabled = _is_stamping_enabled,
+    is_test_target = _is_test_target,
+    get_linked_artifact = _get_linked_artifact,
+    should_create_per_object_debug_info = should_create_per_object_debug_info,
 )
 # LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/cc_helper.bzl:forked_exports)
