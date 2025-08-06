@@ -42,14 +42,14 @@ _generate_modmap_wrapper = rule(
             mandatory = True,
             doc = "The compiler to use.",
         ),
+        "output": attr.output(
+            mandatory = True,
+            doc = "The output file.",
+        ),
         "_generate_modmap": attr.label(
             default = "@bazel_tools//tools/cpp:generate-modmap",
             executable = True,
             cfg = "exec",
-        ),
-        "output": attr.output(
-            mandatory = True,
-            doc = "The output file.",
         ),
     },
     executable = True,
