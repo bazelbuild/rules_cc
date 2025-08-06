@@ -41,6 +41,10 @@ load("@rules_cc//cc/private/rules_impl:cc_static_library.bzl", _cc_static_librar
 load("@rules_cc//cc/private/rules_impl:cc_test.bzl", _cc_test = "cc_test")
 load("@rules_cc//cc/private/rules_impl:objc_import.bzl", _objc_import = "objc_import")
 load("@rules_cc//cc/private/rules_impl:objc_library.bzl", _objc_library = "objc_library")
+load("@rules_cc//cc/private/rules_impl:fdo/fdo_prefetch_hints.bzl", _fdo_prefetch_hints = "fdo_prefetch_hints")
+load("@rules_cc//cc/private/rules_impl:fdo/fdo_profile.bzl", _fdo_profile = "fdo_profile")
+load("@rules_cc//cc/private/rules_impl:fdo/memprof_profile.bzl", _memprof_profile = "memprof_profile")
+load("@rules_cc//cc/private/rules_impl:fdo/propeller_optimize.bzl", _propeller_optimize = "propeller_optimize")
 
 cc_binary = _cc_binary
 cc_import = _cc_import
@@ -50,6 +54,10 @@ cc_static_library = _cc_static_library
 cc_test = _cc_test
 objc_import = _objc_import
 objc_library = _objc_library
+fdo_prefetch_hints = _fdo_prefetch_hints
+fdo_profile = _fdo_profile
+memprof_profile = _memprof_profile
+propeller_optimize = _propeller_optimize
             """,
         )
     else:
@@ -64,6 +72,10 @@ cc_static_library = getattr(native, "cc_static_library", None) # only in Bazel 8
 cc_test = native.cc_test
 objc_import = native.objc_import
 objc_library = native.objc_library
+fdo_prefetch_hints = native.fdo_prefetch_hints
+fdo_profile = native.fdo_profile
+memprof_profile = getattr(native, "memprof_profile", None) # only in Bazel 7+
+propeller_optimize = native.propeller_optimize
             """,
         )
 

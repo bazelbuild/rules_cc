@@ -13,4 +13,6 @@
 # limitations under the License.
 """fdo_profile rule"""
 
-fdo_profile = native.fdo_profile  # buildifier: disable=native-cc-fdo-profile
+load("@cc_compatibility_proxy//:proxy.bzl", _fdo_profile = "fdo_profile")
+
+fdo_profile = _fdo_profile
