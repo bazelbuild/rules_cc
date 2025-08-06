@@ -4,14 +4,12 @@ build_targets: &build_targets
   - "//cc/..."
   - "//examples/..."
   - "//tests/..."
-  - "-//examples/custom_toolchain:legacy_selector" # Example only works on Linux
   - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
 test_targets: &test_targets
   - "//:all"
   - "//cc/..."
   - "//examples/..."
   - "//tests/..."
-  - "-//examples/custom_toolchain:legacy_selector" # Example only works on Linux
   - "-//tests/system_library:system_library_test" # Only intended to work in WORKSPACE files
   - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
 
@@ -20,7 +18,6 @@ build_targets_bazel_6: &build_targets_bazel_6
   - "//cc:all"
   - "//examples/..."
   - "//tests/..."
-  - "-//examples/custom_toolchain:legacy_selector" # Example only works on Linux
   - "-//tests/rule_based_toolchain/..." # proto.encode_text doesn't support None
   - "-//cc:optional_current_cc_toolchain" # Not supported in Bazel 6
   - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
@@ -29,7 +26,6 @@ test_targets_bazel_6: &test_targets_bazel_6
   - "//cc:all"
   - "//examples/..."
   - "//tests/..."
-  - "-//examples/custom_toolchain:legacy_selector" # Example only works on Linux
   - "-//tests/rule_based_toolchain/..." # proto.encode_text doesn't support None
   - "-//cc:optional_current_cc_toolchain" # Not supported in Bazel 6
   - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
@@ -78,7 +74,6 @@ tasks:
       - "//cc/..."
       - "//examples/..."
       - "//tests/..."
-      - "-//examples/custom_toolchain:legacy_selector" # Example only works on Linux
       - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
   macos_head:
     name: MacOS (Bazel HEAD)
