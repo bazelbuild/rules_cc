@@ -1034,6 +1034,14 @@ def _is_stamping_enabled(ctx):
         stamp = ctx.attr.stamp
     return stamp
 
+def _has_target_constraints(ctx, constraints):
+    # Constraints is a label_list.
+    for constraint in constraints:
+        constraint_value = constraint[platform_common.ConstraintValueInfo]
+        if ctx.target_platform_has_constraint(constraint_value):
+            return True
+    return False
+
 cc_helper = struct(
     create_strip_action = _create_strip_action,
     get_expanded_env = _get_expanded_env,
@@ -1081,5 +1089,6 @@ cc_helper = struct(
     is_test_target = _is_test_target,
     get_linked_artifact = _get_linked_artifact,
     should_create_per_object_debug_info = should_create_per_object_debug_info,
+    has_target_constraints = _has_target_constraints,
 )
 # LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/cc_helper.bzl:forked_exports)
