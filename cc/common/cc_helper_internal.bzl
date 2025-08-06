@@ -158,7 +158,7 @@ def package_source_root(repository, package, sibling_repository_layout):
         return package
     if repository.startswith("@"):
         repository = repository[1:]
-    return paths.get_relative(paths.get_relative("external", repository), package)
+    return get_relative_path(paths.get_relative("external", repository), package)
 
 def repository_exec_path(repository, sibling_repository_layout):
     """
@@ -178,7 +178,7 @@ def repository_exec_path(repository, sibling_repository_layout):
         prefix = ".."
     if repository.startswith("@"):
         repository = repository[1:]
-    return paths.get_relative(prefix, repository)
+    return get_relative_path(prefix, repository)
 
 # LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/cc_helper_internal.bzl:forked_exports)
 
