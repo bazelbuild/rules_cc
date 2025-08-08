@@ -44,6 +44,7 @@ def _cc_external_feature_impl(ctx):
         overridable = ctx.attr.overridable,
         overrides = None,
         allowlist_include_directories = depset(),
+        allowlist_absolute_include_directories = depset(),
     )
     providers = [
         feature,

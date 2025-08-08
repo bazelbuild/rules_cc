@@ -202,6 +202,7 @@ def convert_toolchain(toolchain):
         d.path
         for d in toolchain.allowlist_include_directories.to_list()
     ]
+    cxx_builtin_include_directories += toolchain.allowlist_absolute_include_directories.to_list()
 
     artifact_name_patterns = [
         legacy_artifact_name_pattern(

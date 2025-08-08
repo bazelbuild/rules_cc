@@ -83,6 +83,7 @@ def _cc_feature_impl(ctx):
         overridable = False,
         overrides = overrides,
         allowlist_include_directories = args.allowlist_include_directories,
+        allowlist_absolute_include_directories = args.allowlist_absolute_include_directories,
     )
 
     return [
