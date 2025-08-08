@@ -346,6 +346,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
         "@rules_cc//cc/private/toolchain:osx_cc_wrapper.sh.tpl",
         "@rules_cc//cc/private/toolchain:clang_deps_scanner_wrapper.sh.tpl",
         "@rules_cc//cc/private/toolchain:gcc_deps_scanner_wrapper.sh.tpl",
+        "@rules_cc//cc/private/toolchain:generate_modmap_wrapper.bzl",
     ])
 
     repository_ctx.symlink(
@@ -356,6 +357,11 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     repository_ctx.symlink(
         paths["@rules_cc//cc/private/toolchain:armeabi_cc_toolchain_config.bzl"],
         "armeabi_cc_toolchain_config.bzl",
+    )
+
+    repository_ctx.symlink(
+        paths["@rules_cc//cc/private/toolchain:generate_modmap_wrapper.bzl"],
+        "generate_modmap_wrapper.bzl",
     )
 
     repository_ctx.file("tools/cpp/empty.cc", "int main() {}")

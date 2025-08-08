@@ -4,7 +4,7 @@ module(
     compatibility_level = 1,
 )
 
-bazel_dep(name = "bazel_features", version = "1.28.0")
+bazel_dep(name = "bazel_features", version = "1.33.0")
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
 bazel_dep(name = "platforms", version = "0.0.10")
 bazel_dep(name = "protobuf", version = "27.0", repo_name = "com_google_protobuf")
@@ -17,7 +17,8 @@ register_toolchains(
     "//cc/private/toolchain/test:default_test_runner_toolchain",
 )
 
-bazel_dep(name = "rules_shell", version = "0.2.0", dev_dependency = True)
+bazel_dep(name = "rules_shell", version = "0.2.0", dev_dependency = False)
+
 bazel_dep(name = "googletest", version = "1.15.2", dev_dependency = True)
 bazel_dep(name = "rules_testing", version = "0.6.0", dev_dependency = True)
 bazel_dep(name = "stardoc", version = "0.8.0", dev_dependency = True)
