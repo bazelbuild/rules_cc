@@ -158,7 +158,7 @@ def package_source_root(repository, package, sibling_repository_layout):
         return package
     if repository.startswith("@"):
         repository = repository[1:]
-    return get_relative_path(paths.get_relative("external", repository), package)
+    return get_relative_path(get_relative_path("external", repository), package)
 
 def repository_exec_path(repository, sibling_repository_layout):
     """
