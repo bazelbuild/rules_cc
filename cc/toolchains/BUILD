@@ -25,8 +25,8 @@ bzl_library(
         "//cc/private/rules_impl:cc_flags_supplier_lib_bzl",
         "//cc/private/rules_impl:native_bzl",
         "//cc/toolchains/impl:toolchain_impl_rules",
-        "@bazel_skylib//rules/directory:glob",
         "@bazel_features//:features",
+        "@bazel_skylib//rules/directory:glob",
     ],
 )
 
