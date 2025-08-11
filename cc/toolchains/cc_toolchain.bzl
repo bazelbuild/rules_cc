@@ -17,6 +17,8 @@ load("@bazel_features//:features.bzl", "bazel_features")
 
 def cc_toolchain(**kwargs):
     """
+    cc_toolchain rule
+
     Wrapper around native.cc_toolchain that removes features that are not
     supported by the C++ toolchain.
 
