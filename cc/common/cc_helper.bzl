@@ -1046,6 +1046,14 @@ def _has_target_constraints(ctx, constraints):
             return True
     return False
 
+def _is_fission_active_for_current_compilation_mode(ctx):
+    """Check if Debug Information Fission is active or not from the context.
+
+    Returns:
+        True if fission argument is yes or fission is active for the compilation mode; False otherwise
+    """
+    return ctx.fragments.cpp.fission_active_for_current_compilation_mode()
+
 cc_helper = struct(
     create_strip_action = _create_strip_action,
     get_expanded_env = _get_expanded_env,
@@ -1094,5 +1102,6 @@ cc_helper = struct(
     get_linked_artifact = _get_linked_artifact,
     should_create_per_object_debug_info = should_create_per_object_debug_info,
     has_target_constraints = _has_target_constraints,
+    is_fission_active = _is_fission_active_for_current_compilation_mode,
 )
 # LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/cc_helper.bzl:forked_exports)
