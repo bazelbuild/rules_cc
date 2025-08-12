@@ -84,8 +84,8 @@ def _cc_toolchain_config_impl(ctx):
             # compiler
             compiler = ctx.attr.compiler,
             target_cpu = ctx.attr.cpu,
+            target_system_name = ctx.attr.target_system_name,
             # These fields are only relevant for legacy toolchain resolution.
-            target_system_name = "",
             target_libc = "",
             abi_version = "",
             abi_libc_version = "",
@@ -111,6 +111,7 @@ cc_toolchain_config = rule(
         "enabled_features": attr.label_list(providers = [FeatureSetInfo]),
         "artifact_name_patterns": attr.label_list(providers = [ArtifactNamePatternInfo]),
         "make_variables": attr.label_list(providers = [MakeVariableInfo]),
+        "target_system_name": attr.string(default = ""),
         "_builtin_features": attr.label(default = "//cc/toolchains/features:all_builtin_features"),
     },
     provides = [ToolchainConfigInfo],

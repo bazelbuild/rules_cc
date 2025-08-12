@@ -68,6 +68,7 @@ def cc_toolchain(
         supports_header_parsing = False,
         supports_param_files = False,
         compiler = "",
+        target_system_name = "",
         **kwargs):
     """A C/C++ toolchain configuration.
 
@@ -156,6 +157,8 @@ def cc_toolchain(
         compiler: (str) The type of compiler used by this toolchain (e.g. "gcc", "clang"). The current
             toolchain's compiler is exposed to `@rules_cc//cc/private/toolchain:compiler
             (compiler_flag)` as a flag value.
+        target_system_name: (str) The target system name that will be passed to the toolchain. Usually a GNU triplet.
+            May be used by some rules (such as rules_swift) as a configuration detection mechanism.
         **kwargs: [common attributes](https://bazel.build/reference/be/common-definitions#common-attributes)
             that should be applied to all rules created by this macro.
     """
@@ -175,6 +178,7 @@ def cc_toolchain(
         known_features = known_features,
         enabled_features = enabled_features,
         compiler = compiler,
+        target_system_name = target_system_name,
         cpu = select({
             Label("//cc/toolchains/impl:darwin_aarch64"): "darwin_arm64",
             Label("//cc/toolchains/impl:darwin_x86_64"): "darwin_x86_64",
