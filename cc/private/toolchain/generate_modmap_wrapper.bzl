@@ -30,7 +30,7 @@ def _generate_modmap_wrapper_impl(ctx):
     )
     return [DefaultInfo(
         executable = output,
-        runfiles = ctx.runfiles().merge_all([ctx.attr._generate_modmap[DefaultInfo].default_runfiles, ctx.attr._generate_modmap[DefaultInfo].data_runfiles]),
+        runfiles = ctx.runfiles().merge(ctx.attr._generate_modmap[DefaultInfo].default_runfiles),
     )]
 
 _generate_modmap_wrapper = rule(
