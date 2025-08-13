@@ -16,11 +16,12 @@
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
 def _generate_modmap_wrapper_impl(ctx):
+    output = ctx.actions.declare_file(ctx.label.name + ".sh")
     ctx.actions.write(
-        output = ctx.outputs.output,
+        output = output,
         content = """
         set -e
-        $0.runfiles/_main/{generate_modmap} $@ {compiler}
+        "$0.runfiles/_main/{generate_modmap}" "{compiler}" "$@"
         """.format(
             generate_modmap = ctx.executable._generate_modmap.short_path,
             compiler = ctx.attr.compiler,
@@ -28,11 +29,8 @@ def _generate_modmap_wrapper_impl(ctx):
         is_executable = True,
     )
     return [DefaultInfo(
-        executable = ctx.outputs.output,
-        runfiles = ctx.runfiles(
-            files = [ctx.executable._generate_modmap],
-            collect_data = True,
-        ),
+        executable = output,
+        runfiles = ctx.runfiles().merge_all([ctx.attr._generate_modmap[DefaultInfo].default_runfiles, ctx.attr._generate_modmap[DefaultInfo].data_runfiles]),
     )]
 
 _generate_modmap_wrapper = rule(
@@ -42,14 +40,10 @@ _generate_modmap_wrapper = rule(
             mandatory = True,
             doc = "The compiler to use.",
         ),
-        "output": attr.output(
-            mandatory = True,
-            doc = "The output file.",
-        ),
         "_generate_modmap": attr.label(
             default = "@bazel_tools//tools/cpp:generate-modmap",
             executable = True,
-            cfg = "exec",
+            cfg = "target",
         ),
     },
     executable = True,
@@ -61,7 +55,6 @@ def generate_modmap_wrapper(
     _generate_modmap_wrapper(
         name = "gen_" + name,
         compiler = compiler,
-        output = name + ".sh",
     )
     sh_binary(
         name = name,
