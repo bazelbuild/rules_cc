@@ -766,7 +766,7 @@ def _get_cc_flags_make_variable(_ctx, feature_configuration, cc_toolchain):
 def _package_exec_path(ctx, package, sibling_repository_layout):
     return get_relative_path(_repository_exec_path(ctx.label.workspace_name, sibling_repository_layout), package)
 
-def _system_include_dirs(ctx, additional_make_variable_substitutions):
+def _include_dirs(ctx, additional_make_variable_substitutions):
     result = []
     sibling_repository_layout = ctx.configuration.is_sibling_repository_layout()
     package = ctx.label.package
@@ -1056,7 +1056,8 @@ cc_helper = struct(
     get_toolchain_global_make_variables = _get_toolchain_global_make_variables,
     get_cc_flags_make_variable = _get_cc_flags_make_variable,
     get_compilation_contexts_from_deps = _get_compilation_contexts_from_deps,
-    system_include_dirs = _system_include_dirs,
+    include_dirs = _include_dirs,
+    system_include_dirs = _include_dirs,  # TODO: Remove uses of old name
     stringify_linker_input = _stringify_linker_input,
     generate_def_file = _generate_def_file,
     get_windows_def_file_for_linking = _get_windows_def_file_for_linking,
