@@ -144,6 +144,11 @@ cc_action_type(
 )
 
 cc_action_type(
+    name = "dwp",
+    action_name = ACTION_NAMES.dwp,
+)
+
+cc_action_type(
     name = "validate_static_library",
     action_name = ACTION_NAMES.validate_static_library,
 )
