@@ -17,12 +17,12 @@ load("//cc:cc_binary.bzl", "cc_binary")
 licenses(["notice"])
 
 cc_binary(
-    name = "foo",
+    name = "bin",
     srcs = ["foo.cc"],
 )
 
 cc_binary(
-    name = "libfoo.so",
+    name = "foo",
     srcs = ["foo.cc"],
     linkshared = 1,
 )
