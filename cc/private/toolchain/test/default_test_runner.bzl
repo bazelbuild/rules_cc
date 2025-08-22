@@ -17,8 +17,15 @@ load("@bazel_features//:features.bzl", "bazel_features")
 
 visibility("private")
 
+def _has_any_target_constraint(ctx, constraints):
+    for constraint in constraints:
+        constraint_value = constraint[platform_common.ConstraintValueInfo]
+        if ctx.target_platform_has_constraint(constraint_value):
+            return True
+    return False
+
 def _default_test_runner_func(ctx, binary_info, processed_environment):
-    return [
+    providers = [
         DefaultInfo(
             executable = binary_info.executable,
             files = binary_info.files,
@@ -29,6 +36,12 @@ def _default_test_runner_func(ctx, binary_info, processed_environment):
             inherited_environment = ctx.attr.env_inherit,
         ),
     ]
+
+    if _has_any_target_constraint(ctx, ctx.attr._apple_constraints):
+        # When built for Apple platforms, require the execution to be on a Mac.
+        providers.append(testing.ExecutionInfo({"requires-darwin": ""}))
+
+    return providers
 
 def _default_test_runner_impl(_ctx):
     return [
