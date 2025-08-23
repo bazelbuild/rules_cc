@@ -16,7 +16,6 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//cc:cc_library.bzl", "cc_library")
 load("//cc/toolchains:cc_flags_supplier.bzl", "cc_flags_supplier")
-load("//cc/toolchains:compiler_flag.bzl", "compiler_flag")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -104,6 +103,9 @@ filegroup(
     srcs = ["lib_cc_configure.bzl"],
 )
 
-compiler_flag(name = "compiler")
+alias(
+    name = "compiler",
+    actual = "//cc/compiler",
+)
 
 cc_flags_supplier(name = "cc_flags")
