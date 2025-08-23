@@ -436,6 +436,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
         "cc_wrapper.sh",
         paths[cc_wrapper_src],
         {
+            "%{bash}": escape_string(repository_ctx.which("bash")),
             "%{cc}": escape_string(str(cc)),
             "%{env}": escape_string(get_env(repository_ctx)),
         },
