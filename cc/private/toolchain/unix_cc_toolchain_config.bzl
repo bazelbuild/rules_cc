@@ -1724,10 +1724,10 @@ def _impl(ctx):
         flag_sets = [
             flag_set(
                 actions = all_link_actions,
-                flag_groups = [flag_group(flags = [
-                    "-no-canonical-prefixes",
-                    "-fobjc-link-runtime",
-                ])],
+                flag_groups = [flag_group(
+                    flags = ["-no-canonical-prefixes"] +
+                            (["-fobjc-link-runtime"] if ctx.attr.compiler == "clang" else []),
+                )],
             ),
         ],
     )
