@@ -48,6 +48,18 @@ cpp_file_types = struct(
 artifact_category = _artifact_category
 extensions = _extensions
 
+# NOTE: Prefer to use _is_valid_shared_library_artifact() instead of this method since
+# it has better performance (checking for extension in a short list rather than multiple
+# string.endswith() checks)
+def _is_valid_shared_library_name(shared_library_name):
+    if (shared_library_name.endswith(".so") or
+        shared_library_name.endswith(".dll") or
+        shared_library_name.endswith(".dylib") or
+        shared_library_name.endswith(".wasm")):
+        return True
+
+    return is_versioned_shared_library_extension_valid(shared_library_name)
+
 def _replace_name(name, new_name):
     last_slash = name.rfind("/")
     if last_slash == -1:
@@ -1053,6 +1065,7 @@ cc_helper = struct(
     should_use_pic = _should_use_pic,
     tokenize = _tokenize,
     is_valid_shared_library_artifact = _is_valid_shared_library_artifact,
+    is_valid_shared_library_name = _is_valid_shared_library_name,
     get_toolchain_global_make_variables = _get_toolchain_global_make_variables,
     get_cc_flags_make_variable = _get_cc_flags_make_variable,
     get_compilation_contexts_from_deps = _get_compilation_contexts_from_deps,
