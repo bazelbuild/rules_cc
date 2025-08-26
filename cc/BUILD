@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load(":starlark_doc_extract_helper.bzl", "starlark_doc_extract_helper")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -118,6 +119,7 @@ bzl_library(
     deps = [
         ":core_rules",
         "//cc/common",
+        "//cc/private/rules_impl:failing_cc_proto_library_bzl",
         "//cc/toolchains:toolchain_rules",
     ],
 )
@@ -136,7 +138,7 @@ bzl_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        "//cc/private/rules_impl:core_rules",
+        "@cc_compatibility_proxy//:proxy_bzl",
     ],
 )
 
@@ -149,3 +151,13 @@ alias(
 )
 
 cc_libc_top_alias(name = "current_libc_top")
+
+# unused target to test that we have the right bzl_library graph
+starlark_doc_extract_helper(
+    name = "defs_doc_extract",
+    src = "defs.bzl",
+    visibility = ["//visibility:private"],
+    deps = [
+        ":defs_bzl",
+    ],
+)

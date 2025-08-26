@@ -27,20 +27,37 @@ bzl_library(
 )
 
 bzl_library(
+    name = "failing_cc_proto_library_bzl",
+    srcs = ["failing_cc_proto_library.bzl"],
+    visibility = ["//cc:__subpackages__"],
+    deps = ["//cc/common"],
+)
+
+bzl_library(
     name = "core_rules",
     srcs = [
+        "attrs.bzl",
         "cc_binary.bzl",
         "cc_import.bzl",
         "cc_library.bzl",
         "cc_shared_library.bzl",
         "cc_static_library.bzl",
         "cc_test.bzl",
-        "failing_cc_proto_library.bzl",
+        "fdo/fdo_prefetch_hints.bzl",
+        "fdo/fdo_profile.bzl",
+        "fdo/memprof_profile.bzl",
+        "fdo/propeller_optimize.bzl",
         "objc_import.bzl",
         "objc_library.bzl",
     ],
-    visibility = ["//cc:__subpackages__"],
-    deps = ["//cc/common"],
+    visibility = [
+        "//cc:__subpackages__",
+        "@cc_compatibility_proxy//:__pkg__",
+    ],
+    deps = [
+        "//cc/common",
+        "@com_google_protobuf//bazel/common:proto_info_bzl",
+    ],
 )
 
 bzl_library(

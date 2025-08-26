@@ -27,9 +27,20 @@ def _cc_configure_extension_impl(ctx):
 cc_configure_extension = module_extension(implementation = _cc_configure_extension_impl)
 
 def _compatibility_proxy_repo_impl(rctx):
-    rctx.file("BUILD", "")
     bazel = native.bazel_version
     if not bazel or bazel >= "9":
+        rctx.file(
+            "BUILD",
+            """
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+bzl_library(
+  name = "proxy_bzl",
+  srcs = ["proxy.bzl"],
+  deps = ["@rules_cc//cc/private/rules_impl:core_rules"],
+  visibility = ["@rules_cc//cc:__pkg__"],
+)
+            """,
+        )
         rctx.file(
             "proxy.bzl",
             """
@@ -61,6 +72,17 @@ propeller_optimize = _propeller_optimize
             """,
         )
     else:
+        rctx.file(
+            "BUILD",
+            """
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+bzl_library(
+  name = "proxy_bzl",
+  srcs = ["proxy.bzl"],
+  visibility = ["@rules_cc//cc:__pkg__"],
+)
+            """,
+        )
         rctx.file(
             "proxy.bzl",
             """
