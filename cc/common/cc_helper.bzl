@@ -130,7 +130,10 @@ def _merge_cc_debug_contexts(compilation_outputs, dep_cc_infos):
     debug_context = cc_common.create_debug_context(compilation_outputs)
     debug_contexts = []
     for dep_cc_info in dep_cc_infos:
-        debug_contexts.append(dep_cc_info.debug_context())
+        if hasattr(dep_cc_info, "_debug_context"):
+            debug_contexts.append(dep_cc_info._debug_context)
+        else:
+            debug_contexts.append(dep_cc_info.debug_context())
     debug_contexts.append(debug_context)
 
     return cc_common.merge_debug_context(debug_contexts)
