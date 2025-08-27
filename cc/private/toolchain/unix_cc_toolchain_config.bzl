@@ -471,6 +471,8 @@ def _impl(ctx):
         ],
     )
 
+    fastbuild_feature = feature(name = "fastbuild")
+
     dbg_feature = feature(name = "dbg")
 
     opt_feature = feature(name = "opt")
@@ -1847,6 +1849,7 @@ def _impl(ctx):
             static_libgcc_feature,
             fdo_optimize_feature,
             supports_dynamic_linker_feature,
+            fastbuild_feature,
             dbg_feature,
             opt_feature,
             user_compile_flags_feature,
