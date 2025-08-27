@@ -112,6 +112,7 @@ cc_toolchain_config(
     cxx_builtin_include_directories = [%{cxx_builtin_include_directories}],
     tool_paths = {%{tool_paths}},
     compile_flags = [%{compile_flags}],
+    fastbuild_compile_flags = [%{fastbuild_compile_flags}],
     opt_compile_flags = [%{opt_compile_flags}],
     dbg_compile_flags = [%{dbg_compile_flags}],
     conly_flags = [%{conly_flags}],

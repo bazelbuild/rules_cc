@@ -666,6 +666,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
             "%{coverage_link_flags}": coverage_link_flags,
             "%{cxx_builtin_include_directories}": get_starlark_list(builtin_include_directories),
             "%{cxx_flags}": get_starlark_list(cxx_opts + _escaped_cplus_include_paths(repository_ctx)),
+            "%{fastbuild_compile_flags}": get_starlark_list([]),
             "%{dbg_compile_flags}": get_starlark_list(["-g"]),
             "%{extra_flags_per_feature}": repr(extra_flags_per_feature),
             "%{host_system_name}": escape_string(get_env_var(
