@@ -901,10 +901,6 @@ def _copts_filter(ctx, additional_make_variable_substitutions):
     # Expand nocopts and create CoptsFilter.
     return _expand(ctx, nocopts, additional_make_variable_substitutions)
 
-# This should be enough to assume if two labels are equal.
-def _are_labels_equal(a, b):
-    return a.name == b.name and a.package == b.package
-
 def _map_to_list(m):
     result = []
     for k, v in m.items():
@@ -925,7 +921,7 @@ def _calculate_artifact_label_map(attr_list, attr_name):
                 if "." + artifact.extension not in extensions.CC_HEADER:
                     old_label = artifact_label_map.get(artifact, None)
                     artifact_label_map[artifact] = attr.label
-                    if old_label != None and not _are_labels_equal(old_label, attr.label) and (
+                    if old_label != None and old_label != attr.label and (
                         "." + artifact.extension in extensions.CC_AND_OBJC or attr_name == "module_interfaces"
                     ):
                         fail(
