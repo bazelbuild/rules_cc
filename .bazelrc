@@ -1,2 +1,2 @@
-# Required by abseil-cpp.
-common --cxxopt=-std=c++14
+# Required by googletest 1.17.
+common --cxxopt=-std=c++17
