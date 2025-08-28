@@ -40,5 +40,9 @@ http_archive(
     url = "https://github.com/bazelbuild/rules_cc/releases/download/${TAG}/${ARCHIVE}",
 )
 
+load("@rules_cc//cc:extensions.bzl", "compatibility_proxy_repo")
+
+compatibility_proxy_repo()
+
 \`\`\`
 EOF
