@@ -901,7 +901,7 @@ def _impl(ctx):
         )
         set_install_name_feature = feature(
             name = "set_install_name",
-            enabled = ctx.fragments.cpp.do_not_use_macos_set_install_name,
+            enabled = getattr(ctx.fragments.cpp, "do_not_use_macos_set_install_name", True),
             flag_sets = [
                 flag_set(
                     actions = [
