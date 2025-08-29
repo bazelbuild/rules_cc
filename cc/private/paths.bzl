@@ -1,4 +1,4 @@
-# Copyright 2024 The Bazel Authors. All rights reserved.
+# Copyright 2025 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,14 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-filegroup(
-    name = "srcs",
-    srcs = glob([
-        "**/BUILD",
-        "*.bzl",
-    ]) + [
-        "//cc/private/rules_impl:srcs",
-        "//cc/private/toolchain:srcs",
-    ],
-    visibility = ["//visibility:public"],
-)
+def is_path_absolute(path):
+    if path.startswith("/"):
+        return True
+
+    # Check for DOS-style absolute paths for Windows
+    return len(path) >= 3 and \
+           path[0].isalpha() and \
+           path[1] == ":" and \
+           path[2] in ("/", "\\")
