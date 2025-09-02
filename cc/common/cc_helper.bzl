@@ -48,6 +48,12 @@ cpp_file_types = struct(
 artifact_category = _artifact_category
 extensions = _extensions
 
+def _libraries_from_linking_context(linking_context):
+    libraries = []
+    for linker_input in linking_context.linker_inputs.to_list():
+        libraries.extend(linker_input.libraries)
+    return depset(libraries, order = "topological")
+
 # NOTE: Prefer to use _is_valid_shared_library_artifact() instead of this method since
 # it has better performance (checking for extension in a short list rather than multiple
 # string.endswith() checks)
@@ -1074,7 +1080,9 @@ cc_helper = struct(
     generate_def_file = _generate_def_file,
     get_windows_def_file_for_linking = _get_windows_def_file_for_linking,
     is_non_empty_list_or_select = _is_non_empty_list_or_select,
+    check_file_extensions = _check_file_extensions,
     check_srcs_extensions = _check_srcs_extensions,
+    libraries_from_linking_context = _libraries_from_linking_context,
     report_invalid_options = _report_invalid_options,
     check_cpp_modules = _check_cpp_modules,
     build_precompiled_files = _build_precompiled_files,
@@ -1093,6 +1101,7 @@ cc_helper = struct(
     linkopts = _linkopts,
     build_linking_context_from_libraries = _build_linking_context_from_libraries,
     collect_native_cc_libraries = _collect_native_cc_libraries,
+    get_coverage_environment = _get_coverage_environment,
     create_cc_instrumented_files_info = _create_cc_instrumented_files_info,
     get_dynamic_libraries_for_runtime = _get_dynamic_libraries_for_runtime,
     build_output_groups_for_emitting_compile_providers = _build_output_groups_for_emitting_compile_providers,

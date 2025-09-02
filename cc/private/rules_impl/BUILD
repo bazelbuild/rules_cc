@@ -55,6 +55,7 @@ bzl_library(
         "@cc_compatibility_proxy//:__pkg__",
     ],
     deps = [
+        ":objc_common",
         "//cc/common",
         "@com_google_protobuf//bazel/common:proto_info_bzl",
     ],
@@ -63,8 +64,16 @@ bzl_library(
 bzl_library(
     name = "objc_common",
     srcs = [
+        "apple_configuration.bzl",
+        "apple_env.bzl",
+        "apple_platform.bzl",
+        "objc_attrs.bzl",
         "objc_common.bzl",
+        "objc_compilation_artifacts_info.bzl",
         "objc_compilation_context_info.bzl",
+        "objc_compilation_support.bzl",
+        "objc_intermediate_artifacts.bzl",
+        "objc_semantics.bzl",
     ],
     visibility = ["//cc:__subpackages__"],
 )
