@@ -31,6 +31,14 @@ exports_files([
     "defs.bzl",
     "action_names.bzl",
     "system_library.bzl",
+    "cc_binary.bzl",
+    "cc_import.bzl",
+    "cc_library.bzl",
+    "cc_shared_library.bzl",
+    "cc_static_library.bzl",
+    "cc_test.bzl",
+    "objc_import.bzl",
+    "objc_library.bzl",
 ])
 
 # The toolchain type used to distinguish cc toolchains.
