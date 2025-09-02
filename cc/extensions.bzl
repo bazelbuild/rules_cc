@@ -47,7 +47,7 @@ bzl_library(
 load("@rules_cc//cc/private/rules_impl:cc_binary.bzl", _cc_binary = "cc_binary")
 load("@rules_cc//cc/private/rules_impl:cc_import.bzl", _cc_import = "cc_import")
 load("@rules_cc//cc/private/rules_impl:cc_library.bzl", _cc_library = "cc_library")
-load("@rules_cc//cc/private/rules_impl:cc_shared_library.bzl", _cc_shared_library = "cc_shared_library")
+load("@rules_cc//cc/private/rules_impl:cc_shared_library.bzl", _cc_shared_library = "cc_shared_library", _CcSharedLibraryInfo = "CcSharedLibraryInfo")
 load("@rules_cc//cc/private/rules_impl:cc_static_library.bzl", _cc_static_library = "cc_static_library")
 load("@rules_cc//cc/private/rules_impl:cc_test.bzl", _cc_test = "cc_test")
 load("@rules_cc//cc/private/rules_impl:objc_import.bzl", _objc_import = "objc_import")
@@ -69,6 +69,8 @@ fdo_prefetch_hints = _fdo_prefetch_hints
 fdo_profile = _fdo_profile
 memprof_profile = _memprof_profile
 propeller_optimize = _propeller_optimize
+
+CcSharedLibraryInfo = _CcSharedLibraryInfo
             """,
         )
     else:
@@ -86,6 +88,7 @@ bzl_library(
         rctx.file(
             "proxy.bzl",
             """
+load("@rules_cc//cc/private/rules_impl:native.bzl", "NativeCcSharedLibraryInfo")
 cc_binary = native.cc_binary
 cc_import = native.cc_import
 cc_library = native.cc_library
@@ -98,6 +101,8 @@ fdo_prefetch_hints = native.fdo_prefetch_hints
 fdo_profile = native.fdo_profile
 memprof_profile = getattr(native, "memprof_profile", None) # only in Bazel 7+
 propeller_optimize = native.propeller_optimize
+
+CcSharedLibraryInfo = NativeCcSharedLibraryInfo
             """,
         )
 
