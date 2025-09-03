@@ -70,7 +70,11 @@ def convert_args(args, strip_actions = False):
         ))
 
     env_sets = []
-    if args.env:
+    if args.env.entries:
+        # NOTE: Use kwargs to support older bazel versions
+        kwargs = {}
+        if args.env.requires_not_none:
+            kwargs["expand_if_available"] = args.env.requires_not_none
         env_sets.append(legacy_env_set(
             actions = actions,
             with_features = with_features,
@@ -78,8 +82,9 @@ def convert_args(args, strip_actions = False):
                 legacy_env_entry(
                     key = key,
                     value = value,
+                    **kwargs
                 )
-                for key, value in args.env.items()
+                for key, value in args.env.entries.items()
             ],
         ))
     return struct(
