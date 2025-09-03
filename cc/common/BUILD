@@ -20,7 +20,6 @@ bzl_library(
     visibility = ["//visibility:public"],
     deps = [
         "//cc/private/rules_impl:native_bzl",
-        "//cc/private/rules_impl:objc_common",
     ],
 )
 
