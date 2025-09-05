@@ -41,36 +41,40 @@ If multiple targets use the same set of conditionally enabled flags, this can be
 simplified by extracting the select expression into a Starlark constant.
 """
 
+load("//cc/toolchains:compiler_flag.bzl", "compiler_flag")
+
 package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
 
+compiler_flag(name = "compiler")
+
 config_setting(
     name = "clang",
-    flag_values = {"@rules_cc//cc/private/toolchain:compiler": "clang"},
+    flag_values = {":compiler": "clang"},
 )
 
 config_setting(
     name = "clang-cl",
-    flag_values = {"@rules_cc//cc/private/toolchain:compiler": "clang-cl"},
+    flag_values = {":compiler": "clang-cl"},
 )
 
 config_setting(
     name = "gcc",
-    flag_values = {"@rules_cc//cc/private/toolchain:compiler": "gcc"},
+    flag_values = {":compiler": "gcc"},
 )
 
 config_setting(
     name = "mingw-gcc",
-    flag_values = {"@rules_cc//cc/private/toolchain:compiler": "mingw-gcc"},
+    flag_values = {":compiler": "mingw-gcc"},
 )
 
 config_setting(
     name = "msvc-cl",
-    flag_values = {"@rules_cc//cc/private/toolchain:compiler": "msvc-cl"},
+    flag_values = {":compiler": "msvc-cl"},
 )
 
 config_setting(
     name = "emscripten",
-    flag_values = {"@rules_cc//cc/private/toolchain:compiler": "emscripten"},
+    flag_values = {":compiler": "emscripten"},
 )
