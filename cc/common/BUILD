@@ -14,6 +14,14 @@
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
+exports_files(
+    [
+        "cc_common.bzl",
+        "cc_info.bzl",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 bzl_library(
     name = "common",
     srcs = glob(["*.bzl"]),
