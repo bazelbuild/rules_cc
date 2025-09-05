@@ -62,7 +62,7 @@ def _simple_test(env, targets):
         targets.c_compile.label,
         targets.cpp_compile.label,
     ])
-    simple.env().contains_exactly({"BAR": "bar"})
+    simple.env().entries().contains_exactly({"BAR": "bar"})
     simple.files().contains_exactly(_SIMPLE_FILES)
 
     c_compile = env.expect.that_target(targets.simple).provider(ArgsListInfo).by_action().get(
@@ -91,7 +91,7 @@ def _env_only_test(env, targets):
         targets.c_compile.label,
         targets.cpp_compile.label,
     ])
-    env_only.env().contains_exactly({"BAR": "bar"})
+    env_only.env().entries().contains_exactly({"BAR": "bar"})
     env_only.files().contains_exactly(_SIMPLE_FILES)
 
     c_compile = env.expect.that_target(targets.simple).provider(ArgsListInfo).by_action().get(
@@ -110,6 +110,45 @@ def _env_only_test(env, targets):
 
     converted.flag_sets().contains_exactly([])
 
+def _env_only_requires_test(env, targets):
+    env_only = env.expect.that_target(targets.env_only_requires).provider(ArgsInfo)
+    env_only.actions().contains_at_least([
+        Label("//cc/toolchains/actions:c_compile"),
+        Label("//cc/toolchains/actions:cpp_compile"),
+    ])
+    env_only.env().entries().contains_exactly(
+        {"BAR": "%{dependency_file}"},
+    )
+
+    converted = env.expect.that_value(
+        convert_args(targets.env_only_requires[ArgsInfo]),
+        factory = _CONVERTED_ARGS,
+    )
+
+    converted.env_sets().contains_exactly([env_set(
+        actions = [
+            "assemble",
+            "c++-compile",
+            "c++-header-parsing",
+            "c++-module-codegen",
+            "c++-module-compile",
+            "c-compile",
+            "clif-match",
+            "linkstamp-compile",
+            "lto-backend",
+            "objc++-compile",
+            "objc-compile",
+            "preprocess-assemble",
+        ],
+        env_entries = [env_entry(
+            key = "BAR",
+            value = "%{dependency_file}",
+            expand_if_available = "dependency_file",
+        )],
+    )])
+
+    converted.flag_sets().contains_exactly([])
+
 def _with_dir_test(env, targets):
     with_dir = env.expect.that_target(targets.with_dir).provider(ArgsInfo)
     with_dir.allowlist_include_directories().contains_exactly([_TOOL_DIRECTORY])
@@ -124,8 +163,11 @@ TARGETS = [
     ":simple",
     ":some_variable",
     ":env_only",
+    ":env_only_requires",
     ":with_dir",
     ":iterate_over_optional",
+    ":good_env_format",
+    ":good_env_format_optional",
     "//tests/rule_based_toolchain/actions:c_compile",
     "//tests/rule_based_toolchain/actions:cpp_compile",
     "//tests/rule_based_toolchain/testdata:directory",
@@ -203,12 +245,11 @@ def _format_dict_values_test(env, targets):
     ])
     res.used_items().contains_exactly(["bar", "quuz", "qux"])
 
-    expected_label = Label("//tests/rule_based_toolchain/args:some_variable")
-    res = _expect_that_formatted(
+    _expect_that_formatted(
         env,
         {"foo": "{bar}"},
         {"bar": targets.some_variable},
-    ).err().equals("Unsupported cc_variable substitution " + str(expected_label) + ' in "{bar}".')
+    ).ok()
 
     _expect_that_formatted(
         env,
@@ -241,10 +282,73 @@ def _format_dict_values_test(env, targets):
         must_use = ["var"],
     ).err().contains('"var" was not used')
 
+def _good_env_format_test(env, targets):
+    good_env = env.expect.that_target(targets.good_env_format).provider(ArgsInfo)
+    good_env.env().entries().contains_exactly({"FOO": "%{gcov_gcno_file}"})
+
+    converted = env.expect.that_value(
+        convert_args(targets.good_env_format[ArgsInfo]),
+        factory = _CONVERTED_ARGS,
+    )
+    converted.env_sets().contains_exactly([env_set(
+        actions = [
+            "assemble",
+            "c++-compile",
+            "c++-header-parsing",
+            "c++-module-codegen",
+            "c++-module-compile",
+            "c-compile",
+            "clif-match",
+            "linkstamp-compile",
+            "lto-backend",
+            "objc++-compile",
+            "objc-compile",
+            "preprocess-assemble",
+        ],
+        env_entries = [env_entry(
+            key = "FOO",
+            value = "%{gcov_gcno_file}",
+        )],
+    )])
+
+def _good_env_format_optional_test(env, targets):
+    """Test that env formatting works with optional types."""
+    good_env_optional = env.expect.that_target(targets.good_env_format_optional).provider(ArgsInfo)
+    good_env_optional.env().entries().contains_exactly({"FOO": "%{dependency_file}"})
+
+    converted = env.expect.that_value(
+        convert_args(targets.good_env_format_optional[ArgsInfo]),
+        factory = _CONVERTED_ARGS,
+    )
+    converted.env_sets().contains_exactly([env_set(
+        actions = [
+            "assemble",
+            "c++-compile",
+            "c++-header-parsing",
+            "c++-module-codegen",
+            "c++-module-compile",
+            "c-compile",
+            "clif-match",
+            "linkstamp-compile",
+            "lto-backend",
+            "objc++-compile",
+            "objc-compile",
+            "preprocess-assemble",
+        ],
+        env_entries = [env_entry(
+            key = "FOO",
+            value = "%{dependency_file}",
+            expand_if_available = "dependency_file",
+        )],
+    )])
+
 # @unsorted-dict-items
 TESTS = {
     "simple_test": _simple_test,
     "format_dict_values_test": _format_dict_values_test,
     "env_only_test": _env_only_test,
+    "env_only_requires_test": _env_only_requires_test,
     "with_dir_test": _with_dir_test,
+    "good_env_format_test": _good_env_format_test,
+    "good_env_format_optional_test": _good_env_format_optional_test,
 }

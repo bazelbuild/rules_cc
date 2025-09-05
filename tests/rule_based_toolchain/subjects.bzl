@@ -21,6 +21,7 @@ load(
     "ActionTypeSetInfo",
     "ArgsInfo",
     "ArgsListInfo",
+    "EnvInfo",
     "FeatureConstraintInfo",
     "FeatureInfo",
     "FeatureSetInfo",
@@ -138,12 +139,22 @@ _NestedArgsFactory = generate_factory(
 )
 
 # buildifier: disable=name-conventions
+_EnvInfoFactory = generate_factory(
+    EnvInfo,
+    "EnvInfo",
+    dict(
+        entries = _subjects.dict,
+        requires_not_none = optional_subject(_subjects.str),
+    ),
+)
+
+# buildifier: disable=name-conventions
 _ArgsFactory = generate_factory(
     ArgsInfo,
     "ArgsInfo",
     dict(
         actions = ProviderDepset(_ActionTypeFactory),
-        env = _subjects.dict,
+        env = _EnvInfoFactory.factory,
         files = _subjects.depset_file,
         # Use .factory so it's not inlined.
         nested = optional_subject(_NestedArgsFactory.factory),

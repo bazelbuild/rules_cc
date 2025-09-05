@@ -14,7 +14,7 @@
 """All providers for rule-based bazel toolchain config."""
 
 load("@bazel_skylib//rules/directory:providers.bzl", "DirectoryInfo")
-load("//cc/toolchains/impl:args_utils.bzl", "validate_nested_args")
+load("//cc/toolchains/impl:args_utils.bzl", "validate_env_variables", "validate_nested_args")
 load(
     "//cc/toolchains/impl:collect.bzl",
     "collect_action_types",
@@ -33,7 +33,9 @@ load(
     "ArgsInfo",
     "ArgsListInfo",
     "BuiltinVariablesInfo",
+    "EnvInfo",
     "FeatureConstraintInfo",
+    "VariableInfo",
 )
 
 visibility("public")
@@ -68,12 +70,24 @@ def _cc_args_impl(ctx):
 
     requires = collect_provider(ctx.attr.requires_any_of, FeatureConstraintInfo)
 
+    env = EnvInfo(
+        label = ctx.label,
+        entries = formatted_env,
+        requires_not_none = ctx.attr.requires_not_none[VariableInfo].name if ctx.attr.requires_not_none else None,
+    )
+    validate_env_variables(
+        actions = actions.to_list(),
+        env = env,
+        variables = ctx.attr._variables[BuiltinVariablesInfo].variables,
+        used_format_vars = used_format_vars,
+    )
+
     args = ArgsInfo(
         label = ctx.label,
         actions = actions,
         requires_any_of = tuple(requires),
         nested = nested,
-        env = formatted_env,
+        env = env,
         files = files,
         allowlist_include_directories = depset(
             direct = [d[DirectoryInfo] for d in ctx.attr.allowlist_include_directories],
