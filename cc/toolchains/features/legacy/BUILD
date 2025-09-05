@@ -209,6 +209,12 @@ cc_external_feature(
     overridable = True,
 )
 
+cc_external_feature(
+    name = "generate_dsym_file",
+    feature_name = "generate_dsym_file",
+    overridable = True,
+)
+
 # Instead of the "sysroot" legacy flag, use the cc_sysroot macro in
 # //cc/toolchains/args:sysroot.bzl
 
