@@ -1116,5 +1116,6 @@ cc_helper = struct(
     get_linked_artifact = _get_linked_artifact,
     should_create_per_object_debug_info = should_create_per_object_debug_info,
     has_target_constraints = _has_target_constraints,
+    package_exec_path = _package_exec_path,
 )
 # LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/cc_helper.bzl:forked_exports)

@@ -43,10 +43,6 @@ bzl_library(
         "cc_shared_library.bzl",
         "cc_static_library.bzl",
         "cc_test.bzl",
-        "fdo/fdo_prefetch_hints.bzl",
-        "fdo/fdo_profile.bzl",
-        "fdo/memprof_profile.bzl",
-        "fdo/propeller_optimize.bzl",
         "objc_import.bzl",
         "objc_library.bzl",
     ],
@@ -61,6 +57,29 @@ bzl_library(
         "//cc/common",
         "@bazel_skylib//lib:paths",
         "@com_google_protobuf//bazel/common:proto_info_bzl",
+    ],
+)
+
+bzl_library(
+    name = "toolchain_rules",
+    srcs = [
+        "cc_toolchain.bzl",
+        "cc_toolchain_info.bzl",
+        "cc_toolchain_provider_helper.bzl",
+        "fdo/fdo_context.bzl",
+        "fdo/fdo_prefetch_hints.bzl",
+        "fdo/fdo_profile.bzl",
+        "fdo/memprof_profile.bzl",
+        "fdo/propeller_optimize.bzl",
+    ],
+    visibility = [
+        "//cc:__subpackages__",
+        "@cc_compatibility_proxy//:__pkg__",
+    ],
+    deps = [
+        "//cc/common",
+        "//cc/toolchains:cc_toolchain_config_info_bzl",
+        "@bazel_skylib//lib:paths",
     ],
 )
 

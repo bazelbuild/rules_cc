@@ -34,7 +34,9 @@ stardoc(
     name = "toolchain_api",
     out = "raw_generated_toolchain_api.md",
     input = "//cc/toolchains/impl:documented_api.bzl",
-    deps = ["//cc/toolchains:toolchain_rules"],
+    deps = [
+        "//cc/toolchains:toolchain_rules",
+    ],
 )
 
 expand_template(

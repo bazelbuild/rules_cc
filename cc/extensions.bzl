@@ -36,8 +36,11 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 bzl_library(
   name = "proxy_bzl",
   srcs = ["proxy.bzl"],
-  deps = ["@rules_cc//cc/private/rules_impl:core_rules"],
-  visibility = ["@rules_cc//cc:__pkg__"],
+  deps = [
+    "@rules_cc//cc/private/rules_impl:core_rules",
+    "@rules_cc//cc/private/rules_impl:toolchain_rules",
+  ],
+  visibility = ["@rules_cc//cc:__subpackages__"],
 )
             """,
         )
@@ -56,6 +59,7 @@ load("@rules_cc//cc/private/rules_impl:fdo/fdo_prefetch_hints.bzl", _fdo_prefetc
 load("@rules_cc//cc/private/rules_impl:fdo/fdo_profile.bzl", _fdo_profile = "fdo_profile")
 load("@rules_cc//cc/private/rules_impl:fdo/memprof_profile.bzl", _memprof_profile = "memprof_profile")
 load("@rules_cc//cc/private/rules_impl:fdo/propeller_optimize.bzl", _propeller_optimize = "propeller_optimize")
+load("@rules_cc//cc/private/rules_impl:cc_toolchain.bzl", _cc_toolchain = "cc_toolchain")
 
 cc_binary = _cc_binary
 cc_import = _cc_import
@@ -69,6 +73,7 @@ fdo_prefetch_hints = _fdo_prefetch_hints
 fdo_profile = _fdo_profile
 memprof_profile = _memprof_profile
 propeller_optimize = _propeller_optimize
+cc_toolchain = _cc_toolchain
 
 CcSharedLibraryInfo = _CcSharedLibraryInfo
             """,
@@ -82,7 +87,7 @@ bzl_library(
   name = "proxy_bzl",
   srcs = ["proxy.bzl"],
   deps = ["@rules_cc//cc/private/rules_impl:native_bzl"],
-  visibility = ["@rules_cc//cc:__pkg__"],
+  visibility = ["@rules_cc//cc:__subpackages__"],
 )
             """,
         )
@@ -102,6 +107,7 @@ fdo_prefetch_hints = native.fdo_prefetch_hints
 fdo_profile = native.fdo_profile
 memprof_profile = getattr(native, "memprof_profile", None) # only in Bazel 7+
 propeller_optimize = native.propeller_optimize
+cc_toolchain = native.cc_toolchain
 
 CcSharedLibraryInfo = NativeCcSharedLibraryInfo
             """,

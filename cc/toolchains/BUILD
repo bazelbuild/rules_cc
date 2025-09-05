@@ -26,6 +26,16 @@ bzl_library(
         "//cc/private/rules_impl:native_bzl",
         "//cc/toolchains/impl:toolchain_impl_rules",
         "@bazel_skylib//rules/directory:glob",
+        "@cc_compatibility_proxy//:proxy_bzl",
+    ],
+)
+
+bzl_library(
+    name = "cc_toolchain_config_info_bzl",
+    srcs = ["cc_toolchain_config_info.bzl"],
+    visibility = ["//cc:__subpackages__"],
+    deps = [
+        "//cc/private/rules_impl:native_bzl",
     ],
 )
 
