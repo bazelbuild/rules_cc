@@ -291,7 +291,7 @@ def nested_args_provider(
 def _escape(s):
     return s.replace("%", "%%")
 
-def _format_target(target, arg, fail = fail):
+def _format_target(target, fail = fail):
     if VariableInfo in target:
         return "%%{%s}" % target[VariableInfo].name
     elif DirectoryInfo in target:
@@ -331,7 +331,7 @@ def _format_string(arg, format, used_vars, fail = fail):
             else:
                 used_vars[variable] = None
                 has_format = True
-                out.append(_format_target(format[variable], arg, fail = fail))
+                out.append(_format_target(format[variable], fail = fail))
                 upto += len(variable) + 2
 
         elif arg[upto] == "}":
