@@ -17,6 +17,7 @@ load(
     "//cc/toolchains:cc_toolchain_info.bzl",
     "ArgsListInfo",
     "FeatureConstraintInfo",
+    "FeatureImplyabilityInfo",
     "FeatureInfo",
     "FeatureSetInfo",
 )
@@ -48,6 +49,7 @@ def _cc_external_feature_impl(ctx):
     )
     providers = [
         feature,
+        FeatureImplyabilityInfo(),
         FeatureSetInfo(label = ctx.label, features = depset([feature])),
         FeatureConstraintInfo(
             label = ctx.label,
@@ -69,7 +71,7 @@ cc_external_feature = rule(
             mandatory = True,
         ),
     },
-    provides = [FeatureInfo, FeatureSetInfo, FeatureConstraintInfo],
+    provides = [FeatureInfo, FeatureImplyabilityInfo, FeatureSetInfo, FeatureConstraintInfo],
     doc = """A declaration that a [feature](https://bazel.build/docs/cc-toolchain-config-reference#features) with this name is defined elsewhere.
 
 This rule communicates that a feature has been defined externally to make it possible to reference
