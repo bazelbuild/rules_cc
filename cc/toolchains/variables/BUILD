@@ -332,6 +332,12 @@ cc_variable(
 )
 
 cc_variable(
+    name = "dsym_path",
+    actions = ["//cc/toolchains/actions:link_actions"],
+    type = types.option(types.directory),
+)
+
+cc_variable(
     name = "output_file",
     actions = [
         "//cc/toolchains/actions:compile_actions",
@@ -494,6 +500,7 @@ cc_builtin_variables(
         ":def_file_path",
         ":dependency_file",
         ":dependent_module_map_files",
+        ":dsym_path",
         ":external_include_paths",
         ":fdo_instrument_path",
         ":fdo_prefetch_hints_path",
