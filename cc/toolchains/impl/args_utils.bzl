@@ -122,3 +122,60 @@ def validate_nested_args(*, nested_args, variables, actions, label, fail = fail)
 
         for child in nested_args.nested:
             stack.append((child, overrides))
+
+def validate_env_variables(*, env, variables, actions, used_format_vars, fail = fail):
+    """Validates the typing for environment variables with requires_not_none and format variables.
+
+    Args:
+        env: (EnvInfo) The env info to validate
+        variables: (Dict[str, VariableInfo]) A mapping from variable name to
+          the VariableInfo.
+        actions: (List[ActionTypeInfo]) The actions we require these variables
+          to be valid for.
+        used_format_vars: (List[str]) The list of variables used in env format strings.
+        fail: The fail function. Use for testing only.
+    """
+    if not env.entries:
+        return
+
+    env_requires_types = {}
+    if env.requires_not_none:
+        env_requires_types[env.requires_not_none] = struct(
+            msg = "requires_not_none for env variables only works on optional string, file, or directory types",
+            valid_types = ["option"],
+            valid_elements = ["string", "file", "directory"],
+        )
+
+    for var_name in used_format_vars:
+        env_requires_types[var_name] = struct(
+            msg = "format only works on string, file, or directory type variables",
+            valid_types = ["string", "file", "directory", "option"],
+            valid_elements = ["string", "file", "directory"],
+        )
+
+    for var_name, requirement in env_requires_types.items():
+        type = get_type(
+            name = var_name,
+            variables = variables,
+            overrides = {},
+            actions = actions,
+            args_label = env.label,
+            nested_label = env.label,
+            fail = fail,
+        )
+
+        if type["name"] not in requirement.valid_types:
+            fail("{msg}, but {var_name} has type {type}".format(
+                var_name = var_name,
+                msg = requirement.msg,
+                type = type["repr"],
+            ))
+
+        if type["name"] == "option":
+            underlying_type = type["elements"]
+            if underlying_type["name"] not in requirement.valid_elements:
+                fail("{msg}, but {var_name} has type {type}".format(
+                    var_name = var_name,
+                    msg = requirement.msg,
+                    type = underlying_type["repr"],
+                ))
