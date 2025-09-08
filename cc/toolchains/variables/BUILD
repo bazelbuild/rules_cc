@@ -333,7 +333,7 @@ cc_variable(
 
 cc_variable(
     name = "dsym_path",
-    actions = ["//cc/toolchains/actions:link_executable_actions"],
+    actions = ["//cc/toolchains/actions:link_actions"],
     type = types.option(types.directory),
 )
 
