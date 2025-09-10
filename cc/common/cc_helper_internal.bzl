@@ -19,6 +19,7 @@ Only use those within C++ implementation. The others need to go through cc_commo
 """
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("//cc/private:paths.bzl", "is_path_absolute")
 
 # LINT.IfChange(forked_exports)
 
@@ -198,7 +199,7 @@ def repository_exec_path(repository, sibling_repository_layout):
 # LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/cc_helper_internal.bzl:forked_exports)
 
 def get_relative_path(path_a, path_b):
-    if paths.is_absolute(path_b):
+    if is_path_absolute(path_b):
         return path_b
     return paths.normalize(paths.join(path_a, path_b))
 

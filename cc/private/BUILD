@@ -12,13 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
 filegroup(
     name = "srcs",
     srcs = glob([
         "**/BUILD",
+        "*.bzl",
     ]) + [
         "//cc/private/rules_impl:srcs",
         "//cc/private/toolchain:srcs",
     ],
     visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "paths_bzl",
+    srcs = ["paths.bzl"],
+    visibility = ["//cc:__subpackages__"],
 )
