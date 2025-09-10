@@ -88,6 +88,31 @@ tasks:
     build_targets: *build_targets
     test_targets: *test_targets
 
+  # Bazel@rolling
+  ubuntu2004_rolling:
+    name: Ubuntu 20.04 (Bazel rolling)
+    bazel: rolling
+    platform: ubuntu2004
+    build_targets: *build_targets
+    test_targets:
+    - "//:all"
+    - "//cc/..."
+    - "//examples/..."
+    - "//tests/..."
+    - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
+  macos_rolling:
+    name: MacOS (Bazel rolling)
+    bazel: rolling
+    platform: macos
+    build_targets: *build_targets
+    test_targets: *test_targets
+  windows_rolling:
+    name: Windows (Bazel rolling)
+    bazel: rolling
+    platform: windows
+    build_targets: *build_targets
+    test_targets: *test_targets
+
 # Bazel 6
   ubuntu2004_bazel_6:
     name: Ubuntu 20.04 (Bazel 6)
