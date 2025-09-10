@@ -13,6 +13,7 @@
 # limitations under the License.
 """Utility functions for C++ rules."""
 
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load("//cc:find_cc_toolchain.bzl", "CC_TOOLCHAIN_TYPE")
 load("//cc/private/rules_impl:objc_common.bzl", "objc_common")
 load(":cc_common.bzl", "cc_common")
@@ -807,7 +808,7 @@ def _include_dirs(ctx, additional_make_variable_substitutions):
     package_source_root = _package_source_root(ctx.label.workspace_name, package, sibling_repository_layout)
     for include in ctx.attr.includes:
         includes_attr = _expand(ctx, include, additional_make_variable_substitutions)
-        if includes_attr.startswith("/"):
+        if paths.is_absolute(includes_attr):
             continue
         includes_path = get_relative_path(package_exec_path, includes_attr)
         if not sibling_repository_layout and path_contains_up_level_references(includes_path):

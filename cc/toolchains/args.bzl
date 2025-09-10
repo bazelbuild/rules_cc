@@ -13,6 +13,7 @@
 # limitations under the License.
 """All providers for rule-based bazel toolchain config."""
 
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_skylib//rules/directory:providers.bzl", "DirectoryInfo")
 load("//cc/toolchains/impl:args_utils.bzl", "validate_env_variables", "validate_nested_args")
 load(
@@ -50,7 +51,7 @@ def _cc_args_impl(ctx):
     )
 
     for path in ctx.attr.allowlist_absolute_include_directories:
-        if not path.startswith("/"):
+        if not paths.is_absolute(path):
             fail("`{}` is not an absolute paths".format(path))
 
     nested = None
