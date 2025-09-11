@@ -28,7 +28,7 @@ def _cc_configure_extension_impl(ctx):
 cc_configure_extension = module_extension(implementation = _cc_configure_extension_impl)
 
 def _compatibility_proxy_repo_impl(rctx):
-    if _bazel_version_ge("9.0.0"):
+    if _bazel_version_ge("9.0.0-pre.20250911"):
         rctx.file(
             "BUILD",
             """
