@@ -48,6 +48,12 @@ cpp_file_types = struct(
 artifact_category = _artifact_category
 extensions = _extensions
 
+def _rule_error(msg):
+    fail(msg)
+
+def _attribute_error(attr_name, msg):
+    fail("in attribute '" + attr_name + "': " + msg)
+
 def _libraries_from_linking_context(linking_context):
     libraries = []
     for linker_input in linking_context.linker_inputs.to_list():
@@ -1064,6 +1070,8 @@ def _has_target_constraints(ctx, constraints):
     return False
 
 cc_helper = struct(
+    rule_error = _rule_error,
+    attribute_error = _attribute_error,
     create_strip_action = _create_strip_action,
     get_expanded_env = _get_expanded_env,
     get_static_mode_params_for_dynamic_library_libraries = _get_static_mode_params_for_dynamic_library_libraries,
