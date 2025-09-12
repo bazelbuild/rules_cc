@@ -49,5 +49,5 @@ cc_toolchain_alias = rule(
     attrs = {
         "mandatory": attr.bool(default = True),
     },
-    toolchains = use_cc_toolchain() + semantics.get_runtimes_toolchain(),
+    toolchains = use_cc_toolchain(mandatory = False) + semantics.get_runtimes_toolchain(),
 )
