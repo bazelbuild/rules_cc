@@ -64,6 +64,7 @@ bzl_library(
     name = "toolchain_rules",
     srcs = [
         "cc_toolchain.bzl",
+        "cc_toolchain_alias.bzl",
         "cc_toolchain_info.bzl",
         "cc_toolchain_provider_helper.bzl",
         "fdo/fdo_context.bzl",

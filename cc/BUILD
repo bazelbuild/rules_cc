@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("//cc/toolchains:cc_toolchain_alias.bzl", "cc_toolchain_alias")
 load(":starlark_doc_extract_helper.bzl", "starlark_doc_extract_helper")
 
 package(default_visibility = ["//visibility:public"])

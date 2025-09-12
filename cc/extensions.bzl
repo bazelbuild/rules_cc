@@ -60,6 +60,7 @@ load("@rules_cc//cc/private/rules_impl:fdo/fdo_profile.bzl", _fdo_profile = "fdo
 load("@rules_cc//cc/private/rules_impl:fdo/memprof_profile.bzl", _memprof_profile = "memprof_profile")
 load("@rules_cc//cc/private/rules_impl:fdo/propeller_optimize.bzl", _propeller_optimize = "propeller_optimize")
 load("@rules_cc//cc/private/rules_impl:cc_toolchain.bzl", _cc_toolchain = "cc_toolchain")
+load("@rules_cc//cc/private/rules_impl:cc_toolchain_alias.bzl", _cc_toolchain_alias = "cc_toolchain_alias")
 
 cc_binary = _cc_binary
 cc_import = _cc_import
@@ -74,6 +75,7 @@ fdo_profile = _fdo_profile
 memprof_profile = _memprof_profile
 propeller_optimize = _propeller_optimize
 cc_toolchain = _cc_toolchain
+cc_toolchain_alias = _cc_toolchain_alias
 
 CcSharedLibraryInfo = _CcSharedLibraryInfo
             """,
@@ -108,6 +110,7 @@ fdo_profile = native.fdo_profile
 memprof_profile = getattr(native, "memprof_profile", None) # only in Bazel 7+
 propeller_optimize = native.propeller_optimize
 cc_toolchain = native.cc_toolchain
+cc_toolchain_alias = native.cc_toolchain_alias
 
 CcSharedLibraryInfo = NativeCcSharedLibraryInfo
             """,
