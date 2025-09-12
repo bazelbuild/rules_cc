@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""cc_toolchain_alias rule"""
+"""cc_toolchain rule"""
 
-cc_toolchain_alias = native.cc_toolchain_alias
+load("@cc_compatibility_proxy//:proxy.bzl", _cc_toolchain_alias = "cc_toolchain_alias")
+
+cc_toolchain_alias = _cc_toolchain_alias
