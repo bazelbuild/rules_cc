@@ -230,10 +230,22 @@ ToolchainConfigInfo = provider(
         "enabled_features": "(Sequence[FeatureInfo]) The features That are enabled by default for this toolchain",
         "tool_map": "(ToolConfigInfo) A provider mapping toolchain action types to tools.",
         "args": "(Sequence[ArgsInfo]) A list of arguments to be unconditionally applied to the toolchain.",
-        "artifact_name_patterns": "Sequence[ArtifactNamePatternInfo] A artifact name patterns for this toolchain",
+        "artifact_name_patterns": "Sequence[ArtifactNamePatternInfo] The artifact name patterns for this toolchain",
+        "coverage_config": "(CoverageConfigInfo) The coverage configuration for this toolchain.",
         "make_variables": "Sequence[MakeVariableInfo] Make variable substitutions for this toolchain",
         "files": "(dict[ActionTypeInfo, depset[File]]) Files required for the toolchain, keyed by the action type.",
         "allowlist_include_directories": "(depset[DirectoryInfo]) Built-in include directories implied by this toolchain's args and tools that should be allowlisted in Bazel's include checker",
         "allowlist_absolute_include_directories": "(List[str]) Built-in include directories allowed the sandbox. Use with care",
+    },
+)
+
+CoverageConfigInfo = provider(
+    doc = "A type of coverage (eg. gcov)",
+    # @unsorted-dict-items
+    fields = {
+        "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
+        "type": "(CoverageTypeInfo) A provider defining the type of coverage config",
+        "exe": "(File) The file corresponding to the coverage tool",
+        "runfiles": "(runfiles) The files required to run the coverage tool",
     },
 )
