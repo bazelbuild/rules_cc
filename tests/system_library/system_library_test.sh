@@ -70,6 +70,8 @@ system_library(
 EOF
 
   cat << EOF > MODULE.bazel
+bazel_dep(name = "rules_cc", version = "0.2.8")
+
 system_library = use_repo_rule("//:cc/system_library.bzl", "system_library")
 
 system_library(
@@ -94,6 +96,7 @@ system_library(
 EOF
 
   cat << EOF > BUILD
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 cc_binary(
     name = "test",
     srcs = ["test.cc"],
@@ -218,6 +221,7 @@ system_library(
 EOF
 
   cat << EOF > BUILD
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 cc_binary(
     name = "test",
     srcs = ["test.cc"],
