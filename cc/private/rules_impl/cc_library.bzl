@@ -254,9 +254,11 @@ def _cc_library_impl(ctx):
         else:
             if artifacts_to_build.static_library != None:
                 files_builder.append(artifacts_to_build.static_library)
+                output_group_builder["static_library"] = depset([artifacts_to_build.static_library])
 
             if artifacts_to_build.pic_static_library != None:
                 files_builder.append(artifacts_to_build.pic_static_library)
+                output_group_builder["pic_static_library"] = depset([artifacts_to_build.static_library])
 
         if not cc_common.is_enabled(
             feature_configuration = feature_configuration,
