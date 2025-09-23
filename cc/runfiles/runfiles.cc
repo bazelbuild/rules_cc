@@ -214,6 +214,9 @@ string Runfiles::Rlocation(const string& path,
   string target_apparent = path.substr(0, first_slash);
   auto lookup_key = std::make_pair(target_apparent, source_repo);
   auto lower_bound = repo_mapping_.lower_bound(lookup_key);
+  if (lower_bound == repo_mapping_.end()) {
+    return RlocationUnchecked(path, runfiles_map_, directory_);
+  }
   if (lower_bound->first == lookup_key) {
     return RlocationUnchecked(lower_bound->second + path.substr(first_slash),
                               runfiles_map_, directory_);
