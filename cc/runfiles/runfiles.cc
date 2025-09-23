@@ -218,6 +218,9 @@ string Runfiles::Rlocation(const string& path,
   // The largest entry that is less than or equal to lookup_key.
   auto floor = upper_bound == repo_mapping_.begin() ? upper_bound
                                                     : std::prev(upper_bound);
+  if (floor == repo_mapping_.end()) {
+    return RlocationUnchecked(path, runfiles_map_, directory_);
+  }
   if (floor->first == lookup_key) {
     return RlocationUnchecked(floor->second + path.substr(first_slash),
                               runfiles_map_, directory_);
