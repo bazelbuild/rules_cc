@@ -213,27 +213,26 @@ string Runfiles::Rlocation(const string& path,
   }
   string target_apparent = path.substr(0, first_slash);
   auto lookup_key = std::make_pair(target_apparent, source_repo);
-  auto lower_bound = repo_mapping_.lower_bound(lookup_key);
-  if (lower_bound == repo_mapping_.end()) {
-    return RlocationUnchecked(path, runfiles_map_, directory_);
-  }
-  if (lower_bound->first == lookup_key) {
-    return RlocationUnchecked(lower_bound->second + path.substr(first_slash),
+  // The smallest entry that is greater than lookup_key.
+  auto upper_bound = repo_mapping_.upper_bound(lookup_key);
+  // The largest entry that is less than or equal to lookup_key.
+  auto floor = upper_bound == repo_mapping_.begin() ? upper_bound
+                                                    : std::prev(upper_bound);
+  if (floor->first == lookup_key) {
+    return RlocationUnchecked(floor->second + path.substr(first_slash),
                               runfiles_map_, directory_);
   }
   // Since the asterisk sorts before any other valid character in a repo name,
-  // the previous element may be a prefix match.
-  if (lower_bound != repo_mapping_.begin()) {
-    std::pair<string, string> key;
-    string value;
-    std::tie(key, value) = *std::prev(lower_bound);
-    if (key.first == target_apparent &&
-        ends_with(key.second, "*") &&
-        starts_with(
-          source_repo, key.second.substr( 0, key.second.size() - 1))) {
-      return RlocationUnchecked(
-        value + path.substr(first_slash), runfiles_map_, directory_);
-    }
+  // the floor element may be a prefix match.
+  std::pair<string, string> key;
+  string value;
+  std::tie(key, value) = *floor;
+  if (key.first == target_apparent &&
+      ends_with(key.second, "*") &&
+      starts_with(
+        source_repo, key.second.substr( 0, key.second.size() - 1))) {
+    return RlocationUnchecked(
+      value + path.substr(first_slash), runfiles_map_, directory_);
   }
   return RlocationUnchecked(path, runfiles_map_, directory_);
 }
