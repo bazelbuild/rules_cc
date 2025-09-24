@@ -22,7 +22,7 @@ load(
     "is_versioned_shared_library_extension_valid",
     "path_contains_up_level_references",
     "should_create_per_object_debug_info",
-    _artifact_category = "artifact_category",
+    _artifact_category = "artifact_category_names",
     _extensions = "extensions",
     _package_source_root = "package_source_root",
     _repository_exec_path = "repository_exec_path",
