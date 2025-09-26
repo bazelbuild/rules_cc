@@ -39,9 +39,9 @@ rules_shell_toolchains()
 
 http_archive(
     name = "rules_testing",
-    sha256 = "02c62574631876a4e3b02a1820cb51167bb9cdcdea2381b2fa9d9b8b11c407c4",
-    strip_prefix = "rules_testing-0.6.0",
-    url = "https://github.com/bazelbuild/rules_testing/releases/download/v0.6.0/rules_testing-v0.6.0.tar.gz",
+    sha256 = "281b69eed71e2b95cefc284ee5a1a9f7c5088141b58f2508be910eb22f13b986",
+    strip_prefix = "rules_testing-0.9.0",
+    url = "https://github.com/bazelbuild/rules_testing/releases/download/v0.9.0/rules_testing-v0.9.0.tar.gz",
 )
 
 http_archive(
