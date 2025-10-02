@@ -114,8 +114,10 @@ def _collect_transitive_dwo_artifacts(cc_compilation_outputs, cc_debug_context, 
 
     if lto_backend_artifacts != None:
         for lto_backend_artifact in lto_backend_artifacts:
-            if lto_backend_artifact.dwo_file() != None:
+            if hasattr(lto_backend_artifact, "dwo_file") and lto_backend_artifact.dwo_file() != None:
                 dwo_files.append(lto_backend_artifact.dwo_file())
+            if hasattr(lto_backend_artifact, "_dwo_file") and lto_backend_artifact._dwo_file != None:
+                dwo_files.append(lto_backend_artifact._dwo_file)
 
     if linking_mode != linker_mode.LINKING_DYNAMIC:
         if use_pic:
