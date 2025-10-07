@@ -72,6 +72,7 @@ _TARGET_CPUS_BY_PLATFORM = {
         "ios_x86_64": True,
         "ios_i386": True,
         "ios_sim_arm64": True,
+        "ios_sim_arm64e": True,
     },
     # buildifier: disable=unsorted-dict-items
     "ios_device": {
