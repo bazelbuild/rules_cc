@@ -11,19 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load("//cc:cc_binary.bzl", "cc_binary")
-load("//cc/cxx_standard:cxx_standard.bzl", "cxxopts")
+load(":cxx_std_test.bzl", "cxx_std_test_suite")
 
 licenses(["notice"])
 
-cc_binary(
-    name = "main",
-    srcs = ["main.cc"],
-    copts = cxxopts(default = "17"),
-)
-
-cc_binary(
-    name = "main_no_default",
-    srcs = ["main.cc"],
-    copts = cxxopts(),
-)
+cxx_std_test_suite(name = "cxx_std_test_suite")
