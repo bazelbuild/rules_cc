@@ -16,16 +16,79 @@
 load("@bazel_features//:features.bzl", "bazel_features")
 load("@bazel_features//private:util.bzl", _bazel_version_ge = "ge")
 load("//cc/private/toolchain:cc_configure.bzl", "cc_autoconf", "cc_autoconf_toolchains")
+load("//cc/private/toolchain:lib_cc_configure.bzl", "get_cpu_value", "resolve_labels")
+
+_configure = tag_class(attrs = {
+    "auto_detect": attr.bool(
+        default = True,
+        doc = """
+        Whether to automatically detect system C++ toolchains.
+
+        When True (default): Scans system for compilers and generates toolchain config.
+        When False: Generates minimal empty toolchain config, allowing users to
+                   provide their own hermetic toolchains.
+
+        Note: Setting this to False improves build hermeticity but requires users
+        to provide their own C++ toolchains via register_toolchains().
+        """,
+    ),
+})
+
+def _empty_cc_autoconf_toolchains_impl(repository_ctx):
+    """Generate empty BUILD file when auto-detection is disabled."""
+    repository_ctx.file("BUILD", "# C++ toolchain autoconfiguration was disabled via cc_configure.configure(auto_detect = False).")
+
+_empty_cc_autoconf_toolchains = repository_rule(
+    implementation = _empty_cc_autoconf_toolchains_impl,
+    configure = True,
+)
+
+def _empty_cc_autoconf_impl(repository_ctx):
+    """Generate minimal empty cc_toolchain config when auto-detection is disabled."""
+    paths = resolve_labels(repository_ctx, [
+        "@rules_cc//cc/private/toolchain:BUILD.empty.tpl",
+        "@rules_cc//cc/private/toolchain:empty_cc_toolchain_config.bzl",
+    ])
+    repository_ctx.symlink(paths["@rules_cc//cc/private/toolchain:empty_cc_toolchain_config.bzl"], "cc_toolchain_config.bzl")
+    repository_ctx.template("BUILD", paths["@rules_cc//cc/private/toolchain:BUILD.empty.tpl"], {
+        "%{cpu}": get_cpu_value(repository_ctx),
+    })
+
+_empty_cc_autoconf = repository_rule(
+    implementation = _empty_cc_autoconf_impl,
+    configure = True,
+)
 
 def _cc_configure_extension_impl(ctx):
-    cc_autoconf_toolchains(name = "local_config_cc_toolchains")
-    cc_autoconf(name = "local_config_cc")
+    # Check if user configured auto_detect
+    auto_detect = True
+    for mod in ctx.modules:
+        for configure in mod.tags.configure:
+            auto_detect = configure.auto_detect
+            break  # First wins
+        if not auto_detect:
+            break
+
+    if auto_detect:
+        # Current behavior - auto-detect system toolchains
+        cc_autoconf_toolchains(name = "local_config_cc_toolchains")
+        cc_autoconf(name = "local_config_cc")
+    else:
+        # New behavior - skip auto-detection for hermetic builds
+        # This reuses the same logic as BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN
+        # but makes it available for bzlmod users
+        _empty_cc_autoconf_toolchains(name = "local_config_cc_toolchains")
+        _empty_cc_autoconf(name = "local_config_cc")
+
     if bazel_features.external_deps.extension_metadata_has_reproducible:
         return ctx.extension_metadata(reproducible = True)
     else:
         return None
 
-cc_configure_extension = module_extension(implementation = _cc_configure_extension_impl)
+cc_configure_extension = module_extension(
+    implementation = _cc_configure_extension_impl,
+    tag_classes = {"configure": _configure},
+)
 
 def _compatibility_proxy_repo_impl(rctx):
     if _bazel_version_ge("9.0.0-pre.20250911"):
