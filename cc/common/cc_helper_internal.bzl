@@ -23,6 +23,44 @@ load("//cc/private:paths.bzl", "is_path_absolute")
 
 # LINT.IfChange(forked_exports)
 
+CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES = [("", "devtools/rust/cc_interop"), ("", "third_party/crubit"), ("", "tools/build_defs/clif")]
+
+PRIVATE_STARLARKIFICATION_ALLOWLIST = [
+    ("_builtins", ""),
+    # Android rules
+    ("", "tools/build_defs/android"),
+    ("", "third_party/bazel_rules/rules_android"),
+    ("build_bazel_rules_android", ""),
+    ("rules_android", ""),
+    # Apple rules
+    ("", "third_party/bazel_rules/rules_apple"),
+    ("apple_support", ""),
+    ("rules_apple", ""),
+    # C++ rules
+    ("", "bazel_internal/test_rules/cc"),
+    ("", "third_party/bazel_rules/rules_cc"),
+    ("", "tools/build_defs/cc"),
+    ("rules_cc", ""),
+    # CUDA rules
+    ("", "third_party/gpus/cuda"),
+    # Go rules
+    ("", "tools/build_defs/go"),
+    # Java rules
+    ("", "third_party/bazel_rules/rules_java"),
+    ("rules_java", ""),
+    # Objc rules
+    ("", "tools/build_defs/objc"),
+    # Protobuf rules
+    ("", "third_party/protobuf"),
+    ("protobuf", ""),
+    ("com_google_protobuf", ""),
+    # Rust rules
+    ("", "third_party/bazel_rules/rules_rust/rust/private"),
+    ("rules_rust", "rust/private"),
+    # Python rules
+    ("", "third_party/bazel_rules/rules_python/google"),
+] + CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES
+
 _CC_SOURCE = [".cc", ".cpp", ".cxx", ".c++", ".C", ".cu", ".cl"]
 _C_SOURCE = [".c"]
 _OBJC_SOURCE = [".m"]
