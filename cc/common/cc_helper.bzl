@@ -167,7 +167,10 @@ def _collect_compilation_prerequisites(ctx, compilation_context):
     if hasattr(compilation_context, "additional_inputs"):
         transitive.append(compilation_context.additional_inputs())
     else:
-        transitive.append(depset(compilation_context._direct_module_maps))
+        direct_module_maps = compilation_context._direct_module_maps
+        if type(direct_module_maps) != "depset":
+            direct_module_maps = depset(direct_module_maps)
+        transitive.append(direct_module_maps)
         transitive.append(compilation_context._non_code_inputs)
         if compilation_context._module_map:
             transitive.append(depset([compilation_context._module_map.file()]))
