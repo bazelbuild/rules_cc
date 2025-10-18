@@ -48,7 +48,7 @@ def _cc_tool_capability_impl(ctx):
         ToolCapabilityInfo(label = ctx.label, feature = ft),
         # Only give it a feature constraint info and not a feature info.
         # This way you can't imply it - you can only require it.
-        FeatureConstraintInfo(label = ctx.label, all_of = depset([ft])),
+        FeatureConstraintInfo(label = ctx.label, all_of = depset([ft]), none_of = depset([])),
     ]
 
 cc_tool_capability = rule(
