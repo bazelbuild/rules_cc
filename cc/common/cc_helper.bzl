@@ -173,7 +173,7 @@ def _collect_compilation_prerequisites(ctx, compilation_context):
         transitive.append(direct_module_maps)
         transitive.append(compilation_context._non_code_inputs)
         if compilation_context._module_map:
-            transitive.append(depset([compilation_context._module_map.file()]))
+            transitive.append(depset([compilation_context._module_map.file if type(compilation_context._module_map.file) == "File" else compilation_context._module_map.file()]))
     if hasattr(compilation_context, "transitive_modules"):
         transitive.append(compilation_context.transitive_modules(use_pic = True))
         transitive.append(compilation_context.transitive_modules(use_pic = False))
