@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Definition of CcToolchainInfo provider.
 """
@@ -95,7 +94,8 @@ def _create_cc_toolchain_info(
         build_info_files,
         objcopy_files,
         aggregate_ddi,
-        generate_modmap):
+        generate_modmap,
+        extra_cpp_configuration = None):
     cc_toolchain_info = dict(
         needs_pic_for_dynamic_libraries = (lambda *, feature_configuration: True) if cpp_configuration.force_pic() else _needs_pic_for_dynamic_libraries,
         built_in_include_directories = built_in_include_directories,
@@ -157,6 +157,10 @@ def _create_cc_toolchain_info(
         _cc_info = cc_info,
         _objcopy_files = objcopy_files,
         _aggregate_ddi = aggregate_ddi,
+        _extra_allowlisted_feature_layering_check_macros =
+            extra_cpp_configuration.extra_allowlisted_feature_layering_check_macros() if extra_cpp_configuration else [],
+        _force_layering_check_features =
+            extra_cpp_configuration.force_layering_check_features() if extra_cpp_configuration else False,
     )
     return cc_toolchain_info
 
@@ -246,6 +250,8 @@ CcToolchainInfo, _ = provider(
         "_cc_info": "INTERNAL API, DO NOT USE!",
         "_objcopy_files": "INTERNAL API, DO NOT USE!",
         "_aggregate_ddi": "INTERNAL API, DO NOT USE!",
+        "_extra_allowlisted_feature_layering_check_macros": "INTERNAL API, DO NOT USE!",
+        "_force_layering_check_features": "INTERNAL API, DO NOT USE!",
     },  # buildifier: disable=unsorted-dict-items
     init = _create_cc_toolchain_info,
 )
