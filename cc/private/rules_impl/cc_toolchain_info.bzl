@@ -15,16 +15,14 @@
 Definition of CcToolchainInfo provider.
 """
 
-load("//cc/common:cc_common.bzl", "cc_common")
-
-visibility("private")
+visibility(["//third_party/bazel_rules/rules_cc/..."])
 
 def _needs_pic_for_dynamic_libraries(*, feature_configuration):
-    return cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "supports_pic")
+    return feature_configuration.is_enabled("supports_pic")
 
 def _static_runtime_lib(static_runtime_lib):
     def static_runtime_lib_func(*, feature_configuration):
-        if cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "static_link_cpp_runtimes"):
+        if feature_configuration.is_enabled("static_link_cpp_runtimes"):
             if static_runtime_lib == None:
                 fail("Toolchain supports embedded runtimes, but didn't provide static_runtime_lib attribute.")
             return static_runtime_lib
@@ -34,7 +32,7 @@ def _static_runtime_lib(static_runtime_lib):
 
 def _dynamic_runtime_lib(dynamic_runtime_lib):
     def dynamic_runtime_lib_func(*, feature_configuration):
-        if cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "static_link_cpp_runtimes"):
+        if feature_configuration.is_enabled("static_link_cpp_runtimes"):
             if dynamic_runtime_lib == None:
                 fail("Toolchain supports embedded runtimes, but didn't provide dynamic_runtime_lib attribute.")
             return dynamic_runtime_lib

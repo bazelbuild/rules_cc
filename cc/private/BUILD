@@ -20,8 +20,11 @@ filegroup(
         "**/BUILD",
         "*.bzl",
     ]) + [
+        "//cc/private/compile:srcs",
+        "//cc/private/link:srcs",
         "//cc/private/rules_impl:srcs",
         "//cc/private/toolchain:srcs",
+        "//cc/private/toolchain_config:srcs",
     ],
     visibility = ["//visibility:public"],
 )
@@ -30,4 +33,29 @@ bzl_library(
     name = "paths_bzl",
     srcs = ["paths.bzl"],
     visibility = ["//cc:__subpackages__"],
+)
+
+bzl_library(
+    name = "debug_package_info_bzl",
+    srcs = ["debug_package_info.bzl"],
+    visibility = ["//cc:__subpackages__"],
+)
+
+bzl_library(
+    name = "cc_internal_bzl",
+    srcs = ["cc_internal.bzl"],
+    visibility = ["//cc:__subpackages__"],
+)
+
+bzl_library(
+    name = "cc_shared_library_hint_info_bzl",
+    srcs = ["cc_shared_library_hint_info.bzl"],
+    visibility = ["//cc:__subpackages__"],
+)
+
+bzl_library(
+    name = "cc_launcher_info_bzl",
+    srcs = ["cc_launcher_info.bzl"],
+    visibility = ["//cc:__subpackages__"],
+    deps = ["//cc/common"],
 )

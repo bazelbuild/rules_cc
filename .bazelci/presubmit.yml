@@ -33,7 +33,6 @@ test_targets_bazel_6: &test_targets_bazel_6
 
 buildifier:
   version: latest
-  warnings: "all"
 
 tasks:
   ubuntu2004_docs:

@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+# LINT.IfChange(forked_exports)
 """
 Utility functions for C++ rules that don't depend on cc_common.
 
@@ -19,9 +19,30 @@ Only use those within C++ implementation. The others need to go through cc_commo
 """
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private:paths.bzl", "is_path_absolute")
 
-# LINT.IfChange(forked_exports)
+def check_private_api():
+    _cc_internal.check_private_api(allowlist = PRIVATE_STARLARKIFICATION_ALLOWLIST, depth = 2)
+
+def wrap_with_check_private_api(symbol):
+    """
+    Protects the symbol so it can only be used internally.
+
+    Returns:
+      A function. When the function is invoked (without any params), the check
+      is done and if it passes the symbol is returned.
+    """
+
+    def callback():
+        _cc_internal.check_private_api(allowlist = PRIVATE_STARLARKIFICATION_ALLOWLIST)
+        return symbol
+
+    return callback
+
+CPP_SOURCE_TYPE_HEADER = "HEADER"
+CPP_SOURCE_TYPE_SOURCE = "SOURCE"
+CPP_SOURCE_TYPE_CLIF_INPUT_PROTO = "CLIF_INPUT_PROTO"
 
 CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES = [("", "devtools/rust/cc_interop"), ("", "third_party/crubit"), ("", "tools/build_defs/clif")]
 
@@ -179,7 +200,7 @@ artifact_category_names = struct(**{ac.name: ac.name for ac in _artifact_categor
 
 output_subdirectories = struct(
     OBJS = "_objs",
-    PIB_OBJS = "_pic_objs",
+    PIC_OBJS = "_pic_objs",
     DOTD_FILES = "_dotd",
     PIC_DOTD_FILES = "_pic_dotd",
     DIA_FILES = "_dia",
@@ -274,6 +295,41 @@ def is_stamping_enabled(ctx):
     if hasattr(ctx.attr, "stamp"):
         stamp = ctx.attr.stamp
     return stamp
+
+def is_shared_library(file):
+    return file.extension in ["so", "dylib", "dll", "pyd", "wasm", "tgt", "vpi"]
+
+def is_versioned_shared_library(file):
+    # Because regex matching can be slow, we first do a quick check for ".so." and ".dylib."
+    # substring before risking the full-on regex match. This should eliminate the performance
+    # hit on practically every non-qualifying file type.
+    if ".so." not in file.basename and ".dylib." not in file.basename:
+        return False
+    return is_versioned_shared_library_extension_valid(file.basename)
+
+def use_pic_for_binaries(cpp_config, feature_configuration):
+    """
+    Returns whether binaries must be compiled with position independent code.
+    """
+    return cpp_config.force_pic() or (
+        feature_configuration.is_enabled("supports_pic") and
+        (cpp_config.compilation_mode() != "opt" or feature_configuration.is_enabled("prefer_pic_for_opt_binaries"))
+    )
+
+def use_pic_for_dynamic_libs(cpp_config, feature_configuration):
+    """Determines if we should apply -fPIC for this rule's C++ compilations.
+
+    This determination is
+    generally made by the global C++ configuration settings "needsPic" and "usePicForBinaries".
+    However, an individual rule may override these settings by applying -fPIC" to its "nocopts"
+    attribute. This allows incompatible rules to "opt out" of global PIC settings (see bug:
+    "Provide a way to turn off -fPIC for targets that can't be built that way").
+
+    Returns:
+       true if this rule's compilations should apply -fPIC, false otherwise
+    """
+    return (cpp_config.force_pic() or
+            feature_configuration.is_enabled("supports_pic"))
 
 # LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/cc_helper_internal.bzl:forked_exports)
 

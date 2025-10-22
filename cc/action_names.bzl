@@ -36,7 +36,7 @@ CPP_HEADER_PARSING_ACTION_NAME = "c++-header-parsing"
 # Name of the C++ deps scanning action.
 CPP_MODULE_DEPS_SCANNING_ACTION_NAME = "c++-module-deps-scanning"
 
-# Name of the C++ module compile action.
+# Name of the C++20 module compile action.
 CPP20_MODULE_COMPILE_ACTION_NAME = "c++20-module-compile"
 CPP20_MODULE_CODEGEN_ACTION_NAME = "c++20-module-codegen"
 
@@ -49,6 +49,7 @@ ASSEMBLE_ACTION_NAME = "assemble"
 # Name of the assembly preprocessing action.
 PREPROCESS_ASSEMBLE_ACTION_NAME = "preprocess-assemble"
 
+# Name of the coverage action.
 LLVM_COV = "llvm-cov"
 
 # Name of the action producing ThinLto index.
@@ -65,6 +66,8 @@ LTO_INDEX_FOR_NODEPS_DYNAMIC_LIBRARY_ACTION_NAME = "lto-index-for-nodeps-dynamic
 
 # Name of the action compiling lto bitcodes into native objects.
 LTO_BACKEND_ACTION_NAME = "lto-backend"
+
+CPP_HEADER_ANALYSIS_ACTION_NAME = "c++-header-analysis"
 
 # Name of the link action producing executable binary.
 CPP_LINK_EXECUTABLE_ACTION_NAME = "c++-link-executable"
@@ -90,6 +93,9 @@ OBJCPP_COMPILE_ACTION_NAME = "objc++-compile"
 
 # A string constant for the objc executable link action.
 OBJC_EXECUTABLE_ACTION_NAME = "objc-executable"
+
+# A string constant for the objc executable link action.
+OBJCPP_EXECUTABLE_ACTION_NAME = "objc++-executable"
 
 # A string constant for the objc fully-link link action.
 OBJC_FULLY_LINK_ACTION_NAME = "objc-fully-link"
@@ -122,6 +128,7 @@ ACTION_NAMES = struct(
     llvm_cov = LLVM_COV,
     lto_indexing = LTO_INDEXING_ACTION_NAME,
     lto_backend = LTO_BACKEND_ACTION_NAME,
+    cpp_header_analysis = CPP_HEADER_ANALYSIS_ACTION_NAME,
     lto_index_for_executable = LTO_INDEX_FOR_EXECUTABLE_ACTION_NAME,
     lto_index_for_dynamic_library = LTO_INDEX_FOR_DYNAMIC_LIBRARY_ACTION_NAME,
     lto_index_for_nodeps_dynamic_library = LTO_INDEX_FOR_NODEPS_DYNAMIC_LIBRARY_ACTION_NAME,
@@ -134,6 +141,7 @@ ACTION_NAMES = struct(
     objc_executable = OBJC_EXECUTABLE_ACTION_NAME,
     objc_fully_link = OBJC_FULLY_LINK_ACTION_NAME,
     objcpp_compile = OBJCPP_COMPILE_ACTION_NAME,
+    objcpp_executable = OBJCPP_EXECUTABLE_ACTION_NAME,
     clif_match = CLIF_MATCH_ACTION_NAME,
     objcopy_embed_data = OBJ_COPY_ACTION_NAME,
     validate_static_library = VALIDATE_STATIC_LIBRARY,

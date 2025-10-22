@@ -1,4 +1,4 @@
-# Copyright 2024 The Bazel Authors. All rights reserved.
+# Copyright 2025 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,42 +15,16 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 bzl_library(
-    name = "common",
+    name = "compile_bzl",
     srcs = glob(["*.bzl"]),
     visibility = ["//visibility:public"],
     deps = [
+        "//cc:action_names_bzl",
+        "//cc/common",
         "//cc/private:cc_internal_bzl",
-        "//cc/private:paths_bzl",
         "//cc/private/rules_impl:native_bzl",
+        "@bazel_skylib//lib:paths",
     ],
-)
-
-bzl_library(
-    name = "cc_helper_bzl",
-    srcs = ["cc_helper.bzl"],
-    visibility = ["//visibility:public"],
-    deps = [
-        ":visibility_bzl",
-        "//cc/private:paths_bzl",
-        "//cc/private/rules_impl:objc_common",
-    ],
-)
-
-bzl_library(
-    name = "cc_debug_helper_bzl",
-    srcs = ["cc_debug_helper.bzl"],
-    visibility = ["//visibility:public"],
-    deps = [
-        ":cc_helper_bzl",
-        ":visibility_bzl",
-        "//cc:find_cc_toolchain_bzl",
-    ],
-)
-
-bzl_library(
-    name = "visibility_bzl",
-    srcs = ["visibility.bzl"],
-    visibility = ["//visibility:private"],
 )
 
 filegroup(
