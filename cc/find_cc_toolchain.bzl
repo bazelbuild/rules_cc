@@ -63,7 +63,7 @@ CC_TOOLCHAIN_ATTRS = {
 
 def find_cc_toolchain(ctx, *, mandatory = True):
     """
-Returns the current `CcToolchainInfo`.
+    Returns the current `CcToolchainInfo`.
 
     Args:
       ctx: The rule context for which to find a toolchain.

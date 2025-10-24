@@ -35,10 +35,11 @@ def _compatibility_proxy_repo_impl(rctx):
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 bzl_library(
   name = "proxy_bzl",
-  srcs = ["proxy.bzl"],
+  srcs = ["proxy.bzl", "symbols.bzl"],
   deps = [
     "@rules_cc//cc/private/rules_impl:core_rules",
     "@rules_cc//cc/private/rules_impl:toolchain_rules",
+    "@rules_cc//cc/private:cc_common",
   ],
   visibility = ["@rules_cc//cc:__subpackages__"],
 )
@@ -80,6 +81,20 @@ cc_toolchain_alias = _cc_toolchain_alias
 CcSharedLibraryInfo = _CcSharedLibraryInfo
             """,
         )
+        rctx.file(
+            "symbols.bzl",
+            """
+load("@rules_cc//cc/private:cc_common.bzl", _cc_common = "cc_common")
+load("@rules_cc//cc/private:cc_info.bzl", _CcInfo = "CcInfo")
+load("@rules_cc//cc/private/toolchain_config:cc_toolchain_config_info.bzl", _CcToolchainConfigInfo = "CcToolchainConfigInfo")
+load("@rules_cc//cc/private:debug_package_info.bzl", _DebugPackageInfo = "DebugPackageInfo")
+
+cc_common = _cc_common
+CcInfo = _CcInfo
+DebugPackageInfo = _DebugPackageInfo
+CcToolchainConfigInfo = _CcToolchainConfigInfo
+            """,
+        )
     else:
         rctx.file(
             "BUILD",
@@ -87,7 +102,7 @@ CcSharedLibraryInfo = _CcSharedLibraryInfo
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 bzl_library(
   name = "proxy_bzl",
-  srcs = ["proxy.bzl"],
+  srcs = ["proxy.bzl", "symbols.bzl"],
   deps = ["@rules_cc//cc/private/rules_impl:native_bzl"],
   visibility = ["@rules_cc//cc:__subpackages__"],
 )
@@ -113,6 +128,21 @@ cc_toolchain = native.cc_toolchain
 cc_toolchain_alias = native.cc_toolchain_alias
 
 CcSharedLibraryInfo = NativeCcSharedLibraryInfo
+            """,
+        )
+        rctx.file(
+            "symbols.bzl",
+            """
+load("@rules_cc//cc/private/rules_impl:native.bzl", "native_cc_common")
+load("@rules_cc//cc/private/rules_impl:native.bzl", "NativeCcInfo")
+load("@rules_cc//cc/private/rules_impl:native.bzl", "NativeDebugPackageInfo")
+load("@rules_cc//cc/private/rules_impl:native.bzl", "NativeCcToolchainConfigInfo")
+load("@rules_cc//cc/private/rules_impl:native.bzl", "NativeCcSharedLibraryInfo")
+
+cc_common = native_cc_common
+CcInfo = NativeCcInfo
+DebugPackageInfo = NativeDebugPackageInfo
+CcToolchainConfigInfo = NativeCcToolchainConfigInfo
             """,
         )
 

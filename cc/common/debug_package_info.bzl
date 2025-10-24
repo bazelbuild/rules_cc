@@ -13,6 +13,6 @@
 # limitations under the License.
 """DebugPackageInfo"""
 
-load("//cc/private/rules_impl:native.bzl", "NativeDebugPackageInfo")
+load("@cc_compatibility_proxy//:symbols.bzl", _DebugPackageInfo = "DebugPackageInfo")
 
-DebugPackageInfo = NativeDebugPackageInfo
+DebugPackageInfo = _DebugPackageInfo

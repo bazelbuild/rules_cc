@@ -28,6 +28,14 @@ bzl_library(
 )
 
 filegroup(
+    name = "bzl_srcs",
+    srcs = glob([
+        "**/*.bzl",
+    ]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
     name = "srcs",
     srcs = glob([
         "**/*.bzl",

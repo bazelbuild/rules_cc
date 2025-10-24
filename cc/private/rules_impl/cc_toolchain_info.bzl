@@ -15,7 +15,7 @@
 Definition of CcToolchainInfo provider.
 """
 
-visibility(["//third_party/bazel_rules/rules_cc/..."])
+visibility(["//cc/..."])
 
 def _needs_pic_for_dynamic_libraries(*, feature_configuration):
     return feature_configuration.is_enabled("supports_pic")

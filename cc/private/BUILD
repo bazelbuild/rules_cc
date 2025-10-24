@@ -15,6 +15,20 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 filegroup(
+    name = "bzl_srcs",
+    srcs = glob([
+        "**/*.bzl",
+    ]) + [
+        "//cc/private/compile:bzl_srcs",
+        "//cc/private/link:bzl_srcs",
+        "//cc/private/rules_impl:bzl_srcs",
+        "//cc/private/toolchain:bzl_srcs",
+        "//cc/private/toolchain_config:bzl_srcs",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
     name = "srcs",
     srcs = glob([
         "**/BUILD",
@@ -32,6 +46,32 @@ filegroup(
 bzl_library(
     name = "paths_bzl",
     srcs = ["paths.bzl"],
+    visibility = ["//cc:__subpackages__"],
+)
+
+bzl_library(
+    name = "cc_common",
+    srcs = ["cc_common.bzl"],
+    visibility = [
+        "//cc:__subpackages__",
+        "@cc_compatibility_proxy//:__pkg__",
+    ],
+    deps = [
+        ":cc_info_bzl",
+        ":cc_internal_bzl",
+        ":cc_launcher_info_bzl",
+        ":cc_shared_library_hint_info_bzl",
+        ":debug_package_info_bzl",
+        "//cc/private/compile:compile_bzl",
+        "//cc/private/link:link_bzl",
+        "//cc/private/rules_impl:native_bzl",
+        "//cc/private/toolchain_config:toolchain_config_bzl",
+    ],
+)
+
+bzl_library(
+    name = "cc_info_bzl",
+    srcs = ["cc_info.bzl"],
     visibility = ["//cc:__subpackages__"],
 )
 
