@@ -27,6 +27,17 @@ cc_binary(
     linkshared = 1,
 )
 
+# On windows, python use .pyd extension for native modules.
+cc_binary(
+    name = "foo.pyd",
+    srcs = ["foo.cc"],
+    linkshared = 1,
+    target_compatible_with = select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+)
+
 # Regression test for building C code
 # https://github.com/bazelbuild/rules_cc/pull/440#issuecomment-3075519628
 cc_binary(
