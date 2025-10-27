@@ -84,9 +84,11 @@ _TARGET_CPUS_BY_PLATFORM = {
     },
     "visionos_simulator": {
         "visionos_sim_arm64": True,
+        "visionos_sim_arm64e": True,
     },
     "visionos_device": {
         "visionos_arm64": True,
+        "visionos_arm64e": True,
     },
     # buildifier: disable=unsorted-dict-items
     "watchos_simulator": {
