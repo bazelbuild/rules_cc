@@ -16,9 +16,9 @@
 
 load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/common:cc_info.bzl", "CcInfo")
+load("//cc/common:objc_info.bzl", "ObjcInfo")
 load(":objc_compilation_context_info.bzl", "ObjcCompilationContextInfo")
 
-_ObjcInfo = apple_common.Objc
 _apple_toolchain = apple_common.apple_toolchain()
 
 CPP_SOURCES = [".cc", ".cpp", ".mm", ".cxx", ".C"]
@@ -69,8 +69,8 @@ def _create_context_and_provider(
     cc_linking_contexts = []
 
     for dep in deps:
-        if _ObjcInfo in dep:
-            objc_providers.append(dep[_ObjcInfo])
+        if ObjcInfo in dep:
+            objc_providers.append(dep[ObjcInfo])
 
         if CcInfo in dep:
             cc_compilation_contexts.append(dep[CcInfo].compilation_context)
@@ -186,7 +186,7 @@ def _create_context_and_provider(
     )
 
     return (
-        _ObjcInfo(**objc_provider_kwargs_built),
+        ObjcInfo(**objc_provider_kwargs_built),
         objc_compilation_context,
         objc_linking_context,
     )
