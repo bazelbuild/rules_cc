@@ -17,7 +17,7 @@ The cc_common.create_library_to_link function.
 """
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
-load("//cc/common:cc_helper_internal.bzl", "is_versioned_shared_library")
+load("//cc/common:cc_helper_internal.bzl", "is_versioned_shared_library", "path_contains_up_level_references")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private/compile:lto_compilation_context.bzl", _EMPTY_LTO = "EMPTY_LTO_COMPILATION_CONTEXT")
 load("//cc/private/link:lto_backends.bzl", "create_shared_non_lto_artifacts")
@@ -272,7 +272,7 @@ def create_library_to_link(
     )
 
 def _validate_symlink_path(attr, path):
-    if not path or paths.is_absolute(path) or paths.contains_up_level_references(path):
+    if not path or paths.is_absolute(path) or path_contains_up_level_references(path):
         fail("%s must be a relative file path. Got '%s" % (attr, path))
 
 def _validate_extension(path, extensions, func = None, not_ext = [], fail = fail, empty_ext = False):
