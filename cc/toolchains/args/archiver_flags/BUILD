@@ -27,7 +27,6 @@ cc_feature(
 cc_args_list(
     name = "archiver_flags",
     args = [
-        ":no_warning_for_no_symbols",
         ":create_static_archive",
         ":output_execpath",
         ":libraries_to_link",
@@ -36,19 +35,13 @@ cc_args_list(
 )
 
 cc_args(
-    name = "no_warning_for_no_symbols",
-    actions = ["//cc/toolchains/actions:ar_actions"],
-    args = select({
-        ":use_libtool_on_macos_setting": ["-no_warning_for_no_symbols"],
-        "//conditions:default": [],
-    }),
-)
-
-cc_args(
     name = "create_static_archive",
     actions = ["//cc/toolchains/actions:ar_actions"],
     args = select({
-        ":use_libtool_on_macos_setting": ["-static"],
+        ":use_libtool_on_macos_setting": [
+            "-no_warning_for_no_symbols",
+            "-static",
+        ],
         "//conditions:default": ["rcsD"],
     }),
 )
