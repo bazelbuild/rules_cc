@@ -1591,6 +1591,14 @@ def _impl(ctx):
         ],
     )
 
+    no_use_lto_indexing_bitcode_file_feature = feature(
+        name = "no_use_lto_indexing_bitcode_file",
+    )
+
+    use_lto_native_object_directory_feature = feature(
+        name = "use_lto_native_object_directory",
+    )
+
     thinlto_feature = feature(
         name = "thin_lto",
         flag_sets = [
@@ -1815,6 +1823,8 @@ def _impl(ctx):
             fdo_instrument_feature,
             cs_fdo_instrument_feature,
             cs_fdo_optimize_feature,
+            no_use_lto_indexing_bitcode_file_feature,
+            use_lto_native_object_directory_feature,
             thinlto_feature,
             fdo_prefetch_hints_feature,
             autofdo_feature,
