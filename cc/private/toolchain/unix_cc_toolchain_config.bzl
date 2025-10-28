@@ -1371,6 +1371,7 @@ def _impl(ctx):
                 flag_groups = [
                     flag_group(
                         flags = [
+                            "-D",
                             "-no_warning_for_no_symbols",
                             "-static",
                             "-o",
