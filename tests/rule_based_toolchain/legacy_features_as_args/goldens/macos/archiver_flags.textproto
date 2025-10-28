@@ -2,6 +2,7 @@ enabled: false
 flag_sets {
   actions: "c++-link-static-library"
   flag_groups {
+    flags: "-no_warning_for_no_symbols"
     flags: "-static"
   }
 }
