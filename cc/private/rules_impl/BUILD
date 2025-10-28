@@ -87,9 +87,6 @@ bzl_library(
 bzl_library(
     name = "objc_common",
     srcs = [
-        "apple_configuration.bzl",
-        "apple_env.bzl",
-        "apple_platform.bzl",
         "objc_attrs.bzl",
         "objc_common.bzl",
         "objc_compilation_artifacts_info.bzl",
