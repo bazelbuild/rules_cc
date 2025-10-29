@@ -19,6 +19,8 @@ bzl_library(
     srcs = glob(["*.bzl"]),
     visibility = ["//visibility:public"],
     deps = [
+        "@bazel_skylib//lib:paths",
+        "@cc_compatibility_proxy//:proxy_bzl",
         "//cc/private:cc_internal_bzl",
         "//cc/private:paths_bzl",
         "//cc/private/rules_impl:native_bzl",
