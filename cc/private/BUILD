@@ -62,6 +62,7 @@ bzl_library(
         ":cc_launcher_info_bzl",
         ":cc_shared_library_hint_info_bzl",
         ":debug_package_info_bzl",
+        ":objc_info_bzl",
         "//cc/private/compile:compile_bzl",
         "//cc/private/link:link_bzl",
         "//cc/private/rules_impl:native_bzl",
@@ -98,4 +99,10 @@ bzl_library(
     srcs = ["cc_launcher_info.bzl"],
     visibility = ["//cc:__subpackages__"],
     deps = ["//cc/common"],
+)
+
+bzl_library(
+    name = "objc_info_bzl",
+    srcs = ["objc_info.bzl"],
+    visibility = ["//cc:__subpackages__"],
 )

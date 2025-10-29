@@ -13,4 +13,6 @@
 # limitations under the License.
 """ObjcInfo"""
 
-ObjcInfo = apple_common.Objc
+load("@cc_compatibility_proxy//:symbols.bzl", _ObjcInfo = "ObjcInfo")
+
+ObjcInfo = _ObjcInfo
