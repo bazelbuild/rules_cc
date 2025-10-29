@@ -348,6 +348,10 @@ def _impl(ctx):
         name = "supports_pic",
         enabled = True,
     )
+    prefer_pic_for_opt_binaries_feature = feature(
+        name = "prefer_pic_for_opt_binaries",
+        enabled = False,
+    )
     supports_start_end_lib_feature = feature(
         name = "supports_start_end_lib",
         enabled = True,
@@ -1833,6 +1837,7 @@ def _impl(ctx):
             strip_debug_symbols_feature,
             coverage_feature,
             supports_pic_feature,
+            prefer_pic_for_opt_binaries_feature,
             asan_feature,
             tsan_feature,
             ubsan_feature,
