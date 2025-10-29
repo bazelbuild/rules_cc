@@ -585,6 +585,8 @@ def _create_cc_compile_actions(
     output_name_prefix_dir = _cc_internal.compute_output_name_prefix_dir(configuration = configuration, purpose = purpose)
     output_name_map = _calculate_output_name_map_by_type(compilation_unit_sources, output_name_prefix_dir)
 
+    enable_dotd_files = dotd_files_enabled(language, action_construction_context.fragments.cpp, feature_configuration)
+
     compiled_basenames = set()
     for cpp_source in compilation_unit_sources.values():
         source_file = cpp_source.file
@@ -629,6 +631,7 @@ def _create_cc_compile_actions(
                 additional_include_scanning_roots = additional_include_scanning_roots,
                 generate_pic_action = generate_pic_action,
                 generate_no_pic_action = generate_no_pic_action,
+                enable_dotd_files = enable_dotd_files,
             )
         else:  # Tree artifact
             create_compile_action_templates(
@@ -779,7 +782,8 @@ def _create_pic_nopic_compile_source_actions(
         additional_compilation_inputs,
         additional_include_scanning_roots,
         generate_pic_action,
-        generate_no_pic_action):
+        generate_no_pic_action,
+        enable_dotd_files):
     results = []
     if generate_pic_action:
         pic_object = _create_compile_source_action(
@@ -812,6 +816,7 @@ def _create_pic_nopic_compile_source_actions(
             additional_compilation_inputs = additional_compilation_inputs,
             additional_include_scanning_roots = additional_include_scanning_roots,
             use_pic = True,
+            enable_dotd_files = enable_dotd_files,
         )
         results.append(pic_object)
         if output_category == artifact_category.CPP_MODULE:
@@ -848,6 +853,7 @@ def _create_pic_nopic_compile_source_actions(
             additional_compilation_inputs = additional_compilation_inputs,
             additional_include_scanning_roots = additional_include_scanning_roots,
             use_pic = False,
+            enable_dotd_files = enable_dotd_files,
         )
         results.append(nopic_object)
         if output_category == artifact_category.CPP_MODULE:
@@ -884,7 +890,8 @@ def _create_compile_source_action(
         auxiliary_fdo_inputs,
         additional_compilation_inputs,
         additional_include_scanning_roots,
-        use_pic):
+        use_pic,
+        enable_dotd_files):
     output_pic_nopic_name = output_name
     if use_pic:
         output_pic_nopic_name = _cc_internal.get_artifact_name_for_category(
@@ -909,10 +916,9 @@ def _create_compile_source_action(
         category = output_category,
         output_name = output_pic_nopic_name,
         cc_toolchain = cc_toolchain,
-        language = language,
         configuration = configuration,
         feature_configuration = feature_configuration,
-    )
+    ) if enable_dotd_files else None
     diagnostics_file = _maybe_declare_diagnostics_file(
         ctx = action_construction_context,
         label = label,
@@ -1003,6 +1009,7 @@ def _create_compile_source_action(
         additional_compilation_inputs = additional_compilation_inputs,
         additional_include_scanning_roots = additional_include_scanning_roots,
         use_pic = use_pic,
+        enable_dotd_files = enable_dotd_files,
     )
 
     # The fdo_context struct does not always have fields set, so we have to do this.
@@ -1079,7 +1086,8 @@ def _create_temps_action(
         auxiliary_fdo_inputs,
         additional_compilation_inputs,
         additional_include_scanning_roots,
-        use_pic):
+        use_pic,
+        enable_dotd_files):
     if not cpp_configuration.save_temps():
         return []
 
@@ -1128,10 +1136,9 @@ def _create_temps_action(
         source_artifact = source_artifact,
         category = category,
         cc_toolchain = cc_toolchain,
-        language = language,
         configuration = configuration,
         feature_configuration = feature_configuration,
-    )
+    ) if enable_dotd_files else None
     assembly_dotd_file = _maybe_declare_dotd_file(
         ctx = action_construction_context,
         label = label,
@@ -1139,10 +1146,10 @@ def _create_temps_action(
         source_artifact = source_artifact,
         category = artifact_category.GENERATED_ASSEMBLY,
         cc_toolchain = cc_toolchain,
-        language = language,
         configuration = configuration,
         feature_configuration = feature_configuration,
-    )
+    ) if enable_dotd_files else None
+
     preprocess_diagnostics_file = _maybe_declare_diagnostics_file(
         ctx = action_construction_context,
         label = label,
@@ -1460,6 +1467,7 @@ def _create_module_action(
         bitcode_output = False,
         additional_compilation_inputs = additional_compilation_inputs,
         additional_include_scanning_roots = additional_include_scanning_roots,
+        enable_dotd_files = dotd_files_enabled(language, action_construction_context.fragments.cpp, feature_configuration),
     )
 
 def _get_compile_output_file(ctx, label, *, output_name, configuration):
@@ -1539,12 +1547,10 @@ def _maybe_declare_dotd_file(
         category,
         output_name,
         cc_toolchain,
-        language,
         configuration,
         feature_configuration):
     dotd_file = None
-    if (dotd_files_enabled(language, ctx.fragments.cpp, feature_configuration) and
-        _use_dotd_file(feature_configuration, source_artifact)):
+    if (_use_dotd_file(feature_configuration, source_artifact)):
         dotd_base_name = output_name
         if category != artifact_category.OBJECT_FILE and category != artifact_category.PROCESSED_HEADER:
             dotd_base_name = _cc_internal.get_artifact_name_for_category(
