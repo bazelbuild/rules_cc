@@ -40,6 +40,7 @@ bzl_library(
         "cc_binary.bzl",
         "cc_import.bzl",
         "cc_library.bzl",
+        "cc_postmark.bzl",
         "cc_shared_library.bzl",
         "cc_static_library.bzl",
         "cc_test.bzl",
