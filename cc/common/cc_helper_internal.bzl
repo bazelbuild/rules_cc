@@ -342,3 +342,22 @@ def get_relative_path(path_a, path_b):
 
 def path_contains_up_level_references(path):
     return path.startswith("..") and (len(path) == 2 or path[2] == "/")
+
+def root_relative_path(file):
+    """Returns the path of `file` relative to its root.
+
+    A Starlark implementation of `Artifact.getRootRelativePath()`.
+
+    Args:
+        file: (File) The file to get the root-relative path for.
+    Returns:
+        (str) The root-relative path of the file.
+    """
+    if not file.is_source:
+        return paths.relativize(file.path, file.root.path)
+    short_path = file.short_path
+    if not short_path.startswith("../"):
+        return short_path
+
+    # This is a file in an external repo, skip over the repo name.
+    return short_path[short_path.index("/", 3) + 1:]

@@ -14,6 +14,7 @@
 # LINT.IfChange(forked_exports)
 """Functions that create LTO indexing action."""
 
+load("//cc/common:cc_helper_internal.bzl", "root_relative_path")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private/compile:lto_compilation_context.bzl", "get_minimized_bitcode_or_self")
 load("//cc/private/link:finalize_link_action.bzl", "finalize_link_action")
@@ -89,7 +90,7 @@ def create_lto_artifacts_and_lto_indexing_action(
         linking_mode == LINKING_MODE.DYNAMIC and bool(lto_compilation_context.lto_bitcode_inputs)
     )
 
-    lto_output_root_prefix = output.short_path + ".lto" if allow_lto_indexing else "shared.nonlto"
+    lto_output_root_prefix = root_relative_path(output) + ".lto" if allow_lto_indexing else "shared.nonlto"
     lto_obj_root_prefix = lto_output_root_prefix
     if feature_configuration.is_enabled("use_lto_native_object_directory"):
         lto_obj_root_prefix = lto_output_root_prefix + "-obj"
@@ -215,12 +216,12 @@ def _lto_indexing_action(
     # replaced with the final output directory, so they will be the paths
     # of the native object files not the input bitcode files.
     thinlto_param_file = \
-        actions.declare_shareable_artifact(output.short_path + "-lto-final.params")
+        actions.declare_shareable_artifact(root_relative_path(output) + "-lto-final.params")
 
     # Create artifact for the merged object file, which is an object file that is created
     # during the LTO indexing step and needs to be passed to the final link.
     thinlto_merged_object_file = \
-        actions.declare_shareable_artifact(output.short_path + ".lto.merged.o")
+        actions.declare_shareable_artifact(root_relative_path(output) + ".lto.merged.o")
 
     action_outputs = \
         ([lto_artifact.imports for lto_artifact in all_lto_artifacts if lto_artifact.index] +
