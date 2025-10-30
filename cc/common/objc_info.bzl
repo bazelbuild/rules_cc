@@ -13,6 +13,10 @@
 # limitations under the License.
 """ObjcInfo"""
 
-load("@cc_compatibility_proxy//:symbols.bzl", _ObjcInfo = "ObjcInfo")
+load("@cc_compatibility_proxy//:symbols.bzl", _ObjcInfo = "ObjcInfo", _new_objc_provider = "new_objc_provider")
 
 ObjcInfo = _ObjcInfo
+
+# This is the same as ObjcInfo with Bazel 7 release.
+# But it has to be a separate symbol to support Bazel 6.
+new_objc_provider = _new_objc_provider

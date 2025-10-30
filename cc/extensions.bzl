@@ -95,6 +95,7 @@ CcInfo = _CcInfo
 DebugPackageInfo = _DebugPackageInfo
 CcToolchainConfigInfo = _CcToolchainConfigInfo
 ObjcInfo = _ObjcInfo
+new_objc_provider = _ObjcInfo
             """,
         )
     else:
@@ -146,6 +147,7 @@ CcInfo = NativeCcInfo
 DebugPackageInfo = NativeDebugPackageInfo
 CcToolchainConfigInfo = NativeCcToolchainConfigInfo
 ObjcInfo = apple_common.Objc
+new_objc_provider = apple_common.new_objc_provider
             """,
         )
 
