@@ -121,6 +121,11 @@ def _impl(ctx):
                 extension = ".dll",
             ),
             artifact_name_pattern(
+                category_name = "dynamic_library",
+                prefix = "",
+                extension = ".pyd",
+            ),
+            artifact_name_pattern(
                 category_name = "interface_library",
                 prefix = "",
                 extension = ".if.lib",
