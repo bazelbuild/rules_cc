@@ -30,7 +30,12 @@ load(
     artifact_category = "artifact_category_names",
 )
 load("//cc/common:semantics.bzl", _starlark_cc_semantics = "semantics")
-load("//cc/private:cc_info.bzl", "create_compilation_context_with_extra_header_tokens", "create_separate_module_map")
+load(
+    "//cc/private:cc_info.bzl",
+    "create_cc_compilation_context_with_cpp20_modules",
+    "create_compilation_context_with_extra_header_tokens",
+    "create_separate_module_map",
+)
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private/compile:cc_compilation_helper.bzl", "cc_compilation_helper", "dotd_files_enabled", "serialized_diagnostics_file_enabled")
 load("//cc/private/compile:cc_compilation_outputs.bzl", "create_compilation_outputs_internal")
@@ -390,7 +395,7 @@ def compile(
     )
     compilation_outputs = create_compilation_outputs_internal(**compilation_outputs_dict)
     if feature_configuration.is_enabled("cpp_modules"):
-        public_compilation_context = _cc_internal.create_cc_compilation_context_with_cpp20_modules(
+        public_compilation_context = create_cc_compilation_context_with_cpp20_modules(
             cc_compilation_context = public_compilation_context,
             cpp_module_files = compilation_outputs.cpp_module_files,
             pic_cpp_module_files = compilation_outputs.pic_cpp_module_files,
@@ -520,7 +525,6 @@ def _create_scan_deps_action(
         label,
         common_toolchain_variables,
         language,
-        native_cc_semantics,
         source_artifact,
         source_label,
         use_pic,
@@ -528,7 +532,7 @@ def _create_scan_deps_action(
         ddi_output_name):
     dotd_file = None
     if (
-        dotd_files_enabled(native_cc_semantics, configuration, feature_configuration) and
+        dotd_files_enabled(language, cpp_configuration, feature_configuration) and
         _use_dotd_file(feature_configuration, source_artifact)
     ):
         dotd_file = _get_compile_output_file(
@@ -563,20 +567,20 @@ def _create_scan_deps_action(
         common_toolchain_variables,
         specific_compile_build_variables,
     )
-    _cc_internal.create_cpp_compile_action(
+    _cc_internal.create_cc_compile_action(
         action_construction_context = action_construction_context,
         cc_compilation_context = cc_compilation_context,
         cc_toolchain = cc_toolchain,
         configuration = configuration,
         copts_filter = copts_filter,
         feature_configuration = feature_configuration,
-        cpp_semantics = native_cc_semantics,
-        source_artifact = source_artifact,
+        source = source_artifact,
         additional_compilation_inputs = additional_compilation_inputs,
         output_file = ddi_file,
         dotd_file = dotd_file,
         compile_build_variables = compile_variables,
         action_name = ACTION_NAMES.cpp_module_deps_scanning,
+        toolchain_type = _starlark_cc_semantics.toolchain,
     )
 
 def _create_aggregate_ddi_action(
@@ -683,7 +687,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
     else:
         outputs["cpp_modules_info_file"] = modules_info_file
 
-    native_cc_semantics = _cc_common_internal.get_cpp_semantics(language = language)
     for cpp_source in module_interfaces_sources.values():
         source_artifact = cpp_source.file
         output_name = output_name_map[source_artifact]
@@ -741,7 +744,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
             label = label,
             common_toolchain_variables = common_compile_build_variables,
             language = language,
-            native_cc_semantics = native_cc_semantics,
             source_artifact = source_artifact,
             source_label = source_label,
             use_pic = use_pic,
@@ -825,7 +827,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
             feature_configuration = feature_configuration,
             configuration = configuration,
             cpp_configuration = cpp_configuration,
-            cpp_semantics = native_cc_semantics,
             language = language,
             conlyopts = conlyopts,
             copts = copts,
@@ -925,7 +926,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
                 label = label,
                 common_toolchain_variables = common_compile_build_variables,
                 language = language,
-                native_cc_semantics = native_cc_semantics,
                 source_artifact = source_artifact,
                 source_label = source_label,
                 use_pic = use_pic,
@@ -974,7 +974,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
             feature_configuration = feature_configuration,
             configuration = configuration,
             cpp_configuration = cpp_configuration,
-            cpp_semantics = native_cc_semantics,
             language = language,
             conlyopts = conlyopts,
             copts = copts,
