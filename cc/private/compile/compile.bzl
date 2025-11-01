@@ -48,7 +48,6 @@ load(
     "setup_common_compile_build_variables",
 )
 load("//cc/private/compile:lto_compilation_context.bzl", "create_lto_compilation_context")
-load("//cc/private/rules_impl:native.bzl", _cc_common_internal = "native_cc_common")
 
 _VALID_CPP_SOURCE_TYPES = set([CPP_SOURCE_TYPE_SOURCE, CPP_SOURCE_TYPE_HEADER, CPP_SOURCE_TYPE_CLIF_INPUT_PROTO])
 
@@ -1540,11 +1539,9 @@ def _create_compile_source_action(
             category = artifact_category.PIC_FILE,
             output_name = output_name,
         )
-    cpp20_module_compile_enabled = False
     if not action_name:
         if output_category == artifact_category.CPP_MODULE:
             action_name = "c++-module-compile"
-            cpp20_module_compile_enabled = True
         else:
             ext = "." + source_artifact.extension
             if ext in extensions.C_SOURCE:
@@ -1684,8 +1681,8 @@ def _create_compile_source_action(
     if add_object and fdo_context_has_artifacts:
         additional_inputs = additional_compilation_inputs + auxiliary_fdo_inputs.to_list()
 
-    # Until a new enough Bazel supports C++20 Modules, these argument names are invalid.
-    if cpp20_module_compile_enabled:
+    # Provide these args conditionally as they require a recent version of Bazel.
+    if modmap_file:
         module_args = {
             "additional_outputs": additional_outputs,
             "module_files": module_files,
