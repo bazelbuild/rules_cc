@@ -56,6 +56,7 @@ bzl_library(
         "//cc:action_names_bzl",
         "//cc:find_cc_toolchain_bzl",
         "//cc/common",
+        "//cc/common:cc_debug_helper_bzl",
         "@bazel_skylib//lib:paths",
         "@com_google_protobuf//bazel/common:proto_info_bzl",
     ],
@@ -106,6 +107,15 @@ bzl_library(
 bzl_library(
     name = "native_bzl",
     srcs = ["native.bzl"],
+    visibility = [
+        "//cc:__subpackages__",
+        "@cc_compatibility_proxy//:__pkg__",
+    ],
+)
+
+bzl_library(
+    name = "cc_toolchain_info_bzl",
+    srcs = ["cc_toolchain_info.bzl"],
     visibility = [
         "//cc:__subpackages__",
         "@cc_compatibility_proxy//:__pkg__",

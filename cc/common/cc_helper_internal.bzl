@@ -285,7 +285,8 @@ def is_stamping_enabled(ctx):
         ctx: The rule context.
 
     Returns:
-    (int): 1: Always stamp the build information into the binary, even in [--nostamp][stamp] builds.
+        (int) Possible values are:
+        1: Always stamp the build information into the binary, even in [--nostamp][stamp] builds.
         This setting should be avoided, since it potentially kills remote caching for the binary and
         any downstream actions that depend on it.
         0: Always replace build information by constant values. This gives good build result caching.
@@ -350,6 +351,7 @@ def root_relative_path(file):
 
     Args:
         file: (File) The file to get the root-relative path for.
+
     Returns:
         (str) The root-relative path of the file.
     """
