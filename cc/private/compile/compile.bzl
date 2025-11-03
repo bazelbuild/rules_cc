@@ -1536,23 +1536,8 @@ def _create_compile_source_action(
             category = artifact_category.PIC_FILE,
             output_name = output_name,
         )
-    if not action_name:
-        if output_category == artifact_category.CPP_MODULE:
-            action_name = "c++-module-compile"
-        else:
-            ext = "." + source_artifact.extension
-            if ext in extensions.C_SOURCE:
-                action_name = "c-compile"
-            elif ext in extensions.OBJC_SOURCE:
-                action_name = "objc-compile"
-            elif ext in extensions.OBJCPP_SOURCE:
-                action_name = "objc++-compile"
-            elif ext in extensions.ASSESMBLER_WITH_C_PREPROCESSOR:
-                action_name = "preprocess-assemble"
-            elif ext in extensions.ASSEMBLER:
-                action_name = "assemble"
-            else:
-                action_name = "c++-compile"
+    if not action_name and output_category == artifact_category.CPP_MODULE:
+        action_name = "c++-module-compile"
 
     object_file = _get_compile_output_file(
         ctx = action_construction_context,
