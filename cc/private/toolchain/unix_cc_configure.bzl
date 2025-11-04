@@ -197,6 +197,8 @@ def _find_linker_path(repository_ctx, cc, linker, is_clang):
     # Extract linker path from:
     # /usr/bin/clang ...
     #  "/usr/bin/ld.lld" -pie -z ...
+    # We use the leading space and quoted path to find invocations.
+    # https://github.com/llvm/llvm-project/blob/85c78274358717e4d5d019a801decba5c1add484/clang/lib/Driver/Job.cpp#L207-L209
     invocations = [line for line in result.stderr.splitlines() if line.startswith(" \"")]
     if not invocations:
         return linker
