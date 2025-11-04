@@ -118,6 +118,7 @@ bzl_library(
     deps = [
         ":core_rules",
         "//cc/common",
+        "//cc/common:cc_helper_bzl",
         "//cc/private/rules_impl:failing_cc_proto_library_bzl",
         "//cc/toolchains:toolchain_rules",
     ],

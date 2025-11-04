@@ -1,6 +1,6 @@
 """Indirection to avoid breaking on Bazel 6"""
 
-visibility("private")
+visibility("//cc/...")
 
 def starlark_doc_extract_helper(**kwargs):
     """Creates a starlark_doc_extract target if the native rule is available
