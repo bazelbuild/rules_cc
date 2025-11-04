@@ -43,7 +43,10 @@ bzl_library(
     srcs = ["cc_helper.bzl"],
     visibility = ["//visibility:public"],
     deps = [
+        ":cc_helper_internal_bzl",
+        ":common",
         ":visibility_bzl",
+        "//cc:find_cc_toolchain_bzl",
         "//cc/private:paths_bzl",
         "//cc/private/rules_impl:objc_common",
     ],
