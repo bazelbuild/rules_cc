@@ -1082,6 +1082,9 @@ def _has_target_constraints(ctx, constraints):
             return True
     return False
 
+def _should_create_test_dwp_for_statically_linked_test(is_test, linking_mode, cpp_config):
+    return is_test and linking_mode != linker_mode.LINKING_DYNAMIC and cpp_config.build_test_dwp()
+
 cc_helper = struct(
     rule_error = _rule_error,
     attribute_error = _attribute_error,
@@ -1138,5 +1141,6 @@ cc_helper = struct(
     should_create_per_object_debug_info = should_create_per_object_debug_info,
     has_target_constraints = _has_target_constraints,
     package_exec_path = _package_exec_path,
+    should_create_test_dwp_for_statically_linked_test = _should_create_test_dwp_for_statically_linked_test,
 )
 # LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/cc_helper.bzl:forked_exports)
