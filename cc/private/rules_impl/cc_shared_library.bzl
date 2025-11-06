@@ -675,6 +675,9 @@ def _cc_shared_library_impl(ctx):
 
     linking_context = _create_linker_context(linker_inputs)
 
+    cc_runtimes_deps = semantics.get_cc_runtimes(ctx, True)
+    runtimes_linking_contexts = cc_helper.get_linking_contexts_from_deps(cc_runtimes_deps)
+
     user_link_flags = []
     for user_link_flag in ctx.attr.user_link_flags:
         user_link_flags.append(ctx.expand_location(user_link_flag, targets = ctx.attr.additional_linker_inputs))
@@ -724,7 +727,7 @@ def _cc_shared_library_impl(ctx):
         actions = ctx.actions,
         feature_configuration = feature_configuration,
         cc_toolchain = cc_toolchain,
-        linking_contexts = [linking_context],
+        linking_contexts = [linking_context] + runtimes_linking_contexts,
         user_link_flags = user_link_flags,
         additional_inputs = additional_inputs,
         name = ctx.label.name,
@@ -1088,7 +1091,7 @@ following:
 </code></pre>"""),
         "_def_parser": semantics.get_def_parser(),
     },  # buildifier: disable=unsorted-dict-items
-    toolchains = use_cc_toolchain(),
+    toolchains = use_cc_toolchain() + semantics.get_runtimes_toolchain(),
     fragments = ["cpp"] + semantics.additional_fragments(),
 )
 
