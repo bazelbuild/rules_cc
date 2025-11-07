@@ -268,6 +268,8 @@ genrule(
         executable = False,
         content =
             """
+load({cc_import_bzl}, "cc_import")
+
 cc_import(
     name = "local_includes",
     {static_library}
@@ -305,6 +307,7 @@ alias(
     visibility = ["//visibility:public"],
 )
 """.format(
+                cc_import_bzl = repr(str(Label("@rules_cc//cc:cc_import.bzl"))),
                 static_library = static_library_param,
                 shared_library = shared_library_param,
                 hdrs = hdrs_param,
