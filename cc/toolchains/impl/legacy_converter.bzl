@@ -29,6 +29,7 @@ load(
 
 visibility([
     "//cc/toolchains/...",
+    "//cc/private/toolchain/...",
     "//tests/rule_based_toolchain/...",
 ])
 
