@@ -31,6 +31,7 @@ load(
 )
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
+load("@rules_cc//cc/toolchains:feature_injection.bzl", "FeatureInfo", "convert_feature")
 
 all_compile_actions = [
     ACTION_NAMES.c_compile,
@@ -1703,9 +1704,13 @@ def _impl(ctx):
         ],
         enabled = True,
     )
+    features.extend([cpp_modules_feature, cpp_module_modmap_file_feature, cpp20_module_compile_flags_feature])
+    features.extend([convert_feature(extra_enabled_feature[FeatureInfo], enabled = True) for extra_enabled_feature in ctx.attr.extra_enabled_features])
+    features.extend([convert_feature(extra_known_feature[FeatureInfo], enabled = False) for extra_known_feature in ctx.attr.extra_known_features])
+
     return cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
-        features = features + [cpp_modules_feature, cpp_module_modmap_file_feature, cpp20_module_compile_flags_feature],
+        features = features,
         action_configs = action_configs,
         artifact_name_patterns = artifact_name_patterns,
         cxx_builtin_include_directories = ctx.attr.cxx_builtin_include_directories,
@@ -1736,6 +1741,8 @@ cc_toolchain_config = rule(
         "dbg_mode_debug_flag": attr.string(default = ""),
         "default_compile_flags": attr.string_list(default = []),
         "default_link_flags": attr.string_list(default = []),
+        "extra_enabled_features": attr.label_list(providers = [FeatureInfo], default = []),
+        "extra_known_features": attr.label_list(providers = [FeatureInfo], default = []),
         "fastbuild_mode_debug_flag": attr.string(default = ""),
         "host_system_name": attr.string(),
         "link_flags": attr.string_list(),
