@@ -17,9 +17,9 @@
 load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/common:cc_helper.bzl", "cc_helper")
 load("//cc/common:semantics.bzl", "semantics")
+load("//cc/private/rules_impl/fdo:fdo_context.bzl", "create_fdo_context")
 load("//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
 load(":cc_toolchain_provider_helper.bzl", "get_cc_toolchain_provider")
-load(":fdo/fdo_context.bzl", "create_fdo_context")
 
 ToolchainInfo = platform_common.ToolchainInfo
 TemplateVariableInfo = platform_common.TemplateVariableInfo

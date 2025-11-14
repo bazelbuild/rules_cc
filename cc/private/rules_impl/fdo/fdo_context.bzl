@@ -15,10 +15,10 @@
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("//cc/common:cc_common.bzl", "cc_common")
-load(":fdo/fdo_prefetch_hints.bzl", "FdoPrefetchHintsInfo")
-load(":fdo/fdo_profile.bzl", "FdoProfileInfo")
-load(":fdo/memprof_profile.bzl", "MemProfProfileInfo")
-load(":fdo/propeller_optimize.bzl", "PropellerOptimizeInfo")
+load("//cc/private/rules_impl/fdo:fdo_prefetch_hints.bzl", "FdoPrefetchHintsInfo")
+load("//cc/private/rules_impl/fdo:fdo_profile.bzl", "FdoProfileInfo")
+load("//cc/private/rules_impl/fdo:memprof_profile.bzl", "MemProfProfileInfo")
+load("//cc/private/rules_impl/fdo:propeller_optimize.bzl", "PropellerOptimizeInfo")
 
 def _create_fdo_context(
         ctx,

@@ -19,8 +19,8 @@ load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/common:cc_helper.bzl", "cc_helper")
 load("//cc/common:cc_helper_internal.bzl", "get_relative_path")
 load("//cc/common:cc_info.bzl", "CcInfo")
+load("//cc/private/rules_impl/fdo:fdo_context.bzl", "create_fdo_context")
 load(":cc_toolchain_info.bzl", "CcToolchainInfo")
-load(":fdo/fdo_context.bzl", "create_fdo_context")
 
 visibility("private")
 

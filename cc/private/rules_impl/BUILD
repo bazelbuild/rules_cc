@@ -6,9 +6,9 @@ licenses(["notice"])  # Apache 2.0
 
 filegroup(
     name = "bzl_srcs",
-    srcs = glob([
-        "**/*.bzl",
-    ]),
+    srcs = glob(["**/*.bzl"]) + [
+        "//cc/private/rules_impl/fdo:bzl_srcs",
+    ],
 )
 
 filegroup(
@@ -16,7 +16,9 @@ filegroup(
     srcs = glob([
         "**/*.bzl",
         "**/BUILD",
-    ]),
+    ]) + [
+        "//cc/private/rules_impl/fdo:srcs",
+    ],
 )
 
 bzl_library(
@@ -69,11 +71,6 @@ bzl_library(
         "cc_toolchain_alias.bzl",
         "cc_toolchain_info.bzl",
         "cc_toolchain_provider_helper.bzl",
-        "fdo/fdo_context.bzl",
-        "fdo/fdo_prefetch_hints.bzl",
-        "fdo/fdo_profile.bzl",
-        "fdo/memprof_profile.bzl",
-        "fdo/propeller_optimize.bzl",
     ],
     visibility = [
         "//cc:__subpackages__",
@@ -81,6 +78,7 @@ bzl_library(
     ],
     deps = [
         "//cc/common",
+        "//cc/private/rules_impl/fdo:fdo_rules",
         "//cc/toolchains:cc_toolchain_config_info_bzl",
         "@bazel_skylib//lib:paths",
     ],
