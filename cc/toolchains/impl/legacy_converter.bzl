@@ -27,11 +27,6 @@ load(
     legacy_with_feature_set = "with_feature_set",
 )
 
-visibility([
-    "//cc/toolchains/...",
-    "//tests/rule_based_toolchain/...",
-])
-
 # Note that throughout this file, we sort anything for which the order is
 # nondeterministic (eg. depset's .to_list(), dictionary iteration).
 # This allows our tests to call equals() on the output,
