@@ -356,6 +356,9 @@ def root_relative_path(file):
         (str) The root-relative path of the file.
     """
     if not file.is_source:
+        if file.path.startswith(file.root.path + "/"):
+            # TODO(zbarsky): is this always the case?
+            return file.path[len(file.root.path) + 1:]
         return paths.relativize(file.path, file.root.path)
     short_path = file.short_path
     if not short_path.startswith("../"):
