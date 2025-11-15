@@ -31,6 +31,7 @@ load(
 )
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
+load("@rules_cc//cc:cc_toolchain_config_lib.bzl", "FeatureInfo")
 
 def _target_os_version(ctx):
     platform_type = ctx.fragments.apple.single_arch_platform.platform_type
@@ -1931,6 +1932,8 @@ def _impl(ctx):
     if symbol_check:
         features.append(symbol_check)
 
+    features.extend([extra_feature[FeatureInfo] for extra_feature in ctx.attr.extra_features])
+
     return cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
         features = features,
@@ -1955,6 +1958,7 @@ cc_toolchain_config = rule(
         "abi_libc_version": attr.string(mandatory = True),
         "abi_version": attr.string(mandatory = True),
         "archive_flags": attr.string_list(),
+        "extra_features": attr.label_list(providers = [FeatureInfo], default = []),
         "builtin_sysroot": attr.string(),
         "compile_flags": attr.string_list(),
         "compiler": attr.string(mandatory = True),
