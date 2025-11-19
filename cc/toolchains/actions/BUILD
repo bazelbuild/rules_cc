@@ -221,21 +221,6 @@ cc_action_type_set(
     ],
 )
 
-# TODO(zbarsky): Feels like this is wrong but it matches legacy config
-# and avoids crashes due to inaccessible variables
-cc_action_type_set(
-    name = "non_lto_backend_compile_actions",
-    actions = [
-        ":c_compile",
-        ":cpp_compile",
-        ":cpp_header_parsing",
-        ":cpp_module_compile",
-        ":clif_match",
-        ":linkstamp_compile",
-        ":preprocess_assemble",
-    ],
-)
-
 cc_action_type_set(
     name = "cpp_compile_actions",
     actions = [
@@ -250,6 +235,25 @@ cc_action_type_set(
     ],
 )
 
+# This should match `compile_actions` with `lto_backend` omitted, because `lto_backend` actions
+# do not instantiate the full set of build variables.
+cc_action_type_set(
+    name = "source_compile_actions",
+    actions = [
+        ":linkstamp_compile",
+        ":cpp_compile",
+        ":cpp_header_parsing",
+        ":cpp_module_compile",
+        ":cpp_module_codegen",
+        ":clif_match",
+        ":objcpp_compile",
+        ":preprocess_assemble",
+        ":c_compile_actions",
+        ":assembly_actions",
+        ":objc_compile",
+    ],
+)
+
 cc_action_type_set(
     name = "compile_actions",
     actions = [
@@ -257,7 +261,6 @@ cc_action_type_set(
         ":c_compile_actions",
         ":assembly_actions",
         ":objc_compile",
-        ":objcpp_compile",
     ],
 )
 
