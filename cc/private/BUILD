@@ -90,6 +90,15 @@ bzl_library(
 )
 
 bzl_library(
+    name = "cc_shared_library_info_bzl",
+    srcs = ["cc_shared_library_info.bzl"],
+    visibility = [
+        "//cc:__subpackages__",
+        "@cc_compatibility_proxy//:__pkg__",
+    ],
+)
+
+bzl_library(
     name = "cc_shared_library_hint_info_bzl",
     srcs = ["cc_shared_library_hint_info.bzl"],
     visibility = ["//cc:__subpackages__"],

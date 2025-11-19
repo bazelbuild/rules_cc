@@ -55,10 +55,12 @@ bzl_library(
     ],
     deps = [
         ":objc_common",
+        ":objc_compilation_support_bzl",
         "//cc:action_names_bzl",
         "//cc:find_cc_toolchain_bzl",
         "//cc/common",
         "//cc/common:cc_debug_helper_bzl",
+        "//cc/common:cc_shared_library_info_bzl",
         "@bazel_skylib//lib:paths",
         "@com_google_protobuf//bazel/common:proto_info_bzl",
     ],
@@ -98,6 +100,20 @@ bzl_library(
     visibility = ["//cc:__subpackages__"],
     deps = [
         "//cc/common",
+        "@bazel_skylib//lib:paths",
+    ],
+)
+
+bzl_library(
+    name = "objc_compilation_support_bzl",
+    srcs = ["objc_compilation_support.bzl"],
+    visibility = [
+        "//cc:__subpackages__",
+        "//third_party/bazel_rules/rules_apple/apple:__subpackages__",
+    ],
+    deps = [
+        ":objc_common",
+        "//cc/common:cc_helper_bzl",
         "@bazel_skylib//lib:paths",
     ],
 )

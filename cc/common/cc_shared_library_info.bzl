@@ -13,6 +13,6 @@
 # limitations under the License.
 """CcSharedLibraryInfo"""
 
-load("@cc_compatibility_proxy//:proxy.bzl", _CcSharedLibraryInfo = "CcSharedLibraryInfo")
+load("@cc_compatibility_proxy//:symbols.bzl", _CcSharedLibraryInfo = "CcSharedLibraryInfo")
 
 CcSharedLibraryInfo = _CcSharedLibraryInfo
