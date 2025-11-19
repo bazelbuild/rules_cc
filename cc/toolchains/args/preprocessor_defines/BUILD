@@ -11,7 +11,7 @@ cc_feature(
 
 cc_args(
     name = "preprocessor_defines",
-    actions = ["//cc/toolchains/actions:compile_actions"],
+    actions = ["//cc/toolchains/actions:non_lto_backend_compile_actions"],
     args = ["-D{preprocessor_defines}"],
     format = {"preprocessor_defines": "//cc/toolchains/variables:preprocessor_defines"},
     iterate_over = "//cc/toolchains/variables:preprocessor_defines",

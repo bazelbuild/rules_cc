@@ -221,6 +221,21 @@ cc_action_type_set(
     ],
 )
 
+# TODO(zbarsky): Feels like this is wrong but it matches legacy config
+# and avoids crashes due to inaccessible variables
+cc_action_type_set(
+    name = "non_lto_backend_compile_actions",
+    actions = [
+        ":c_compile",
+        ":cpp_compile",
+        ":cpp_header_parsing",
+        ":cpp_module_compile",
+        ":clif_match",
+        ":linkstamp_compile",
+        ":preprocess_assemble",
+    ],
+)
+
 cc_action_type_set(
     name = "cpp_compile_actions",
     actions = [
