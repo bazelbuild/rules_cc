@@ -13,6 +13,17 @@
 # limitations under the License.
 """All providers for rule-based bazel toolchain config."""
 
+# Until the providers are stabilized, ensure that rules_cc is the only place
+# that can access the providers directly.
+# Once it's stabilized, we *may* consider opening up parts of the API, or we may
+# decide to just require users to use the public user-facing rules.
+visibility([
+    "@local_config_cc//...",
+    "//cc/toolchains/...",
+    "//cc/private/toolchain/...",
+    "//tests/rule_based_toolchain/...",
+])
+
 # Note that throughout this file, we never use a list. This is because mutable
 # types cannot be stored in depsets. Thus, we type them as a sequence in the
 # provider, and convert them to a tuple in the constructor to ensure
