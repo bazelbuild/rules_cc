@@ -83,7 +83,7 @@ util.helper_target(
 util.helper_target(
     cc_args,
     name = "bad_env_format_list",
-    actions = ["//cc/toolchains/actions:compile_actions"],
+    actions = ["//cc/toolchains/actions:source_compile_actions"],
     env = {"FOO": "{preprocessor_defines}"},
     format = {"preprocessor_defines": "//cc/toolchains/variables:preprocessor_defines"},
     tags = ["manual"],
