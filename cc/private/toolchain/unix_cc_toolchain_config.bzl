@@ -31,6 +31,8 @@ load(
 )
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
+load("@rules_cc//cc/toolchains:cc_toolchain_info.bzl", RulesBasedFeatureInfo = "FeatureInfo")
+load("@rules_cc//cc/toolchains/impl:legacy_converter.bzl", "convert_feature")
 
 def _target_os_version(ctx):
     platform_type = ctx.fragments.apple.single_arch_platform.platform_type
@@ -1931,6 +1933,8 @@ def _impl(ctx):
     if symbol_check:
         features.append(symbol_check)
 
+    features.extend([convert_feature(extra_feature[RulesBasedFeatureInfo]) for extra_feature in ctx.attr.extra_features])
+
     return cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
         features = features,
@@ -1965,6 +1969,7 @@ cc_toolchain_config = rule(
         "cxx_builtin_include_directories": attr.string_list(),
         "cxx_flags": attr.string_list(),
         "dbg_compile_flags": attr.string_list(),
+        "extra_features": attr.label_list(providers = [RulesBasedFeatureInfo], default = []),
         "extra_flags_per_feature": attr.string_list_dict(),
         "fastbuild_compile_flags": attr.string_list(),
         "host_system_name": attr.string(mandatory = True),

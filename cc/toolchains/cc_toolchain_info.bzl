@@ -18,7 +18,9 @@
 # Once it's stabilized, we *may* consider opening up parts of the API, or we may
 # decide to just require users to use the public user-facing rules.
 visibility([
+    "@local_config_cc//...",
     "//cc/toolchains/...",
+    "//cc/private/toolchain/...",
     "//tests/rule_based_toolchain/...",
 ])
 
