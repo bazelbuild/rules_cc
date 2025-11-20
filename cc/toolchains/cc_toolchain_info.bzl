@@ -19,6 +19,7 @@
 # decide to just require users to use the public user-facing rules.
 visibility([
     "//cc/toolchains/...",
+    "//cc/private/toolchain/...",
     "//tests/rule_based_toolchain/...",
 ])
 
