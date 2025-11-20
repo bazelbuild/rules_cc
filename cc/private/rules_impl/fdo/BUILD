@@ -33,5 +33,8 @@ filegroup(
 bzl_library(
     name = "fdo_rules",
     srcs = glob(["*.bzl"]),
-    visibility = ["//cc:__subpackages__"],
+    visibility = [
+        "//cc:__subpackages__",
+        "//tools/build_defs/go/internal:__subpackages__",
+    ],
 )
