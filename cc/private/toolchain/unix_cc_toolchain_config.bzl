@@ -1377,6 +1377,7 @@ def _impl(ctx):
                         flags = [
                             "-no_warning_for_no_symbols",
                             "-static",
+                            "-D",
                             "-o",
                             "%{output_execpath}",
                         ],

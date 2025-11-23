@@ -41,6 +41,7 @@ cc_args(
         ":use_libtool_on_macos_setting": [
             "-no_warning_for_no_symbols",
             "-static",
+            "-D",
         ],
         "//conditions:default": ["rcsD"],
     }),

@@ -4,6 +4,7 @@ flag_sets {
   flag_groups {
     flags: "-no_warning_for_no_symbols"
     flags: "-static"
+    flags: "-D"
   }
 }
 flag_sets {
