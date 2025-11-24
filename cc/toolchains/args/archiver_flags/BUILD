@@ -39,6 +39,7 @@ cc_args(
     actions = ["//cc/toolchains/actions:ar_actions"],
     args = select({
         ":use_libtool_on_macos_setting": [
+            "-D",
             "-no_warning_for_no_symbols",
             "-static",
         ],
