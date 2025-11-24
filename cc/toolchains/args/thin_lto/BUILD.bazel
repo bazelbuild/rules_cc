@@ -89,7 +89,7 @@ cc_args(
 cc_args(
     name = "object_suffix_replace_flags",
     actions = [
-        "@rules_cc//cc/toolchains/actions:link_actions",
+        ":lto_index_actions",
     ],
     args = [
         "-Wl,-plugin-opt,thinlto-object-suffix-replace={thinlto_object_suffix_replace}",
