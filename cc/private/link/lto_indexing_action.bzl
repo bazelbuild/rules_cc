@@ -93,7 +93,7 @@ def create_lto_artifacts_and_lto_indexing_action(
     lto_output_root_prefix = root_relative_path(output) + ".lto" if allow_lto_indexing else "shared.nonlto"
     lto_obj_root_prefix = lto_output_root_prefix
     if feature_configuration.is_enabled("use_lto_native_object_directory"):
-        lto_obj_root_prefix = lto_output_root_prefix + "-obj"
+        lto_obj_root_prefix = "shared.nonlto-obj"
     object_file_inputs = compilation_outputs.pic_objects if use_pic else compilation_outputs.objects
 
     all_lto_artifacts = create_lto_backends(
