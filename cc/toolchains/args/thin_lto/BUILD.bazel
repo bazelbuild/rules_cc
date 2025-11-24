@@ -29,16 +29,6 @@ cc_args(
     requires_not_none = "@rules_cc//cc/toolchains/variables:lto_indexing_bitcode_file",
 )
 
-cc_args(
-    name = "linkstamp_compile_flags",
-    actions = [
-        "@rules_cc//cc/toolchains/actions:linkstamp_compile",
-    ],
-    args = [
-        "-DBUILD_LTO_TYPE=thin",
-    ],
-)
-
 cc_action_type_set(
     name = "lto_index_actions",
     actions = [
@@ -169,7 +159,6 @@ cc_feature(
         ":index_flags",
         ":output_object_file_flags",
         ":input_bitcode_file_flags",
-        ":linkstamp_compile_flags",
         ":indexing_param_file_flags",
         ":emit_imports_files_flags",
         ":prefix_replace_flags",
