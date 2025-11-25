@@ -204,7 +204,7 @@ def convert_toolchain(toolchain):
     ))
 
     cxx_builtin_include_directories = [
-        d.path
+        "%workspace%/" + d.path
         for d in toolchain.allowlist_include_directories.to_list()
     ]
     cxx_builtin_include_directories += toolchain.allowlist_absolute_include_directories.to_list()
