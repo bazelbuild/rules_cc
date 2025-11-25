@@ -68,8 +68,8 @@ util.helper_target(
     name = "with_dir_and_data",
     actions = ["//tests/rule_based_toolchain/actions:all_compile"],
     allowlist_include_directories = ["//tests/rule_based_toolchain/testdata:directory"],
-    data = ["//tests/rule_based_toolchain/testdata:directory"],
     args = ["--secret-builtin-include-dir"],
+    data = ["//tests/rule_based_toolchain/testdata:directory"],
 )
 
 util.helper_target(
