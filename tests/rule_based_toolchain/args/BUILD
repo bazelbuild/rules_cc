@@ -65,6 +65,15 @@ util.helper_target(
 
 util.helper_target(
     cc_args,
+    name = "with_dir_and_data",
+    actions = ["//tests/rule_based_toolchain/actions:all_compile"],
+    allowlist_include_directories = ["//tests/rule_based_toolchain/testdata:directory"],
+    data = ["//tests/rule_based_toolchain/testdata:directory"],
+    args = ["--secret-builtin-include-dir"],
+)
+
+util.helper_target(
+    cc_args,
     name = "good_env_format",
     actions = ["//cc/toolchains/actions:compile_actions"],
     env = {"FOO": "{gcov_gcno_file}"},
