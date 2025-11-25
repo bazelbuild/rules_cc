@@ -669,6 +669,7 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
         auxiliary_fdo_inputs,
         fdo_build_variables,
         use_pic,
+        enable_dotd_files,
         output_name_map):
     direct_module_files = []
     source_to_module_file_map = {}
@@ -846,6 +847,7 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
             additional_compilation_inputs = additional_compilation_inputs,
             additional_include_scanning_roots = additional_include_scanning_roots,
             use_pic = use_pic,
+            enable_dotd_files = enable_dotd_files,
             additional_build_variables = {
                 "cpp_module_output_file": module_file,
                 "cpp_module_modmap_file": modmap_file,
@@ -993,6 +995,7 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
             additional_compilation_inputs = additional_compilation_inputs,
             additional_include_scanning_roots = additional_include_scanning_roots,
             use_pic = use_pic,
+            enable_dotd_files = enable_dotd_files,
             additional_build_variables = additional_build_variables,
             module_files = all_module_files,
             modmap_file = modmap_file,
@@ -1028,7 +1031,8 @@ def _create_cc_compile_actions_with_cpp20_module(
         outputs,
         common_compile_build_variables,
         auxiliary_fdo_inputs,
-        fdo_build_variables):
+        fdo_build_variables,
+        enable_dotd_files):
     """Constructs the C++ compiler actions with C++20 modules support.
     """
     output_name_prefix_dir = _cc_internal.compute_output_name_prefix_dir(configuration = configuration, purpose = purpose)
@@ -1067,6 +1071,7 @@ def _create_cc_compile_actions_with_cpp20_module(
             auxiliary_fdo_inputs = auxiliary_fdo_inputs,
             fdo_build_variables = fdo_build_variables,
             use_pic = use_pic,
+            enable_dotd_files = enable_dotd_files,
             output_name_map = output_name_map,
         )
 
@@ -1111,6 +1116,8 @@ def _create_cc_compile_actions(
         fail("PIC compilation is requested but the toolchain does not support it " +
              "(feature named 'supports_pic' is not enabled)")
 
+    enable_dotd_files = dotd_files_enabled(language, action_construction_context.fragments.cpp, feature_configuration)
+
     # If C++20 modules are enabled, delegate to the module-aware implementation and return early.
     if feature_configuration.is_enabled("cpp_modules"):
         _create_cc_compile_actions_with_cpp20_module(
@@ -1142,6 +1149,7 @@ def _create_cc_compile_actions(
             common_compile_build_variables = common_compile_build_variables,
             auxiliary_fdo_inputs = auxiliary_fdo_inputs,
             fdo_build_variables = fdo_build_variables,
+            enable_dotd_files = enable_dotd_files,
         )
         return
 
@@ -1271,6 +1279,7 @@ def _create_cc_compile_actions(
                 additional_include_scanning_roots = additional_include_scanning_roots,
                 generate_pic_action = generate_pic_action,
                 generate_no_pic_action = generate_no_pic_action,
+                enable_dotd_files = enable_dotd_files,
             )
         else:  # Tree artifact
             create_compile_action_templates(
@@ -1422,7 +1431,8 @@ def _create_pic_nopic_compile_source_actions(
         additional_compilation_inputs,
         additional_include_scanning_roots,
         generate_pic_action,
-        generate_no_pic_action):
+        generate_no_pic_action,
+        enable_dotd_files):
     results = []
     if generate_pic_action:
         pic_object = _create_compile_source_action(
@@ -1455,6 +1465,7 @@ def _create_pic_nopic_compile_source_actions(
             additional_compilation_inputs = additional_compilation_inputs,
             additional_include_scanning_roots = additional_include_scanning_roots,
             use_pic = True,
+            enable_dotd_files = enable_dotd_files,
         )
         results.append(pic_object)
         if output_category == artifact_category.CPP_MODULE:
@@ -1491,6 +1502,7 @@ def _create_pic_nopic_compile_source_actions(
             additional_compilation_inputs = additional_compilation_inputs,
             additional_include_scanning_roots = additional_include_scanning_roots,
             use_pic = False,
+            enable_dotd_files = enable_dotd_files,
         )
         results.append(nopic_object)
         if output_category == artifact_category.CPP_MODULE:
@@ -1528,6 +1540,7 @@ def _create_compile_source_action(
         additional_compilation_inputs,
         additional_include_scanning_roots,
         use_pic,
+        enable_dotd_files,
         additional_build_variables = {},
         action_name = None,
         additional_outputs = [],
@@ -1561,10 +1574,9 @@ def _create_compile_source_action(
         category = output_category,
         output_name = output_pic_nopic_name,
         cc_toolchain = cc_toolchain,
-        language = language,
         configuration = configuration,
         feature_configuration = feature_configuration,
-    )
+    ) if enable_dotd_files else None
     diagnostics_file = _maybe_declare_diagnostics_file(
         ctx = action_construction_context,
         label = label,
@@ -1658,6 +1670,7 @@ def _create_compile_source_action(
         additional_include_scanning_roots = additional_include_scanning_roots,
         use_pic = use_pic,
         action_name = action_name,
+        enable_dotd_files = enable_dotd_files,
     )
 
     # The fdo_context struct does not always have fields set, so we have to do this.
@@ -1748,7 +1761,8 @@ def _create_temps_action(
         additional_compilation_inputs,
         additional_include_scanning_roots,
         use_pic,
-        action_name):
+        action_name,
+        enable_dotd_files):
     if not cpp_configuration.save_temps():
         return []
 
@@ -1797,10 +1811,9 @@ def _create_temps_action(
         source_artifact = source_artifact,
         category = category,
         cc_toolchain = cc_toolchain,
-        language = language,
         configuration = configuration,
         feature_configuration = feature_configuration,
-    )
+    ) if enable_dotd_files else None
     assembly_dotd_file = _maybe_declare_dotd_file(
         ctx = action_construction_context,
         label = label,
@@ -1808,10 +1821,10 @@ def _create_temps_action(
         source_artifact = source_artifact,
         category = artifact_category.GENERATED_ASSEMBLY,
         cc_toolchain = cc_toolchain,
-        language = language,
         configuration = configuration,
         feature_configuration = feature_configuration,
-    )
+    ) if enable_dotd_files else None
+
     preprocess_diagnostics_file = _maybe_declare_diagnostics_file(
         ctx = action_construction_context,
         label = label,
@@ -2131,6 +2144,7 @@ def _create_module_action(
         bitcode_output = False,
         additional_compilation_inputs = additional_compilation_inputs,
         additional_include_scanning_roots = additional_include_scanning_roots,
+        enable_dotd_files = dotd_files_enabled(language, action_construction_context.fragments.cpp, feature_configuration),
     )
 
 def _get_compile_output_file(ctx, label, *, output_name, configuration):
@@ -2210,12 +2224,10 @@ def _maybe_declare_dotd_file(
         category,
         output_name,
         cc_toolchain,
-        language,
         configuration,
         feature_configuration):
     dotd_file = None
-    if (dotd_files_enabled(language, ctx.fragments.cpp, feature_configuration) and
-        _use_dotd_file(feature_configuration, source_artifact)):
+    if (_use_dotd_file(feature_configuration, source_artifact)):
         dotd_base_name = output_name
         if category != artifact_category.OBJECT_FILE and category != artifact_category.PROCESSED_HEADER:
             dotd_base_name = _cc_internal.get_artifact_name_for_category(
