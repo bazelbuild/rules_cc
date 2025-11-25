@@ -30,7 +30,7 @@ def _cc_tool_impl(ctx):
     else:
         fail("Expected cc_tool's src attribute to be either an executable or a single file")
 
-    runfiles = collect_data(ctx, ctx.attr.data + [ctx.attr.src] + ctx.attr.allowlist_include_directories)
+    runfiles = collect_data(ctx, ctx.attr.data + [ctx.attr.src])
     tool = ToolInfo(
         label = ctx.label,
         exe = exe,

@@ -67,7 +67,7 @@ def _cc_args_impl(ctx):
         )
         files = nested.files
     else:
-        files = collect_files(ctx.attr.data + ctx.attr.allowlist_include_directories)
+        files = collect_files(ctx.attr.data)
 
     requires = collect_provider(ctx.attr.requires_any_of, FeatureConstraintInfo)
 
