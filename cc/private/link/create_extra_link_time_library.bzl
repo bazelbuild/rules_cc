@@ -34,6 +34,13 @@ load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 # buildifier: disable=provider-params
 ExtraLinkTimeLibraryInfo = provider("ExtraLinkTimeLibraryInfo")
 
+# Fields are intentionally not specified as they may be defined by users.
+# Common fields are:
+#  "transitive_linker_inputs": "depset[LinkerInput]. Linker inputs created.",
+#  "transitive_runtime_libraries": "depset[File]. Runtime libraries created.",
+# buildifier: disable=provider-params
+ExtraLibraryInfo = provider("The result of building extra link-time libraries.")
+
 _KeyInfo = provider("_KeyInfo", fields = ["build_library_func", "constant_fields", "depset_fields"])
 
 def create_extra_link_time_library(*, build_library_func, **kwargs):
@@ -157,7 +164,7 @@ def build_libraries(extra_libraries, ctx, static_mode, for_dynamic_library):
       for_dynamic_library: Whether the link is for a dynamic library.
 
     Returns:
-      A tuple of (linker_inputs, runtime_libraries): tuple[depset[LinkerInputInfo], depset[File]].
+      ExtraLibraryInfo.
     """
     check_private_api()
     transitive_linker_inputs = []
@@ -176,9 +183,9 @@ def build_libraries(extra_libraries, ctx, static_mode, for_dynamic_library):
         transitive_linker_inputs.append(linker_input)
         transitive_runtime_libraries.append(runtime_library)
 
-    return (
-        depset(transitive = transitive_linker_inputs),
-        depset(transitive = transitive_runtime_libraries),
+    return ExtraLibraryInfo(
+        transitive_linker_inputs = depset(transitive = transitive_linker_inputs),
+        transitive_runtime_libraries = depset(transitive = transitive_runtime_libraries),
     )
 
 # LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/link/create_extra_link_time_library.bzl:forked_exports)
