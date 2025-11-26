@@ -136,4 +136,5 @@ in binary targets that depend on this library."""),
     fragments = ["objc", "apple", "cpp"],
     cfg = semantics.apple_crosstool_transition,
     toolchains = use_cc_toolchain() + cc_semantics.get_runtimes_toolchain(),
+    provides = [CcInfo],
 )
