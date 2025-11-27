@@ -28,7 +28,9 @@ load(
 )
 
 visibility([
+    "@local_config_cc//...",
     "//cc/toolchains/...",
+    "//cc/private/toolchain/...",
     "//tests/rule_based_toolchain/...",
 ])
 
