@@ -2,9 +2,19 @@ load("@rules_cc//cc/toolchains:actions.bzl", "cc_action_type_set")
 load("@rules_cc//cc/toolchains:args.bzl", "cc_args")
 load("@rules_cc//cc/toolchains:feature.bzl", "cc_feature")
 
+cc_action_type_set(
+    name = "lto_index_actions",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:lto_index_for_executable",
+        "@rules_cc//cc/toolchains/actions:lto_index_for_dynamic_library",
+        "@rules_cc//cc/toolchains/actions:lto_index_for_nodeps_dynamic_library",
+    ],
+)
+
 cc_args(
     name = "lto_flag",
     actions = [
+        ":lto_index_actions",
         "@rules_cc//cc/toolchains/actions:c_compile",
         "@rules_cc//cc/toolchains/actions:cpp_compile",
         "@rules_cc//cc/toolchains/actions:link_actions",
@@ -27,15 +37,6 @@ cc_args(
         "lto_indexing_bitcode_file": "@rules_cc//cc/toolchains/variables:lto_indexing_bitcode_file",
     },
     requires_not_none = "@rules_cc//cc/toolchains/variables:lto_indexing_bitcode_file",
-)
-
-cc_action_type_set(
-    name = "lto_index_actions",
-    actions = [
-        "@rules_cc//cc/toolchains/actions:lto_index_for_executable",
-        "@rules_cc//cc/toolchains/actions:lto_index_for_dynamic_library",
-        "@rules_cc//cc/toolchains/actions:lto_index_for_nodeps_dynamic_library",
-    ],
 )
 
 cc_args(
