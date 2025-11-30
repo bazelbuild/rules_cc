@@ -69,6 +69,7 @@ filegroup(
 filegroup(
     name = "multicall_support_files",
     srcs = glob([
+        "bin/**",
         "libexec/**/*",
     ]),
 )
