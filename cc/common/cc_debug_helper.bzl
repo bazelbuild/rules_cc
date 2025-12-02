@@ -17,9 +17,8 @@ load("//cc:action_names.bzl", "ACTION_NAMES")
 load("//cc:find_cc_toolchain.bzl", "CC_TOOLCHAIN_TYPE")
 load(":cc_common.bzl", "cc_common")
 load(":cc_helper.bzl", "linker_mode")
-load(":visibility.bzl", "INTERNAL_VISIBILITY")
 
-visibility(INTERNAL_VISIBILITY)
+visibility("public")
 
 def create_debug_packager_actions(
         ctx,
