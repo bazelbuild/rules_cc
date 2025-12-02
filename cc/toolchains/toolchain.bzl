@@ -38,9 +38,11 @@ _LEGACY_FILE_GROUPS = {
         Label("//cc/toolchains/actions:cpp_compile"),
         Label("//cc/toolchains/actions:cpp_header_parsing"),
     ],
-    # There are no actions listed for coverage, dwp, and objcopy in action_names.bzl.
+    # There are no actions listed for coverage and objcopy in action_names.bzl.
     "coverage_files": [],
-    "dwp_files": [],
+    "dwp_files": [
+        Label("//cc/toolchains/actions:dwp"),
+    ],
     "linker_files": [
         Label("//cc/toolchains/actions:cpp_link_dynamic_library"),
         Label("//cc/toolchains/actions:cpp_link_nodeps_dynamic_library"),

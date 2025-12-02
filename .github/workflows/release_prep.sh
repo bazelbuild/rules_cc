@@ -4,7 +4,7 @@ set -o errexit -o nounset -o pipefail
 
 # Set by GH actions, see
 # https://docs.github.com/en/actions/learn-github-actions/environment-variables#default-environment-variables
-readonly TAG=${GITHUB_REF_NAME}
+readonly TAG=$1
 # The prefix is chosen to match what GitHub generates for source archives.
 # This guarantees that users can easily switch from a released artifact to a source archive
 # with minimal differences in their code (e.g. strip_prefix remains the same)
@@ -39,6 +39,10 @@ http_archive(
     strip_prefix = "${PREFIX}",
     url = "https://github.com/bazelbuild/rules_cc/releases/download/${TAG}/${ARCHIVE}",
 )
+
+load("@rules_cc//cc:extensions.bzl", "compatibility_proxy_repo")
+
+compatibility_proxy_repo()
 
 \`\`\`
 EOF

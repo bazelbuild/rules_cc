@@ -13,4 +13,6 @@
 # limitations under the License.
 """propeller_optimize rule"""
 
-propeller_optimize = native.propeller_optimize
+load("@cc_compatibility_proxy//:proxy.bzl", _propeller_optimize = "propeller_optimize")
+
+propeller_optimize = _propeller_optimize

@@ -13,7 +13,7 @@
 # limitations under the License.
 """cc_library rule"""
 
-load("//cc/private/rules_impl:cc_library.bzl", _cc_library = "cc_library")
+load("@cc_compatibility_proxy//:proxy.bzl", _cc_library = "cc_library")
 
 def cc_library(**kwargs):
     _cc_library(**kwargs)

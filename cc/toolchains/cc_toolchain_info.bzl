@@ -97,6 +97,16 @@ NestedArgsInfo = provider(
     },
 )
 
+EnvInfo = provider(
+    doc = "A set of environment variables to be added to the environment for specific actions",
+    # @unsorted-dict-items
+    fields = {
+        "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
+        "entries": "(dict[str, str]) A mapping from environment variable name to value",
+        "requires_not_none": "(Optional[str]) The variable that must be not None to apply these environment variables",
+    },
+)
+
 ArgsInfo = provider(
     doc = "A set of arguments to be added to the command line for specific actions",
     # @unsorted-dict-items
@@ -106,8 +116,9 @@ ArgsInfo = provider(
         "requires_any_of": "(Sequence[FeatureConstraintInfo]) This will be enabled if any of the listed predicates are met. Equivalent to with_features",
         "nested": "(Optional[NestedArgsInfo]) The args expand. Equivalent to a flag group.",
         "files": "(depset[File]) Files required for the args",
-        "env": "(dict[str, str]) Environment variables to apply",
+        "env": "(EnvInfo) Environment variables to apply",
         "allowlist_include_directories": "(depset[DirectoryInfo]) Include directories implied by these arguments that should be allowlisted in Bazel's include checker",
+        "allowlist_absolute_include_directories": "(depset[str]) Absolute include directories implied by these arguments that should be allowlisted in Bazel's include checker",
     },
 )
 ArgsListInfo = provider(
@@ -119,6 +130,7 @@ ArgsListInfo = provider(
         "files": "(depset[File]) The files required for all of the arguments",
         "by_action": "(Sequence[struct(action=ActionTypeInfo, args=List[ArgsInfo], files=depset[Files])]) Relevant information about the args keyed by the action type.",
         "allowlist_include_directories": "(depset[DirectoryInfo]) Include directories implied by these arguments that should be allowlisted in Bazel's include checker",
+        "allowlist_absolute_include_directories": "(depset[str]) Absolute include directories implied by these arguments that should be allowlisted in Bazel's include checker",
     },
 )
 
@@ -137,6 +149,7 @@ FeatureInfo = provider(
         "overridable": "(bool) Whether the feature is an overridable feature.",
         "overrides": "(Optional[FeatureInfo]) The feature that this overrides. Must be a known feature",
         "allowlist_include_directories": "(depset[DirectoryInfo]) Include directories implied by this feature that should be allowlisted in Bazel's include checker",
+        "allowlist_absolute_include_directories": "(depset[str]) Absolute include directories implied by these arguments that should be allowlisted in Bazel's include checker",
     },
 )
 FeatureSetInfo = provider(
@@ -221,5 +234,6 @@ ToolchainConfigInfo = provider(
         "make_variables": "Sequence[MakeVariableInfo] Make variable substitutions for this toolchain",
         "files": "(dict[ActionTypeInfo, depset[File]]) Files required for the toolchain, keyed by the action type.",
         "allowlist_include_directories": "(depset[DirectoryInfo]) Built-in include directories implied by this toolchain's args and tools that should be allowlisted in Bazel's include checker",
+        "allowlist_absolute_include_directories": "(List[str]) Built-in include directories allowed the sandbox. Use with care",
     },
 )

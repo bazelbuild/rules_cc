@@ -84,11 +84,13 @@ def _var(target):
 
 # TODO: Consider replacing this with a subrule in the future. However, maybe not
 # for a long time, since it'll break compatibility with all bazel versions < 7.
-def nested_args_provider_from_ctx(ctx):
+def nested_args_provider_from_ctx(ctx, maybe_used_vars = []):
     """Gets the nested args provider from a rule that has NESTED_ARGS_ATTRS.
 
     Args:
         ctx: The rule context
+        maybe_used_vars: (List[str]) A list of format variables that are not needed during args formatting.
+
     Returns:
         NestedArgsInfo
     """
@@ -105,6 +107,7 @@ def nested_args_provider_from_ctx(ctx):
         requires_false = _var(ctx.attr.requires_false),
         requires_equal = _var(ctx.attr.requires_equal),
         requires_equal_value = ctx.attr.requires_equal_value,
+        maybe_used_vars = maybe_used_vars,
     )
 
 def nested_args_provider(
@@ -121,6 +124,7 @@ def nested_args_provider(
         requires_false = None,
         requires_equal = None,
         requires_equal_value = "",
+        maybe_used_vars = [],
         fail = fail):
     """Creates a validated NestedArgsInfo.
 
@@ -148,6 +152,7 @@ def nested_args_provider(
           be ignored if the variable is not equal to requires_equal_value.
         requires_equal_value: (str) The value to compare the requires_equal
           variable with
+        maybe_used_vars: (List[str]) A list of format variables that are not needed during args formatting.
         fail: A fail function. Use only for testing.
     Returns:
         NestedArgsInfo
@@ -183,7 +188,12 @@ def nested_args_provider(
     #     args = ["{}"],
     #     iterate_over = "//cc/toolchains/variables:libraries_to_link.object_files",
     # )
-    args = format_args(args, replacements, must_use = format.values(), fail = fail)
+    formatted_args, _ = format_list(
+        args,
+        replacements,
+        must_use = [var for var in format.values() if var not in maybe_used_vars],
+        fail = fail,
+    )
 
     transitive_files = [ea.files for ea in nested]
     transitive_files.append(files)
@@ -203,8 +213,8 @@ def nested_args_provider(
 
     kwargs = {}
 
-    if args:
-        kwargs["flags"] = args
+    if formatted_args:
+        kwargs["flags"] = formatted_args
 
     requires_types = {}
     if nested:
@@ -293,10 +303,49 @@ def _format_target(target, fail = fail):
 
     fail("%s should be either a variable, a directory, or a single file." % target.label)
 
-def format_args(args, format, must_use = [], fail = fail):
+def _format_string(arg, format, used_vars, fail = fail):
+    upto = 0
+    out = []
+    has_format = False
+
+    # This should be "while true".
+    # This number is used because it's an upper bound of the number of iterations.
+    for _ in range(len(arg)):
+        if upto >= len(arg):
+            break
+
+        # Escaping via "{{" and "}}"
+        if arg[upto] in "{}" and upto + 1 < len(arg) and arg[upto + 1] == arg[upto]:
+            out.append(arg[upto])
+            upto += 2
+        elif arg[upto] == "{":
+            chunks = arg[upto + 1:].split("}", 1)
+            if len(chunks) != 2:
+                fail("Unmatched { in %r" % arg)
+            variable = chunks[0]
+
+            if variable not in format:
+                fail('Unknown variable %r in format string %r. Try using cc_args(..., format = {"//path/to:variable": %r})' % (variable, arg, variable))
+            elif has_format:
+                fail("The format string %r contained multiple variables, which is unsupported." % arg)
+            else:
+                used_vars[variable] = None
+                has_format = True
+                out.append(_format_target(format[variable], fail = fail))
+                upto += len(variable) + 2
+
+        elif arg[upto] == "}":
+            fail("Unexpected } in %r" % arg)
+        else:
+            out.append(_escape(arg[upto]))
+            upto += 1
+
+    return "".join(out)
+
+def format_list(args, format, must_use = [], fail = fail):
     """Lists all of the variables referenced by an argument.
 
-    Eg: format_args(["--foo", "--bar={bar}"], {"bar": VariableInfo(name="bar")})
+    Eg: format_list(["--foo", "--bar={bar}"], {"bar": VariableInfo(name="bar")})
       => ["--foo", "--bar=%{bar}"]
 
     Args:
@@ -312,46 +361,37 @@ def format_args(args, format, must_use = [], fail = fail):
     used_vars = {}
 
     for arg in args:
-        upto = 0
-        out = []
-        has_format = False
-
-        # This should be "while true". I used this number because it's an upper
-        # bound of the number of iterations.
-        for _ in range(len(arg)):
-            if upto >= len(arg):
-                break
-
-            # Escaping via "{{" and "}}"
-            if arg[upto] in "{}" and upto + 1 < len(arg) and arg[upto + 1] == arg[upto]:
-                out.append(arg[upto])
-                upto += 2
-            elif arg[upto] == "{":
-                chunks = arg[upto + 1:].split("}", 1)
-                if len(chunks) != 2:
-                    fail("Unmatched { in %r" % arg)
-                variable = chunks[0]
-
-                if variable not in format:
-                    fail('Unknown variable %r in format string %r. Try using cc_args(..., format = {"//path/to:variable": %r})' % (variable, arg, variable))
-                elif has_format:
-                    fail("The format string %r contained multiple variables, which is unsupported." % arg)
-                else:
-                    used_vars[variable] = None
-                    has_format = True
-                    out.append(_format_target(format[variable], fail = fail))
-                    upto += len(variable) + 2
-
-            elif arg[upto] == "}":
-                fail("Unexpected } in %r" % arg)
-            else:
-                out.append(_escape(arg[upto]))
-                upto += 1
-
-        formatted.append("".join(out))
+        formatted.append(_format_string(arg, format, used_vars, fail))
 
     unused_vars = [var for var in must_use if var not in used_vars]
     if unused_vars:
         fail("The variable %r was not used in the format string." % unused_vars[0])
 
-    return formatted
+    return formatted, used_vars.keys()
+
+def format_dict_values(env, format, must_use = [], fail = fail):
+    """Formats the environment variables.
+
+    Eg: format_dict_values({"FOO": "some/path", "BAR": "{bar}"}, {"bar": DirectoryInfo(path="path/to/bar")})
+      => {"FOO": "some/path", "BAR": "path/to/bar"}
+
+    Args:
+      env: (Dict[str, str]) The environment variables.
+      format: (Dict[str, Target]) A mapping of substitutions from key to target.
+      must_use: (List[str]) A list of substitutions that must be used.
+      fail: The fail function. Used for tests
+
+    Returns:
+      The environment variables with values defined to be compatible with flag groups.
+    """
+    formatted = {}
+    used_vars = {}
+
+    for key, value in env.items():
+        formatted[key] = _format_string(value, format, used_vars, fail)
+
+    unused_vars = [var for var in must_use if var not in used_vars]
+    if unused_vars:
+        fail("The variable %r was not used in the format string." % unused_vars[0])
+
+    return formatted, used_vars.keys()

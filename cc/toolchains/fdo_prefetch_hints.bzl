@@ -13,4 +13,6 @@
 # limitations under the License.
 """fdo_prefetch_hints rule"""
 
-fdo_prefetch_hints = native.fdo_prefetch_hints  # buildifier: disable=native-cc-fdo-prefetch-hints
+load("@cc_compatibility_proxy//:proxy.bzl", _fdo_prefetch_hints = "fdo_prefetch_hints")
+
+fdo_prefetch_hints = _fdo_prefetch_hints

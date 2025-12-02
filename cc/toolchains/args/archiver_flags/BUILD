@@ -38,7 +38,11 @@ cc_args(
     name = "create_static_archive",
     actions = ["//cc/toolchains/actions:ar_actions"],
     args = select({
-        ":use_libtool_on_macos_setting": ["-static"],
+        ":use_libtool_on_macos_setting": [
+            "-D",
+            "-no_warning_for_no_symbols",
+            "-static",
+        ],
         "//conditions:default": ["rcsD"],
     }),
 )

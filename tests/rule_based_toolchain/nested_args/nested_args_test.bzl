@@ -21,9 +21,10 @@ load(
     "REQUIRES_EQUAL_ERR",
     "REQUIRES_MUTUALLY_EXCLUSIVE_ERR",
     "REQUIRES_NONE_ERR",
-    "format_args",
+    "format_list",
     "nested_args_provider",
 )
+load("//tests/rule_based_toolchain:generics.bzl", "struct_subject")
 load("//tests/rule_based_toolchain:subjects.bzl", "result_fn_wrapper", "subjects")
 
 visibility("private")
@@ -38,15 +39,25 @@ def _expect_that_nested(env, expr = None, **kwargs):
         factory = subjects.result(subjects.NestedArgsInfo),
     )
 
+def _format_list(args, format, must_use = [], fail = fail):
+    formatted, used_items = format_list(args, format, must_use = must_use, fail = fail)
+    return struct(
+        args = formatted,
+        used_items = used_items,
+    )
+
 def _expect_that_formatted(env, args, format, must_use = [], expr = None):
     return env.expect.that_value(
-        result_fn_wrapper(format_args)(args, format, must_use = must_use),
-        factory = subjects.result(subjects.collection),
-        expr = expr or "format_args(%r, %r)" % (args, format),
+        result_fn_wrapper(_format_list)(args, format, must_use = must_use),
+        factory = subjects.result(struct_subject(
+            args = subjects.collection,
+            used_items = subjects.collection,
+        )),
+        expr = expr or "format_list(%r, %r)" % (args, format),
     )
 
 def _format_args_test(env, targets):
-    _expect_that_formatted(
+    res = _expect_that_formatted(
         env,
         [
             "a % b",
@@ -55,12 +66,14 @@ def _format_args_test(env, targets):
             "a {{ b }}",
         ],
         {},
-    ).ok().contains_exactly([
+    ).ok()
+    res.args().contains_exactly([
         "a %% b",
         "a {",
         "} b",
         "a { b }",
     ]).in_order()
+    res.used_items().contains_exactly([])
 
     _expect_that_formatted(
         env,
@@ -73,13 +86,14 @@ def _format_args_test(env, targets):
         ["foo}"],
         {},
     ).err().equals('Unexpected } in "foo}"')
+
     _expect_that_formatted(
         env,
         ["{foo}"],
         {},
     ).err().contains('Unknown variable "foo" in format string "{foo}"')
 
-    _expect_that_formatted(
+    res = _expect_that_formatted(
         env,
         [
             "a {var}",
@@ -91,17 +105,25 @@ def _format_args_test(env, targets):
             "file": targets.bin_wrapper,
             "var": targets.foo,
         },
-    ).ok().contains_exactly([
+    ).ok()
+    res.args().contains_exactly([
         "a %{foo}",
         "b " + targets.directory[DirectoryInfo].path,
         "c " + targets.bin_wrapper[DefaultInfo].files.to_list()[0].path,
     ]).in_order()
+    res.used_items().contains_exactly([
+        "var",
+        "directory",
+        "file",
+    ])
 
-    _expect_that_formatted(
+    res = _expect_that_formatted(
         env,
         ["{var}", "{var}"],
         {"var": targets.foo},
-    ).ok().contains_exactly(["%{foo}", "%{foo}"])
+    ).ok()
+    res.args().contains_exactly(["%{foo}", "%{foo}"])
+    res.used_items().contains_exactly(["var"])
 
     _expect_that_formatted(
         env,

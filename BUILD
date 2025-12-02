@@ -9,6 +9,9 @@ exports_files(["LICENSE"])
 cc_library(
     name = "empty_lib",
     # compatible_with = [...]
+    tags = [
+        "__DONT_DEPEND_ON_DEF_PARSER__",
+    ],
 )
 
 # Label flag for extra libraries to be linked into every binary.
@@ -23,6 +26,9 @@ label_flag(
 cc_library(
     name = "link_extra_lib",
     # compatible_with = [...]
+    tags = [
+        "__DONT_DEPEND_ON_DEF_PARSER__",
+    ],
     deps = [
         ":link_extra_libs",
     ],
