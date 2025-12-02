@@ -205,6 +205,12 @@ def toolchain_config_info(label, known_features = [], enabled_features = [], arg
             for src in features + tools.values()
         ] + [args.allowlist_include_directories],
     )
+    allowlist_absolute_include_directories = depset(
+        transitive = [
+            src.allowlist_absolute_include_directories
+            for src in features
+        ] + [args.allowlist_absolute_include_directories],
+    )
     toolchain_config = ToolchainConfigInfo(
         label = label,
         features = features,
@@ -213,6 +219,7 @@ def toolchain_config_info(label, known_features = [], enabled_features = [], arg
         args = args,
         files = files,
         allowlist_include_directories = allowlist_include_directories,
+        allowlist_absolute_include_directories = allowlist_absolute_include_directories,
         artifact_name_patterns = _collect_artifact_name_patterns(artifact_name_patterns, fail),
         make_variables = _collect_make_variables(make_variables, fail),
     )

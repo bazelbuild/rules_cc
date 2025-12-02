@@ -14,7 +14,8 @@
 """All providers for rule-based bazel toolchain config."""
 
 load("@bazel_skylib//rules/directory:providers.bzl", "DirectoryInfo")
-load("//cc/toolchains/impl:args_utils.bzl", "validate_nested_args")
+load("//cc/private:paths.bzl", "is_path_absolute")
+load("//cc/toolchains/impl:args_utils.bzl", "validate_env_variables", "validate_nested_args")
 load(
     "//cc/toolchains/impl:collect.bzl",
     "collect_action_types",
@@ -33,7 +34,9 @@ load(
     "ArgsInfo",
     "ArgsListInfo",
     "BuiltinVariablesInfo",
+    "EnvInfo",
     "FeatureConstraintInfo",
+    "VariableInfo",
 )
 
 visibility("public")
@@ -46,6 +49,10 @@ def _cc_args_impl(ctx):
         must_use = [],  # checking for unused variables in done when formatting `args`.
         format = {k: v for v, k in ctx.attr.format.items()},
     )
+
+    for path in ctx.attr.allowlist_absolute_include_directories:
+        if not is_path_absolute(path):
+            fail("`{}` is not an absolute paths".format(path))
 
     nested = None
     if ctx.attr.args or ctx.attr.nested:
@@ -64,15 +71,30 @@ def _cc_args_impl(ctx):
 
     requires = collect_provider(ctx.attr.requires_any_of, FeatureConstraintInfo)
 
+    env = EnvInfo(
+        label = ctx.label,
+        entries = formatted_env,
+        requires_not_none = ctx.attr.requires_not_none[VariableInfo].name if ctx.attr.requires_not_none else None,
+    )
+    validate_env_variables(
+        actions = actions.to_list(),
+        env = env,
+        variables = ctx.attr._variables[BuiltinVariablesInfo].variables,
+        used_format_vars = used_format_vars,
+    )
+
     args = ArgsInfo(
         label = ctx.label,
         actions = actions,
         requires_any_of = tuple(requires),
         nested = nested,
-        env = formatted_env,
+        env = env,
         files = files,
         allowlist_include_directories = depset(
             direct = [d[DirectoryInfo] for d in ctx.attr.allowlist_include_directories],
+        ),
+        allowlist_absolute_include_directories = depset(
+            direct = ctx.attr.allowlist_absolute_include_directories,
         ),
     )
 
@@ -87,6 +109,7 @@ def _cc_args_impl(ctx):
                 for action in actions.to_list()
             ]),
             allowlist_include_directories = args.allowlist_include_directories,
+            allowlist_absolute_include_directories = args.allowlist_absolute_include_directories,
         ),
     ]
 
@@ -96,6 +119,9 @@ _cc_args = rule(
         "actions": attr.label_list(
             providers = [ActionTypeSetInfo],
             mandatory = True,
+            doc = """See documentation for cc_args macro wrapper.""",
+        ),
+        "allowlist_absolute_include_directories": attr.string_list(
             doc = """See documentation for cc_args macro wrapper.""",
         ),
         "allowlist_include_directories": attr.label_list(
@@ -131,6 +157,7 @@ def cc_args(
         name,
         actions = None,
         allowlist_include_directories = None,
+        allowlist_absolute_include_directories = None,
         args = None,
         data = None,
         env = None,
@@ -238,6 +265,12 @@ def cc_args(
             This can help work around errors like:
             `the source file 'main.c' includes the following non-builtin files with absolute paths
             (if these are builtin files, make sure these paths are in your toolchain)`.
+        allowlist_absolute_include_directories: (List[str]) Allowlists absolute include directories,
+            preventing Bazel from emitting errors when an #include of local system files in the
+            directory occurs. Be careful when adding directories to this list, as it inherently
+            causes leaks in hermeticity. Prefer to reserve use of this for cases like Xcode, where
+            the conventional expectation is to allowlist well-known system-absolute include paths
+            rather than redistributing the SDK.
         args: (List[str]) The command-line arguments that are applied by using this rule. This is
             mutually exclusive with [nested](#cc_args-nested).
         data: (List[Label]) A list of runtime data dependencies that are required for these
@@ -282,6 +315,7 @@ def cc_args(
         name = name,
         actions = actions,
         allowlist_include_directories = allowlist_include_directories,
+        allowlist_absolute_include_directories = allowlist_absolute_include_directories,
         args = args,
         data = data,
         env = env,

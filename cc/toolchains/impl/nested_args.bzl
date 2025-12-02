@@ -291,10 +291,8 @@ def nested_args_provider(
 def _escape(s):
     return s.replace("%", "%%")
 
-def _format_target(target, arg, allow_variables, fail = fail):
+def _format_target(target, fail = fail):
     if VariableInfo in target:
-        if not allow_variables:
-            fail("Unsupported cc_variable substitution %s in %r." % (target.label, arg))
         return "%%{%s}" % target[VariableInfo].name
     elif DirectoryInfo in target:
         return _escape(target[DirectoryInfo].path)
@@ -305,7 +303,7 @@ def _format_target(target, arg, allow_variables, fail = fail):
 
     fail("%s should be either a variable, a directory, or a single file." % target.label)
 
-def _format_string(arg, format, used_vars, allow_variables, fail = fail):
+def _format_string(arg, format, used_vars, fail = fail):
     upto = 0
     out = []
     has_format = False
@@ -333,7 +331,7 @@ def _format_string(arg, format, used_vars, allow_variables, fail = fail):
             else:
                 used_vars[variable] = None
                 has_format = True
-                out.append(_format_target(format[variable], arg, allow_variables, fail = fail))
+                out.append(_format_target(format[variable], fail = fail))
                 upto += len(variable) + 2
 
         elif arg[upto] == "}":
@@ -363,7 +361,7 @@ def format_list(args, format, must_use = [], fail = fail):
     used_vars = {}
 
     for arg in args:
-        formatted.append(_format_string(arg, format, used_vars, True, fail))
+        formatted.append(_format_string(arg, format, used_vars, fail))
 
     unused_vars = [var for var in must_use if var not in used_vars]
     if unused_vars:
@@ -390,7 +388,7 @@ def format_dict_values(env, format, must_use = [], fail = fail):
     used_vars = {}
 
     for key, value in env.items():
-        formatted[key] = _format_string(value, format, used_vars, False, fail)
+        formatted[key] = _format_string(value, format, used_vars, fail)
 
     unused_vars = [var for var in must_use if var not in used_vars]
     if unused_vars:

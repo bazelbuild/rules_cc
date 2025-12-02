@@ -21,6 +21,7 @@ load(
     "ActionTypeSetInfo",
     "ArgsInfo",
     "ArgsListInfo",
+    "EnvInfo",
     "FeatureConstraintInfo",
     "FeatureInfo",
     "FeatureSetInfo",
@@ -84,6 +85,7 @@ _FEATURE_FLAGS = dict(
     external = _subjects.bool,
     overrides = None,
     allowlist_include_directories = _FakeDirectoryDepset,
+    allowlist_absolute_include_directories = ProviderDepset(_subjects.str),
 )
 
 # Break the dependency loop.
@@ -137,17 +139,28 @@ _NestedArgsFactory = generate_factory(
 )
 
 # buildifier: disable=name-conventions
+_EnvInfoFactory = generate_factory(
+    EnvInfo,
+    "EnvInfo",
+    dict(
+        entries = _subjects.dict,
+        requires_not_none = optional_subject(_subjects.str),
+    ),
+)
+
+# buildifier: disable=name-conventions
 _ArgsFactory = generate_factory(
     ArgsInfo,
     "ArgsInfo",
     dict(
         actions = ProviderDepset(_ActionTypeFactory),
-        env = _subjects.dict,
+        env = _EnvInfoFactory.factory,
         files = _subjects.depset_file,
         # Use .factory so it's not inlined.
         nested = optional_subject(_NestedArgsFactory.factory),
         requires_any_of = ProviderSequence(_FeatureConstraintFactory),
         allowlist_include_directories = _FakeDirectoryDepset,
+        allowlist_absolute_include_directories = ProviderDepset(_subjects.str),
     ),
 )
 
@@ -163,6 +176,7 @@ _ArgsListFactory = generate_factory(
         ))({value.action: value for value in values}, meta = meta),
         files = _subjects.depset_file,
         allowlist_include_directories = _FakeDirectoryDepset,
+        allowlist_absolute_include_directories = ProviderDepset(_subjects.str),
     ),
 )
 
@@ -221,6 +235,7 @@ _ToolchainConfigFactory = generate_factory(
         args = ProviderSequence(_ArgsFactory),
         files = dict_key_subject(_subjects.depset_file),
         allowlist_include_directories = _FakeDirectoryDepset,
+        allowlist_absolute_include_directories = ProviderDepset(_subjects.str),
         artifact_name_patterns = [],
         make_variables = [],
     ),

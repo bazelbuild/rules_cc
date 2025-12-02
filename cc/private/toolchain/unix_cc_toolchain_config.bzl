@@ -30,6 +30,7 @@ load(
     "with_feature_set",
 )
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
 
 def _target_os_version(ctx):
     platform_type = ctx.fragments.apple.single_arch_platform.platform_type
@@ -347,6 +348,10 @@ def _impl(ctx):
         name = "supports_pic",
         enabled = True,
     )
+    prefer_pic_for_opt_binaries_feature = feature(
+        name = "prefer_pic_for_opt_binaries",
+        enabled = False,
+    )
     supports_start_end_lib_feature = feature(
         name = "supports_start_end_lib",
         enabled = True,
@@ -470,6 +475,8 @@ def _impl(ctx):
             ),
         ],
     )
+
+    fastbuild_feature = feature(name = "fastbuild")
 
     dbg_feature = feature(name = "dbg")
 
@@ -899,7 +906,7 @@ def _impl(ctx):
         )
         set_install_name_feature = feature(
             name = "set_install_name",
-            enabled = ctx.fragments.cpp.do_not_use_macos_set_install_name,
+            enabled = getattr(ctx.fragments.cpp, "do_not_use_macos_set_install_name", True),
             flag_sets = [
                 flag_set(
                     actions = [
@@ -1368,6 +1375,8 @@ def _impl(ctx):
                 flag_groups = [
                     flag_group(
                         flags = [
+                            "-D",
+                            "-no_warning_for_no_symbols",
                             "-static",
                             "-o",
                             "%{output_execpath}",
@@ -1585,6 +1594,14 @@ def _impl(ctx):
                 ] if ctx.attr.coverage_link_flags else []),
             ),
         ],
+    )
+
+    no_use_lto_indexing_bitcode_file_feature = feature(
+        name = "no_use_lto_indexing_bitcode_file",
+    )
+
+    use_lto_native_object_directory_feature = feature(
+        name = "use_lto_native_object_directory",
     )
 
     thinlto_feature = feature(
@@ -1811,6 +1828,8 @@ def _impl(ctx):
             fdo_instrument_feature,
             cs_fdo_instrument_feature,
             cs_fdo_optimize_feature,
+            no_use_lto_indexing_bitcode_file_feature,
+            use_lto_native_object_directory_feature,
             thinlto_feature,
             fdo_prefetch_hints_feature,
             autofdo_feature,
@@ -1829,6 +1848,7 @@ def _impl(ctx):
             strip_debug_symbols_feature,
             coverage_feature,
             supports_pic_feature,
+            prefer_pic_for_opt_binaries_feature,
             asan_feature,
             tsan_feature,
             ubsan_feature,
@@ -1847,6 +1867,7 @@ def _impl(ctx):
             static_libgcc_feature,
             fdo_optimize_feature,
             supports_dynamic_linker_feature,
+            fastbuild_feature,
             dbg_feature,
             opt_feature,
             user_compile_flags_feature,

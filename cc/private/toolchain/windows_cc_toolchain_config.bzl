@@ -30,6 +30,7 @@ load(
     "with_feature_set",
 )
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
 
 all_compile_actions = [
     ACTION_NAMES.c_compile,
@@ -484,16 +485,6 @@ def _impl(ctx):
                         flag_group(
                             flags = ["/IMPLIB:%{interface_library_output_path}"],
                             expand_if_available = "interface_library_output_path",
-                        ),
-                    ],
-                ),
-                flag_set(
-                    actions = all_link_actions,
-                    flag_groups = [
-                        flag_group(
-                            flags = ["%{libopts}"],
-                            iterate_over = "libopts",
-                            expand_if_available = "libopts",
                         ),
                     ],
                 ),

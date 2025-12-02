@@ -146,6 +146,9 @@ def collect_args_lists(targets, label):
         allowlist_include_directories = depset(
             transitive = [a.allowlist_include_directories for a in args],
         ),
+        allowlist_absolute_include_directories = depset(
+            transitive = [a.allowlist_absolute_include_directories for a in args],
+        ),
         by_action = tuple([
             struct(
                 action = k,

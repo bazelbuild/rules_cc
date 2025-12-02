@@ -13,6 +13,8 @@
 # limitations under the License.
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("//cc/toolchains:cc_toolchain_alias.bzl", "cc_toolchain_alias")
+load(":starlark_doc_extract_helper.bzl", "starlark_doc_extract_helper")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -53,8 +55,7 @@ filegroup(
     srcs = glob([
         "**/*.bzl",
     ]) + [
-        "//cc/private/rules_impl:bzl_srcs",
-        "//cc/private/toolchain:bzl_srcs",
+        "//cc/private:bzl_srcs",
     ],
     visibility = ["//visibility:public"],
 )
@@ -65,8 +66,7 @@ filegroup(
         "**/*.bzl",
         "**/BUILD",
     ]) + [
-        "//cc/private/rules_impl:srcs",
-        "//cc/private/toolchain:srcs",
+        "//cc/private:srcs",
     ],
     visibility = ["//visibility:public"],
 )
@@ -98,7 +98,7 @@ bzl_library(
 bzl_library(
     name = "cc_toolchain_config_lib_bzl",
     srcs = ["cc_toolchain_config_lib.bzl"],
-    visibility = ["//cc/toolchains:__subpackages__"],
+    visibility = ["//cc:__subpackages__"],
 )
 
 bzl_library(
@@ -118,6 +118,8 @@ bzl_library(
     deps = [
         ":core_rules",
         "//cc/common",
+        "//cc/common:cc_helper_bzl",
+        "//cc/private/rules_impl:failing_cc_proto_library_bzl",
         "//cc/toolchains:toolchain_rules",
     ],
 )
@@ -136,7 +138,7 @@ bzl_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        "//cc/private/rules_impl:core_rules",
+        "@cc_compatibility_proxy//:proxy_bzl",
     ],
 )
 
@@ -149,3 +151,13 @@ alias(
 )
 
 cc_libc_top_alias(name = "current_libc_top")
+
+# unused target to test that we have the right bzl_library graph
+starlark_doc_extract_helper(
+    name = "defs_doc_extract",
+    src = "defs.bzl",
+    visibility = ["//visibility:private"],
+    deps = [
+        ":defs_bzl",
+    ],
+)
