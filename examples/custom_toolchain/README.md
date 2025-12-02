@@ -60,19 +60,3 @@ in `WORKSPACE` and auto-set
 ```
 $ bazel build //examples/custom_toolchain:buildme --platforms=//examples/custom_toolchain:x86_platform
 ```
-
-## Custom toolchain with legacy selection:
-
-```
-$ bazel clean
-$ bazel build //examples/custom_toolchain:buildme --crosstool_top=//examples/custom_toolchain:legacy_selector --cpu=x86
-DEBUG: /usr/local/google/home/gregce/bazel/rules_cc/examples/custom_toolchain/toolchain_config.bzl:17:10: Invoking my custom toolchain!
-INFO: From Compiling examples/custom_toolchain/buildme.cc:
-examples/custom_toolchain/sample_compiler: running sample cc_library compiler (produces .o output).
-INFO: From Linking examples/custom_toolchain/libbuildme.a:
-examples/custom_toolchain/sample_linker: running sample cc_library linker (produces .a output).
-
-$ cat bazel-bin/examples/custom_toolchain/libbuildme.a
-examples/custom_toolchain/sample_linker: sample output
-```
-

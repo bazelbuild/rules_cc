@@ -13,4 +13,6 @@
 # limitations under the License.
 """cc_toolchain rule"""
 
-cc_toolchain = native.cc_toolchain  # buildifier: disable=native-cc-toolchain
+load("@cc_compatibility_proxy//:proxy.bzl", _cc_toolchain = "cc_toolchain")
+
+cc_toolchain = _cc_toolchain

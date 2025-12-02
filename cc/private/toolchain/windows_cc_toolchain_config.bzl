@@ -30,6 +30,7 @@ load(
     "with_feature_set",
 )
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
 
 all_compile_actions = [
     ACTION_NAMES.c_compile,
@@ -482,16 +483,6 @@ def _impl(ctx):
                     ],
                 ),
                 flag_set(
-                    actions = all_link_actions,
-                    flag_groups = [
-                        flag_group(
-                            flags = ["%{libopts}"],
-                            iterate_over = "libopts",
-                            expand_if_available = "libopts",
-                        ),
-                    ],
-                ),
-                flag_set(
                     actions = all_link_actions +
                               [ACTION_NAMES.cpp_link_static_library],
                     flag_groups = [
@@ -728,6 +719,21 @@ def _impl(ctx):
             ],
         )
 
+        default_cpp_std_feature = feature(
+            name = "default_cpp_std",
+            enabled = True,
+            flag_sets = [
+                flag_set(
+                    actions = all_cpp_compile_actions,
+                    flag_groups = [
+                        flag_group(
+                            flags = ["/std:c++17"],
+                        ),
+                    ],
+                ),
+            ],
+        )
+
         default_compile_flags_feature = feature(
             name = "default_compile_flags",
             enabled = True,
@@ -941,6 +947,11 @@ def _impl(ctx):
         no_dotd_file_feature = feature(
             name = "no_dotd_file",
             enabled = True,
+        )
+
+        shorten_virtual_includes_feature = feature(
+            name = "shorten_virtual_includes",
+            enabled = ctx.attr.shorten_virtual_includes,
         )
 
         treat_warnings_as_errors_feature = feature(
@@ -1268,6 +1279,7 @@ def _impl(ctx):
             no_stripping_feature,
             targets_windows_feature,
             copy_dynamic_libraries_to_binary_feature,
+            default_cpp_std_feature,
             default_compile_flags_feature,
             msvc_env_feature,
             msvc_compile_env_feature,
@@ -1277,6 +1289,7 @@ def _impl(ctx):
             preprocessor_defines_feature,
             parse_showincludes_feature,
             no_dotd_file_feature,
+            shorten_virtual_includes_feature,
             generate_pdb_file_feature,
             generate_linkmap_feature,
             shared_flag_feature,
@@ -1657,6 +1670,7 @@ cc_toolchain_config = rule(
         "msvc_lib_path": attr.string(default = "vc_installation_error.bat"),
         "msvc_link_path": attr.string(default = "vc_installation_error.bat"),
         "msvc_ml_path": attr.string(default = "vc_installation_error.bat"),
+        "shorten_virtual_includes": attr.bool(default = False),
         "supports_parse_showincludes": attr.bool(),
         "target_libc": attr.string(),
         "target_system_name": attr.string(),

@@ -45,15 +45,23 @@ http_archive(
 )
 
 http_archive(
-    name = "com_google_protobuf",
-    sha256 = "da288bf1daa6c04d03a9051781caa52aceb9163586bff9aa6cfb12f69b9395aa",
-    strip_prefix = "protobuf-27.0",
-    url = "https://github.com/protocolbuffers/protobuf/releases/download/v27.0/protobuf-27.0.tar.gz",
-)
-
-http_archive(
     name = "googletest",
     integrity = "sha256-e0K01u1IgQxTYsJloX+uvpDcI3PIheUhZDnTeSfwKSY=",
     strip_prefix = "googletest-1.15.2",
     url = "https://github.com/google/googletest/releases/download/v1.15.2/googletest-1.15.2.tar.gz",
 )
+
+http_archive(
+    name = "bazel_features",
+    sha256 = "07bd2b18764cdee1e0d6ff42c9c0a6111ffcbd0c17f0de38e7f44f1519d1c0cd",
+    strip_prefix = "bazel_features-1.32.0",
+    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.32.0/bazel_features-v1.32.0.tar.gz",
+)
+
+load("@bazel_features//:deps.bzl", "bazel_features_deps")
+
+bazel_features_deps()
+
+load("//cc:extensions.bzl", "compatibility_proxy_repo")
+
+compatibility_proxy_repo()

@@ -70,7 +70,11 @@ def convert_args(args, strip_actions = False):
         ))
 
     env_sets = []
-    if args.env:
+    if args.env.entries:
+        # NOTE: Use kwargs to support older bazel versions
+        kwargs = {}
+        if args.env.requires_not_none:
+            kwargs["expand_if_available"] = args.env.requires_not_none
         env_sets.append(legacy_env_set(
             actions = actions,
             with_features = with_features,
@@ -78,8 +82,9 @@ def convert_args(args, strip_actions = False):
                 legacy_env_entry(
                     key = key,
                     value = value,
+                    **kwargs
                 )
-                for key, value in args.env.items()
+                for key, value in args.env.entries.items()
             ],
         ))
     return struct(
@@ -199,9 +204,10 @@ def convert_toolchain(toolchain):
     ))
 
     cxx_builtin_include_directories = [
-        d.path
+        "%workspace%/" + d.path
         for d in toolchain.allowlist_include_directories.to_list()
     ]
+    cxx_builtin_include_directories += toolchain.allowlist_absolute_include_directories.to_list()
 
     artifact_name_patterns = [
         legacy_artifact_name_pattern(

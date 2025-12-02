@@ -196,8 +196,13 @@ def _find_linker_path(repository_ctx, cc, linker, is_clang):
 
     # Extract linker path from:
     # /usr/bin/clang ...
-    # "/usr/bin/ld.lld" -pie -z ...
-    linker_command = result.stderr.splitlines()[-1]
+    #  "/usr/bin/ld.lld" -pie -z ...
+    # We use the leading space and quoted path to find invocations.
+    # https://github.com/llvm/llvm-project/blob/85c78274358717e4d5d019a801decba5c1add484/clang/lib/Driver/Job.cpp#L207-L209
+    invocations = [line for line in result.stderr.splitlines() if line.startswith(" \"")]
+    if not invocations:
+        return linker
+    linker_command = invocations[-1]
     return linker_command.strip().split(" ")[0].strip("\"'")
 
 def _add_compiler_option_if_supported(repository_ctx, cc, option):
@@ -673,6 +678,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
             "%{coverage_link_flags}": coverage_link_flags,
             "%{cxx_builtin_include_directories}": get_starlark_list(builtin_include_directories),
             "%{cxx_flags}": get_starlark_list(cxx_opts + _escaped_cplus_include_paths(repository_ctx)),
+            "%{fastbuild_compile_flags}": get_starlark_list([]),
             "%{dbg_compile_flags}": get_starlark_list(["-g"]),
             "%{extra_flags_per_feature}": repr(extra_flags_per_feature),
             "%{host_system_name}": escape_string(get_env_var(

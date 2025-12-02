@@ -13,7 +13,7 @@
 # limitations under the License.
 """objc_import rule"""
 
-load("//cc/private/rules_impl:objc_import.bzl", _objc_import = "objc_import")
+load("@cc_compatibility_proxy//:proxy.bzl", _objc_import = "objc_import")
 
 def objc_import(**kwargs):
     _objc_import(**kwargs)

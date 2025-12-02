@@ -46,37 +46,17 @@ using std::vector;
 
 namespace {
 
-bool starts_with(const string& s, const char* prefix) {
-  if (!prefix || !*prefix) {
-    return true;
-  }
-  if (s.empty()) {
-    return false;
-  }
-  return s.find(prefix) == 0;
+bool starts_with(const string& s, const string& prefix) {
+  return s.compare(0, prefix.size(), prefix) == 0;
 }
 
-bool contains(const string& s, const char* substr) {
-  if (!substr || !*substr) {
-    return true;
-  }
-  if (s.empty()) {
-    return false;
-  }
+bool contains(const string& s, const string& substr) {
   return s.find(substr) != string::npos;
 }
 
 bool ends_with(const string& s, const string& suffix) {
-  if (suffix.empty()) {
-    return true;
-  }
-  if (s.empty()) {
-    return false;
-  }
-  if (suffix.size() > s.size()) {
-    return false;
-  }
-  return s.rfind(suffix) == s.size() - suffix.size();
+  return s.size() >= suffix.size() &&
+         s.compare(s.size() - suffix.size(), suffix.size(), suffix) == 0;
 }
 
 bool IsReadableFile(const string& path) {
@@ -232,13 +212,32 @@ string Runfiles::Rlocation(const string& path,
     return RlocationUnchecked(path, runfiles_map_, directory_);
   }
   string target_apparent = path.substr(0, first_slash);
-  auto target =
-      repo_mapping_.find(std::make_pair(source_repo, target_apparent));
-  if (target == repo_mapping_.cend()) {
+  auto lookup_key = std::make_pair(target_apparent, source_repo);
+  // The smallest entry that is greater than lookup_key.
+  auto upper_bound = repo_mapping_.upper_bound(lookup_key);
+  // The largest entry that is less than or equal to lookup_key.
+  auto floor = upper_bound == repo_mapping_.begin() ? upper_bound
+                                                    : std::prev(upper_bound);
+  if (floor == repo_mapping_.end()) {
     return RlocationUnchecked(path, runfiles_map_, directory_);
   }
-  return RlocationUnchecked(target->second + path.substr(first_slash),
-                            runfiles_map_, directory_);
+  if (floor->first == lookup_key) {
+    return RlocationUnchecked(floor->second + path.substr(first_slash),
+                              runfiles_map_, directory_);
+  }
+  // Since the asterisk sorts before any other valid character in a repo name,
+  // the floor element may be a prefix match.
+  std::pair<string, string> key;
+  string value;
+  std::tie(key, value) = *floor;
+  if (key.first == target_apparent &&
+      ends_with(key.second, "*") &&
+      starts_with(
+        source_repo, key.second.substr( 0, key.second.size() - 1))) {
+    return RlocationUnchecked(
+      value + path.substr(first_slash), runfiles_map_, directory_);
+  }
+  return RlocationUnchecked(path, runfiles_map_, directory_);
 }
 
 string Runfiles::RlocationUnchecked(const string& path,
@@ -360,12 +359,17 @@ bool ParseRepoMapping(const string& path,
       return false;
     }
 
+    // If the source repo ends with an asterisk, the line is supposed to match
+    // any name that starts with the prefix up to the asterisk. Since an
+    // asterisk sorts before any other valid character in a repo name, we can
+    // insert the line as is and search for a lower bound if we store the
+    // apparent target repo name first in the map key.
     string source = line.substr(0, first_comma);
     string target_apparent =
         line.substr(first_comma + 1, second_comma - (first_comma + 1));
     string target = line.substr(second_comma + 1);
 
-    (*result)[std::make_pair(source, target_apparent)] = target;
+    (*result)[std::make_pair(target_apparent, source)] = target;
     std::getline(stm, line);
     ++line_count;
   }
