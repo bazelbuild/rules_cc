@@ -33,7 +33,7 @@ def cc_autoconf_toolchains_impl(repository_ctx):
     should_detect_cpp_toolchain = "BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN" not in env or env["BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN"] != "1"
 
     if should_detect_cpp_toolchain:
-        if repository_ctx.os.name.find("windows") != -1:
+        if repository_ctx.os.name.lower().find("windows") != -1:
             build_path = "@rules_cc//cc/private/toolchain:BUILD.windows_toolchains.tpl"
         else:
             build_path = "@rules_cc//cc/private/toolchain:BUILD.toolchains.tpl"
