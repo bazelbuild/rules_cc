@@ -635,10 +635,12 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
     extra_link_time_libraries = deps_cc_linking_context._extra_link_time_libraries.libraries
     linker_inputs_extra = depset()
     runtime_libraries_extra = depset()
+    additional_stamp_infos = []
     if extra_link_time_libraries != None:
         extra_library_info = cc_common.build_extra_link_time_libraries(extra_libraries = extra_link_time_libraries, ctx = ctx, static_mode = linking_mode != linker_mode.LINKING_DYNAMIC, for_dynamic_library = _is_link_shared(ctx))
         linker_inputs_extra = extra_library_info.transitive_linker_inputs
         runtime_libraries_extra = extra_library_info.transitive_runtime_libraries
+        additional_stamp_infos = extra_library_info.additional_stamp_infos
 
     use_postmark = postmark.get_use_postmark(ctx)
     output_binary_for_linking = binary
@@ -677,6 +679,7 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
             cc_toolchain,
             binary,
             output_binary_for_linking,
+            additional_stamp_infos = additional_stamp_infos,
         )
 
     cc_linking_outputs_binary_library = cc_linking_outputs_binary.library_to_link
