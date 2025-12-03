@@ -17,6 +17,17 @@ load("@rules_cc//cc/toolchains:tool_map.bzl", "cc_tool_map")
 
 licenses(["notice"])
 
+exports_files([
+    "wrapper/ld.sh",
+])
+
+filegroup(
+    name = "toolchain_wrapper",
+    srcs = [
+        "wrapper/ld.sh",
+    ],
+)
+
 cc_tool_map(
     name = "all_tools",
     tags = ["manual"],
@@ -61,11 +72,13 @@ cc_tool(
 cc_tool(
     name = "ld",
     src = select({
-        "//constraint:linux_x86_64": "@gcc-linux-x86_64//:bin/x86_64-linux-g++.br_real",
+        # "//constraint:linux_x86_64": "@gcc-linux-x86_64//:bin/x86_64-linux-g++.br_real",
+        "//constraint:linux_x86_64": ":wrapper/ld.sh",
     }),
     data = [
         ":exec_platform_linker_builtins",
         ":exec_platform_multicall_support_files",
+        ":toolchain_wrapper",
     ],
     tags = ["manual"],
 )
