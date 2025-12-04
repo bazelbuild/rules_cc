@@ -41,7 +41,6 @@ bzl_library(
     deps = [
         ":cc_helper_internal_bzl",
         ":common",
-        ":visibility_bzl",
         "//cc:find_cc_toolchain_bzl",
         "//cc/private:paths_bzl",
         "//cc/private/rules_impl:objc_common",
@@ -80,15 +79,8 @@ bzl_library(
     visibility = ["//visibility:public"],
     deps = [
         ":cc_helper_bzl",
-        ":visibility_bzl",
         "//cc:find_cc_toolchain_bzl",
     ],
-)
-
-bzl_library(
-    name = "visibility_bzl",
-    srcs = ["visibility.bzl"],
-    visibility = ["//visibility:private"],
 )
 
 filegroup(
