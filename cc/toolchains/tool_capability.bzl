@@ -44,10 +44,11 @@ def _cc_tool_capability_impl(ctx):
         overrides = None,
         allowlist_include_directories = depset(),
     )
+
+    # Intentionally does not provide FeatureImplyabilityInfo to prevent
+    # features from implying these kinds of rules.
     return [
         ToolCapabilityInfo(label = ctx.label, feature = ft),
-        # Only give it a feature constraint info and not a feature info.
-        # This way you can't imply it - you can only require it.
         FeatureConstraintInfo(label = ctx.label, all_of = depset([ft])),
     ]
 
@@ -56,28 +57,41 @@ cc_tool_capability = rule(
     provides = [ToolCapabilityInfo, FeatureConstraintInfo],
     doc = """A capability is an optional feature that a tool supports.
 
-For example, not all compilers support PIC, so to handle this, we write:
+For example, not all linkers support --start-lib, so to handle this, we write:
 
 ```
+load("//cc/toolchains:args.bzl", "cc_args")
+load("//cc/toolchains:tool.bzl", "cc_tool")
+
 cc_tool(
     name = "clang",
     src = "@host_tools/bin/clang",
     capabilities = [
-        "//cc/toolchains/capabilities:supports_pic",
+        "//cc/toolchains/capabilities:supports_start_end_lib",
     ],
 )
 
 cc_args(
     name = "pic",
-    requires = [
-        "//cc/toolchains/capabilities:supports_pic"
-    ],
-    args = ["-fPIC"],
+    requires = ["//cc/toolchains/capabilities:supports_start_end_lib"],
+    args = ["-Wl,--start-lib"],
 )
 ```
 
-This ensures that `-fPIC` is added to the command-line only when we are using a
-tool that supports PIC.
+This ensures that `-Wl,--start-lib` is added to the command-line only when using
+a tool that supports the argument.
+
+
+`cc_target_capability` rules cannot be listed in a
+[`cc_feature.implies`](#cc_feature-implies) list, or in
+[`cc_toolchain.enabled_features`](#cc_toolchain-enabled_features).
+
+Note: Because `cc_tool` rules are always evaluated under the exec
+configuration, a `select()` to guide capabilities will `select()` on the
+properties of the exec configuration. If you need a capability that is
+conditionally guided by the target configuration, prefer using configurabilty
+constructs to enable the feature at the
+[`cc_toolchain.enabled_features`](#cc_toolchain-enabled_features) level.
 """,
     attrs = {
         "feature_name": attr.string(doc = "The name of the feature to generate for this capability"),
