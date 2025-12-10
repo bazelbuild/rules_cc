@@ -244,7 +244,6 @@ def compile(
 
     if module_interfaces and not feature_configuration.is_enabled("cpp_modules"):
         fail("to use C++20 Modules, the feature cpp_modules must be enabled")
-    
     language_normalized = "c++" if language == None else language
     language_normalized = language_normalized.replace("+", "p").upper()
     source_category = SOURCE_CATEGORY_CC if language_normalized == "CPP" else SOURCE_CATEGORY_CC_AND_OBJC
