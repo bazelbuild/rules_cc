@@ -43,6 +43,7 @@ cc_args(
     actions = ["//cc/toolchains/actions:strip"],
     args = select({
         "@platforms//os:macos": [],
+        "@platforms//os:windows": [],
         "//conditions:default": ["-p"],
     }),
 )
