@@ -198,6 +198,10 @@ def _toolchain_collects_files_test(env, targets):
             )],
         ),
         legacy_feature(
+            name = "supports_pic",
+            enabled = True,
+        ),
+        legacy_feature(
             name = "compile_feature",
             enabled = False,
             flag_sets = [legacy_flag_set(
@@ -208,7 +212,7 @@ def _toolchain_collects_files_test(env, targets):
             )],
         ),
         legacy_feature(
-            name = "supports_pic",
+            name = "supports_start_end_lib",
             enabled = False,
         ),
         legacy_feature(
@@ -225,7 +229,7 @@ def _toolchain_collects_files_test(env, targets):
             action_name = "c_compile",
             enabled = True,
             tools = [legacy_tool(tool = exe)],
-            implies = ["supports_pic"],
+            implies = ["supports_start_end_lib"],
             flag_sets = [
                 legacy_flag_set(
                     flag_groups = [
