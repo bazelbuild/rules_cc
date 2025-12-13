@@ -30,9 +30,8 @@ load(
     _repository_exec_path = "repository_exec_path",
 )
 load(":cc_info.bzl", "CcInfo")
-load(":visibility.bzl", "INTERNAL_VISIBILITY")
 
-visibility(INTERNAL_VISIBILITY)
+visibility("public")
 
 # LINT.IfChange(linker_mode)
 linker_mode = struct(
