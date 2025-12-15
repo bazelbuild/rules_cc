@@ -425,9 +425,9 @@ def _impl(ctx):
                 actions = all_compile_actions,
                 flag_groups = ([
                     flag_group(
-                        flags = ctx.attr.c_flags,
+                        flags = ctx.attr.all_compile_flags,
                     ),
-                ] if ctx.attr.c_flags else []),
+                ] if ctx.attr.all_compile_flags else []),
             ),
             flag_set(
                 actions = [ACTION_NAMES.c_compile],
@@ -1975,7 +1975,7 @@ cc_toolchain_config = rule(
         "abi_version": attr.string(mandatory = True),
         "archive_flags": attr.string_list(),
         "builtin_sysroot": attr.string(),
-        "c_flags": attr.string_list(),
+        "all_compile_flags": attr.string_list(),
         "compile_flags": attr.string_list(),
         "compiler": attr.string(mandatory = True),
         "conly_flags": attr.string_list(),
