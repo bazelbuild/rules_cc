@@ -857,7 +857,7 @@ def _get_copts(repository_ctx):
         "BAZEL_CONLYOPTS",
         "",
     ), ":")
-    c_opts = split_escaped(_get_env_var(
+    all_compile_opts = split_escaped(_get_env_var(
         repository_ctx,
         "BAZEL_COPTS",
         "",
@@ -878,7 +878,7 @@ def _get_copts(repository_ctx):
         None,
     )
     copts_vars = {
-        "%{c_flags}": get_starlark_list(c_opts),
+        "%{all_compile_flags}": get_starlark_list(all_compile_opts),
         "%{conly_flags}": get_starlark_list(conly_opts),
         "%{cxx_flags}": get_starlark_list(cxx_opts),
         "%{link_flags}": get_starlark_list(link_opts),

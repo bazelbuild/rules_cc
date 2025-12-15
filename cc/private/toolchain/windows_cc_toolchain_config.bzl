@@ -602,9 +602,9 @@ def _impl(ctx):
                     ],
                     flag_groups = ([
                         flag_group(
-                            flags = ctx.attr.c_flags,
+                            flags = ctx.attr.all_compile_flags,
                         ),
-                    ] if ctx.attr.c_flags else []) + [
+                    ] if ctx.attr.all_compile_flags else []) + [
                         flag_group(
                             flags = ["%{user_compile_flags}"],
                             iterate_over = "user_compile_flags",
@@ -1617,9 +1617,9 @@ def _impl(ctx):
                         ],
                         flag_groups = ([
                             flag_group(
-                                flags = ctx.attr.c_flags,
+                                flags = ctx.attr.all_compile_flags,
                             ),
-                        ] if ctx.attr.c_flags else []) + [
+                        ] if ctx.attr.all_compile_flags else []) + [
                             flag_group(
                                 flags = ["%{user_compile_flags}"],
                                 iterate_over = "user_compile_flags",
@@ -1727,7 +1727,7 @@ cc_toolchain_config = rule(
         "abi_libc_version": attr.string(),
         "abi_version": attr.string(),
         "archiver_flags": attr.string_list(default = []),
-        "c_flags": attr.string_list(),
+        "all_compile_flags": attr.string_list(),
         "compiler": attr.string(),
         "conly_flags": attr.string_list(),
         "cpu": attr.string(mandatory = True),
