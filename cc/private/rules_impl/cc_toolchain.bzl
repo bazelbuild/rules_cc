@@ -19,10 +19,18 @@ load("//cc/common:cc_helper.bzl", "cc_helper")
 load("//cc/common:semantics.bzl", "semantics")
 load("//cc/private/rules_impl/fdo:fdo_context.bzl", "create_fdo_context")
 load("//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
+load("//cc/toolchains:cc_toolchain_info.bzl", "ActionTypeSetInfo", "ToolConfigInfo")
+load("//cc/toolchains:legacy_file_group.bzl", "LEGACY_FILE_GROUPS")
+load("//cc/toolchains/impl:collect.bzl", "collect_action_types")
+load("//cc/toolchains/impl:toolchain_config.bzl", "CC_TOOLCHAIN_CONFIG_PUBLIC_ATTRS", "cc_toolchain_config_impl_helper")
 load(":cc_toolchain_provider_helper.bzl", "get_cc_toolchain_provider")
 
 ToolchainInfo = platform_common.ToolchainInfo
 TemplateVariableInfo = platform_common.TemplateVariableInfo
+
+LEGACY_ACTION_SET_DEPS = [
+    action for actions in LEGACY_FILE_GROUPS.values() for action in actions
+]
 
 def _files(ctx, attr_name):
     attr = getattr(ctx.attr, attr_name, None)
@@ -81,42 +89,80 @@ def _attributes(ctx):
 
     latebound_libc = _latebound_libc(ctx, "libc_top", "_libc_top")
 
-    all_files = _files(ctx, "all_files")
+    if ctx.attr.toolchain_config:
+        for key in CC_TOOLCHAIN_CONFIG_PUBLIC_ATTRS.keys():
+            if getattr(ctx.attr, key):
+                fail("Must not pass %s when passing `toolchain_config`" % key)
+
+        cc_toolchain_config_info = ctx.attr.toolchain_config[CcToolchainConfigInfo]
+        all_files = _files(ctx, "all_files")
+
+        legacy_file_groups = {
+            "as_files": _files(ctx, "as_files"),
+            "ar_files": _files(ctx, "ar_files"),
+            "dwp_files": _files(ctx, "dwp_files"),
+            "compiler_files": _files(ctx, "compiler_files"),
+            "strip_files": _files(ctx, "strip_files"),
+            "objcopy_files": _files(ctx, "objcopy_files"),
+            "coverage_files": _files(ctx, "coverage_files") or all_files,
+        }
+
+        linker_files = _files(ctx, "linker_files")
+
+    else:
+        if not ctx.attr.tool_map:
+            fail("Must pass `tool_map` when not passing `toolchain_config`")
+        toolchain_config_info, cc_toolchain_config_info = cc_toolchain_config_impl_helper(ctx)
+
+        legacy_action_set_lookup = {
+            target.label: target
+            for target in ctx.attr._legacy_action_sets
+        }
+
+        legacy_file_groups = {}
+        for group, actions in LEGACY_FILE_GROUPS.items():
+            action_targets = [
+                legacy_action_set_lookup[action] for action in actions
+            ]
+            legacy_file_groups[group] = depset(transitive = [
+                toolchain_config_info.files[action]
+                for action in collect_action_types(action_targets).to_list()
+                if action in toolchain_config_info.files
+            ])
+
+        all_files = depset(transitive = legacy_file_groups.values())
+        legacy_file_groups["coverage_files"] = legacy_file_groups["coverage_files"] or all_files
+        linker_files = legacy_file_groups.pop("linker_files")
+
     return struct(
         supports_param_files = ctx.attr.supports_param_files,
         runtime_solib_dir_base = "_solib__" + cc_common.escape_label(label = ctx.label),
-        cc_toolchain_config_info = _provider(ctx.attr.toolchain_config, CcToolchainConfigInfo),
+        cc_toolchain_config_info = cc_toolchain_config_info,
         static_runtime_lib = ctx.attr.static_runtime_lib,
         dynamic_runtime_lib = ctx.attr.dynamic_runtime_lib,
         supports_header_parsing = ctx.attr.supports_header_parsing,
         all_files = all_files,
-        compiler_files = _files(ctx, "compiler_files"),
-        strip_files = _files(ctx, "strip_files"),
-        objcopy_files = _files(ctx, "objcopy_files"),
         link_dynamic_library_tool = ctx.file._link_dynamic_library_tool,
         grep_includes = grep_includes,
         aggregate_ddi = _single_file(ctx, "_aggregate_ddi"),
         generate_modmap = _single_file(ctx, "_generate_modmap"),
         module_map = ctx.attr.module_map,
-        as_files = _files(ctx, "as_files"),
-        ar_files = _files(ctx, "ar_files"),
-        dwp_files = _files(ctx, "dwp_files"),
         module_map_artifact = _single_file(ctx, "module_map"),
-        all_files_including_libc = depset(transitive = [_files(ctx, "all_files"), _files(ctx, latebound_libc)]),
+        all_files_including_libc = depset(transitive = [all_files, _files(ctx, latebound_libc)]),
         zipper = ctx.file._zipper,
         linker_files = _full_inputs_for_link(
             ctx,
-            _files(ctx, "linker_files"),
+            linker_files,
             _files(ctx, latebound_libc),
         ),
         cc_toolchain_label = ctx.label,
-        coverage_files = _files(ctx, "coverage_files") or all_files,
         compiler_files_without_includes = _files(ctx, "compiler_files_without_includes"),
         libc = _files(ctx, latebound_libc),
         libc_top_label = _label(ctx, latebound_libc),
         if_so_builder = ctx.file._interface_library_builder,
         allowlist_for_layering_check = _package_specification_provider(ctx, "disabling_parse_headers_and_layering_check_allowed"),
         build_info_files = _provider(ctx.attr._build_info_translator, OutputGroupInfo),
+        **legacy_file_groups
     )
 
 def _cc_toolchain_impl(ctx):
@@ -200,7 +246,6 @@ crosstool_config.toolchain.
         ),
         "all_files": attr.label(
             allow_files = True,
-            mandatory = True,
             doc = """
 Collection of all cc_toolchain artifacts. These artifacts will be added as inputs to all
 rules_cc related actions (with the exception of actions that are using more precise sets of
@@ -214,7 +259,6 @@ rules using C++ toolchain.</p>""",
         ),
         "compiler_files": attr.label(
             allow_files = True,
-            mandatory = True,
             doc = """
 Collection of all cc_toolchain artifacts required for compile actions.""",
         ),
@@ -226,13 +270,11 @@ input discovery is supported (currently Google-only).""",
         ),
         "strip_files": attr.label(
             allow_files = True,
-            mandatory = True,
             doc = """
 Collection of all cc_toolchain artifacts required for strip actions.""",
         ),
         "objcopy_files": attr.label(
             allow_files = True,
-            mandatory = True,
             doc = """
 Collection of all cc_toolchain artifacts required for objcopy actions.""",
         ),
@@ -248,13 +290,11 @@ Collection of all cc_toolchain artifacts required for archiving actions.""",
         ),
         "linker_files": attr.label(
             allow_files = True,
-            mandatory = True,
             doc = """
 Collection of all cc_toolchain artifacts required for linking actions.""",
         ),
         "dwp_files": attr.label(
             allow_files = True,
-            mandatory = True,
             doc = """
 Collection of all cc_toolchain artifacts required for dwp actions.""",
         ),
@@ -307,7 +347,6 @@ Set to True when cc_toolchain supports header parsing actions.""",
         ),
         "toolchain_config": attr.label(
             allow_files = False,
-            mandatory = True,
             providers = [CcToolchainConfigInfo],
             doc = """
 The label of the rule providing <code>cc_toolchain_config_info</code>.""",
@@ -340,5 +379,16 @@ The label of the rule providing <code>cc_toolchain_config_info</code>.""",
             default = semantics.BUILD_INFO_TRANLATOR_LABEL,
             providers = [OutputGroupInfo],
         ),
+        "_legacy_action_sets": attr.label_list(
+            default = LEGACY_ACTION_SET_DEPS,
+            providers = [ActionTypeSetInfo],
+        ),
+    } | CC_TOOLCHAIN_CONFIG_PUBLIC_ATTRS | {
+        # Override tool_map to make it optional.
+        "tool_map": attr.label(
+            cfg = "exec",
+            providers = [ToolConfigInfo],
+        ),
+        "_builtin_features": attr.label(default = "//cc/toolchains/features:all_builtin_features"),
     } | semantics.cpp_modules_tools(),  # buildifier: disable=unsorted-dict-items
 )
