@@ -89,6 +89,12 @@ all_link_actions = [
     ACTION_NAMES.cpp_link_nodeps_dynamic_library,
 ]
 
+lto_index_actions = [
+    ACTION_NAMES.lto_index_for_executable,
+    ACTION_NAMES.lto_index_for_dynamic_library,
+    ACTION_NAMES.lto_index_for_nodeps_dynamic_library,
+]
+
 def _use_msvc_toolchain(ctx):
     return ctx.attr.cpu in ["x64_windows", "arm64_windows"] and (ctx.attr.compiler == "msvc-cl" or ctx.attr.compiler == "clang-cl")
 
@@ -558,6 +564,30 @@ def _impl(ctx):
             name = "user_compile_flags",
             flag_sets = [
                 flag_set(
+                    actions = [ACTION_NAMES.c_compile],
+                    flag_groups = ([
+                        flag_group(
+                            flags = ctx.attr.conly_flags,
+                        ),
+                    ] if ctx.attr.conly_flags else []),
+                ),
+                flag_set(
+                    actions = [
+                        ACTION_NAMES.linkstamp_compile,
+                        ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cpp_header_parsing,
+                        ACTION_NAMES.cpp_module_compile,
+                        ACTION_NAMES.cpp_module_codegen,
+                        ACTION_NAMES.lto_backend,
+                        ACTION_NAMES.clif_match,
+                    ],
+                    flag_groups = ([
+                        flag_group(
+                            flags = ctx.attr.cxx_flags,
+                        ),
+                    ] if ctx.attr.cxx_flags else []),
+                ),
+                flag_set(
                     actions = [
                         ACTION_NAMES.preprocess_assemble,
                         ACTION_NAMES.c_compile,
@@ -570,7 +600,11 @@ def _impl(ctx):
                         ACTION_NAMES.cpp20_module_compile,
                         ACTION_NAMES.cpp20_module_codegen,
                     ],
-                    flag_groups = [
+                    flag_groups = ([
+                        flag_group(
+                            flags = ctx.attr.all_compile_flags,
+                        ),
+                    ] if ctx.attr.all_compile_flags else []) + [
                         flag_group(
                             flags = ["%{user_compile_flags}"],
                             iterate_over = "user_compile_flags",
@@ -707,6 +741,14 @@ def _impl(ctx):
             name = "user_link_flags",
             flag_sets = [
                 flag_set(
+                    actions = all_link_actions + lto_index_actions,
+                    flag_groups = ([
+                        flag_group(
+                            flags = ctx.attr.link_flags,
+                        ),
+                    ] if ctx.attr.link_flags else []),
+                ),
+                flag_set(
                     actions = all_link_actions,
                     flag_groups = [
                         flag_group(
@@ -734,6 +776,21 @@ def _impl(ctx):
             ],
         )
 
+        default_compile_flags_list = [
+            "/DNOMINMAX",
+            "/D_CRT_SECURE_NO_DEPRECATE",
+            "/D_CRT_SECURE_NO_WARNINGS",
+            "/bigobj",
+            "/Zm500",
+            "/EHsc",
+            "/wd4351",
+            "/wd4291",
+            "/wd4250",
+            "/wd4996",
+        ]
+        if ctx.attr.win32_winnt_flag:
+            default_compile_flags_list.append(ctx.attr.win32_winnt_flag)
+
         default_compile_flags_feature = feature(
             name = "default_compile_flags",
             enabled = True,
@@ -756,19 +813,7 @@ def _impl(ctx):
                     ],
                     flag_groups = [
                         flag_group(
-                            flags = [
-                                "/DNOMINMAX",
-                                "/D_WIN32_WINNT=0x0601",
-                                "/D_CRT_SECURE_NO_DEPRECATE",
-                                "/D_CRT_SECURE_NO_WARNINGS",
-                                "/bigobj",
-                                "/Zm500",
-                                "/EHsc",
-                                "/wd4351",
-                                "/wd4291",
-                                "/wd4250",
-                                "/wd4996",
-                            ],
+                            flags = default_compile_flags_list,
                         ),
                     ],
                 ),
@@ -1531,6 +1576,30 @@ def _impl(ctx):
                 enabled = True,
                 flag_sets = [
                     flag_set(
+                        actions = [ACTION_NAMES.c_compile],
+                        flag_groups = ([
+                            flag_group(
+                                flags = ctx.attr.conly_flags,
+                            ),
+                        ] if ctx.attr.conly_flags else []),
+                    ),
+                    flag_set(
+                        actions = [
+                            ACTION_NAMES.linkstamp_compile,
+                            ACTION_NAMES.cpp_compile,
+                            ACTION_NAMES.cpp_header_parsing,
+                            ACTION_NAMES.cpp_module_compile,
+                            ACTION_NAMES.cpp_module_codegen,
+                            ACTION_NAMES.lto_backend,
+                            ACTION_NAMES.clif_match,
+                        ],
+                        flag_groups = ([
+                            flag_group(
+                                flags = ctx.attr.cxx_flags,
+                            ),
+                        ] if ctx.attr.cxx_flags else []),
+                    ),
+                    flag_set(
                         actions = [
                             ACTION_NAMES.assemble,
                             ACTION_NAMES.preprocess_assemble,
@@ -1546,7 +1615,11 @@ def _impl(ctx):
                             ACTION_NAMES.lto_backend,
                             ACTION_NAMES.clif_match,
                         ],
-                        flag_groups = [
+                        flag_groups = ([
+                            flag_group(
+                                flags = ctx.attr.all_compile_flags,
+                            ),
+                        ] if ctx.attr.all_compile_flags else []) + [
                             flag_group(
                                 flags = ["%{user_compile_flags}"],
                                 iterate_over = "user_compile_flags",
@@ -1654,14 +1727,18 @@ cc_toolchain_config = rule(
         "abi_libc_version": attr.string(),
         "abi_version": attr.string(),
         "archiver_flags": attr.string_list(default = []),
+        "all_compile_flags": attr.string_list(),
         "compiler": attr.string(),
+        "conly_flags": attr.string_list(),
         "cpu": attr.string(mandatory = True),
         "cxx_builtin_include_directories": attr.string_list(),
+        "cxx_flags": attr.string_list(),
         "dbg_mode_debug_flag": attr.string(default = ""),
         "default_compile_flags": attr.string_list(default = []),
         "default_link_flags": attr.string_list(default = []),
         "fastbuild_mode_debug_flag": attr.string(default = ""),
         "host_system_name": attr.string(),
+        "link_flags": attr.string_list(),
         "msvc_cl_path": attr.string(default = "vc_installation_error.bat"),
         "msvc_env_include": attr.string(default = "msvc_not_found"),
         "msvc_env_lib": attr.string(default = "msvc_not_found"),
@@ -1677,6 +1754,7 @@ cc_toolchain_config = rule(
         "tool_bin_path": attr.string(default = "not_found"),
         "tool_paths": attr.string_dict(),
         "toolchain_identifier": attr.string(),
+        "win32_winnt_flag": attr.string(default = "/D_WIN32_WINNT=0x0601"),
     },
     provides = [CcToolchainConfigInfo],
 )
