@@ -1083,7 +1083,13 @@ def _impl(ctx):
                         flags = ["-isystem", "%{system_include_paths}"],
                         iterate_over = "system_include_paths",
                     ),
-                ],
+                ] + [
+                    # Flags for the standard libraries (isystem) with a sysroot
+                    # need to come after any user specified includes.
+                    flag_group(
+                        flags = ctx.attr.sysroot_include_flags,
+                    ),
+                ] if ctx.attr.sysroot_include_flags else [],
             ),
         ],
     )
@@ -1967,6 +1973,7 @@ cc_toolchain_config = rule(
         "abi_version": attr.string(mandatory = True),
         "archive_flags": attr.string_list(),
         "builtin_sysroot": attr.string(),
+        "sysroot_include_flags": attr.string_list(),
         "compile_flags": attr.string_list(),
         "compiler": attr.string(mandatory = True),
         "conly_flags": attr.string_list(),
