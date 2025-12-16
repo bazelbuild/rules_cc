@@ -28,6 +28,7 @@ bzl_library(
         "//cc/private/rules_impl:toolchain_rules",
         "//cc/private/rules_impl/fdo:fdo_rules",
         "//cc/toolchains/impl:toolchain_impl_rules",
+        "@bazel_features//:features",
         "@bazel_skylib//rules/directory:glob",
         "@cc_compatibility_proxy//:proxy_bzl",
     ],

@@ -27,5 +27,6 @@ TEST(Dynamic, ProperlyLinked) {
 }
 
 TEST(Asm, ProperlyLinked) {
-  EXPECT_EQ(asm_answer, 0xFE4B67C4);
+  constexpr int kExpectedAsmAnswer = static_cast<int>(0xFE4B67C4u);
+  EXPECT_EQ(asm_answer, kExpectedAsmAnswer);
 }
