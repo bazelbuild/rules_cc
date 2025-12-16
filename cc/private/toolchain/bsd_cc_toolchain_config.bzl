@@ -13,6 +13,7 @@
 # limitations under the License.
 """A Starlark cc_toolchain configuration rule for FreeBSD and OpenBSD."""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@rules_cc//cc:action_names.bzl", "ACTION_NAMES")
 load(
     "@rules_cc//cc:cc_toolchain_config_lib.bzl",
@@ -26,6 +27,11 @@ load(
 )  # buildifier: disable=deprecated-function
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
+
+def _create_cc_toolchain_config_info(**kwargs):
+    if not bazel_features.cc.cc_common_is_in_rules_cc:
+        kwargs["toolchain_identifier"] = kwargs["ctx"].label.name
+    return cc_common.create_cc_toolchain_config_info(**kwargs)
 
 all_compile_actions = [
     ACTION_NAMES.c_compile,
@@ -59,7 +65,6 @@ def _impl(ctx):
     cpu = ctx.attr.cpu
     is_bsd = cpu == "freebsd" or cpu == "openbsd"
     compiler = "compiler"
-    toolchain_identifier = "local_{}".format(cpu) if is_bsd else "stub_armeabi-v7a"
     host_system_name = "local" if is_bsd else "armeabi-v7a"
     target_system_name = "local" if is_bsd else "armeabi-v7a"
     target_libc = "local" if is_bsd else "armeabi-v7a"
@@ -279,12 +284,11 @@ def _impl(ctx):
     out = ctx.actions.declare_file(ctx.label.name)
     ctx.actions.write(out, "Fake executable")
     return [
-        cc_common.create_cc_toolchain_config_info(
+        _create_cc_toolchain_config_info(
             ctx = ctx,
             features = features,
             action_configs = action_configs,
             cxx_builtin_include_directories = cxx_builtin_include_directories,
-            toolchain_identifier = toolchain_identifier,
             host_system_name = host_system_name,
             target_system_name = target_system_name,
             target_cpu = cpu,

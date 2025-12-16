@@ -13,6 +13,7 @@
 # limitations under the License.
 """A Starlark cc_toolchain configuration rule"""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@rules_cc//cc:action_names.bzl", "ACTION_NAMES")
 load(
     "@rules_cc//cc:cc_toolchain_config_lib.bzl",
@@ -33,6 +34,11 @@ load(
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
 load("@rules_cc//cc/toolchains:feature_injection.bzl", "FeatureInfo", "convert_feature")
+
+def _create_cc_toolchain_config_info(**kwargs):
+    if not bazel_features.cc.cc_common_is_in_rules_cc:
+        kwargs["toolchain_identifier"] = kwargs["ctx"].label.name
+    return cc_common.create_cc_toolchain_config_info(**kwargs)
 
 def _target_os_version(ctx):
     platform_type = ctx.fragments.apple.single_arch_platform.platform_type
@@ -1963,13 +1969,12 @@ def _impl(ctx):
     extra_rules_based_features = depset(ctx.attr.extra_enabled_features + ctx.attr.extra_known_features)
     features.extend([convert_feature(extra_feature[FeatureInfo], enabled = extra_feature in ctx.attr.extra_enabled_features) for extra_feature in extra_rules_based_features.to_list()])
 
-    return cc_common.create_cc_toolchain_config_info(
+    return _create_cc_toolchain_config_info(
         ctx = ctx,
         features = features,
         action_configs = action_configs,
         artifact_name_patterns = artifact_name_patterns,
         cxx_builtin_include_directories = ctx.attr.cxx_builtin_include_directories,
-        toolchain_identifier = ctx.attr.toolchain_identifier,
         host_system_name = ctx.attr.host_system_name,
         target_system_name = ctx.attr.target_system_name,
         target_cpu = ctx.attr.cpu,
@@ -2027,7 +2032,6 @@ This is only offered as a migration bridge for projects transitioning to rule-ba
         "target_libc": attr.string(mandatory = True),
         "target_system_name": attr.string(mandatory = True),
         "tool_paths": attr.string_dict(),
-        "toolchain_identifier": attr.string(mandatory = True),
         "unfiltered_compile_flags": attr.string_list(),
         "_xcode_config": attr.label(default = configuration_field(
             fragment = "apple",
