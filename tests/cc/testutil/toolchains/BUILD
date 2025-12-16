@@ -299,7 +299,6 @@ cc_toolchain_config(
     target_libc = "local",
     target_system_name = "local",
     tool_paths = {},
-    toolchain_identifier = "mock-toolchain-k8",
 )
 
 toolchain(
@@ -326,7 +325,6 @@ cc_toolchain_config(
     target_libc = "macosx",  # NOTE: This value is read for legacy features
     target_system_name = "local",
     tool_paths = {},
-    toolchain_identifier = "mock-toolchain-macos",
 )
 
 cc_toolchain(
@@ -345,7 +343,6 @@ cc_toolchain(
     strip_files = ":every-file",
     supports_header_parsing = 1,
     toolchain_config = ":macos-compiler_config",
-    toolchain_identifier = "mock-toolchain-macos",
 )
 
 cc_toolchain(
@@ -364,7 +361,6 @@ cc_toolchain(
     strip_files = ":every-file",
     supports_header_parsing = 1,
     toolchain_config = ":k8-compiler_config",
-    toolchain_identifier = "mock-toolchain-k8",
 )
 
 filegroup(

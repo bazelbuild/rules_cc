@@ -13,6 +13,7 @@
 # limitations under the License.
 """A Starlark cc_toolchain configuration rule"""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load(
     "@rules_cc//cc:cc_toolchain_config_lib.bzl",
     "feature",
@@ -21,8 +22,12 @@ load(
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
 
+def _create_cc_toolchain_config_info(**kwargs):
+    if not bazel_features.cc.cc_common_is_in_rules_cc:
+        kwargs["toolchain_identifier"] = kwargs["ctx"].label.name
+    return cc_common.create_cc_toolchain_config_info(**kwargs)
+
 def _impl(ctx):
-    toolchain_identifier = "stub_armeabi-v7a"
     host_system_name = "armeabi-v7a"
     target_system_name = "armeabi-v7a"
     target_cpu = "armeabi-v7a"
@@ -57,13 +62,12 @@ def _impl(ctx):
         tool_path(name = "strip", path = "/bin/false"),
     ]
 
-    return cc_common.create_cc_toolchain_config_info(
+    return _create_cc_toolchain_config_info(
         ctx = ctx,
         features = features,
         action_configs = action_configs,
         artifact_name_patterns = artifact_name_patterns,
         cxx_builtin_include_directories = cxx_builtin_include_directories,
-        toolchain_identifier = toolchain_identifier,
         host_system_name = host_system_name,
         target_system_name = target_system_name,
         target_cpu = target_cpu,

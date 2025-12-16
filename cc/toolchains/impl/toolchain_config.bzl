@@ -13,6 +13,7 @@
 # limitations under the License.
 """Implementation of the cc_toolchain rule."""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("//cc/common:cc_common.bzl", "cc_common")
 load(
     "//cc/toolchains:cc_toolchain_info.bzl",
@@ -34,6 +35,11 @@ visibility([
     "//cc/toolchains/...",
     "//tests/rule_based_toolchain/...",
 ])
+
+def _create_cc_toolchain_config_info(**kwargs):
+    if not bazel_features.cc.cc_common_is_in_rules_cc:
+        kwargs["toolchain_identifier"] = kwargs["ctx"].label.name
+    return cc_common.create_cc_toolchain_config_info(**kwargs)
 
 def _cc_legacy_file_group_impl(ctx):
     files = ctx.attr.config[ToolchainConfigInfo].files
@@ -78,7 +84,7 @@ def cc_toolchain_config_impl_helper(ctx):
 
     return (
         toolchain_config,
-        cc_common.create_cc_toolchain_config_info(
+        _create_cc_toolchain_config_info(
             ctx = ctx,
             action_configs = legacy.action_configs,
             artifact_name_patterns = legacy.artifact_name_patterns,
@@ -86,10 +92,6 @@ def cc_toolchain_config_impl_helper(ctx):
             features = legacy.features,
             cxx_builtin_include_directories = legacy.cxx_builtin_include_directories,
             tool_paths = legacy.tool_paths,
-            # toolchain_identifier is deprecated, but setting it to None results
-            # in an error that it expected a string, and for safety's sake, I'd
-            # prefer to provide something unique.
-            toolchain_identifier = str(ctx.label),
             # This can be accessed by users through
             # @rules_cc//cc/private/toolchain:compiler to select() on the current
             # compiler

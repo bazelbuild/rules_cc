@@ -12,9 +12,15 @@ https://docs.bazel.build/versions/main/tutorial/cc-toolchain-config.html for
 advanced usage.
 """
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@rules_cc//cc:cc_toolchain_config_lib.bzl", "tool_path")  # buildifier: disable=deprecated-function
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
+
+def _create_cc_toolchain_config_info(**kwargs):
+    if not bazel_features.cc.cc_common_is_in_rules_cc:
+        kwargs["toolchain_identifier"] = kwargs["ctx"].label.name
+    return cc_common.create_cc_toolchain_config_info(**kwargs)
 
 def _impl(ctx):
     tool_paths = [
@@ -57,9 +63,8 @@ def _impl(ctx):
     #
     # create_cc_toolchain_config_info is the public interface for registering
     # C++ toolchain behavior.
-    return cc_common.create_cc_toolchain_config_info(
+    return _create_cc_toolchain_config_info(
         ctx = ctx,
-        toolchain_identifier = "custom-toolchain-identifier",
         host_system_name = "local",
         target_system_name = "local",
         target_cpu = "sample_cpu",

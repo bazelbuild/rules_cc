@@ -2,6 +2,7 @@
 
 """ A rule that mocks cc_toolchain configuration."""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load(
     "@bazel_tools//tools/cpp:cc_toolchain_config_lib.bzl",
@@ -22,6 +23,11 @@ load("//cc:action_names.bzl", "ACTION_NAMES")
 load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
 load("//tests/cc/testutil/toolchains:features.bzl", "FEATURE_NAMES")
+
+def _create_cc_toolchain_config_info(**kwargs):
+    if not bazel_features.cc.cc_common_is_in_rules_cc:
+        kwargs["toolchain_identifier"] = kwargs["ctx"].label.name
+    return cc_common.create_cc_toolchain_config_info(**kwargs)
 
 _cpp_modules_feature = feature(
     name = FEATURE_NAMES.cpp_modules,
@@ -1475,7 +1481,6 @@ def _get_tool_path(name, path):
     return tool_path(name = name, path = path)
 
 def _impl(ctx):
-    toolchain_identifier = ctx.attr.toolchain_identifier
     host_system_name = ctx.attr.host_system_name
     target_system_name = ctx.attr.target_system_name
     target_cpu = ctx.attr.cpu
@@ -1621,13 +1626,12 @@ def _impl(ctx):
     out = ctx.actions.declare_file(ctx.label.name)
     ctx.actions.write(out, "Fake executable")
     return [
-        cc_common.create_cc_toolchain_config_info(
+        _create_cc_toolchain_config_info(
             ctx = ctx,
             features = features,
             action_configs = action_configs,
             artifact_name_patterns = artifact_name_patterns,
             cxx_builtin_include_directories = cxx_builtin_include_directories,
-            toolchain_identifier = toolchain_identifier,
             host_system_name = host_system_name,
             target_system_name = target_system_name,
             target_cpu = target_cpu,
@@ -1650,7 +1654,6 @@ cc_toolchain_config = rule(
     attrs = {
         "cpu": attr.string(default = "k8"),
         "compiler": attr.string(default = "compiler"),
-        "toolchain_identifier": attr.string(default = "mock-llvm-toolchain-k8"),
         "host_system_name": attr.string(default = "local"),
         "target_system_name": attr.string(default = "local"),
         "target_libc": attr.string(default = "local"),
