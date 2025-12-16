@@ -186,18 +186,6 @@ cc_toolchain = rule(
         "licenses": attr.license() if hasattr(attr, "license") else attr.string_list(),
         # buildifier: disable=attr-license
         "output_licenses": attr.license() if hasattr(attr, "license") else attr.string_list(),
-        "toolchain_identifier": attr.string(
-            default = "",
-            doc = """
-The identifier used to match this cc_toolchain with the corresponding
-crosstool_config.toolchain.
-
-<p>
-  Until issue <a href="https://github.com/bazelbuild/bazel/issues/5380">#5380</a> is fixed
-  this is the recommended way of associating <code>cc_toolchain</code> with
-  <code>CROSSTOOL.toolchain</code>. It will be replaced by the <code>toolchain_config</code>
-  attribute (<a href="https://github.com/bazelbuild/bazel/issues/5380">#5380</a>).</p>""",
-        ),
         "all_files": attr.label(
             allow_files = True,
             mandatory = True,

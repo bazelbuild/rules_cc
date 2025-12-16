@@ -73,7 +73,6 @@ cc_toolchain(
     strip_files = ":empty",
     supports_param_files = 0,
     toolchain_config = ":local_freebsd",
-    toolchain_identifier = "local_freebsd",
 )
 
 cc_toolchain_config(
@@ -107,7 +106,6 @@ cc_toolchain(
     strip_files = ":empty",
     supports_param_files = 0,
     toolchain_config = ":local_openbsd",
-    toolchain_identifier = "local_openbsd",
 )
 
 cc_toolchain_config(
@@ -141,7 +139,6 @@ cc_toolchain(
     strip_files = ":empty",
     supports_param_files = 0,
     toolchain_config = ":stub_armeabi-v7a",
-    toolchain_identifier = "stub_armeabi-v7a",
 )
 
 cc_toolchain_config(

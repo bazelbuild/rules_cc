@@ -22,7 +22,6 @@ load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
 
 def _impl(ctx):
-    toolchain_identifier = "stub_armeabi-v7a"
     host_system_name = "armeabi-v7a"
     target_system_name = "armeabi-v7a"
     target_cpu = "armeabi-v7a"
@@ -63,7 +62,6 @@ def _impl(ctx):
         action_configs = action_configs,
         artifact_name_patterns = artifact_name_patterns,
         cxx_builtin_include_directories = cxx_builtin_include_directories,
-        toolchain_identifier = toolchain_identifier,
         host_system_name = host_system_name,
         target_system_name = target_system_name,
         target_cpu = target_cpu,
