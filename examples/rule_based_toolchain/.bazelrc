@@ -6,3 +6,4 @@ build --enable_platform_specific_config
 build:macos --platforms=//:linux_x86_64
 
 build:gcc --//toolchains:compiler_kind=gcc
+
