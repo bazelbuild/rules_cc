@@ -14,45 +14,8 @@
 """Implementation of the cc_toolchain rule."""
 
 load("//cc/toolchains:cc_toolchain.bzl", _cc_toolchain = "cc_toolchain")
-load(
-    "//cc/toolchains/impl:toolchain_config.bzl",
-    "cc_legacy_file_group",
-    "cc_toolchain_config",
-)
 
 visibility("public")
-
-# Taken from https://bazel.build/docs/cc-toolchain-config-reference#actions
-# TODO: This is best-effort. Update this with the correct file groups once we
-#  work out what actions correspond to what file groups.
-_LEGACY_FILE_GROUPS = {
-    "ar_files": [
-        Label("//cc/toolchains/actions:ar_actions"),
-    ],
-    "as_files": [
-        Label("//cc/toolchains/actions:assembly_actions"),
-    ],
-    "compiler_files": [
-        Label("//cc/toolchains/actions:cc_flags_make_variable"),
-        Label("//cc/toolchains/actions:c_compile"),
-        Label("//cc/toolchains/actions:cpp_compile"),
-        Label("//cc/toolchains/actions:cpp_header_parsing"),
-    ],
-    # There are no actions listed for coverage and objcopy in action_names.bzl.
-    "coverage_files": [],
-    "dwp_files": [
-        Label("//cc/toolchains/actions:dwp"),
-    ],
-    "linker_files": [
-        Label("//cc/toolchains/actions:cpp_link_dynamic_library"),
-        Label("//cc/toolchains/actions:cpp_link_nodeps_dynamic_library"),
-        Label("//cc/toolchains/actions:cpp_link_executable"),
-    ],
-    "objcopy_files": [],
-    "strip_files": [
-        Label("//cc/toolchains/actions:strip"),
-    ],
-}
 
 def cc_toolchain(
         *,
@@ -161,15 +124,8 @@ def cc_toolchain(
         **kwargs: [common attributes](https://bazel.build/reference/be/common-definitions#common-attributes)
             that should be applied to all rules created by this macro.
     """
-    cc_toolchain_visibility = kwargs.pop("visibility", default = None)
-
-    for group in _LEGACY_FILE_GROUPS:
-        if group in kwargs:
-            fail("Don't use legacy file groups such as %s. Instead, associate files with `cc_tool` or `cc_args` rules." % group)
-
-    config_name = "_{}_config".format(name)
-    cc_toolchain_config(
-        name = config_name,
+    _cc_toolchain(
+        name = name,
         tool_map = tool_map,
         args = args,
         artifact_name_patterns = artifact_name_patterns,
@@ -186,27 +142,6 @@ def cc_toolchain(
             Label("//cc/toolchains/impl:windows_x86_64"): "win64",
             "//conditions:default": "",
         }),
-        visibility = ["//visibility:private"],
-        **kwargs
-    )
-
-    # Provides ar_files, compiler_files, linker_files, ...
-    legacy_file_groups = {}
-    for group, actions in _LEGACY_FILE_GROUPS.items():
-        group_name = "_{}_{}".format(name, group)
-        cc_legacy_file_group(
-            name = group_name,
-            config = config_name,
-            actions = actions,
-            visibility = ["//visibility:private"],
-            **kwargs
-        )
-        legacy_file_groups[group] = group_name
-
-    _cc_toolchain(
-        name = name,
-        toolchain_config = config_name,
-        all_files = config_name,
         dynamic_runtime_lib = dynamic_runtime_lib,
         libc_top = libc_top,
         module_map = module_map,
@@ -215,6 +150,5 @@ def cc_toolchain(
         supports_param_files = supports_param_files,
         # This is required for Bazel versions <= 7.x.x. It is ignored in later versions.
         exec_transition_for_inputs = False,
-        visibility = cc_toolchain_visibility,
-        **(kwargs | legacy_file_groups)
+        **kwargs
     )

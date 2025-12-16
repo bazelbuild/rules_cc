@@ -18,6 +18,7 @@
 # Once it's stabilized, we *may* consider opening up parts of the API, or we may
 # decide to just require users to use the public user-facing rules.
 visibility([
+    "//cc/private/rules_impl/...",
     "//cc/toolchains/...",
     "//tests/rule_based_toolchain/...",
 ])
