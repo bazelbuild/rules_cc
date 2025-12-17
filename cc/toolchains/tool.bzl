@@ -65,7 +65,6 @@ cc_tool = rule(
     attrs = {
         "src": attr.label(
             allow_files = True,
-            cfg = "exec",
             doc = """The underlying binary that this tool represents.
 
 Usually just a single prebuilt (eg. @toolchain//:bin/clang), but may be any
@@ -124,11 +123,10 @@ Example:
 load("//cc/toolchains:tool.bzl", "cc_tool")
 
 cc_tool(
-    name = "clang_tool",
+    name = "clang",
     src = "@llvm_toolchain//:bin/clang",
     # Suppose clang needs libc to run.
     data = ["@llvm_toolchain//:lib/x86_64-linux-gnu/libc.so.6"]
-    tags = ["requires-network"],
     capabilities = ["//cc/toolchains/capabilities:supports_pic"],
 )
 ```
