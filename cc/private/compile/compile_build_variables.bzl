@@ -93,6 +93,7 @@ def create_compile_variables(
         output_file = None,
         user_compile_flags = None,
         includes = None,
+        local_includes = None,
         include_directories = None,
         quote_include_directories = None,
         system_include_directories = None,
@@ -123,6 +124,7 @@ def create_compile_variables(
         includes: paths to headers that should be included using -include
         user_compile_flags: List of additional compilation flags (copts).
         include_directories: Depset of include directories.
+        local_includes: Depset of local include directories.
         quote_include_directories: Depset of quote include directories.
         system_include_directories: Depset of system include directories.
         framework_include_directories: Depset of framework include directories.
@@ -158,6 +160,7 @@ def create_compile_variables(
         fdo_build_stamp = _get_fdo_build_stamp(cpp_configuration, fdo_context, feature_configuration),
         variables_extension = variables_extension,
         includes = includes or [],
+        local_includes = local_includes or depset(),
         include_dirs = include_directories or depset(),
         quote_include_dirs = quote_include_directories or depset(),
         system_include_dirs = system_include_directories or depset(),
@@ -198,6 +201,7 @@ def setup_common_compile_build_variables(
         fdo_build_stamp = _get_fdo_build_stamp(cpp_configuration, fdo_context, feature_configuration),
         variables_extension = variables_extension,
         include_dirs = cc_compilation_context.includes,
+        local_includes = cc_compilation_context.local_includes,
         quote_include_dirs = cc_compilation_context.quote_includes,
         system_include_dirs = cc_compilation_context.system_includes,
         framework_include_dirs = cc_compilation_context.framework_includes,
@@ -216,6 +220,7 @@ def _setup_common_compile_build_variables_internal(
         variables_extension = [],  # [dict{str,object}]
         additional_build_variables = {},  # dict{str,str}
         include_dirs = depset(),
+        local_includes = depset(),
         quote_include_dirs = depset(),
         system_include_dirs = depset(),
         framework_include_dirs = depset(),
@@ -226,7 +231,7 @@ def _setup_common_compile_build_variables_internal(
 
     if feature_configuration.is_enabled("use_header_modules"):
         result[_VARS.MODULE_FILES] = []
-    result[_VARS.INCLUDE_PATHS] = include_dirs
+    result[_VARS.INCLUDE_PATHS] = depset(transitive = [include_dirs, local_includes])
     result[_VARS.QUOTE_INCLUDE_PATHS] = quote_include_dirs
     result[_VARS.SYSTEM_INCLUDE_PATHS] = system_include_dirs
     if includes:
