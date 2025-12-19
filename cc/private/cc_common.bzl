@@ -35,7 +35,7 @@ load("//cc/private/link:create_linking_context_from_compilation_outputs.bzl", "c
 load("//cc/private/link:create_linkstamp.bzl", "create_linkstamp")
 load("//cc/private/link:link.bzl", "link")
 load("//cc/private/link:link_build_variables.bzl", "create_link_variables")
-load("//cc/private/link:lto_backends.bzl", "create_lto_backend_artifacts")
+load("//cc/private/link:lto_backends.bzl", "create_lto_backend_artifacts", "setup_common_lto_variables")
 load("//cc/private/rules_impl:cc_toolchain_info.bzl", "CcToolchainInfo")
 load("//cc/private/rules_impl:native.bzl", _cc_common_internal = "native_cc_common")
 load("//cc/private/toolchain_config:cc_toolchain_config_info.bzl", "create_cc_toolchain_config_info")
@@ -589,6 +589,9 @@ def _create_lto_backend_artifacts(
         should_create_per_object_debug_info,
         argv):
     _cc_internal.check_private_api(allowlist = _PRIVATE_STARLARKIFICATION_ALLOWLIST)
+
+    build_variables, additional_inputs = setup_common_lto_variables(cc_toolchain, feature_configuration)
+
     return create_lto_backend_artifacts(
         actions = actions or ctx.actions,
         bitcode_file = bitcode_file,
@@ -598,6 +601,8 @@ def _create_lto_backend_artifacts(
         cc_toolchain = cc_toolchain,
         use_pic = use_pic,
         should_create_per_object_debug_info = should_create_per_object_debug_info,
+        build_variables = build_variables,
+        additional_inputs = additional_inputs,
         argv = argv,
     )
 

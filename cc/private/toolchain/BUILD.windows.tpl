@@ -124,6 +124,11 @@ cc_toolchain_config(
     cxx_builtin_include_directories = [%{cxx_builtin_include_directories}],
     tool_paths = {%{tool_paths}},
     tool_bin_path = "%{tool_bin_path}",
+    all_compile_flags = [%{all_compile_flags}],
+    conly_flags = [%{conly_flags}],
+    cxx_flags = [%{cxx_flags}],
+    link_flags = [%{link_flags}],
+%{win32_winnt_flag}
 )
 
 toolchain(
@@ -170,6 +175,11 @@ cc_toolchain_config(
     tool_bin_path = "%{tool_bin_path}",
     default_compile_flags = ["-m32"],
     default_link_flags = ["-m32"],
+    all_compile_flags = [%{all_compile_flags}],
+    conly_flags = [%{conly_flags}],
+    cxx_flags = [%{cxx_flags}],
+    link_flags = [%{link_flags}],
+%{win32_winnt_flag}
 )
 
 toolchain(
@@ -214,6 +224,11 @@ cc_toolchain_config(
     tool_bin_path = "%{mingw_tool_bin_path}",
     cxx_builtin_include_directories = [%{mingw_cxx_builtin_include_directories}],
     tool_paths = {%{mingw_tool_paths}},
+    all_compile_flags = [%{all_compile_flags}],
+    conly_flags = [%{conly_flags}],
+    cxx_flags = [%{cxx_flags}],
+    link_flags = [%{link_flags}],
+%{win32_winnt_flag}
 )
 
 toolchain(
@@ -260,6 +275,11 @@ cc_toolchain_config(
     tool_paths = {%{mingw_tool_paths}},
     default_compile_flags = ["-m32"],
     default_link_flags = ["-m32"],
+    all_compile_flags = [%{all_compile_flags}],
+    conly_flags = [%{conly_flags}],
+    cxx_flags = [%{cxx_flags}],
+    link_flags = [%{link_flags}],
+%{win32_winnt_flag}
 )
 
 toolchain(
@@ -331,6 +351,11 @@ cc_toolchain_config(
     fastbuild_mode_debug_flag = "%{fastbuild_mode_debug_flag_x64}",
     supports_parse_showincludes = %{msvc_parse_showincludes_x64},
     shorten_virtual_includes = True,
+    all_compile_flags = [%{all_compile_flags}],
+    conly_flags = [%{conly_flags}],
+    cxx_flags = [%{cxx_flags}],
+    link_flags = [%{link_flags}],
+%{win32_winnt_flag}
 )
 
 toolchain(
@@ -401,6 +426,11 @@ cc_toolchain_config(
     fastbuild_mode_debug_flag = "%{fastbuild_mode_debug_flag_x86}",
     supports_parse_showincludes = %{msvc_parse_showincludes_x86},
     shorten_virtual_includes = True,
+    all_compile_flags = [%{all_compile_flags}],
+    conly_flags = [%{conly_flags}],
+    cxx_flags = [%{cxx_flags}],
+    link_flags = [%{link_flags}],
+%{win32_winnt_flag}
 )
 
 toolchain(
@@ -471,6 +501,11 @@ cc_toolchain_config(
     fastbuild_mode_debug_flag = "%{fastbuild_mode_debug_flag_arm}",
     supports_parse_showincludes = %{msvc_parse_showincludes_arm},
     shorten_virtual_includes = True,
+    all_compile_flags = [%{all_compile_flags}],
+    conly_flags = [%{conly_flags}],
+    cxx_flags = [%{cxx_flags}],
+    link_flags = [%{link_flags}],
+%{win32_winnt_flag}
 )
 
 toolchain(
@@ -541,6 +576,11 @@ cc_toolchain_config(
     fastbuild_mode_debug_flag = "%{fastbuild_mode_debug_flag_arm64}",
     supports_parse_showincludes = %{msvc_parse_showincludes_arm64},
     shorten_virtual_includes = True,
+    all_compile_flags = [%{all_compile_flags}],
+    conly_flags = [%{conly_flags}],
+    cxx_flags = [%{cxx_flags}],
+    link_flags = [%{link_flags}],
+%{win32_winnt_flag}
 )
 
 toolchain(
@@ -608,6 +648,11 @@ cc_toolchain_config(
     dbg_mode_debug_flag = "%{clang_cl_dbg_mode_debug_flag_x64}",
     fastbuild_mode_debug_flag = "%{clang_cl_fastbuild_mode_debug_flag_x64}",
     supports_parse_showincludes = %{clang_cl_parse_showincludes_x64},
+    all_compile_flags = [%{all_compile_flags}],
+    conly_flags = [%{conly_flags}],
+    cxx_flags = [%{cxx_flags}],
+    link_flags = [%{link_flags}],
+%{win32_winnt_flag}
 )
 
 toolchain(
@@ -676,6 +721,11 @@ cc_toolchain_config(
     dbg_mode_debug_flag = "%{clang_cl_dbg_mode_debug_flag_arm64}",
     fastbuild_mode_debug_flag = "%{clang_cl_fastbuild_mode_debug_flag_arm64}",
     supports_parse_showincludes = %{clang_cl_parse_showincludes_arm64},
+    all_compile_flags = [%{all_compile_flags}],
+    conly_flags = [%{conly_flags}],
+    cxx_flags = [%{cxx_flags}],
+    link_flags = [%{link_flags}],
+%{win32_winnt_flag}
 )
 
 toolchain(

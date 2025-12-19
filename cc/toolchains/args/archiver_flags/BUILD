@@ -9,12 +9,14 @@ package(default_visibility = ["//visibility:private"])
 bool_flag(
     name = "use_libtool_on_macos",
     build_setting_default = True,
+    visibility = ["//visibility:public"],
 )
 
 config_setting(
     name = "use_libtool_on_macos_setting",
     constraint_values = ["@platforms//os:macos"],
     flag_values = {":use_libtool_on_macos": "true"},
+    visibility = ["//visibility:public"],
 )
 
 cc_feature(
@@ -45,6 +47,7 @@ cc_args(
         ],
         "//conditions:default": ["rcsD"],
     }),
+    requires_not_none = "//cc/toolchains/variables:output_execpath",
 )
 
 cc_args(

@@ -422,6 +422,14 @@ def _impl(ctx):
                 with_features = [with_feature_set(features = ["opt"])],
             ),
             flag_set(
+                actions = all_compile_actions,
+                flag_groups = ([
+                    flag_group(
+                        flags = ctx.attr.all_compile_flags,
+                    ),
+                ] if ctx.attr.all_compile_flags else []),
+            ),
+            flag_set(
                 actions = [ACTION_NAMES.c_compile],
                 flag_groups = ([
                     flag_group(
@@ -1967,6 +1975,7 @@ cc_toolchain_config = rule(
         "abi_version": attr.string(mandatory = True),
         "archive_flags": attr.string_list(),
         "builtin_sysroot": attr.string(),
+        "all_compile_flags": attr.string_list(),
         "compile_flags": attr.string_list(),
         "compiler": attr.string(mandatory = True),
         "conly_flags": attr.string_list(),
