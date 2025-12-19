@@ -21,7 +21,7 @@ load(
     "package_source_root",
     "repository_exec_path",
 )
-load("//cc/common:semantics.bzl", "USE_EXEC_ROOT_FOR_VIRTUAL_INCLUDES_SYMLINKS")
+load("//cc/common:semantics.bzl", "STRIP_INCLUDE_PREFIX_APPLIES_TO_TEXTUAL_HEADERS", "USE_EXEC_ROOT_FOR_VIRTUAL_INCLUDES_SYMLINKS")
 load("//cc/private:cc_info.bzl", "create_compilation_context", "create_module_map")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 
@@ -453,7 +453,7 @@ def _init_cc_compilation_context(
         config,
         public_textual_headers,
         include_prefix,
-        strip_include_prefix,
+        strip_include_prefix if STRIP_INCLUDE_PREFIX_APPLIES_TO_TEXTUAL_HEADERS else None,
         label,
         binfiles_dir,
         non_module_map_headers,
