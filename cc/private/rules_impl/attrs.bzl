@@ -145,6 +145,20 @@ The added <code>include</code> paths will include generated files as well as
 files in the source tree.
 </p>
 """),
+    "local_includes": attr.string_list(doc = """
+List of include dirs to be added to the compile line.
+Subject to <a href="${link make-variables}">"Make variable"</a> substitution.
+Each string is prepended with the package path and passed to the C++ toolchain for
+expansion via the "include_paths" CROSSTOOL feature. A toolchain running on a
+POSIX system with typical feature definitions will produce
+<code>-I path_to_package/include_entry</code>.
+
+Unlike <a href="#cc_binary.includes">INCLUDES</a>, these flags are added for
+this target and not added to every target that depends on it.
+
+The added <code>include</code> paths will include generated files as well as
+files in the source tree.
+"""),
     "defines": attr.string_list(doc = """
 List of defines to add to the compile line of this and all dependent targets.
 Subject to <a href="${link make-variables}">"Make" variable</a> substitution and
