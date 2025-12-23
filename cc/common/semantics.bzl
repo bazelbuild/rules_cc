@@ -19,6 +19,8 @@
 # TODO: b/320980684 - Add a test that fails if this is flipped to True.
 USE_EXEC_ROOT_FOR_VIRTUAL_INCLUDES_SYMLINKS = False
 
+STRIP_INCLUDE_PREFIX_APPLIES_TO_TEXTUAL_HEADERS = True
+
 def _get_proto_aspects():
     return []
 
