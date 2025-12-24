@@ -414,12 +414,6 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     # The parse_header tool needs to be a wrapper around the compiler as it has
     # to touch the output file.
     tool_paths["parse_headers"] = "cc_wrapper.sh"
-    cc_toolchain_identifier = escape_string(get_env_var(
-        repository_ctx,
-        "CC_TOOLCHAIN_NAME",
-        "local",
-        False,
-    ))
 
     if "nm" in tool_paths and "c++filt" in tool_paths:
         repository_ctx.template(
@@ -643,7 +637,6 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
             ] + (
                 [":validate_static_library"] if "validate_static_library" in tool_paths else []
             )),
-            "%{cc_toolchain_identifier}": cc_toolchain_identifier,
             "%{compile_flags}": get_starlark_list(
                 [
                     "-fstack-protector",
