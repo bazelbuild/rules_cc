@@ -115,6 +115,7 @@ util.helper_target(
     actions = ["//tests/rule_based_toolchain/actions:c_compile"],
     allowlist_include_directories = ["//tests/rule_based_toolchain/testdata:subdirectory_1"],
     args = ["--include-builtin-dirs"],
+    data = ["//tests/rule_based_toolchain/testdata:subdirectory_1"],
 )
 
 util.helper_target(

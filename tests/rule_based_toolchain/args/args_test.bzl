@@ -152,9 +152,19 @@ def _env_only_requires_test(env, targets):
 def _with_dir_test(env, targets):
     with_dir = env.expect.that_target(targets.with_dir).provider(ArgsInfo)
     with_dir.allowlist_include_directories().contains_exactly([_TOOL_DIRECTORY])
-    with_dir.files().contains_at_least(_SIMPLE_FILES)
+    with_dir.files().contains_exactly([])
 
     c_compile = env.expect.that_target(targets.with_dir).provider(ArgsListInfo).by_action().get(
+        targets.c_compile[ActionTypeInfo],
+    )
+    c_compile.files().contains_exactly([])
+
+def _with_dir_and_data_test(env, targets):
+    with_dir = env.expect.that_target(targets.with_dir_and_data).provider(ArgsInfo)
+    with_dir.allowlist_include_directories().contains_exactly([_TOOL_DIRECTORY])
+    with_dir.files().contains_at_least(_SIMPLE_FILES)
+
+    c_compile = env.expect.that_target(targets.with_dir_and_data).provider(ArgsListInfo).by_action().get(
         targets.c_compile[ActionTypeInfo],
     )
     c_compile.files().contains_at_least(_SIMPLE_FILES)
@@ -165,6 +175,7 @@ TARGETS = [
     ":env_only",
     ":env_only_requires",
     ":with_dir",
+    ":with_dir_and_data",
     ":iterate_over_optional",
     ":good_env_format",
     ":good_env_format_optional",
@@ -349,6 +360,7 @@ TESTS = {
     "env_only_test": _env_only_test,
     "env_only_requires_test": _env_only_requires_test,
     "with_dir_test": _with_dir_test,
+    "with_dir_and_data_test": _with_dir_and_data_test,
     "good_env_format_test": _good_env_format_test,
     "good_env_format_optional_test": _good_env_format_optional_test,
 }
