@@ -238,14 +238,27 @@ def _cc_library_impl(ctx):
         libraries = libraries_to_link,
     )
 
+    supports_start_end_lib = cc_common.is_enabled(
+        feature_configuration = feature_configuration,
+        feature_name = "supports_start_end_lib",
+    )
+
     files_builder = []
     if linking_outputs.library_to_link != None:
         artifacts_to_build = linking_outputs.library_to_link
-        if artifacts_to_build.static_library != None:
-            files_builder.append(artifacts_to_build.static_library)
+        if supports_start_end_lib and (artifacts_to_build.objects or artifacts_to_build.pic_objects):
+            if artifacts_to_build.pic_objects:
+                files_builder.extend(artifacts_to_build.pic_objects)
+            elif artifacts_to_build.objects:
+                files_builder.extend(artifacts_to_build.objects)
+        else:
+            if artifacts_to_build.static_library != None:
+                files_builder.append(artifacts_to_build.static_library)
+                output_group_builder["static_library"] = depset([artifacts_to_build.static_library])
 
-        if artifacts_to_build.pic_static_library != None:
-            files_builder.append(artifacts_to_build.pic_static_library)
+            if artifacts_to_build.pic_static_library != None:
+                files_builder.append(artifacts_to_build.pic_static_library)
+                output_group_builder["pic_static_library"] = depset([artifacts_to_build.static_library])
 
         if not cc_common.is_enabled(
             feature_configuration = feature_configuration,
