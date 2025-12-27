@@ -16,7 +16,6 @@
 load("//cc/common:cc_common.bzl", "cc_common")
 load(
     "//cc/toolchains:cc_toolchain_info.bzl",
-    "ActionTypeSetInfo",
     "ArgsListInfo",
     "ArtifactNamePatternInfo",
     "FeatureSetInfo",
@@ -24,33 +23,23 @@ load(
     "ToolConfigInfo",
     "ToolchainConfigInfo",
 )
-load(":collect.bzl", "collect_action_types")
 load(":legacy_converter.bzl", "convert_toolchain")
 load(":toolchain_config_info.bzl", "toolchain_config_info")
 
 visibility([
+    "//cc/private/rules_impl/...",
     "//cc/toolchains/...",
     "//tests/rule_based_toolchain/...",
 ])
 
-def _cc_legacy_file_group_impl(ctx):
-    files = ctx.attr.config[ToolchainConfigInfo].files
+def cc_toolchain_config_impl_helper(ctx):
+    """Main implementation for _cc_toolchain_config_impl, reused for rules-based toolchains
 
-    return [DefaultInfo(files = depset(transitive = [
-        files[action]
-        for action in collect_action_types(ctx.attr.actions).to_list()
-        if action in files
-    ]))]
+    Args:
+      ctx: Rule context
+    Returns:
+        toolchain_config_info and cc_toolchain_config_info providers"""
 
-cc_legacy_file_group = rule(
-    implementation = _cc_legacy_file_group_impl,
-    attrs = {
-        "actions": attr.label_list(providers = [ActionTypeSetInfo], mandatory = True),
-        "config": attr.label(providers = [ToolchainConfigInfo], mandatory = True),
-    },
-)
-
-def _cc_toolchain_config_impl(ctx):
     if ctx.attr.features:
         fail("Features is a reserved attribute in bazel. Did you mean 'known_features' or 'enabled_features'?")
 
@@ -66,7 +55,7 @@ def _cc_toolchain_config_impl(ctx):
 
     legacy = convert_toolchain(toolchain_config)
 
-    return [
+    return (
         toolchain_config,
         cc_common.create_cc_toolchain_config_info(
             ctx = ctx,
@@ -90,6 +79,13 @@ def _cc_toolchain_config_impl(ctx):
             abi_version = "",
             abi_libc_version = "",
         ),
+    )
+
+def _cc_toolchain_config_impl(ctx):
+    toolchain_config, cc_toolchain_config_info = cc_toolchain_config_impl_helper(ctx)
+    return [
+        toolchain_config,
+        cc_toolchain_config_info,
         # This allows us to support all_files.
         # If all_files was simply an alias to
         # //cc/toolchains/actions:all_actions,
@@ -98,19 +94,21 @@ def _cc_toolchain_config_impl(ctx):
         DefaultInfo(files = depset(transitive = toolchain_config.files.values())),
     ]
 
+CC_TOOLCHAIN_CONFIG_PUBLIC_ATTRS = {
+    # Attributes new to this rule.
+    "compiler": attr.string(default = ""),
+    "cpu": attr.string(default = ""),
+    "tool_map": attr.label(providers = [ToolConfigInfo], mandatory = True),
+    "args": attr.label_list(providers = [ArgsListInfo]),
+    "known_features": attr.label_list(providers = [FeatureSetInfo]),
+    "enabled_features": attr.label_list(providers = [FeatureSetInfo]),
+    "artifact_name_patterns": attr.label_list(providers = [ArtifactNamePatternInfo]),
+    "make_variables": attr.label_list(providers = [MakeVariableInfo]),
+}
+
 cc_toolchain_config = rule(
     implementation = _cc_toolchain_config_impl,
-    # @unsorted-dict-items
-    attrs = {
-        # Attributes new to this rule.
-        "compiler": attr.string(default = ""),
-        "cpu": attr.string(default = ""),
-        "tool_map": attr.label(providers = [ToolConfigInfo], mandatory = True),
-        "args": attr.label_list(providers = [ArgsListInfo]),
-        "known_features": attr.label_list(providers = [FeatureSetInfo]),
-        "enabled_features": attr.label_list(providers = [FeatureSetInfo]),
-        "artifact_name_patterns": attr.label_list(providers = [ArtifactNamePatternInfo]),
-        "make_variables": attr.label_list(providers = [MakeVariableInfo]),
+    attrs = CC_TOOLCHAIN_CONFIG_PUBLIC_ATTRS | {
         "_builtin_features": attr.label(default = "//cc/toolchains/features:all_builtin_features"),
     },
     provides = [ToolchainConfigInfo],

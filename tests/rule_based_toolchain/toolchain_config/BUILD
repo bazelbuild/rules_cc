@@ -6,7 +6,7 @@ load("//cc/toolchains:tool.bzl", "cc_tool")
 load("//cc/toolchains:tool_map.bzl", "cc_tool_map")
 load("//cc/toolchains/args:sysroot.bzl", "cc_sysroot")
 load("//cc/toolchains/impl:external_feature.bzl", "cc_external_feature")
-load("//cc/toolchains/impl:toolchain_config.bzl", "cc_legacy_file_group", "cc_toolchain_config")
+load("//cc/toolchains/impl:toolchain_config.bzl", "cc_toolchain_config")
 load("//tests/rule_based_toolchain:analysis_test_suite.bzl", "analysis_test_suite")
 load(":toolchain_config_test.bzl", "TARGETS", "TESTS")
 
@@ -72,20 +72,6 @@ util.helper_target(
     enabled_features = [":simple_feature"],
     known_features = [":compile_feature"],
     tool_map = ":compile_tool_map",
-)
-
-util.helper_target(
-    cc_legacy_file_group,
-    name = "collects_files_c_compile",
-    actions = ["//tests/rule_based_toolchain/actions:c_compile"],
-    config = ":collects_files_toolchain_config",
-)
-
-util.helper_target(
-    cc_legacy_file_group,
-    name = "collects_files_cpp_compile",
-    actions = ["//tests/rule_based_toolchain/actions:cpp_compile"],
-    config = ":collects_files_toolchain_config",
 )
 
 util.helper_target(
