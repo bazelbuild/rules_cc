@@ -1,4 +1,3 @@
-load("//cc/toolchains:feature.bzl", "cc_feature")
 load("//cc/toolchains:feature_set.bzl", "cc_feature_set")
 
 package(default_visibility = ["//visibility:public"])
@@ -15,7 +14,6 @@ package(default_visibility = ["//visibility:public"])
 cc_feature_set(
     name = "experimental_replace_legacy_action_config_features",
     all_of = [
-        ":backfill_legacy_args",
         "//cc/toolchains/args/archiver_flags:feature",
         "//cc/toolchains/args/pic_flags:feature",
         "//cc/toolchains/args/libraries_to_link:feature",
@@ -39,15 +37,4 @@ cc_feature_set(
         "//cc/toolchains/args/dependency_file:feature",
         "//cc/toolchains/args/compile_flags:feature",  # NOTE: This should come below default flags so user flags can override them
     ],
-)
-
-cc_feature(
-    name = "backfill_legacy_args",
-    feature_name = "experimental_replace_legacy_action_config_features",
-    # TODO: Convert remaining items in this list into their actual args.
-    implies = [
-        "//cc/toolchains/features/legacy:build_interface_libraries",
-        "//cc/toolchains/features/legacy:dynamic_library_linker_tool",
-    ],
-    visibility = ["//visibility:private"],
 )
