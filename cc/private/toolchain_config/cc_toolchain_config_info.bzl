@@ -46,7 +46,6 @@ CcToolchainConfigInfo, _new_cc_toolchain_config_info = provider(
         "target_libc",
         "target_system_name",
         "tool_paths",
-        "toolchain_id",
     ],
     init = _init,
 )
@@ -55,7 +54,6 @@ CcToolchainConfigInfo, _new_cc_toolchain_config_info = provider(
 def create_cc_toolchain_config_info(
         *,
         ctx,
-        toolchain_identifier,
         compiler,
         features = [],
         action_configs = [],
@@ -135,7 +133,6 @@ def create_cc_toolchain_config_info(
         target_libc = target_libc or "",
         target_system_name = target_system_name or "",
         tool_paths = tool_paths,
-        toolchain_id = toolchain_identifier,
     )
 
 # LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/toolchain_config/cc_toolchain_config_info.bzl:forked_exports)

@@ -51,7 +51,6 @@ cc_toolchain(
     objcopy_files = ":empty",
     strip_files = ":empty",
     toolchain_config = ":local_config",
-    toolchain_identifier = "local",
 )
 
 cc_toolchain_config(name = "local_config")
