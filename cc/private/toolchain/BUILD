@@ -21,37 +21,51 @@ package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])  # Apache 2.0
 
-# It is frequently necessary to constrain platforms based on the cc compiler type.
-constraint_setting(name = "cc_compiler")
+# DEPRECATED: Use //cc/compiler:cc_compiler and //cc/compiler:<compiler>_constraint instead.
+# These aliases are kept for backward compatibility.
+#
+# Prefer using the public API in //cc/compiler:
+#   @rules_cc//cc/compiler:cc_compiler (constraint_setting)
+#   @rules_cc//cc/compiler:clang_constraint
+#   @rules_cc//cc/compiler:gcc_constraint
+#   @rules_cc//cc/compiler:msvc_constraint
+#   @rules_cc//cc/compiler:clang-cl_constraint
+#   @rules_cc//cc/compiler:mingw_constraint
+#   @rules_cc//cc/compiler:msys_constraint
 
-constraint_value(
+alias(
+    name = "cc_compiler",
+    actual = "//cc/compiler:cc_compiler",
+)
+
+alias(
     name = "clang",
-    constraint_setting = ":cc_compiler",
+    actual = "//cc/compiler:clang_constraint",
 )
 
-constraint_value(
+alias(
     name = "gcc",
-    constraint_setting = ":cc_compiler",
+    actual = "//cc/compiler:gcc_constraint",
 )
 
-constraint_value(
+alias(
     name = "msvc",
-    constraint_setting = ":cc_compiler",
+    actual = "//cc/compiler:msvc_constraint",
 )
 
-constraint_value(
+alias(
     name = "clang-cl",
-    constraint_setting = ":cc_compiler",
+    actual = "//cc/compiler:clang-cl_constraint",
 )
 
-constraint_value(
+alias(
     name = "mingw",
-    constraint_setting = ":cc_compiler",
+    actual = "//cc/compiler:mingw_constraint",
 )
 
-constraint_value(
+alias(
     name = "msys",
-    constraint_setting = ":cc_compiler",
+    actual = "//cc/compiler:msys_constraint",
 )
 
 cc_library(
