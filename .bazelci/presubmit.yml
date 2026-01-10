@@ -42,26 +42,6 @@ tasks:
       - "//docs/..."
       - "-//docs:toolchain_api_diff_test" # Bazel adds loads statements in examples
 
-# Bazel LTS
-  ubuntu2004:
-    name: Ubuntu 20.04 (Bazel LTS)
-    build_targets: *build_targets
-    test_targets: *test_targets
-  macos:
-    name: MacOS (Bazel LTS)
-    build_targets: *build_targets
-    test_targets: *test_targets
-  windows:
-    name: Windows (Bazel LTS)
-    build_targets: *build_targets
-    test_targets: *test_targets
-  ubuntu_bzlmod:
-    name: Ubuntu 20.04 (Bazel LTS, bzlmod)
-    platform: ubuntu2004
-    build_flags:
-      - "--enable_bzlmod"
-      - "--ignore_dev_dependency"
-
 # Bazel@HEAD
   ubuntu2004_head:
     name: Ubuntu 20.04 (Bazel HEAD)
@@ -131,6 +111,70 @@ tasks:
     platform: windows
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
+
+# Bazel 7
+  ubuntu2004_bazel_7:
+    name: Ubuntu 20.04 (Bazel 7)
+    bazel: 7.x
+    platform: ubuntu2004
+    build_targets: *build_targets_bazel_6
+    test_targets: *test_targets_bazel_6
+  macos_bazel_7:
+    name: MacOS (Bazel 7)
+    bazel: 7.x
+    platform: macos
+    build_targets: *build_targets_bazel_6
+    test_targets: *test_targets_bazel_6
+  windows_bazel_7:
+    name: Windows (Bazel 7)
+    bazel: 7.x
+    platform: windows
+    build_targets: *build_targets_bazel_6
+    test_targets: *test_targets_bazel_6
+
+# Bazel 8
+  ubuntu2004_bazel_8:
+    name: Ubuntu 20.04 (Bazel 8)
+    bazel: 8.x
+    platform: ubuntu2004
+    build_targets: *build_targets_bazel_6
+    test_targets: *test_targets_bazel_6
+  macos_bazel_8:
+    name: MacOS (Bazel 8)
+    bazel: 8.x
+    platform: macos
+    build_targets: *build_targets_bazel_6
+    test_targets: *test_targets_bazel_6
+  windows_bazel_8:
+    name: Windows (Bazel 8)
+    bazel: 8.x
+    platform: windows
+    build_targets: *build_targets_bazel_6
+    test_targets: *test_targets_bazel_6
+
+# Bazel 9
+  ubuntu2004:
+    name: Ubuntu 20.04 (Bazel LTS)
+    bazel: last_rc # TODO: change to 9.x when released
+    build_targets: *build_targets
+    test_targets: *test_targets
+  macos:
+    name: MacOS (Bazel LTS)
+    bazel: last_rc # TODO: change to 9.x when released
+    build_targets: *build_targets
+    test_targets: *test_targets
+  windows:
+    name: Windows (Bazel LTS)
+    bazel: last_rc # TODO: change to 9.x when released
+    build_targets: *build_targets
+    test_targets: *test_targets
+  ubuntu_bzlmod:
+    name: Ubuntu 20.04 (Bazel LTS, bzlmod)
+    bazel: last_rc # TODO: change to 9.x when released
+    platform: ubuntu2004
+    build_flags:
+      - "--enable_bzlmod"
+      - "--ignore_dev_dependency"
 
   ubuntu_rule_based_toolchains:
     name: Ubuntu rule-based toolchains
