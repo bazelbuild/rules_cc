@@ -13,9 +13,21 @@
 # limitations under the License.
 
 load("@rules_cc//cc/toolchains:args.bzl", "cc_args")
+load("@rules_cc//cc/toolchains:args_list.bzl", "cc_args_list")
+load("@windows_msvc//:paths.bzl", "INCLUDE_PATHS", "LIB_PATHS", "MSVC_PATH")
+
+cc_args_list(
+    name = "warnings",
+    args = select({
+        "//constraint:windows_x86_64": [":warnings_windows"],
+        "//constraint:windows_aarch64": [":warnings_windows"],
+        "//conditions:default": [":warnings_generic"],
+    }),
+    visibility = ["//visibility:public"],
+)
 
 cc_args(
-    name = "warnings",
+    name = "warnings_generic",
     actions = [
         "@rules_cc//cc/toolchains/actions:c_compile",
         "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
@@ -26,11 +38,29 @@ cc_args(
         "-Wextra",
         "-Wpedantic",
     ],
+)
+
+cc_args(
+    name = "warnings_windows",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:c_compile",
+        "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
+    ],
+    args = [],
+)
+
+cc_args_list(
+    name = "no_absolute_paths_for_builtins",
+    args = select({
+        "//constraint:windows_x86_64": [":no_absolute_paths_for_builtins_windows"],
+        "//constraint:windows_aarch64": [":no_absolute_paths_for_builtins_windows"],
+        "//conditions:default": [":no_absolute_paths_for_builtins_generic"],
+    }),
     visibility = ["//visibility:public"],
 )
 
 cc_args(
-    name = "no_absolute_paths_for_builtins",
+    name = "no_absolute_paths_for_builtins_generic",
     actions = [
         "@rules_cc//cc/toolchains/actions:compile_actions",
     ],
@@ -38,11 +68,76 @@ cc_args(
         "//constraint:gcc": ["-fno-canonical-system-headers"],
         "//conditions:default": [],
     }),
+)
+
+cc_args(
+    name = "no_absolute_paths_for_builtins_windows",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:compile_actions",
+    ],
+    args = [],
+)
+
+cc_args(
+    name = "windows_builtin_includes",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:compile_actions",
+    ],
+    allowlist_absolute_include_directories = INCLUDE_PATHS,
+    allowlist_include_directories = select({
+        "//constraint:windows_x86_64": ["@clang-windows-x86_64//:lib-clang-include"],
+        "//constraint:windows_aarch64": ["@clang-windows-aarch64//:lib-clang-include"],
+        "//conditions:default": [],
+    }),
+    args = [
+        "/I\"{}\"".format(path)
+        for path in INCLUDE_PATHS
+    ],
+    env = {
+        "INCLUDE": ";".join(INCLUDE_PATHS),
+    },
     visibility = ["//visibility:public"],
 )
 
 cc_args(
+    name = "windows_builtin_libs",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:link_actions",
+    ],
+    args = [],
+    env = {
+        "LIB": ";".join(LIB_PATHS),
+    },
+    visibility = ["//visibility:public"],
+)
+
+cc_args(
+    name = "windows_msvc_path",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:ar_actions",
+        "@rules_cc//cc/toolchains/actions:assembly_actions",
+        "@rules_cc//cc/toolchains/actions:compile_actions",
+        "@rules_cc//cc/toolchains/actions:link_actions",
+    ],
+    args = [],
+    env = {
+        "PATH": MSVC_PATH,
+    },
+    visibility = ["//visibility:public"],
+)
+
+cc_args_list(
     name = "target",
+    args = select({
+        "//constraint:windows_x86_64": [":target_windows"],
+        "//constraint:windows_aarch64": [":target_windows"],
+        "//conditions:default": [":target_generic"],
+    }),
+    visibility = ["//visibility:public"],
+)
+
+cc_args(
+    name = "target_generic",
     actions = [
         "@rules_cc//cc/toolchains/actions:compile_actions",
         "@rules_cc//cc/toolchains/actions:link_actions",
@@ -50,6 +145,15 @@ cc_args(
     args = select({
         "//constraint:linux_aarch64": ["--target=aarch64-unknown-linux-gnu"],
         "//constraint:linux_x86_64": ["--target=x86_64-unknown-linux-gnu"],
+        "//conditions:default": [],
     }),
-    visibility = ["//visibility:public"],
+)
+
+cc_args(
+    name = "target_windows",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:compile_actions",
+        "@rules_cc//cc/toolchains/actions:link_actions",
+    ],
+    args = [],
 )

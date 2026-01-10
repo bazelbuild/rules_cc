@@ -17,3 +17,15 @@ cc_tool_capability(
 cc_tool_capability(
     name = "supports_pic",
 )
+
+cc_tool_capability(
+    name = "has_configured_linker_path",
+)
+
+cc_tool_capability(
+    name = "targets_windows",
+)
+
+cc_tool_capability(
+    name = "copy_dynamic_libraries_to_binary",
+)

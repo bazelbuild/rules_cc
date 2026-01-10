@@ -7,5 +7,17 @@ flag_sets {
   flag_groups {
     flags: "-shared"
   }
+  with_features {
+    features: "compiler_clang"
+  }
+  with_features {
+    features: "compiler_gcc"
+  }
+  with_features {
+    features: "compiler_mingw_gcc"
+  }
+  with_features {
+    features: "compiler_emscripten"
+  }
 }
 name: "shared_flag_test"

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@rules_cc//cc:cc_import.bzl", "cc_import")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_shared_library.bzl", "cc_shared_library")
 
@@ -34,13 +35,36 @@ cc_library(
 cc_shared_library(
     name = "shared_library",
     visibility = ["//visibility:private"],
+    win_def_file = "dynamic_answer.def",
     deps = [":answer"],
+)
+
+filegroup(
+    name = "shared_library_interface",
+    srcs = [":shared_library"],
+    output_group = "interface_library",
+    visibility = ["//visibility:private"],
+)
+
+cc_import(
+    name = "dynamic_answer_import",
+    interface_library = ":shared_library_interface",
+    shared_library = ":shared_library",
+    visibility = ["//visibility:private"],
 )
 
 # Forces linkage as a shared library.
 cc_library(
     name = "dynamic_answer",
-    srcs = [":shared_library"],
+    srcs = select({
+        "//constraint:windows_x86_64": [],
+        "//constraint:windows_aarch64": [],
+        "//conditions:default": [":shared_library"],
+    }),
     visibility = ["//visibility:public"],
-    deps = [":headers"],
+    deps = [":headers"] + select({
+        "//constraint:windows_x86_64": [":dynamic_answer_import"],
+        "//constraint:windows_aarch64": [":dynamic_answer_import"],
+        "//conditions:default": [],
+    }),
 )

@@ -1,6 +1,7 @@
 load("//cc/toolchains:args.bzl", "cc_args")
 load("//cc/toolchains:args_list.bzl", "cc_args_list")
 load("//cc/toolchains:feature.bzl", "cc_feature")
+load("//cc/toolchains/impl:args_for_compiler.bzl", "cc_args_for_compiler")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -38,14 +39,17 @@ cc_args(
     iterate_over = "//cc/toolchains/variables:stripopts",
 )
 
-cc_args(
+cc_args_for_compiler(
     name = "preserve_dates",
     actions = ["//cc/toolchains/actions:strip"],
     args = select({
         "@platforms//os:macos": [],
-        "@platforms//os:windows": [],
         "//conditions:default": ["-p"],
     }),
+    exclude_compilers = [
+        "msvc-cl",
+        "clang-cl",
+    ],
 )
 
 cc_args(
