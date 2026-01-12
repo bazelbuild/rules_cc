@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# LINT.IfChange(forked_exports)
 """
 This module contains functionality for creating linker inputs for C++ rules.
 """
@@ -68,5 +67,3 @@ def create_linker_input(
         additional_inputs = _cc_internal.freeze(additional_inputs.to_list()),
         linkstamps = _cc_internal.freeze(linkstamps.to_list()),
     )
-
-# LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/link/create_linker_input.bzl:forked_exports)

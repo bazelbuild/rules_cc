@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# LINT.IfChange(forked_exports)
 """
 Extra link-time library functionality.
 
@@ -191,5 +190,3 @@ def build_libraries(extra_libraries, ctx, static_mode, for_dynamic_library):
         transitive_runtime_libraries = depset(transitive = transitive_runtime_libraries),
         additional_stamp_infos = additional_stamp_infos,
     )
-
-# LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/link/create_extra_link_time_library.bzl:forked_exports)

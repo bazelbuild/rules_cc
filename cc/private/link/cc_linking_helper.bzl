@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# LINT.IfChange(forked_exports)
 """
 A module to create C/C++ link actions in a consistent way.
 """
@@ -674,5 +673,3 @@ def _create_action_for_static_library(
             _pic_shared_non_lto_backends = output_library.shared_non_lto_backends,
             alwayslink = output_library.artifact_category == artifact_category.ALWAYSLINK_STATIC_LIBRARY,
         )
-
-# LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/link/cc_linking_helper.bzl:forked_exports)

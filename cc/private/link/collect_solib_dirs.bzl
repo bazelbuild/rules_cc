@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# LINT.IfChange(forked_exports)
 """Goes over LegacyLinkerInputs and produces LibraryToLinkValue-s."""
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
@@ -478,5 +477,3 @@ def _get_relative(start, to):
         common_parent = common_parent[:-len(seg) - 1]
 
     return dotdots + paths.relativize(to, common_parent)
-
-# LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/link/collect_solib_dirs.bzl:forked_exports)

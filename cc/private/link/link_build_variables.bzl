@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# LINT.IfChange(forked_exports)
 """Functions that populate link build variables.
 
 Link build variables are a dictionary of string named variables that are used to generate C++
@@ -391,5 +390,3 @@ def setup_lto_indexing_variables(
     vars = vars | _DONT_GENERATE_INTERFACE_LIBRARY
 
     return vars
-
-# LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/link/link_build_variables.bzl:forked_exports)

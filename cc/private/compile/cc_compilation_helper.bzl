@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# LINT.IfChange(forked_exports)
 """Compilation helper for C++ rules."""
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
@@ -627,5 +626,3 @@ def serialized_diagnostics_file_enabled(feature_configuration):
 cc_compilation_helper = struct(
     init_cc_compilation_context = _init_cc_compilation_context,
 )
-
-# LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/compile/cc_compilation_helper.bzl:forked_exports)

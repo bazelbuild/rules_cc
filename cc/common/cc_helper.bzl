@@ -34,14 +34,10 @@ load(":visibility.bzl", "INTERNAL_VISIBILITY")
 
 visibility(INTERNAL_VISIBILITY)
 
-# LINT.IfChange(linker_mode)
 linker_mode = struct(
     LINKING_DYNAMIC = "dynamic_linking_mode",
     LINKING_STATIC = "static_linking_mode",
 )
-# LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/cc_helper.bzl:linker_mode)
-
-# LINT.IfChange(forked_exports)
 
 cpp_file_types = struct(
     LINKER_SCRIPT = ["ld", "lds", "ldscript"],
@@ -1143,4 +1139,3 @@ cc_helper = struct(
     package_exec_path = _package_exec_path,
     should_create_test_dwp_for_statically_linked_test = _should_create_test_dwp_for_statically_linked_test,
 )
-# LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/cc_helper.bzl:forked_exports)

@@ -24,8 +24,6 @@ load("//cc/private/link:cc_linking_helper.bzl", "create_cc_link_actions")
 load("//cc/private/link:create_linker_input.bzl", "create_linker_input")
 load("//cc/private/link:target_types.bzl", "LINKING_MODE", "LINK_TARGET_TYPE")
 
-# LINT.IfChange
-
 # IMPORTANT: This function is public API exposed on cc_common module!
 def create_linking_context_from_compilation_outputs(
         *,
@@ -137,5 +135,3 @@ def create_linking_context_from_compilation_outputs(
         linking_contexts = [direct_linking_context] + linking_contexts,
     )
     return linking_context, cc_linking_outputs
-
-# LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/link/create_linking_context_from_compilation_outputs.bzl:forked_exports)

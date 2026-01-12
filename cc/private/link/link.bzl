@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# LINT.IfChange(forked_exports)
 """
 The cc_common.link function.
 
@@ -196,5 +195,3 @@ def link(
                                           (emit_interface_shared_library or
                                            feature_configuration.is_enabled("targets_windows")),
     )
-
-# LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/link/link.bzl:forked_exports)

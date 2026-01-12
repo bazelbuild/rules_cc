@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# LINT.IfChange(forked_exports)
 """Common functions that create C++ link and LTO indexing action."""
 
 load("//cc/common:semantics.bzl", "semantics")
@@ -468,5 +467,3 @@ def _resource_set(os, inputs):
         return {"memory": max(50, -100 + 0.1 * inputs), "cpu": 1}
     else:
         return {"memory": 1500 + inputs, "cpu": 1}
-
-# LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/link/finalize_link_action.bzl:forked_exports)

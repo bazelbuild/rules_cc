@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# LINT.IfChange(forked_exports)
 """Functions that create LTO indexing action."""
 
 load("//cc/common:cc_helper_internal.bzl", "root_relative_path")
@@ -287,5 +286,3 @@ def _lto_indexing_action(
     )
 
     return thinlto_param_file, thinlto_merged_object_file
-
-# LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/link/lto_indexing_action.bzl:forked_exports)

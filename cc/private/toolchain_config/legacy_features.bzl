@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# LINT.IfChange(forked_exports)
 """Helper methods for legacy features"""
 
 load("//cc:action_names.bzl", "ACTION_NAMES")
@@ -1401,5 +1400,3 @@ def _platform_specific_value(platform, *, linux, mac):
     if platform == "mac":
         return mac
     fail("unexpected platform:", platform)
-
-# LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/toolchain_config/legacy_features.bzl:forked_exports)

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# LINT.IfChange(forked_exports)
 """Tree artifact compilation actions"""
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
@@ -265,5 +264,3 @@ def _maybe_declare_diagnostics_tree_artifact(
         label.name,
         output_name,
     ))
-
-# LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/compile/compile_action_templates.bzl:forked_exports)

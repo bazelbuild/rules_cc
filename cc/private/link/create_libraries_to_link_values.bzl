@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# LINT.IfChange(forked_exports)
 """Goes over LibraryToLinks and produces LibraryToLinkValue-s."""
 
 load("//cc/common:cc_helper_internal.bzl", "is_shared_library", "is_versioned_shared_library", "root_relative_path")
@@ -362,5 +361,3 @@ def process_objects_for_lto(
     expanded_linker_artifacts.extend(mapped_object_files)
 
     return remaining_object_files
-
-# LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/link/create_libraries_to_link_values.bzl:forked_exports)

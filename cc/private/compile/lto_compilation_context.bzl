@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# LINT.IfChange(forked_exports)
 """
 Holds information collected for .o bitcode files coming from a ThinLTO C(++) compilation.
 """
@@ -96,5 +95,3 @@ def get_minimized_bitcode_or_self(lto_compilation_context, full_bitcode):
     return bitcode_info.minimized_bitcode
 
 EMPTY_LTO_COMPILATION_CONTEXT = LtoCompilationContextInfo(lto_bitcode_inputs = {})
-
-# LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/compile/lto_compilation_context.bzl:forked_exports)

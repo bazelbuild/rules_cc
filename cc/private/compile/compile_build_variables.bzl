@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# LINT.IfChange(forked_exports)
 """
 All build variables we create for various `CppCompileAction`s
 """
@@ -643,5 +642,3 @@ def _compute_all_linkstamp_defines(
         define.replace("${LABEL}", label_replacement).replace("${OUTPUT_PATH}", output_replacement)
         for define in defines
     ]
-
-# LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/compile/compile_build_variables.bzl:forked_exports)

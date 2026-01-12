@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
-# LINT.IfChange(forked_exports)
 """
 Definition of CcInfo provider.
 """
@@ -652,5 +651,3 @@ def merge_cc_infos(*, direct_cc_infos = [], cc_infos = []):
         debug_context = merge_debug_context(cc_debug_info_contexts),
         cc_native_library_info = CcNativeLibraryInfo(libraries_to_link = depset(order = "topological", transitive = transitive_native_cc_libraries)),
     )
-
-# LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/cc_info.bzl:forked_exports)

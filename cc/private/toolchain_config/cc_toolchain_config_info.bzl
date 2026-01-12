@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# LINT.IfChange(forked_exports)
 """Information describing C++ toolchain derived from CROSSTOOL file."""
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
@@ -137,5 +136,3 @@ def create_cc_toolchain_config_info(
         tool_paths = tool_paths,
         toolchain_id = toolchain_identifier,
     )
-
-# LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/toolchain_config/cc_toolchain_config_info.bzl:forked_exports)

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# LINT.IfChange(forked_exports)
 """
 ThinLTO expands the traditional 2 step compile (N x compile .cc, 1x link (N .o files) into a 4
 step process:
@@ -539,4 +538,3 @@ def _get_lto_backend_action_outputs(object_file, dwo_file):
     return outputs
 
 # LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/rules/cpp/LtoBackendArtifacts.java:lto_backends)
-# LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/link/lto_backends.bzl:forked_exports)

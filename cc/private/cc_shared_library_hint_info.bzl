@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# LINT.IfChange(forked_exports)
 """CcSharedLibraryHintInfo provider.
 
 Needed in a separate file to break cycle with cc_common. cc_common needs a
@@ -55,5 +54,3 @@ CcSharedLibraryHintInfo = provider(
                    "the original name as part of your new name, limiting your custom addition to a prefix or suffix."),
     },
 )
-
-# LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/cc_shared_library_hint_info.bzl:forked_exports)
