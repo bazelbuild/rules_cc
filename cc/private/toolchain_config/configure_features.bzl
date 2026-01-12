@@ -176,6 +176,8 @@ def configure_features(
              branch_fdo_provider.branch_fdo_mode == "llvm_cs_fdo") and
             "fdo_optimize" not in all_unsupported_features_set):
             all_features.append("fdo_optimize")
+            if "memprof_optimize" not in all_unsupported_features_set:
+                all_features.append("enable_fdo_memprof_optimize")
             if "thin_lto" not in all_unsupported_features_set:
                 all_features.append("enable_fdo_thinlto")
             if ("split_functions" not in all_unsupported_features_set and
