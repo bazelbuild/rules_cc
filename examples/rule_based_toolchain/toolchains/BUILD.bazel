@@ -19,6 +19,10 @@ alias(
     actual = select({
         "//constraint:clang": "//toolchains/clang:host_clang_toolchain",
         "//constraint:gcc": "//toolchains/gcc:host_gcc_toolchain",
+        "//constraint:msvc_cl_windows_x86_64": "//toolchains/msvc:host_msvc_cl_toolchain",
+        "//constraint:msvc_cl_windows_aarch64": "//toolchains/msvc:host_msvc_cl_toolchain",
+        "//constraint:clang_cl_windows_x86_64": "//toolchains/clang_cl:host_clang_cl_toolchain",
+        "//constraint:clang_cl_windows_aarch64": "//toolchains/clang_cl:host_clang_cl_toolchain",
     }),
     visibility = ["//visibility:public"],
 )
@@ -29,6 +33,8 @@ string_flag(
     values = [
         "clang",
         "gcc",
+        "msvc-cl",
+        "clang-cl",
     ],
     visibility = ["//visibility:public"],
 )

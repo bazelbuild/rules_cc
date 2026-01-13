@@ -1,0 +1,3 @@
+LIBRARY shared_library
+EXPORTS
+    dynamic_answer
