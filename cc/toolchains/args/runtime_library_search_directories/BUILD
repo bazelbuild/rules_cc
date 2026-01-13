@@ -8,7 +8,10 @@ package(default_visibility = ["//visibility:private"])
 
 cc_feature(
     name = "feature",
-    args = [":runtime_library_search_directories"],
+    args = select({
+        "@platforms//os:windows": [],
+        "//conditions:default": [":runtime_library_search_directories"],
+    }),
     overrides = "//cc/toolchains/features/legacy:runtime_library_search_directories",
     visibility = ["//visibility:public"],
 )
