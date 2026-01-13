@@ -283,7 +283,7 @@ def repository_exec_path(repository, sibling_repository_layout):
     return get_relative_path(prefix, repository)
 
 def is_stamping_enabled(ctx):
-    """Returns whether to encode build information into the binary.
+    """Returns the tri-state of whether to encode build information into the binary.
 
     Args:
         ctx: The rule context.
@@ -302,6 +302,22 @@ def is_stamping_enabled(ctx):
     if hasattr(ctx.attr, "stamp"):
         stamp = ctx.attr.stamp
     return stamp
+
+def should_stamp(ctx):
+    """Returns whether stamping should actually be performed based on stamp attribute and config.
+
+    Unlike is_stamping_enabled, this takes into account the --[no]stamp Blaze flag, so the return value is a boolean, not a tri-state.
+
+    Args:
+        ctx: The rule context.
+
+    Returns:
+        true if stamping should be performed, false otherwise.
+    """
+    stamping_tri_state = is_stamping_enabled(ctx)
+    return False if ctx.configuration.is_tool_configuration() else (
+        stamping_tri_state == 1 or (stamping_tri_state == -1 and ctx.configuration.stamp_binaries())
+    )
 
 def is_shared_library(file):
     return file.extension in ["so", "dylib", "dll", "pyd", "wasm", "tgt", "vpi"]

@@ -28,6 +28,7 @@ load(
     _is_stamping_enabled = "is_stamping_enabled",
     _package_source_root = "package_source_root",
     _repository_exec_path = "repository_exec_path",
+    _should_stamp = "should_stamp",
 )
 load(":cc_info.bzl", "CcInfo")
 load(":visibility.bzl", "INTERNAL_VISIBILITY")
@@ -1132,6 +1133,7 @@ cc_helper = struct(
     get_local_defines_for_runfiles_lookup = _get_local_defines_for_runfiles_lookup,
     linker_scripts = _linker_scripts,
     is_stamping_enabled = _is_stamping_enabled,
+    should_stamp = _should_stamp,
     is_test_target = _is_test_target,
     get_linked_artifact = _get_linked_artifact,
     should_create_per_object_debug_info = should_create_per_object_debug_info,

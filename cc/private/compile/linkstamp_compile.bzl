@@ -20,7 +20,7 @@ Used for C++ linkstamp compiling.
 load("//cc:action_names.bzl", "LINKSTAMP_COMPILE_ACTION_NAME")
 load(
     "//cc/common:cc_helper_internal.bzl",
-    "is_stamping_enabled",
+    "should_stamp",
 )
 load("//cc/common:semantics.bzl", cc_semantics = "semantics")
 load("//cc/private:cc_info.bzl", "EMPTY_COMPILATION_CONTEXT")
@@ -63,10 +63,7 @@ def register_linkstamp_compile_action(
     ctx = _cc_internal.actions2ctx_cheat(actions)
 
     if stamping == None:
-        stamping_tri_state = is_stamping_enabled(ctx)
-        stamping = False if ctx.configuration.is_tool_configuration() else (
-            stamping_tri_state == 1 or (stamping_tri_state == -1 and ctx.configuration.stamp_binaries())
-        )
+        stamping = should_stamp(ctx)
 
     output_group_info = cc_toolchain._build_info_files
     if stamping:
