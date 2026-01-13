@@ -14,6 +14,7 @@
 
 """cc_binary Starlark implementation replacing native"""
 
+load("//cc:cc_postmark.bzl", "postmark")
 load("//cc:find_cc_toolchain.bzl", "find_cc_toolchain", "use_cc_toolchain")
 load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/common:cc_debug_helper.bzl", "create_debug_packager_actions")
@@ -22,7 +23,6 @@ load("//cc/common:cc_info.bzl", "CcInfo")
 load("//cc/common:debug_package_info.bzl", "DebugPackageInfo")
 load("//cc/common:semantics.bzl", "semantics")
 load(":attrs.bzl", "cc_binary_attrs")
-load(":cc_postmark.bzl", "postmark")
 load(":cc_shared_library.bzl", "GraphNodeInfo", "add_unused_dynamic_deps", "build_exports_map_from_only_dynamic_deps", "build_link_once_static_libs_map", "dynamic_deps_initializer", "merge_cc_shared_library_infos", "separate_static_and_dynamic_link_libraries", "sort_linker_inputs", "throw_linked_but_not_exported_errors")
 
 _CcLauncherInfo = cc_common.launcher_provider

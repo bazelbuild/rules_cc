@@ -15,9 +15,9 @@
 """Attributes for cc_binary.
 """
 
+load("//cc:cc_postmark.bzl", "postmark")
 load("//cc/common:cc_info.bzl", "CcInfo")
 load("//cc/common:semantics.bzl", "semantics")
-load("//cc/private/rules_impl:cc_postmark.bzl", "postmark")
 load(":cc_shared_library.bzl", "dynamic_deps_attrs")
 
 visibility("private")

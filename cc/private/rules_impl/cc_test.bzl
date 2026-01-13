@@ -14,13 +14,13 @@
 
 """cc_test Starlark implementation."""
 
+load("//cc:cc_postmark.bzl", "postmark")
 load("//cc:find_cc_toolchain.bzl", "use_cc_toolchain")
 load("//cc/common:cc_helper.bzl", "cc_helper")
 load("//cc/common:cc_info.bzl", "CcInfo")
 load("//cc/common:semantics.bzl", "semantics")
 load(":attrs.bzl", "cc_binary_attrs", "linkstatic_doc", "stamp_doc")
 load(":cc_binary.bzl", "cc_binary_impl")
-load(":cc_postmark.bzl", "postmark")
 load(":cc_shared_library.bzl", "dynamic_deps_initializer")
 
 _CC_TEST_TOOLCHAIN_TYPE = "@bazel_tools//tools/cpp:test_runner_toolchain_type"
