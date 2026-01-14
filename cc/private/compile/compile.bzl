@@ -102,6 +102,7 @@ def compile(
         textual_hdrs = [],
         additional_exported_hdrs = [],
         includes = [],
+        local_includes = [],
         # TODO(b/396122076): seems unused; double-check and remove
         loose_includes = None,  # buildifier: disable=unused-variable
         quote_includes = [],
@@ -291,6 +292,7 @@ def compile(
         framework_include_dirs = framework_includes,
         system_include_dirs = system_includes,
         include_dirs = includes,
+        local_includes = local_includes,
         feature_configuration = feature_configuration,
         public_headers_artifacts = public_hdrs_artifacts,
         include_prefix = include_prefix,
