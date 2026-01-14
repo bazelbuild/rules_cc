@@ -99,7 +99,6 @@ cc_toolchain_suite(
 
 cc_toolchain(
     name = "cc-compiler-x64_windows_msys",
-    toolchain_identifier = "msys_x64",
     toolchain_config = ":msys_x64",
     all_files = ":empty",
     ar_files = ":empty",
@@ -148,7 +147,6 @@ toolchain(
 
 cc_toolchain(
     name = "cc-compiler-x64_x86_windows_msys",
-    toolchain_identifier = "msys_x64_x86",
     toolchain_config = ":msys_x64_x86",
     all_files = ":empty",
     ar_files = ":empty",
@@ -199,7 +197,6 @@ toolchain(
 
 cc_toolchain(
     name = "cc-compiler-x64_windows_mingw",
-    toolchain_identifier = "msys_x64_mingw",
     toolchain_config = ":msys_x64_mingw",
     all_files = ":empty",
     ar_files = ":empty",
@@ -248,7 +245,6 @@ toolchain(
 
 cc_toolchain(
     name = "cc-compiler-x64_x86_windows_mingw",
-    toolchain_identifier = "msys_x64_x86_mingw",
     toolchain_config = ":msys_x64_x86_mingw",
     all_files = ":empty",
     ar_files = ":empty",
@@ -299,7 +295,6 @@ toolchain(
 
 cc_toolchain(
     name = "cc-compiler-x64_windows",
-    toolchain_identifier = "msvc_x64",
     toolchain_config = ":msvc_x64",
     all_files = ":empty",
     ar_files = ":empty",
@@ -321,7 +316,6 @@ cc_toolchain_config(
     target_libc = "msvcrt",
     abi_version = "local",
     abi_libc_version = "local",
-    toolchain_identifier = "msvc_x64",
     msvc_env_tmp = "%{msvc_env_tmp_x64}",
     msvc_env_path = "%{msvc_env_path_x64}",
     msvc_env_include = "%{msvc_env_include_x64}",
@@ -374,7 +368,6 @@ toolchain(
 
 cc_toolchain(
     name = "cc-compiler-x64_x86_windows",
-    toolchain_identifier = "msvc_x64_x86",
     toolchain_config = ":msvc_x64_x86",
     all_files = ":empty",
     ar_files = ":empty",
@@ -396,7 +389,6 @@ cc_toolchain_config(
     target_libc = "msvcrt",
     abi_version = "local",
     abi_libc_version = "local",
-    toolchain_identifier = "msvc_x64_x86",
     msvc_env_tmp = "%{msvc_env_tmp_x86}",
     msvc_env_path = "%{msvc_env_path_x86}",
     msvc_env_include = "%{msvc_env_include_x86}",
@@ -449,7 +441,6 @@ toolchain(
 
 cc_toolchain(
     name = "cc-compiler-x64_arm_windows",
-    toolchain_identifier = "msvc_x64_arm",
     toolchain_config = ":msvc_x64_arm",
     all_files = ":empty",
     ar_files = ":empty",
@@ -471,7 +462,6 @@ cc_toolchain_config(
     target_libc = "msvcrt",
     abi_version = "local",
     abi_libc_version = "local",
-    toolchain_identifier = "msvc_x64_arm",
     msvc_env_tmp = "%{msvc_env_tmp_arm}",
     msvc_env_path = "%{msvc_env_path_arm}",
     msvc_env_include = "%{msvc_env_include_arm}",
@@ -524,7 +514,6 @@ toolchain(
 
 cc_toolchain(
     name = "cc-compiler-arm64_windows",
-    toolchain_identifier = "msvc_arm64",
     toolchain_config = ":msvc_arm64",
     all_files = ":empty",
     ar_files = ":empty",
@@ -546,7 +535,6 @@ cc_toolchain_config(
     target_libc = "msvcrt",
     abi_version = "local",
     abi_libc_version = "local",
-    toolchain_identifier = "msvc_arm64",
     msvc_env_tmp = "%{msvc_env_tmp_arm64}",
     msvc_env_path = "%{msvc_env_path_arm64}",
     msvc_env_include = "%{msvc_env_include_arm64}",
@@ -599,7 +587,6 @@ toolchain(
 
 cc_toolchain(
     name = "cc-compiler-x64_windows-clang-cl",
-    toolchain_identifier = "clang_cl_x64",
     toolchain_config = ":clang_cl_x64",
     all_files = ":empty",
     ar_files = ":empty",
@@ -621,7 +608,6 @@ cc_toolchain_config(
     target_libc = "msvcrt",
     abi_version = "local",
     abi_libc_version = "local",
-    toolchain_identifier = "clang_cl_x64",
     msvc_env_tmp = "%{clang_cl_env_tmp_x64}",
     msvc_env_path = "%{clang_cl_env_path_x64}",
     msvc_env_include = "%{clang_cl_env_include_x64}",
@@ -672,7 +658,6 @@ toolchain(
 
 cc_toolchain(
     name = "cc-compiler-arm64_windows-clang-cl",
-    toolchain_identifier = "clang_cl_arm64",
     toolchain_config = ":clang_cl_arm64",
     all_files = ":empty",
     ar_files = ":empty",
@@ -694,7 +679,6 @@ cc_toolchain_config(
     target_libc = "msvcrt",
     abi_version = "local",
     abi_libc_version = "local",
-    toolchain_identifier = "clang_cl_arm64",
     msvc_env_tmp = "%{clang_cl_env_tmp_arm64}",
     msvc_env_path = "%{clang_cl_env_path_arm64}",
     msvc_env_include = "%{clang_cl_env_include_arm64}",
@@ -744,7 +728,6 @@ toolchain(
 
 cc_toolchain(
     name = "cc-compiler-armeabi-v7a",
-    toolchain_identifier = "stub_armeabi-v7a",
     toolchain_config = ":stub_armeabi-v7a",
     all_files = ":empty",
     ar_files = ":empty",
