@@ -307,8 +307,7 @@ def compile(
         generate_pic_action = generate_pic_action,
         generate_no_pic_action = generate_no_pic_action,
         module_map = module_map,
-        additional_exported_headers =
-            additional_exported_hdrs + [h.path for h in textual_hdrs_list] if textual_hdrs_list else additional_exported_hdrs,
+        additional_exported_headers = additional_exported_hdrs,
         deps = compilation_contexts,
         implementation_deps = implementation_compilation_contexts,
         additional_cpp_module_maps = additional_module_maps,
