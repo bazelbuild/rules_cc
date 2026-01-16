@@ -109,6 +109,8 @@ bzl_library(
     visibility = [
         "//cc:__subpackages__",
         "//third_party/bazel_rules/rules_apple/apple:__subpackages__",
+        "@build_bazel_rules_apple//apple:__subpackages__",
+        "@rules_apple//apple:__subpackages__",
     ],
     deps = [
         ":objc_common",
