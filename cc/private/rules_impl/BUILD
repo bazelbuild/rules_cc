@@ -106,10 +106,7 @@ bzl_library(
 bzl_library(
     name = "objc_compilation_support_bzl",
     srcs = ["objc_compilation_support.bzl"],
-    visibility = [
-        "//cc:__subpackages__",
-        "//third_party/bazel_rules/rules_apple/apple:__subpackages__",
-    ],
+    visibility = ["//visibility:public"],
     deps = [
         ":objc_common",
         "//cc/common:cc_helper_bzl",
