@@ -119,8 +119,17 @@ bzl_library(
 )
 
 bzl_library(
-    name = "native_bzl",
-    srcs = ["native.bzl"],
+    name = "native_cc_common_bzl",
+    srcs = ["native_cc_common.bzl"],
+    visibility = [
+        "//cc:__subpackages__",
+        "@cc_compatibility_proxy//:__pkg__",
+    ],
+)
+
+bzl_library(
+    name = "native_providers_bzl",
+    srcs = ["native_providers.bzl"],
     visibility = [
         "//cc:__subpackages__",
         "@cc_compatibility_proxy//:__pkg__",

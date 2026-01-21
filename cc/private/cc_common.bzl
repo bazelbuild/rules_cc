@@ -37,7 +37,7 @@ load("//cc/private/link:link.bzl", "link")
 load("//cc/private/link:link_build_variables.bzl", "create_link_variables")
 load("//cc/private/link:lto_backends.bzl", "create_lto_backend_artifacts", "setup_common_lto_variables")
 load("//cc/private/rules_impl:cc_toolchain_info.bzl", "CcToolchainInfo")
-load("//cc/private/rules_impl:native.bzl", _cc_common_internal = "native_cc_common")
+load("//cc/private/rules_impl:native_cc_common.bzl", _cc_common_internal = "native_cc_common")
 load("//cc/private/toolchain_config:cc_toolchain_config_info.bzl", "create_cc_toolchain_config_info")
 load("//cc/private/toolchain_config:configure_features.bzl", "configure_features")
 

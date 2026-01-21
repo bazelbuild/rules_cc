@@ -24,7 +24,6 @@ bzl_library(
         "//cc:find_cc_toolchain_bzl",
         "//cc/private:paths_bzl",
         "//cc/private/rules_impl:cc_flags_supplier_lib_bzl",
-        "//cc/private/rules_impl:native_bzl",
         "//cc/private/rules_impl:toolchain_rules",
         "//cc/private/rules_impl/fdo:fdo_rules",
         "//cc/toolchains/impl:toolchain_impl_rules",
@@ -38,7 +37,7 @@ bzl_library(
     srcs = ["cc_toolchain_config_info.bzl"],
     visibility = ["//cc:__subpackages__"],
     deps = [
-        "//cc/private/rules_impl:native_bzl",
+        "@cc_compatibility_proxy//:symbols_bzl",
     ],
 )
 

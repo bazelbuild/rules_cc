@@ -21,7 +21,7 @@ load("//cc/private/link:finalize_link_action.bzl", "finalize_link_action")
 load("//cc/private/link:link_build_variables.bzl", "setup_linking_variables")
 load("//cc/private/link:lto_backends.bzl", "create_shared_non_lto_artifacts")
 load("//cc/private/link:target_types.bzl", "LINK_TARGET_TYPE", "USE_ARCHIVER", "USE_LINKER", "is_dynamic_library")
-load("//cc/private/rules_impl:native.bzl", _cc_common_internal = "native_cc_common")
+load("//cc/private/rules_impl:native_cc_common.bzl", _cc_common_internal = "native_cc_common")
 
 def link_action(
         *,

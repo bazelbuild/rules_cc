@@ -116,13 +116,15 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 bzl_library(
   name = "proxy_bzl",
   srcs = ["proxy.bzl"],
-  deps = ["@rules_cc//cc/private/rules_impl:native_bzl"],
   visibility = ["@rules_cc//cc:__subpackages__"],
 )
 bzl_library(
   name = "symbols_bzl",
   srcs = ["symbols.bzl"],
-  deps = ["@rules_cc//cc/private/rules_impl:native_bzl"],
+  deps = [
+      "@rules_cc//cc/private/rules_impl:native_cc_common_bzl",
+      "@rules_cc//cc/private/rules_impl:native_providers_bzl",
+  ],
   visibility = ["@rules_cc//cc:__subpackages__"],
 )
             """,
@@ -149,12 +151,11 @@ cc_toolchain_alias = native.cc_toolchain_alias
         rctx.file(
             "symbols.bzl",
             """
-load("@rules_cc//cc/private/rules_impl:native.bzl", "native_cc_common")
-load("@rules_cc//cc/private/rules_impl:native.bzl", "NativeCcInfo")
-load("@rules_cc//cc/private/rules_impl:native.bzl", "NativeDebugPackageInfo")
-load("@rules_cc//cc/private/rules_impl:native.bzl", "NativeCcToolchainConfigInfo")
-load("@rules_cc//cc/private/rules_impl:native.bzl", "NativeCcSharedLibraryInfo")
-
+load("@rules_cc//cc/private/rules_impl:native_cc_common.bzl", "native_cc_common")
+load("@rules_cc//cc/private/rules_impl:native_providers.bzl", "NativeCcInfo")
+load("@rules_cc//cc/private/rules_impl:native_providers.bzl", "NativeDebugPackageInfo")
+load("@rules_cc//cc/private/rules_impl:native_providers.bzl", "NativeCcToolchainConfigInfo")
+load("@rules_cc//cc/private/rules_impl:native_providers.bzl", "NativeCcSharedLibraryInfo")
 cc_common = native_cc_common
 CcInfo = NativeCcInfo
 DebugPackageInfo = NativeDebugPackageInfo
