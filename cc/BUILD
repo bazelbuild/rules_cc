@@ -96,6 +96,12 @@ bzl_library(
 )
 
 bzl_library(
+    name = "cc_postmark_bzl",
+    srcs = ["cc_postmark.bzl"],
+    visibility = ["//visibility:public"],
+)
+
+bzl_library(
     name = "cc_toolchain_config_lib_bzl",
     srcs = ["cc_toolchain_config_lib.bzl"],
     visibility = ["//cc:__subpackages__"],

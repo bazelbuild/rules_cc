@@ -20,6 +20,7 @@ bzl_library(
     visibility = ["//visibility:public"],
     deps = [
         "//cc:action_names_bzl",
+        "//cc:cc_postmark_bzl",
         "//cc:cc_toolchain_config_lib_bzl",
         "//cc:find_cc_toolchain_bzl",
         "//cc/private:paths_bzl",
