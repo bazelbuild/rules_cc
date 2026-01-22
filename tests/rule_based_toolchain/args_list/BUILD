@@ -48,6 +48,7 @@ util.helper_target(
     actions = ["//tests/rule_based_toolchain/actions:c_compile"],
     allowlist_include_directories = ["//tests/rule_based_toolchain/testdata:subdirectory_1"],
     args = ["dir1"],
+    data = ["//tests/rule_based_toolchain/testdata:subdirectory_1"],
     visibility = ["//tests/rule_based_toolchain:__subpackages__"],
 )
 
@@ -57,6 +58,7 @@ util.helper_target(
     actions = ["//tests/rule_based_toolchain/actions:cpp_compile"],
     allowlist_include_directories = ["//tests/rule_based_toolchain/testdata:subdirectory_2"],
     args = ["dir2"],
+    data = ["//tests/rule_based_toolchain/testdata:subdirectory_2"],
     visibility = ["//tests/rule_based_toolchain:__subpackages__"],
 )
 

@@ -32,7 +32,10 @@ util.helper_target(
     actions = ["//tests/rule_based_toolchain/actions:c_compile"],
     allowlist_include_directories = ["//tests/rule_based_toolchain/testdata:subdirectory_1"],
     args = ["c_compile_args"],
-    data = ["//tests/rule_based_toolchain/testdata:file1"],
+    data = [
+        "//tests/rule_based_toolchain/testdata:file1",
+        "//tests/rule_based_toolchain/testdata:subdirectory_1",
+    ],
 )
 
 util.helper_target(
@@ -48,6 +51,7 @@ cc_tool(
     src = "//tests/rule_based_toolchain/testdata:bin_wrapper",
     allowlist_include_directories = ["//tests/rule_based_toolchain/testdata:subdirectory_3"],
     capabilities = ["//cc/toolchains/capabilities:supports_pic"],
+    data = ["//tests/rule_based_toolchain/testdata:subdirectory_3"],
 )
 
 cc_sysroot(
@@ -94,7 +98,10 @@ util.helper_target(
     actions = ["//tests/rule_based_toolchain/actions:all_compile"],
     allowlist_include_directories = ["//tests/rule_based_toolchain/testdata:subdirectory_2"],
     args = ["compile_args"],
-    data = ["//tests/rule_based_toolchain/testdata:file2"],
+    data = [
+        "//tests/rule_based_toolchain/testdata:file2",
+        "//tests/rule_based_toolchain/testdata:subdirectory_2",
+    ],
 )
 
 util.helper_target(

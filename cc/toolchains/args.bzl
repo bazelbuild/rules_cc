@@ -67,7 +67,7 @@ def _cc_args_impl(ctx):
         )
         files = nested.files
     else:
-        files = collect_files(ctx.attr.data + ctx.attr.allowlist_include_directories)
+        files = collect_files(ctx.attr.data)
 
     requires = collect_provider(ctx.attr.requires_any_of, FeatureConstraintInfo)
 
@@ -261,6 +261,9 @@ def cc_args(
             As a rule of thumb, only use this if Bazel is complaining about absolute paths in
             your toolchain and you've ensured that the toolchain is compiling with the
             `-no-canonical-prefixes` and/or `-fno-canonical-system-headers` arguments.
+
+            These files are not automatically passed to each action. If they
+            need to be, add them to 'data' as well.
 
             This can help work around errors like:
             `the source file 'main.c' includes the following non-builtin files with absolute paths

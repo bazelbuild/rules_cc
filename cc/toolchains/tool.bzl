@@ -30,7 +30,7 @@ def _cc_tool_impl(ctx):
     else:
         fail("Expected cc_tool's src attribute to be either an executable or a single file")
 
-    runfiles = collect_data(ctx, ctx.attr.data + [ctx.attr.src] + ctx.attr.allowlist_include_directories)
+    runfiles = collect_data(ctx, ctx.attr.data + [ctx.attr.src])
     tool = ToolInfo(
         label = ctx.label,
         exe = exe,
@@ -91,6 +91,9 @@ mechanism.
 As a rule of thumb, only use this if Bazel is complaining about absolute paths in your
 toolchain and you've ensured that the toolchain is compiling with the `-no-canonical-prefixes`
 and/or `-fno-canonical-system-headers` arguments.
+
+These files are not automatically passed to each action. If they need to be,
+add them to 'data' as well.
 
 This can help work around errors like:
 `the source file 'main.c' includes the following non-builtin files with absolute paths
