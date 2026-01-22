@@ -13,21 +13,8 @@ test_targets: &test_targets
   - "-//tests/system_library:system_library_test" # Only intended to work in WORKSPACE files
   - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
 
-build_targets_bazel_7_8: &build_targets_bazel_7_8
-  - "//:all"
-  - "//cc/..."
-  - "//examples/..."
-  - "//tests/..."
-  - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
-  - "-//tests/local_includes/..." # Requires bazel 9.x+
-test_targets_bazel_7_8: &test_targets_bazel_7_8
-  - "//:all"
-  - "//cc/..."
-  - "//examples/..."
-  - "//tests/..."
-  - "-//tests/system_library:system_library_test" # Only intended to work in WORKSPACE files
-  - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
-  - "-//tests/local_includes/..." # Requires bazel 9.x+
+flags_bazel_less_than_9: &flags_bazel_less_than_9
+  - "--deleted_packages=//tests/local_includes"
 
 build_targets_bazel_6: &build_targets_bazel_6
   - "//:all"
@@ -37,7 +24,6 @@ build_targets_bazel_6: &build_targets_bazel_6
   - "-//tests/rule_based_toolchain/..." # proto.encode_text doesn't support None
   - "-//cc:optional_current_cc_toolchain" # Not supported in Bazel 6
   - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
-  - "-//tests/local_includes/..." # Requires bazel 9.x+
 test_targets_bazel_6: &test_targets_bazel_6
   - "//:all"
   - "//cc:all"
@@ -47,7 +33,6 @@ test_targets_bazel_6: &test_targets_bazel_6
   - "-//cc:optional_current_cc_toolchain" # Not supported in Bazel 6
   - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
   - "-//tests/system_library:system_library_test" # Should be skipped on Windows and MacOS
-  - "-//tests/local_includes/..." # Requires bazel 9.x+
 
 buildifier:
   version: latest
@@ -66,12 +51,7 @@ tasks:
     bazel: last_green
     platform: ubuntu2004
     build_targets: *build_targets
-    test_targets:
-      - "//:all"
-      - "//cc/..."
-      - "//examples/..."
-      - "//tests/..."
-      - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
+    test_targets: *test_targets
   macos_head:
     name: MacOS (Bazel HEAD)
     bazel: last_green
@@ -91,12 +71,7 @@ tasks:
     bazel: rolling
     platform: ubuntu2004
     build_targets: *build_targets
-    test_targets:
-    - "//:all"
-    - "//cc/..."
-    - "//examples/..."
-    - "//tests/..."
-    - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
+    test_targets: *test_targets
   macos_rolling:
     name: MacOS (Bazel rolling)
     bazel: rolling
@@ -117,58 +92,76 @@ tasks:
     platform: ubuntu2004
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
+    build_flags: *flags_bazel_less_than_9
+    test_flags: *flags_bazel_less_than_9
   macos_bazel_6:
     name: MacOS (Bazel 6)
     bazel: 6.3.0
     platform: macos
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
+    build_flags: *flags_bazel_less_than_9
+    test_flags: *flags_bazel_less_than_9
   windows_bazel_6:
     name: Windows (Bazel 6)
     bazel: 6.3.0
     platform: windows
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
+    build_flags: *flags_bazel_less_than_9
+    test_flags: *flags_bazel_less_than_9
 
 # Bazel 7
   ubuntu2004_bazel_7:
     name: Ubuntu 20.04 (Bazel 7)
     bazel: 7.x
     platform: ubuntu2004
-    build_targets: *build_targets_bazel_7_8
-    test_targets: *test_targets_bazel_7_8
+    build_targets: *build_targets
+    test_targets: *test_targets
+    build_flags: *flags_bazel_less_than_9
+    test_flags: *flags_bazel_less_than_9
   macos_bazel_7:
     name: MacOS (Bazel 7)
     bazel: 7.x
     platform: macos
-    build_targets: *build_targets_bazel_7_8
-    test_targets: *test_targets_bazel_7_8
+    build_targets: *build_targets
+    test_targets: *test_targets
+    build_flags: *flags_bazel_less_than_9
+    test_flags: *flags_bazel_less_than_9
   windows_bazel_7:
     name: Windows (Bazel 7)
     bazel: 7.x
     platform: windows
-    build_targets: *build_targets_bazel_7_8
-    test_targets: *test_targets_bazel_7_8
+    build_targets: *build_targets
+    test_targets: *test_targets
+    build_flags: *flags_bazel_less_than_9
+    test_flags: *flags_bazel_less_than_9
 
 # Bazel 8
   ubuntu2004_bazel_8:
     name: Ubuntu 20.04 (Bazel 8)
     bazel: 8.x
     platform: ubuntu2004
-    build_targets: *build_targets_bazel_7_8
-    test_targets: *test_targets_bazel_7_8
+    build_targets: *build_targets
+    test_targets: *test_targets
+    build_flags: *flags_bazel_less_than_9
+    test_flags: *flags_bazel_less_than_9
   macos_bazel_8:
     name: MacOS (Bazel 8)
     bazel: 8.x
     platform: macos
-    build_targets: *build_targets_bazel_7_8
-    test_targets: *test_targets_bazel_7_8
+    build_targets: *build_targets
+    test_targets: *test_targets
+    build_flags: *flags_bazel_less_than_9
+    test_flags: *flags_bazel_less_than_9
   windows_bazel_8:
     name: Windows (Bazel 8)
     bazel: 8.x
     platform: windows
-    build_targets: *build_targets_bazel_7_8
-    test_targets: *test_targets_bazel_7_8
+    build_targets: *build_targets
+    test_targets: *test_targets
+    build_flags: *flags_bazel_less_than_9
+    test_flags: *flags_bazel_less_than_9
 
 # Bazel 9
   ubuntu2004:
