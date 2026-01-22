@@ -474,6 +474,54 @@ cc_feature(
 | <a id="cc_mutually_exclusive_category-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 
 
+<a id="cc_target_capability"></a>
+
+## cc_target_capability
+
+<pre>
+cc_target_capability(<a href="#cc_target_capability-name">name</a>, <a href="#cc_target_capability-feature_name">feature_name</a>)
+</pre>
+
+A target capability is an optional feature that a target platform supports.
+
+For example, not all target platforms have dynamic loaders (e.g. microcontroller
+firmware), so a toolchain may conditionally enable the capabilty to communicate
+the capability to C/C++ rule implementations.
+
+```
+load("@rules_cc//cc/toolchains:toolchain.bzl", "cc_toolchain")
+
+cc_toolchain(
+    name = "universal_cc_toolchain",
+    # Assume no operating system means no dynamic loader support.
+    enabled_features = select({
+        "@platforms//os:none": [],
+        "//conditions:default": [
+            "@rules_cc//cc/toolchains/capabilities:supports_dynamic_linker",
+        ],
+    }),
+    # ...
+)
+```
+
+[`cc_target_capability`](#cc_target_capability) rules cannot be listed in a
+[`cc_feature.implies`](#cc_feature-implies) list.
+
+Note: User-defined capabilities should prefer traditional
+[user-defined build settings](https://bazel.build/extending/config#user-defined-build-settings).
+This construct exists to communicate these features to preexisting C/C++ rule
+implementations that expect these options to be exposed as
+[features](https://bazel.build/docs/cc-toolchain-config-reference#features).
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="cc_target_capability-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="cc_target_capability-feature_name"></a>feature_name |  The name of the feature to generate for this capability   | String | optional |  `""`  |
+
+
 <a id="cc_tool"></a>
 
 ## cc_tool
@@ -533,28 +581,41 @@ cc_tool_capability(<a href="#cc_tool_capability-name">name</a>, <a href="#cc_too
 
 A capability is an optional feature that a tool supports.
 
-For example, not all compilers support PIC, so to handle this, we write:
+For example, not all linkers support --start-lib, so to handle this, we write:
 
 ```
+load("@rules_cc//cc/toolchains:args.bzl", "cc_args")
+load("@rules_cc//cc/toolchains:tool.bzl", "cc_tool")
+
 cc_tool(
     name = "clang",
     src = "@host_tools/bin/clang",
     capabilities = [
-        "@rules_cc//cc/toolchains/capabilities:supports_pic",
+        "@rules_cc//cc/toolchains/capabilities:supports_start_end_lib",
     ],
 )
 
 cc_args(
     name = "pic",
-    requires = [
-        "@rules_cc//cc/toolchains/capabilities:supports_pic"
-    ],
-    args = ["-fPIC"],
+    requires = ["@rules_cc//cc/toolchains/capabilities:supports_start_end_lib"],
+    args = ["-Wl,--start-lib"],
 )
 ```
 
-This ensures that `-fPIC` is added to the command-line only when we are using a
-tool that supports PIC.
+This ensures that `-Wl,--start-lib` is added to the command-line only when using
+a tool that supports the argument.
+
+
+[`cc_target_capability`](#cc_target_capability) rules cannot be listed in a
+[`cc_feature.implies`](#cc_feature-implies) list, or in
+[`cc_toolchain.enabled_features`](#cc_toolchain-enabled_features).
+
+Note: Because [`cc_tool`](#cc_tool) rules are always evaluated under the exec
+configuration, a `select()` to guide capabilities will `select()` on the
+properties of the exec configuration. If you need a capability that is
+conditionally guided by the target configuration, prefer using configurabilty
+constructs to enable the feature at the
+[`cc_toolchain.enabled_features`](#cc_toolchain-enabled_features) level.
 
 **ATTRIBUTES**
 

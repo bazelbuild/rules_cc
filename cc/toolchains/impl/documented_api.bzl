@@ -23,6 +23,7 @@ load("//cc/toolchains:feature_set.bzl", _cc_feature_set = "cc_feature_set")
 load("//cc/toolchains:make_variable.bzl", _cc_make_variable = "cc_make_variable")
 load("//cc/toolchains:mutually_exclusive_category.bzl", _cc_mutually_exclusive_category = "cc_mutually_exclusive_category")
 load("//cc/toolchains:nested_args.bzl", _cc_nested_args = "cc_nested_args")
+load("//cc/toolchains:target_capability.bzl", _cc_target_capability = "cc_target_capability")
 load("//cc/toolchains:tool.bzl", _cc_tool = "cc_tool")
 load("//cc/toolchains:tool_capability.bzl", _cc_tool_capability = "cc_tool_capability")
 load("//cc/toolchains:tool_map.bzl", _cc_tool_map = "cc_tool_map")
@@ -30,6 +31,7 @@ load("//cc/toolchains:toolchain.bzl", _cc_toolchain = "cc_toolchain")
 load("//cc/toolchains/impl:external_feature.bzl", _cc_external_feature = "cc_external_feature")
 load("//cc/toolchains/impl:variables.bzl", _cc_variable = "cc_variable")
 
+cc_target_capability = _cc_target_capability
 cc_tool_map = _cc_tool_map
 cc_tool = _cc_tool
 cc_tool_capability = _cc_tool_capability
@@ -52,6 +54,7 @@ cc_toolchain = _cc_toolchain
 # links in the generated documentation so that maintainers don't need to manually
 # ensure every reference to a rule is properly linked.
 DOCUMENTED_TOOLCHAIN_RULES = [
+    "cc_target_capability",
     "cc_tool_map",
     "cc_tool",
     "cc_tool_capability",

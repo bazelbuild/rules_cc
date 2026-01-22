@@ -47,7 +47,7 @@ cc_tool(
     name = "c_compile_tool",
     src = "//tests/rule_based_toolchain/testdata:bin_wrapper",
     allowlist_include_directories = ["//tests/rule_based_toolchain/testdata:subdirectory_3"],
-    capabilities = ["//cc/toolchains/capabilities:supports_pic"],
+    capabilities = ["//cc/toolchains/capabilities:supports_start_end_lib"],
 )
 
 cc_sysroot(
@@ -69,7 +69,10 @@ util.helper_target(
         ":sysroot",
         ":c_compile_args",
     ],
-    enabled_features = [":simple_feature"],
+    enabled_features = [
+        ":simple_feature",
+        "//cc/toolchains/capabilities:supports_pic",
+    ],
     known_features = [":compile_feature"],
     tool_map = ":compile_tool_map",
 )
