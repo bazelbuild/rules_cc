@@ -152,6 +152,8 @@ def compile(
         additional_exported_hdrs: undocumented
         includes: Search paths for header files referenced both by angle bracket and quotes.
             Usually passed with -I. Propagated to dependents transitively.
+        local_includes: Search paths for header files referenced by angle brackets and quotes.
+            Usually passed with -I. Not propagated to dependents transitively.
         loose_includes: undocumented
         quote_includes: Search paths for header files referenced by quotes,
             e.g. #include \"foo/bar/header.h\". They can be either relative to the exec
