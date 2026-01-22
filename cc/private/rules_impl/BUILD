@@ -96,7 +96,7 @@ bzl_library(
         "objc_intermediate_artifacts.bzl",
         "objc_semantics.bzl",
     ],
-    visibility = ["//cc:__subpackages__"],
+    visibility = ["//visibility:public"],
     deps = [
         "//cc/common",
         "@bazel_skylib//lib:paths",

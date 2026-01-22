@@ -19,10 +19,14 @@ bzl_library(
     name = "common",
     srcs = [
         "cc_common.bzl",
+        "cc_helper.bzl",
+        "cc_helper_internal.bzl",
         "cc_info.bzl",
         "cc_shared_library_hint_info.bzl",
         "debug_package_info.bzl",
         "objc_info.bzl",
+        "semantics.bzl",
+        "visibility.bzl",
     ],
     visibility = ["//visibility:public"],
     deps = [
