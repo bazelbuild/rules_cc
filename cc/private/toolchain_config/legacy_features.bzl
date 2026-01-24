@@ -403,21 +403,6 @@ def get_legacy_features(platform, existing_feature_names, linker_tool_path):
             ],
         ))
 
-    if "memprof_optimize" not in existing_feature_names:
-        result.append(feature(
-            name = "memprof_optimize",
-            flag_sets = [flag_set(
-                actions = [
-                    ACTION_NAMES.c_compile,
-                    ACTION_NAMES.cpp_compile,
-                ],
-                flag_groups = [flag_group(
-                    expand_if_available = "memprof_profile_path",
-                    flags = ["-memprof-profile-file=%{memprof_profile_path}"],
-                )],
-            )],
-        ))
-
     if "build_interface_libraries" not in existing_feature_names:
         result.append(feature(
             name = "build_interface_libraries",
