@@ -98,7 +98,13 @@ lto_index_actions = [
 def _use_msvc_toolchain(ctx):
     return ctx.attr.cpu in ["x64_windows", "arm64_windows"] and (ctx.attr.compiler == "msvc-cl" or ctx.attr.compiler == "clang-cl")
 
+def _is_gcc_compiler(compiler):
+    return "gcc" in compiler
+
 def _impl(ctx):
+    profile_correction_flags = (
+        ["-fprofile-correction"] if _is_gcc_compiler(ctx.attr.compiler) else []
+    )
     if _use_msvc_toolchain(ctx):
         artifact_name_patterns = [
             artifact_name_pattern(
@@ -1547,8 +1553,7 @@ def _impl(ctx):
                             flag_group(
                                 flags = [
                                     "-fprofile-use=%{fdo_profile_path}",
-                                    "-fprofile-correction",
-                                ],
+                                ] + profile_correction_flags,
                                 expand_if_available = "fdo_profile_path",
                             ),
                         ],

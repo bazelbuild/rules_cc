@@ -102,7 +102,12 @@ def create_cc_toolchain_config_info(
             default_compile_flags = ([f for f in features if f.name == "default_compile_flags"])[0]
             legacy_features.append(default_compile_flags)
         platform = "mac" if target_libc == "macosx" else "linux"
-        legacy_features.extend(get_legacy_features(platform, feature_names, linker_tool_path))
+        legacy_features.extend(get_legacy_features(
+            platform,
+            feature_names,
+            linker_tool_path,
+            compiler,
+        ))
         legacy_features.extend([f for f in features if f.name not in ["legacy_compile_flags", "default_compile_flags"]])
         legacy_features.extend(get_features_to_appear_last(feature_names))
 
