@@ -164,7 +164,7 @@ def _is_linker_option_supported(repository_ctx, cc, force_linker_flags, option, 
     return result.stderr.find(pattern) == -1
 
 def _find_linker_path(repository_ctx, cc, linker, is_clang):
-    """Checks if a given linker is supported by the C compiler.
+    """Return the path used by the compiler for the given linker.
 
     Args:
       repository_ctx: repository_ctx.
@@ -173,8 +173,15 @@ def _find_linker_path(repository_ctx, cc, linker, is_clang):
       is_clang: whether the compiler is known to be clang
 
     Returns:
-      String to put as value to -fuse-ld= flag, or None if linker couldn't be found.
+      String for the full path to the linker, or None if linker couldn't be found.
     """
+    if is_clang:
+        verbose = "-v"
+    else:
+        # GCC outputs the linker command with -Wl,-v. This doesn't get passed
+        # to the linker but collect2.
+        verbose = "-Wl,-v"
+
     result = repository_ctx.execute([
         cc,
         str(repository_ctx.path("tools/cpp/empty.cc")),
@@ -186,24 +193,35 @@ def _find_linker_path(repository_ctx, cc, linker, is_clang):
         "-Wl,--start-lib",
         "-Wl,--end-lib",
         "-fuse-ld=" + linker,
-        "-v",
+        verbose,
     ])
     if result.return_code != 0:
         return None
 
-    if not is_clang:
-        return linker
+    if is_clang:
+        # Extract linker path from:
+        # /usr/bin/clang ...
+        #  "/usr/bin/ld.lld" -pie -z ...
+        # We use the leading space and quoted path to find invocations.
+        # https://github.com/llvm/llvm-project/blob/85c78274358717e4d5d019a801decba5c1add484/clang/lib/Driver/Job.cpp#L207-L209
+        invocations = [line for line in result.stderr.splitlines() if line.startswith(" \"")]
+        if not invocations:
+            return linker
+        linker_command = invocations[-1]
+        return linker_command.strip().split(" ")[0].strip("\"'")
+    else:
+        # Extract linker path from:
+        # collect2 version ...
+        # /path/to/ld.{linker} ...
+        lines = result.stderr.splitlines()
+        if len(lines) < 2:
+            return linker
 
-    # Extract linker path from:
-    # /usr/bin/clang ...
-    #  "/usr/bin/ld.lld" -pie -z ...
-    # We use the leading space and quoted path to find invocations.
-    # https://github.com/llvm/llvm-project/blob/85c78274358717e4d5d019a801decba5c1add484/clang/lib/Driver/Job.cpp#L207-L209
-    invocations = [line for line in result.stderr.splitlines() if line.startswith(" \"")]
-    if not invocations:
-        return linker
-    linker_command = invocations[-1]
-    return linker_command.strip().split(" ")[0].strip("\"'")
+        linker_command = lines[1]
+        linker_args = linker_command.strip().split(" ")
+        if not linker_args:
+            return linker
+        return linker_args[0]
 
 def _add_compiler_option_if_supported(repository_ctx, cc, option):
     """Returns `[option]` if supported, `[]` otherwise. Doesn't %-escape the option."""
@@ -495,13 +513,25 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     else:
         # cc is inside the repository, don't set -B.
         bin_search_flags = []
-    if not gold_or_lld_linker_path:
+
+    force_linker_flags = []
+    if gold_or_lld_linker_path:
+        if is_clang:
+            # Just pass the full path to clang via -fuse-ld=.
+            fuse_ld = gold_or_lld_linker_path
+        else:
+            # GCC doesn't support full paths for -fuse-ld=, only names, so
+            # we need to pass the directory via -B.
+            ld_path = repository_ctx.path(gold_or_lld_linker_path)
+            if ld_path.dirname != cc_path.dirname:
+                bin_search_flags.append("-B" + escape_string(str(ld_path.dirname)))
+            fuse_ld = ld_path.basename.removeprefix("ld.")
+
+        force_linker_flags.append("-fuse-ld=" + fuse_ld)
+    else:
         ld_path = repository_ctx.path(tool_paths["ld"])
         if ld_path.dirname != cc_path.dirname:
             bin_search_flags.append("-B" + str(ld_path.dirname))
-    force_linker_flags = []
-    if gold_or_lld_linker_path:
-        force_linker_flags.append("-fuse-ld=" + gold_or_lld_linker_path)
 
     # TODO: It's unclear why these flags aren't added on macOS.
     if bin_search_flags and not darwin:
