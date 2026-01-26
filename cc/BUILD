@@ -125,12 +125,17 @@ bzl_library(
 )
 
 bzl_library(
+    name = "cc_postmark_bzl",
+    srcs = ["cc_postmark.bzl"],
+    visibility = ["//visibility:public"],
+)
+
+bzl_library(
     name = "core_rules",
     srcs = [
         "cc_binary.bzl",
         "cc_import.bzl",
         "cc_library.bzl",
-        "cc_postmark.bzl",
         "cc_shared_library.bzl",
         "cc_static_library.bzl",
         "cc_test.bzl",
@@ -139,6 +144,7 @@ bzl_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
+        ":cc_postmark_bzl",
         "@cc_compatibility_proxy//:proxy_bzl",
     ],
 )
