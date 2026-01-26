@@ -29,7 +29,9 @@ ToolchainInfo = platform_common.ToolchainInfo
 TemplateVariableInfo = platform_common.TemplateVariableInfo
 
 LEGACY_ACTION_SET_DEPS = [
-    action for actions in LEGACY_FILE_GROUPS.values() for action in actions
+    action
+    for actions in LEGACY_FILE_GROUPS.values()
+    for action in actions
 ]
 
 def _files(ctx, attr_name):
@@ -122,7 +124,8 @@ def _attributes(ctx):
         legacy_file_groups = {}
         for group, actions in LEGACY_FILE_GROUPS.items():
             action_targets = [
-                legacy_action_set_lookup[action] for action in actions
+                legacy_action_set_lookup[action]
+                for action in actions
             ]
             legacy_file_groups[group] = depset(transitive = [
                 toolchain_config_info.files[action]
@@ -384,7 +387,7 @@ The label of the rule providing <code>cc_toolchain_config_info</code>.""",
             providers = [ActionTypeSetInfo],
         ),
     } | CC_TOOLCHAIN_CONFIG_PUBLIC_ATTRS | {
-        # Override tool_map to make it optional.
+        # Override tool_map to make it optional and exec-configured.
         "tool_map": attr.label(
             cfg = "exec",
             providers = [ToolConfigInfo],

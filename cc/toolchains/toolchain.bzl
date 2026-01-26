@@ -13,7 +13,6 @@
 # limitations under the License.
 """Implementation of the cc_toolchain rule."""
 
-load("@bazel_features//private:util.bzl", _bazel_version_ge = "ge")
 load("//cc/toolchains:cc_toolchain.bzl", _cc_toolchain = "cc_toolchain")
 load("//cc/toolchains:legacy_file_group.bzl", "LEGACY_FILE_GROUPS")
 load(
@@ -21,8 +20,19 @@ load(
     "cc_legacy_file_group",
     "cc_toolchain_config",
 )
+load("//cc/toolchains/impl:utils.bzl", "bazel_supports_starlarkified_cc_toolchains")
 
 visibility("public")
+
+_CPU = select({
+    Label("//cc/toolchains/impl:darwin_aarch64"): "darwin_arm64",
+    Label("//cc/toolchains/impl:darwin_x86_64"): "darwin_x86_64",
+    Label("//cc/toolchains/impl:linux_aarch64"): "aarch64",
+    Label("//cc/toolchains/impl:linux_x86_64"): "k8",
+    Label("//cc/toolchains/impl:windows_x86_32"): "win32",
+    Label("//cc/toolchains/impl:windows_x86_64"): "win64",
+    "//conditions:default": "",
+})
 
 def cc_toolchain(
         *,
@@ -134,7 +144,7 @@ def cc_toolchain(
 
     cc_toolchain_visibility = kwargs.pop("visibility", default = None)
 
-    if _bazel_version_ge("9.0.0-pre.20250911"):
+    if bazel_supports_starlarkified_cc_toolchains():
         _cc_toolchain(
             name = name,
             tool_map = tool_map,
@@ -144,15 +154,7 @@ def cc_toolchain(
             known_features = known_features,
             enabled_features = enabled_features,
             compiler = compiler,
-            cpu = select({
-                Label("//cc/toolchains/impl:darwin_aarch64"): "darwin_arm64",
-                Label("//cc/toolchains/impl:darwin_x86_64"): "darwin_x86_64",
-                Label("//cc/toolchains/impl:linux_aarch64"): "aarch64",
-                Label("//cc/toolchains/impl:linux_x86_64"): "k8",
-                Label("//cc/toolchains/impl:windows_x86_32"): "win32",
-                Label("//cc/toolchains/impl:windows_x86_64"): "win64",
-                "//conditions:default": "",
-            }),
+            cpu = _CPU,
             dynamic_runtime_lib = dynamic_runtime_lib,
             libc_top = libc_top,
             module_map = module_map,
@@ -178,15 +180,7 @@ def cc_toolchain(
         known_features = known_features,
         enabled_features = enabled_features,
         compiler = compiler,
-        cpu = select({
-            Label("//cc/toolchains/impl:darwin_aarch64"): "darwin_arm64",
-            Label("//cc/toolchains/impl:darwin_x86_64"): "darwin_x86_64",
-            Label("//cc/toolchains/impl:linux_aarch64"): "aarch64",
-            Label("//cc/toolchains/impl:linux_x86_64"): "k8",
-            Label("//cc/toolchains/impl:windows_x86_32"): "win32",
-            Label("//cc/toolchains/impl:windows_x86_64"): "win64",
-            "//conditions:default": "",
-        }),
+        cpu = _CPU,
         visibility = ["//visibility:private"],
         **kwargs
     )
