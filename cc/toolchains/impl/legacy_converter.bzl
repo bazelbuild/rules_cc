@@ -157,7 +157,7 @@ def _convert_tool_map(tool_map, args_by_action):
             caps[cap] = None
 
     cap_features = [
-        legacy_feature(name = cap.feature.name, enabled = False)
+        legacy_feature(name = cap.feature.name, enabled = True)
         for cap in caps
     ]
     return action_configs, cap_features
