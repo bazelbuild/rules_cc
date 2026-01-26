@@ -56,6 +56,7 @@ bzl_library(
         ":objc_common",
         ":objc_compilation_support_bzl",
         "//cc:action_names_bzl",
+        "//cc:cc_postmark_bzl",
         "//cc:find_cc_toolchain_bzl",
         "//cc/common",
         "//cc/common:cc_debug_helper_bzl",
