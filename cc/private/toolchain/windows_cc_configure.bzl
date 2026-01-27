@@ -710,8 +710,10 @@ def _get_msvc_vars(repository_ctx, paths, target_arch = "x64", msvc_vars_x64 = N
             auto_configure_fail("\nUSE_CLANG_CL is set to 1, but Bazel cannot find Clang installation on your system.\n" +
                                 "Please install Clang via http://releases.llvm.org/download.html\n")
 
-        build_tools["CL"] = find_llvm_tool(repository_ctx, llvm_path, "clang-cl.exe")
         build_tools["ML"] = find_msvc_tool(repository_ctx, vc_path, "ml64.exe", "x64")
+        build_tools["DUMPBIN"] = find_msvc_tool(repository_ctx, vc_path, "dumpbin.exe", "x64")
+
+        build_tools["CL"] = find_llvm_tool(repository_ctx, llvm_path, "clang-cl.exe")
         build_tools["LINK"] = find_llvm_tool(repository_ctx, llvm_path, "lld-link.exe")
         if not build_tools["LINK"]:
             build_tools["LINK"] = find_msvc_tool(repository_ctx, vc_path, "link.exe", "x64")
