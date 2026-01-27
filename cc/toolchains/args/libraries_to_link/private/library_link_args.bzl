@@ -49,6 +49,40 @@ def macos_force_load_library_args(name, variable):
         },
     )
 
+def windows_whole_archive_args(name, variable):
+    """A helper for declaring /WHOLEARCHIVE argument expansion for a library.
+
+    This creates an argument expansion that will expand to /WHOLEARCHIVE:<library>
+    if the library should be linked as a whole archive.
+
+    Args:
+      name: The name of the rule.
+      variable: The variable to expand.
+    """
+    cc_nested_args(
+        name = name,
+        nested = [
+            ":{}_whole_archive".format(name),
+            ":{}_no_whole_archive".format(name),
+        ],
+    )
+    cc_nested_args(
+        name = name + "_no_whole_archive",
+        requires_false = "//cc/toolchains/variables:libraries_to_link.is_whole_archive",
+        args = ["{library}"],
+        format = {
+            "library": variable,
+        },
+    )
+    cc_nested_args(
+        name = name + "_whole_archive",
+        requires_true = "//cc/toolchains/variables:libraries_to_link.is_whole_archive",
+        args = ["-Wl,/WHOLEARCHIVE:{library}"],
+        format = {
+            "library": variable,
+        },
+    )
+
 def library_link_args(name, library_type, from_variable, iterate_over_variable = False):
     """A helper for declaring a library to link.
 
@@ -78,6 +112,7 @@ def library_link_args(name, library_type, from_variable, iterate_over_variable =
         name = name,
         actual = select({
             "@platforms//os:macos": ":macos_{}".format(name),
+            "@platforms//os:windows": ":windows_{}".format(name),
             "//conditions:default": ":generic_{}".format(name),
         }),
     )
@@ -100,5 +135,16 @@ def library_link_args(name, library_type, from_variable, iterate_over_variable =
     )
     macos_force_load_library_args(
         name = "{}_maybe_force_load".format(name),
+        variable = from_variable,
+    )
+    cc_nested_args(
+        name = "windows_{}".format(name),
+        requires_equal = "//cc/toolchains/variables:libraries_to_link.type",
+        requires_equal_value = library_type,
+        iterate_over = from_variable if iterate_over_variable else None,
+        nested = [":{}_maybe_whole_archive".format(name)],
+    )
+    windows_whole_archive_args(
+        name = "{}_maybe_whole_archive".format(name),
         variable = from_variable,
     )
