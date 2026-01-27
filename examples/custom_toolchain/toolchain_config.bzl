@@ -59,7 +59,6 @@ def _impl(ctx):
     # C++ toolchain behavior.
     return cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
-        toolchain_identifier = "custom-toolchain-identifier",
         host_system_name = "local",
         target_system_name = "local",
         target_cpu = "sample_cpu",

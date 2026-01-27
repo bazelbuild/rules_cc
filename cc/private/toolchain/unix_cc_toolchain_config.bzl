@@ -1956,7 +1956,6 @@ def _impl(ctx):
         action_configs = action_configs,
         artifact_name_patterns = artifact_name_patterns,
         cxx_builtin_include_directories = ctx.attr.cxx_builtin_include_directories,
-        toolchain_identifier = ctx.attr.toolchain_identifier,
         host_system_name = ctx.attr.host_system_name,
         target_system_name = ctx.attr.target_system_name,
         target_cpu = ctx.attr.cpu,
@@ -1996,7 +1995,6 @@ cc_toolchain_config = rule(
         "target_libc": attr.string(mandatory = True),
         "target_system_name": attr.string(mandatory = True),
         "tool_paths": attr.string_dict(),
-        "toolchain_identifier": attr.string(mandatory = True),
         "unfiltered_compile_flags": attr.string_list(),
         "_xcode_config": attr.label(default = configuration_field(
             fragment = "apple",
