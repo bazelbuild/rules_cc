@@ -202,6 +202,7 @@ _ModuleMapInfo = provider(
         "public_headers",
         "textual_headers",
         "private_headers",
+        "public_textual_headers",
         "dependency_module_maps",
         "additional_exported_headers",
         "separate_module_headers",
@@ -273,6 +274,12 @@ def _module_map_struct_to_module_map_content(parameters, tree_expander):
         add_header(path = header.path, visibility = "", can_compile = False)
         added_paths.add(header.path)
 
+    for header in parameters.public_textual_headers:
+        if header.path in added_paths:
+            continue
+        add_header(path = header.path, visibility = "", can_compile = False)
+        added_paths.add(header.path)
+
     for path in parameters.additional_exported_headers:
         if path in added_paths:
             continue
@@ -316,6 +323,7 @@ def _create_module_map_action(
         private_headers,
         public_headers,
         textual_headers,
+        public_textual_headers,
         dependency_module_maps,
         additional_exported_headers,
         separate_module_headers,
@@ -329,6 +337,7 @@ def _create_module_map_action(
     leading_periods = "" if module_map_home_is_cwd else "../" * segments_to_exec_path
     public_headers = _cc_internal.freeze(public_headers)
     private_headers = _cc_internal.freeze(private_headers)
+    public_textual_headers = _cc_internal.freeze(public_textual_headers)
     dependency_module_maps = _cc_internal.freeze(dependency_module_maps)
     additional_exported_headers = _cc_internal.freeze(additional_exported_headers)
     separate_module_headers = _cc_internal.freeze(separate_module_headers)
@@ -337,6 +346,7 @@ def _create_module_map_action(
         public_headers = public_headers,
         textual_headers = textual_headers,
         private_headers = private_headers,
+        public_textual_headers = public_textual_headers,
         dependency_module_maps = dependency_module_maps,
         additional_exported_headers = additional_exported_headers,
         separate_module_headers = separate_module_headers,
@@ -536,6 +546,7 @@ def _init_cc_compilation_context(
                 module_map = module_map,
                 public_headers = public_headers_for_module_map_action,
                 textual_headers = textual_headers_for_module_map_action,
+                public_textual_headers = public_textual_headers,
                 separate_module_headers = separate_public_headers.module_map_headers,
                 dependency_module_maps = dependency_module_maps,
                 private_headers = private_headers_for_module_map_action,
