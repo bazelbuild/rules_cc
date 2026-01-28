@@ -17,7 +17,7 @@ All build variables we create for various `CppCompileAction`s
 
 load("//cc/common:cc_helper_internal.bzl", "extensions", _PRIVATE_STARLARKIFICATION_ALLOWLIST = "PRIVATE_STARLARKIFICATION_ALLOWLIST")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
-load("//cc/private/rules_impl:native.bzl", _cc_common_internal = "native_cc_common")
+load("//cc/private/rules_impl:native_cc_common.bzl", _cc_common_internal = "native_cc_common")
 
 # deliberately short name for less clutter while using in this file, we can have
 # a different symbol with a more descriptive name if we ever export this

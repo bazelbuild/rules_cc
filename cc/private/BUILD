@@ -66,7 +66,7 @@ bzl_library(
         "//cc/private/compile:compile_bzl",
         "//cc/private/link:link_bzl",
         "//cc/private/rules_impl:cc_toolchain_info_bzl",
-        "//cc/private/rules_impl:native_bzl",
+        "//cc/private/rules_impl:native_cc_common_bzl",
         "//cc/private/toolchain_config:toolchain_config_bzl",
     ],
 )

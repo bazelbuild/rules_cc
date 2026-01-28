@@ -23,7 +23,7 @@ bzl_library(
         "//cc/common:semantics_bzl",
         "//cc/private:cc_internal_bzl",
         "//cc/private/compile:compile_bzl",
-        "//cc/private/rules_impl:native_bzl",
+        "//cc/private/rules_impl:native_cc_common_bzl",
         "@bazel_skylib//lib:paths",
     ],
 )

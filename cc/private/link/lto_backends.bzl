@@ -33,7 +33,7 @@ step process:
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("//cc/common:cc_helper_internal.bzl", "should_create_per_object_debug_info")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
-load("//cc/private/rules_impl:native.bzl", _cc_common_internal = "native_cc_common")
+load("//cc/private/rules_impl:native_cc_common.bzl", _cc_common_internal = "native_cc_common")
 
 LtoBackendArtifactsInfo = provider(
     doc = "LtoBackendArtifacts represents a set of artifacts for a single ThinLTO backend compile.",

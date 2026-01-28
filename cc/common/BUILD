@@ -32,7 +32,7 @@ bzl_library(
     deps = [
         "//cc/private:cc_internal_bzl",
         "//cc/private:paths_bzl",
-        "//cc/private/rules_impl:native_bzl",
+        "//cc/private/rules_impl:native_cc_common_bzl",
         "@bazel_skylib//lib:paths",
         "@cc_compatibility_proxy//:symbols_bzl",
     ],
