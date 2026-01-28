@@ -37,6 +37,9 @@ def _target_os_version(ctx):
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
     return xcode_config.minimum_os_for_platform_type(platform_type)
 
+def _is_gcc_compiler(compiler):
+    return "gcc" in compiler
+
 def layering_check_features(compiler, extra_flags_per_feature, is_macos):
     if compiler != "clang":
         return []
@@ -236,6 +239,9 @@ def _sanitizer_feature(name = "", specific_compile_flags = [], specific_link_fla
 
 def _impl(ctx):
     is_linux = ctx.attr.target_libc != "macosx"
+    profile_correction_flags = (
+        ["-fprofile-correction"] if _is_gcc_compiler(ctx.attr.compiler) else []
+    )
 
     tool_paths = [
         tool_path(name = name, path = path)
@@ -612,8 +618,7 @@ def _impl(ctx):
                     flag_group(
                         flags = [
                             "-fprofile-use=%{fdo_profile_path}",
-                            "-fprofile-correction",
-                        ],
+                        ] + profile_correction_flags,
                         expand_if_available = "fdo_profile_path",
                     ),
                 ],
@@ -775,8 +780,7 @@ def _impl(ctx):
                             "-fprofile-use=%{fdo_profile_path}",
                             "-Wno-profile-instr-unprofiled",
                             "-Wno-profile-instr-out-of-date",
-                            "-fprofile-correction",
-                        ],
+                        ] + profile_correction_flags,
                         expand_if_available = "fdo_profile_path",
                     ),
                 ],
@@ -794,8 +798,7 @@ def _impl(ctx):
                     flag_group(
                         flags = [
                             "-fauto-profile=%{fdo_profile_path}",
-                            "-fprofile-correction",
-                        ],
+                        ] + profile_correction_flags,
                         expand_if_available = "fdo_profile_path",
                     ),
                 ],
