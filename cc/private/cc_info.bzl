@@ -26,6 +26,9 @@ CcCompilationContextInfo = provider(
         # CommandLineCcCompilationContext fields:
         "includes": "Returns the set of search paths (as strings) for header files referenced " +
                     "both by angle bracket and quotes. Usually passed with -I.",
+        "local_includes": "Returns the set of search paths (as strings) for header files referenced " +
+                          "both by angle bracket and quotes. Usually passed with -I. These values " +
+                          "are not propagated to the target's transitive dependents.",
         "quote_includes": "Returns the set of search paths (as strings) for header files " +
                           "referenced by quotes, e.g. #include \"foo/bar/header.h\". They can be " +
                           "either relative to the exec root or absolute. Usually passed with -iquote.",
@@ -113,6 +116,7 @@ EMPTY_COMPILATION_CONTEXT = CcCompilationContextInfo(
     direct_private_headers = [],
     direct_textual_headers = [],
     includes = depset(),
+    local_includes = depset(),
     quote_includes = depset(),
     system_includes = depset(),
     framework_includes = depset(),
@@ -275,6 +279,7 @@ def create_compilation_context(
         *,
         headers = None,
         includes = None,
+        local_includes = None,
         quote_includes = None,
         system_includes = None,
         framework_includes = None,
@@ -301,6 +306,7 @@ def create_compilation_context(
     Args:
         headers: A depset of headers to compile.
         includes: A depset of include directories.
+        local_includes: A depset of local include directories.
         quote_includes: A depset of quoted include directories.
         system_includes: A depset of system include directories.
         framework_includes: A depset of framework include directories.
@@ -360,6 +366,7 @@ def create_compilation_context(
         direct_private_headers = header_info.modular_private_headers,
         direct_textual_headers = header_info.textual_headers,
         includes = includes,
+        local_includes = local_includes,
         quote_includes = quote_includes,
         system_includes = system_includes,
         framework_includes = framework_includes,
@@ -465,6 +472,7 @@ def _merge_compilation_contexts(*, compilation_context = EMPTY_COMPILATION_CONTE
             transitive = [dep.defines for dep in all_deps] + [compilation_context.defines],
         ),
         local_defines = compilation_context.local_defines,
+        local_includes = compilation_context.local_includes,
         headers = depset(
             direct = compilation_context.headers.to_list(),
             transitive = [dep.headers for dep in all_deps],
