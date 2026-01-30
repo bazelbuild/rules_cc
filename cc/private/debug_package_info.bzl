@@ -22,5 +22,6 @@ DebugPackageInfo = provider(
         "stripped_file": "The stripped file (the explicit '.stripped' target).",
         "unstripped_file": "The unstripped file (the default executable target).",
         "dwp_file": "The .dwp file (for fission builds) or null if --fission=no.",
+        "dwo_files": "The depset of .dwo files (for fission builds) or null if --fission=no",
     },
 )
