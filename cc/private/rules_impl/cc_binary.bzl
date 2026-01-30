@@ -818,7 +818,7 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
         stripped_file = stripped_file,
         unstripped_file = binary,
         dwp_file = explicit_dwp_file,
-        dwo_files =  dwo_files,
+        dwo_files = dwo_files,
     )
     binary_info = struct(
         files = files_to_build,

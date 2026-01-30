@@ -44,6 +44,8 @@ def create_debug_packager_actions(
         linking_mode: (str) See cc_helper.bzl%linker_mode
         use_pic: (bool)
         lto_artifacts: ([CcLtoBackendArtifacts])
+    Returns:
+        dwo_files: (depset) The dwo_files used to generate the dwp_output
     """
     dwo_files = _collect_transitive_dwo_artifacts(
         cc_compilation_outputs,
