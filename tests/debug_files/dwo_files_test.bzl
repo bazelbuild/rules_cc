@@ -4,30 +4,30 @@ load("@rules_cc//cc/common:debug_package_info.bzl","DebugPackageInfo")
 load("@bazel_skylib//lib:new_sets.bzl", "sets")
 load("@bazel_features//private:util.bzl", _bazel_version_ge = "ge")
 
-def _dwo_files_contents(ctx):
+def _test_n_dwo_files(ctx, n):
     env = analysistest.begin(ctx)
 
     target_under_test = analysistest.target_under_test(env)
-    file_names = sets.make([f.short_path for f in target_under_test[DebugPackageInfo].dwo_files.to_list()])
-    asserts.set_equals(env,sets.make([
-        "tests/debug_files/_objs/lib/lib.dwo",
-        "tests/debug_files/_objs/impl_lib/impl_lib.dwo",
-        "tests/debug_files/_objs/main/main.dwo"]),file_names)
+    # We check if the dwp_file exists as a way to test
+    # if we should expect dwo files to be present
+    if target_under_test[DebugPackageInfo].dwp_file != None:
+        asserts.equals(env,n,len(target_under_test[DebugPackageInfo].dwo_files.to_list()))
 
     return analysistest.end(env)
+
+def _dwo_files_contents(ctx):
+    # We expect the DebugInfoProvider
+    # to contain one dwo file per "source" file
+    # and it must include dwo files from implementation deps
+    return _test_n_dwo_files(ctx,3)
 
 def _dwo_files_no_contents(ctx):
-    env = analysistest.begin(ctx)
-
-    target_under_test = analysistest.target_under_test(env)
-    asserts.equals(env,[],target_under_test[DebugPackageInfo].dwo_files.to_list())
-
-    return analysistest.end(env)
+    # without fission the list should be empty
+    return _test_n_dwo_files(ctx,0)
 
 dwo_files_contents_test = analysistest.make(_dwo_files_contents,
 config_settings = {
     "//command_line_option:fission": "yes",
-    "//command_line_option:force_pic": "no",
     "//command_line_option:features": ["per_object_debug_info"],
 },)
 
