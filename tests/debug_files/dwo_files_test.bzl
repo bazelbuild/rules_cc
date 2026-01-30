@@ -27,6 +27,7 @@ def _dwo_files_no_contents(ctx):
 dwo_files_contents_test = analysistest.make(_dwo_files_contents,
 config_settings = {
     "//command_line_option:fission": "yes",
+    "//command_line_option:force_pic": "no",
     "//command_line_option:features": ["per_object_debug_info"],
 },)
 
