@@ -13,7 +13,7 @@
 # limitations under the License.
 """Helper functions to create and validate a ToolchainConfigInfo."""
 
-load("//cc/toolchains:cc_toolchain_info.bzl", "ArtifactNamePatternInfo", "MakeVariableInfo", "ToolConfigInfo", "ToolchainConfigInfo")
+load("//cc/toolchains:cc_toolchain_info.bzl", "ArtifactNamePatternInfo", "FeatureInfo", "MakeVariableInfo", "ToolConfigInfo", "ToolchainConfigInfo")
 load(":args_utils.bzl", "get_action_type")
 load(":collect.bzl", "collect_args_lists", "collect_features")
 
@@ -70,7 +70,6 @@ def _get_known_features(features, capability_features, fail):
                     rhs = other.label,
                 ))
         feature_names[ft.name] = ft
-
     return {_feature_key(feature): None for feature in features}
 
 def _can_theoretically_be_enabled(requirement, known_features):
@@ -162,7 +161,7 @@ def _collect_make_variables(targets, fail):
 
     return make_variables.values()
 
-def toolchain_config_info(label, known_features = [], enabled_features = [], args = [], artifact_name_patterns = [], make_variables = [], tool_map = None, fail = fail):
+def toolchain_config_info(label, known_features = [], enabled_features = [], args = [], artifact_name_patterns = [], make_variables = [], tool_map = None, compiler_feature = None, fail = fail):
     """Generates and validates a ToolchainConfigInfo from lists of labels.
 
     Args:
@@ -174,6 +173,7 @@ def toolchain_config_info(label, known_features = [], enabled_features = [], arg
         artifact_name_patterns: (List[Target]) A list of targets providing ArtifactNamePatternInfo.
         make_variables: (List[Target]) A list of targets providing MakeVariableInfo.
         tool_map: (Target) A target providing ToolMapInfo.
+        compiler_feature: (Target) A target providing FeatureInfo.
         fail: A fail function. Use only during tests.
     Returns:
         A validated ToolchainConfigInfo
@@ -222,6 +222,7 @@ def toolchain_config_info(label, known_features = [], enabled_features = [], arg
         allowlist_absolute_include_directories = allowlist_absolute_include_directories,
         artifact_name_patterns = _collect_artifact_name_patterns(artifact_name_patterns, fail),
         make_variables = _collect_make_variables(make_variables, fail),
+        compiler_feature = compiler_feature[FeatureInfo],
     )
     _validate_toolchain(toolchain_config, fail = fail)
     return toolchain_config

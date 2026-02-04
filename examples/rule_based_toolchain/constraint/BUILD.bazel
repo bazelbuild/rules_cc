@@ -73,3 +73,45 @@ config_setting(
     name = "gcc",
     flag_values = {"//toolchains:compiler_kind": "gcc"},
 )
+
+config_setting(
+    name = "msvc-cl",
+    flag_values = {"//toolchains:compiler_kind": "msvc-cl"},
+)
+
+config_setting(
+    name = "clang-cl",
+    flag_values = {"//toolchains:compiler_kind": "clang-cl"},
+)
+
+selects.config_setting_group(
+    name = "msvc_cl_windows_x86_64",
+    match_all = [
+        ":windows_x86_64",
+        ":msvc-cl",
+    ],
+)
+
+selects.config_setting_group(
+    name = "msvc_cl_windows_aarch64",
+    match_all = [
+        ":windows_aarch64",
+        ":msvc-cl",
+    ],
+)
+
+selects.config_setting_group(
+    name = "clang_cl_windows_x86_64",
+    match_all = [
+        ":windows_x86_64",
+        ":clang-cl",
+    ],
+)
+
+selects.config_setting_group(
+    name = "clang_cl_windows_aarch64",
+    match_all = [
+        ":windows_aarch64",
+        ":clang-cl",
+    ],
+)

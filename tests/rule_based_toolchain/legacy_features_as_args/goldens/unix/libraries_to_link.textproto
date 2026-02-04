@@ -104,5 +104,82 @@ flag_sets {
       }
     }
   }
+  with_features {
+    features: "compiler_clang"
+  }
+  with_features {
+    features: "compiler_gcc"
+  }
+  with_features {
+    features: "compiler_mingw_gcc"
+  }
+  with_features {
+    features: "compiler_emscripten"
+  }
+}
+flag_sets {
+  actions: "c++-link-dynamic-library"
+  actions: "c++-link-executable"
+  actions: "c++-link-nodeps-dynamic-library"
+  actions: "lto-index-for-dynamic-library"
+  actions: "lto-index-for-executable"
+  actions: "lto-index-for-nodeps-dynamic-library"
+  actions: "objc-executable"
+  flag_groups {
+    flag_groups {
+      expand_if_available: "thinlto_param_file"
+      flags: "-Wl,@%{thinlto_param_file}"
+    }
+    flag_groups {
+      expand_if_available: "libraries_to_link"
+      flag_groups {
+        flag_groups {
+          flag_groups {
+            expand_if_equal {
+              name: "libraries_to_link.type"
+              value: "object_file_group"
+            }
+            flags: "%{libraries_to_link.object_files}"
+            iterate_over: "libraries_to_link.object_files"
+          }
+          flag_groups {
+            expand_if_equal {
+              name: "libraries_to_link.type"
+              value: "object_file"
+            }
+            flags: "%{libraries_to_link.name}"
+          }
+          flag_groups {
+            expand_if_equal {
+              name: "libraries_to_link.type"
+              value: "interface_library"
+            }
+            flags: "%{libraries_to_link.name}"
+          }
+          flag_groups {
+            expand_if_equal {
+              name: "libraries_to_link.type"
+              value: "static_library"
+            }
+            flag_groups {
+              expand_if_true: "libraries_to_link.is_whole_archive"
+              flags: "/WHOLEARCHIVE:%{libraries_to_link.name}"
+            }
+            flag_groups {
+              expand_if_false: "libraries_to_link.is_whole_archive"
+              flags: "%{libraries_to_link.name}"
+            }
+          }
+        }
+        iterate_over: "libraries_to_link"
+      }
+    }
+  }
+  with_features {
+    features: "compiler_msvc_cl"
+  }
+  with_features {
+    features: "compiler_clang_cl"
+  }
 }
 name: "libraries_to_link_test"
