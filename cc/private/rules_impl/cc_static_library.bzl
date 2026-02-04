@@ -148,7 +148,7 @@ def _pretty_label(label):
 
     # Emit main repo labels (both with and without --enable_bzlmod) without a
     # repo prefix.
-    if s.startswith("@@//") or s.startswith("@//"):
+    if s.startswith("@@//") or s.startswith("@//"):  # buildifier: disable=canonical-repository
         return s.lstrip("@")
     return s
 
