@@ -120,7 +120,7 @@ EMPTY_COMPILATION_CONTEXT = CcCompilationContextInfo(
     validation_artifacts = depset(),
     _virtual_to_original_headers = depset(),
     _module_map = None,
-    _exporting_module_maps = [],
+    _exporting_module_maps = depset(),
     _non_code_inputs = depset(),
     _transitive_modules = depset(),
     _transitive_pic_modules = depset(),
@@ -367,7 +367,7 @@ def create_compilation_context(
         validation_artifacts = depset(),
         _virtual_to_original_headers = virtual_to_original_headers if virtual_to_original_headers else depset(),
         _module_map = module_map,
-        _exporting_module_maps = [],
+        _exporting_module_maps = depset(),
         _non_code_inputs = depset(non_code_inputs),
         _transitive_modules = depset(),
         _transitive_pic_modules = depset(),
@@ -405,23 +405,22 @@ def _flat_depset(*, transitive = []):
     return all
 
 def _merge_compilation_contexts(*, compilation_context = EMPTY_COMPILATION_CONTEXT, exported_deps = [], deps = []):
-    direct_module_maps = set()
-    exporting_module_maps = set()
+    direct_module_map_files = []  # list of File
+    direct_exporting_module_maps = []  # list of _ModuleMapInfo
+    transitive_exporting_module_maps = []  # list of depset of _ModuleMapInfo
 
     for dep in exported_deps:
         if dep._module_map:
-            direct_module_maps.add(dep._module_map.file)
-            exporting_module_maps.add(dep._module_map)
-        for module_map in dep._exporting_module_maps:
-            direct_module_maps.add(module_map.file)
-        exporting_module_maps.update(dep._exporting_module_maps)
-    for dep in deps:
-        if dep._module_map:
-            direct_module_maps.add(dep._module_map.file)
-        for module_map in dep._exporting_module_maps:
-            direct_module_maps.add(module_map.file)
+            direct_exporting_module_maps.append(dep._module_map)
+        transitive_exporting_module_maps.append(dep._exporting_module_maps)
 
     all_deps = exported_deps + deps
+    for dep in all_deps:
+        if dep._module_map:
+            direct_module_map_files.append(dep._module_map.file)
+        for module_map in dep._exporting_module_maps.to_list():
+            direct_module_map_files.append(module_map.file)
+
     dep_header_infos = [dep._header_info for dep in all_deps]
     merged_header_infos = [dep._header_info for dep in exported_deps]
 
@@ -474,9 +473,12 @@ def _merge_compilation_contexts(*, compilation_context = EMPTY_COMPILATION_CONTE
         direct_public_headers = header_info.modular_public_headers,
         direct_private_headers = header_info.modular_private_headers,
         direct_textual_headers = header_info.textual_headers,
-        _direct_module_maps = depset(list(direct_module_maps)),
+        _direct_module_maps = depset(direct_module_map_files),
         _module_map = compilation_context._module_map,
-        _exporting_module_maps = _cc_internal.freeze(exporting_module_maps),
+        _exporting_module_maps = depset(
+            direct = direct_exporting_module_maps,
+            transitive = transitive_exporting_module_maps,
+        ),
         _non_code_inputs = depset(
             direct = compilation_context._non_code_inputs.to_list(),
             transitive = [dep._non_code_inputs for dep in all_deps],
