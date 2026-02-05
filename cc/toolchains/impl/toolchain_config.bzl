@@ -75,10 +75,6 @@ def _cc_toolchain_config_impl(ctx):
             make_variables = legacy.make_variables,
             features = legacy.features,
             cxx_builtin_include_directories = legacy.cxx_builtin_include_directories,
-            # toolchain_identifier is deprecated, but setting it to None results
-            # in an error that it expected a string, and for safety's sake, I'd
-            # prefer to provide something unique.
-            toolchain_identifier = str(ctx.label),
             # This can be accessed by users through
             # @rules_cc//cc/private/toolchain:compiler to select() on the current
             # compiler

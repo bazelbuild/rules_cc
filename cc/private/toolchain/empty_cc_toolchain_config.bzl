@@ -22,7 +22,6 @@ def _impl(ctx):
     return [
         cc_common.create_cc_toolchain_config_info(
             ctx = ctx,
-            toolchain_identifier = "local_linux",
             host_system_name = "local",
             target_system_name = "local",
             target_cpu = "local",
