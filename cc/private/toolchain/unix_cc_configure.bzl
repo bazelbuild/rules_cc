@@ -199,11 +199,19 @@ def _find_linker_path(repository_ctx, cc, linker, is_clang):
     #  "/usr/bin/ld.lld" -pie -z ...
     # We use the leading space and quoted path to find invocations.
     # https://github.com/llvm/llvm-project/blob/85c78274358717e4d5d019a801decba5c1add484/clang/lib/Driver/Job.cpp#L207-L209
-    invocations = [line for line in result.stderr.splitlines() if line.startswith(" \"")]
-    if not invocations:
-        return linker
-    linker_command = invocations[-1]
-    return linker_command.strip().split(" ")[0].strip("\"'")
+    #
+    # Note: We look for the linker invocation line specifically, not just
+    # the last quoted path line, because lld may emit warnings after the
+    # linker invocation (e.g., "ld64.lld: warning: directory not found").
+    # See https://github.com/bazelbuild/rules_cc/issues/499
+    linker_patterns = ["ld.lld", "ld64.lld", "ld.gold", "gold"]
+    for line in result.stderr.splitlines():
+        if not line.startswith(" \""):
+            continue
+        for pattern in linker_patterns:
+            if pattern in line:
+                return line.strip().split(" ")[0].strip("\"'")
+    return linker
 
 def _add_compiler_option_if_supported(repository_ctx, cc, option):
     """Returns `[option]` if supported, `[]` otherwise. Doesn't %-escape the option."""
@@ -450,10 +458,17 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     )
     deps_scanner = "cpp-module-deps-scanner_not_found"
     if is_clang:
-        cc_str = str(cc)
-        path_arr = cc_str.split("/")[:-1]
-        path_arr.append("clang-scan-deps")
-        deps_scanner = "/".join(path_arr)
+        # Find clang-scan-deps via PATH lookup instead of assuming it's in the
+        # same directory as the compiler. See https://github.com/bazelbuild/rules_cc/issues/553
+        deps_scanner_path = which(repository_ctx, "clang-scan-deps")
+        if deps_scanner_path:
+            deps_scanner = str(deps_scanner_path)
+        else:
+            # Fall back to compiler directory if not found in PATH
+            cc_str = str(cc)
+            path_arr = cc_str.split("/")[:-1]
+            path_arr.append("clang-scan-deps")
+            deps_scanner = "/".join(path_arr)
     repository_ctx.template(
         "deps_scanner_wrapper.sh",
         paths[deps_scanner_wrapper_src],
