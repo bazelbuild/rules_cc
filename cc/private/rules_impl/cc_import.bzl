@@ -453,6 +453,7 @@ is prepended with <code>-D</code> and added to the compile command line to this 
 as well as to every rule that depends on it. Be very careful, since this may have
 far-reaching effects -- the defines are added to every target that depends on
 this target.
+                                    TEST COMMIT PLEASE IGNORE
 """),
         "_use_auto_exec_groups": attr.bool(default = True),
     },  # buildifier: disable=unsorted-dict-items
