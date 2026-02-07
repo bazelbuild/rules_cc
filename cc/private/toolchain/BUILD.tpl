@@ -14,11 +14,11 @@
 
 # This becomes the BUILD file for @local_config_cc// under non-BSD unixes.
 
-load(":cc_toolchain_config.bzl", "cc_toolchain_config")
-load(":armeabi_cc_toolchain_config.bzl", "armeabi_cc_toolchain_config")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc/toolchains:cc_toolchain.bzl", "cc_toolchain")
 load("@rules_cc//cc/toolchains:cc_toolchain_suite.bzl", "cc_toolchain_suite")
+load(":armeabi_cc_toolchain_config.bzl", "armeabi_cc_toolchain_config")
+load(":cc_toolchain_config.bzl", "cc_toolchain_config")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -67,7 +67,12 @@ filegroup(
 )
 filegroup(
     name = "compiler_deps",
-    srcs = glob(["extra_tools/**"], allow_empty = True) + [%{cc_compiler_deps}],
+    srcs = glob(
+        ["extra_tools/**"],
+        allow_empty = True
+    ) + [
+        %{cc_compiler_deps}
+    ],
 )
 
 # This is the entry point for --crosstool_top.  Toolchains are found
@@ -85,19 +90,19 @@ cc_toolchain_suite(
 
 cc_toolchain(
     name = "cc-compiler-%{name}",
-    toolchain_identifier = "%{cc_toolchain_identifier}",
-    toolchain_config = ":%{cc_toolchain_identifier}",
     all_files = ":compiler_deps",
     ar_files = ":compiler_deps",
     as_files = ":compiler_deps",
     compiler_files = ":compiler_deps",
     dwp_files = ":empty",
     linker_files = ":compiler_deps",
+    module_map = %{modulemap},
     objcopy_files = ":empty",
     strip_files = ":empty",
     supports_header_parsing = 1,
     supports_param_files = 1,
-    module_map = %{modulemap},
+    toolchain_config = ":%{cc_toolchain_identifier}",    
+    toolchain_identifier = "%{cc_toolchain_identifier}",
 )
 
 cc_toolchain_config(
