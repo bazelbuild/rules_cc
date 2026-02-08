@@ -102,6 +102,18 @@ def _convert_args_sequence(args_sequence, strip_actions = False):
 
     return struct(flag_sets = flag_sets, env_sets = env_sets)
 
+def _convert_tool_env(tool, action_name):
+    if not tool.env:
+        return None
+
+    return legacy_env_set(
+        actions = [action_name],
+        env_entries = [
+            legacy_env_entry(key = key, value = value)
+            for key, value in sorted(tool.env.items())
+        ],
+    )
+
 def convert_feature(feature, enabled = False):
     if feature.external:
         return None
@@ -188,6 +200,13 @@ def convert_toolchain(toolchain):
         args.flag_sets.extend(new_args.flag_sets)
         args.env_sets.extend(new_args.env_sets)
 
+    toolchain_args = _convert_args_sequence(toolchain.args.args)
+    tool_env_sets = []
+    for action_type in sorted(toolchain.tool_map.configs.keys(), key = lambda action: action.name):
+        env_set = _convert_tool_env(toolchain.tool_map.configs[action_type], action_type.name)
+        if env_set:
+            tool_env_sets.append(env_set)
+
     action_configs, cap_features = _convert_tool_map(toolchain.tool_map, args_by_action)
     features = [
         convert_feature(feature, enabled = feature in toolchain.enabled_features)
@@ -200,7 +219,7 @@ def convert_toolchain(toolchain):
         # conflict with the name of a feature the user creates.
         name = "implied_by_always_enabled_env_sets",
         enabled = True,
-        env_sets = _convert_args_sequence(toolchain.args.args).env_sets,
+        env_sets = tool_env_sets + toolchain_args.env_sets,
     ))
 
     cxx_builtin_include_directories = [

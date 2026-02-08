@@ -46,6 +46,13 @@ util.helper_target(
     env = {"CPP_COMPILE": "1"},
 )
 
+util.helper_target(
+    cc_args,
+    name = "c_compile_env_args",
+    actions = ["//tests/rule_based_toolchain/actions:c_compile"],
+    env = {"FROM_ARGS": "args-env"},
+)
+
 cc_tool(
     name = "c_compile_tool",
     src = "//tests/rule_based_toolchain/testdata:bin_wrapper",
@@ -110,6 +117,14 @@ util.helper_target(
     tools = {
         "//tests/rule_based_toolchain/actions:c_compile": ":c_compile_tool",
         "//tests/rule_based_toolchain/actions:cpp_compile": "//tests/rule_based_toolchain/tool:wrapped_tool",
+    },
+)
+
+util.helper_target(
+    cc_tool_map,
+    name = "tool_env_tool_map",
+    tools = {
+        "//tests/rule_based_toolchain/actions:c_compile": "//tests/rule_based_toolchain/tool:tool_with_env",
     },
 )
 
@@ -197,6 +212,13 @@ util.helper_target(
     args = [":c_compile_args"],
     feature_name = "simple_feature2",
     visibility = ["//tests/rule_based_toolchain:__subpackages__"],
+)
+
+util.helper_target(
+    cc_toolchain_config,
+    name = "tool_env_toolchain_config",
+    args = [":c_compile_env_args"],
+    tool_map = ":tool_env_tool_map",
 )
 
 analysis_test_suite(

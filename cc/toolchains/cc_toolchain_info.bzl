@@ -198,6 +198,7 @@ ToolInfo = provider(
         "exe": "(File) The file corresponding to the tool",
         "runfiles": "(runfiles) The files required to run the tool",
         "execution_requirements": "(Sequence[str]) A set of execution requirements of the tool",
+        "env": "(dict[str, str]) Environment variables applied when using this tool",
         "allowlist_include_directories": "(depset[DirectoryInfo]) Built-in include directories implied by this tool that should be allowlisted in Bazel's include checker",
         "capabilities": "(Sequence[ToolCapabilityInfo]) Capabilities supported by the tool.",
     },

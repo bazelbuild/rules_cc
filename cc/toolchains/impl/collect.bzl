@@ -106,6 +106,7 @@ def collect_tools(ctx, targets, fail = fail):
                 exe = info.files_to_run.executable,
                 runfiles = collect_data(ctx, [target]),
                 execution_requirements = tuple(),
+                env = {},
                 allowlist_include_directories = depset(),
                 capabilities = tuple(),
             ))
