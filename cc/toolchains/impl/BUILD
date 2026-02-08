@@ -16,7 +16,10 @@ bzl_library(
     name = "toolchain_impl_rules",
     srcs = glob(["*.bzl"]),
     visibility = ["//cc/toolchains:__subpackages__"],
-    deps = ["//cc/common"],
+    deps = [
+        "//cc/common",
+        "@bazel_skylib//rules:common_settings",
+    ],
 )
 
 config_setting(

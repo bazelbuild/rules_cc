@@ -44,11 +44,17 @@ visibility("public")
 def _cc_args_impl(ctx):
     actions = collect_action_types(ctx.attr.actions)
 
+    format_targets = {k: v for v, k in ctx.attr.format.items()}
     formatted_env, used_format_vars = format_dict_values(
         env = ctx.attr.env,
         must_use = [],  # checking for unused variables in done when formatting `args`.
-        format = {k: v for v, k in ctx.attr.format.items()},
+        format = format_targets,
     )
+    used_env_variables = [
+        var
+        for var in used_format_vars
+        if var in format_targets and VariableInfo in format_targets[var]
+    ]
 
     for path in ctx.attr.allowlist_absolute_include_directories:
         if not is_path_absolute(path):
@@ -80,7 +86,7 @@ def _cc_args_impl(ctx):
         actions = actions.to_list(),
         env = env,
         variables = ctx.attr._variables[BuiltinVariablesInfo].variables,
-        used_format_vars = used_format_vars,
+        used_format_vars = used_env_variables,
     )
 
     args = ArgsInfo(
@@ -280,9 +286,10 @@ def cc_args(
             arguments to work as intended.
         env: (Dict[str, str]) Environment variables that should be set when the tool is invoked.
         format: (Dict[str, Label]) A mapping of format strings to the label of a corresponding
-            target. This target can be a `directory`, `subdirectory`, `cc_variable`, or a single
-            file that the value should be pulled from. All instances of `{variable_name}` in the
-            `args` list will be replaced with the expanded value in this dictionary.
+            target. This target can be a `directory`, `subdirectory`, `cc_variable`, a build setting
+            (a target that provides `BuildSettingInfo`), or a single file that the value should be
+            pulled from. All instances of `{variable_name}` in the `args` list will be replaced with
+            the expanded value in this dictionary.
             The complete list of possible variables can be found in
             https://github.com/bazelbuild/rules_cc/tree/main/cc/toolchains/variables/BUILD.
             It is not possible to declare custom variables--these are inherent to Bazel itself.
