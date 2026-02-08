@@ -19,6 +19,7 @@ load(
     "collect_provider",
     "collect_tools",
 )
+load("//cc/toolchains/impl:label_utils.bzl", "deduplicate_label_list")
 load(
     ":cc_toolchain_info.bzl",
     "ActionTypeSetInfo",
@@ -112,20 +113,16 @@ def cc_tool_map(name, tools, **kwargs):
             and the `cc_tool` or executable target that implements that action.
         **kwargs: [common attributes](https://bazel.build/reference/be/common-definitions#common-attributes) that should be applied to this rule.
     """
-    actions = []
-    tool_index_for_action = []
-    deduplicated_tools = {}
-    for action, tool in tools.items():
-        actions.append(action)
-        label = native.package_relative_label(tool)
-        if label not in deduplicated_tools:
-            deduplicated_tools[label] = len(deduplicated_tools)
-        tool_index_for_action.append(deduplicated_tools[label])
+    actions = tools.keys()
+    deduplicated_tools = deduplicate_label_list(
+        name = name,
+        labels = [tools[action] for action in actions],
+    )
 
     _cc_tool_map(
         name = name,
         actions = actions,
-        tools = deduplicated_tools.keys(),
-        tool_index_for_action = tool_index_for_action,
+        tools = deduplicated_tools.labels,
+        tool_index_for_action = deduplicated_tools.indexes,
         **kwargs
     )
