@@ -1951,8 +1951,8 @@ def _impl(ctx):
     if symbol_check:
         features.append(symbol_check)
 
-    features.extend([convert_feature(extra_enabled_feature[FeatureInfo], enabled = True) for extra_enabled_feature in ctx.attr.extra_enabled_features])
-    features.extend([convert_feature(extra_known_feature[FeatureInfo], enabled = False) for extra_known_feature in ctx.attr.extra_known_features])
+    extra_rules_based_features = depset(ctx.attr.extra_enabled_features + ctx.attr.extra_known_features)
+    features.extend([convert_feature(extra_feature[FeatureInfo], enabled = extra_feature in ctx.attr.extra_enabled_features) for extra_feature in extra_rules_based_features.to_list()])
 
     return cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
