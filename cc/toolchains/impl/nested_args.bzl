@@ -294,19 +294,21 @@ def _escape(s):
 
 _SUPPORTED_BUILD_SETTING_TYPES = ["string", "bool", "int", "Label"]
 
-def _format_build_setting(target, fail = fail):
-    value = target[BuildSettingInfo].value
-
+def _format_build_setting(value, label, fail = fail):
     if type(value) in _SUPPORTED_BUILD_SETTING_TYPES:
         return _escape(str(value))
 
-    fail("%s had an unsupported build setting type %s. Only string, bool, int, or Label values may be formatted." % (target.label, type(value)))
+    fail("%s had an unsupported build setting type %s. Only string, bool, int, or Label values may be formatted." % (label, type(value)))
 
 def _format_target(target, fail = fail):
     if VariableInfo in target:
         return "%%{%s}" % target[VariableInfo].name
     elif BuildSettingInfo in target:
-        return _format_build_setting(target, fail = fail)
+        return _format_build_setting(
+            target[BuildSettingInfo].value,
+            target.label,
+            fail = fail,
+        )
     elif DirectoryInfo in target:
         return _escape(target[DirectoryInfo].path)
 

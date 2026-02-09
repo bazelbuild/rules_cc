@@ -5,6 +5,7 @@ load("//cc/toolchains/impl:variables.bzl", "cc_variable", "types")
 load("//tests/rule_based_toolchain:analysis_test_suite.bzl", "analysis_test_suite")
 load("//tests/rule_based_toolchain:testing_rules.bzl", "expect_failure_test")
 load(":args_test.bzl", "TARGETS", "TESTS")
+load(":override_args.bzl", "override_args")
 
 cc_variable(
     name = "some_variable",
@@ -68,6 +69,12 @@ util.helper_target(
     args = ["{min_os_flag}"],
     env = {"APPLE_MIN_OS": "{min_os_flag}"},
     format = {"min_os_flag": ":macos_min_os_flag"},
+)
+
+override_args(
+    name = "build_setting_format_override",
+    target = ":build_setting_format",
+    value = "-mmacosx-version-min=13.0",
 )
 
 util.helper_target(
