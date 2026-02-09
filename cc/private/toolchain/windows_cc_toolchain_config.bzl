@@ -1742,8 +1742,24 @@ cc_toolchain_config = rule(
         "dbg_mode_debug_flag": attr.string(default = ""),
         "default_compile_flags": attr.string_list(default = []),
         "default_link_flags": attr.string_list(default = []),
-        "extra_enabled_features": attr.label_list(providers = [FeatureInfo], default = []),
-        "extra_known_features": attr.label_list(providers = [FeatureInfo], default = []),
+        "extra_enabled_features": attr.label_list(
+            providers = [FeatureInfo],
+            default = [],
+            doc = """
+Extra `cc_feature` features to add to this toolchain in an initially enabled state.
+This attribute has limited integration with `cc_feature`, and does not run additional correctness checks or handle things like `data` files.
+This is only offered as a migration bridge for projects transitioning to rule-based toolchain configurations, or sharing of simple argument sets with older toolchains.
+""",
+        ),
+        "extra_known_features": attr.label_list(
+            providers = [FeatureInfo],
+            default = [],
+            doc = """
+Extra `cc_feature` features to add to this toolchain in an initially disabled state.
+This attribute has limited integration with `cc_feature`, and does not run additional correctness checks or handle things like `data` files.
+This is only offered as a migration bridge for projects transitioning to rule-based toolchain configurations, or sharing of simple argument sets with older toolchains.
+""",
+        ),
         "fastbuild_mode_debug_flag": attr.string(default = ""),
         "host_system_name": attr.string(),
         "link_flags": attr.string_list(),
