@@ -31,6 +31,7 @@ load(
     _should_stamp = "should_stamp",
 )
 load(":cc_info.bzl", "CcInfo")
+load(":semantics.bzl", "semantics")
 load(":visibility.bzl", "INTERNAL_VISIBILITY")
 
 visibility(INTERNAL_VISIBILITY)
@@ -922,6 +923,9 @@ def _copts_filter(ctx, additional_make_variable_substitutions):
     nocopts = getattr(ctx.attr, "nocopts", None)
 
     if nocopts == None or len(nocopts) == 0:
+        return nocopts
+
+    if semantics.is_allowed_nocopts(nocopts):
         return nocopts
 
     # Check if nocopts is disabled.

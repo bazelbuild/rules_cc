@@ -31,6 +31,7 @@ load(
 )
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
+load("@rules_cc//cc/toolchains:feature_injection.bzl", "FeatureInfo", "convert_feature")
 
 def _target_os_version(ctx):
     platform_type = ctx.fragments.apple.single_arch_platform.platform_type
@@ -1950,6 +1951,9 @@ def _impl(ctx):
     if symbol_check:
         features.append(symbol_check)
 
+    extra_rules_based_features = depset(ctx.attr.extra_enabled_features + ctx.attr.extra_known_features)
+    features.extend([convert_feature(extra_feature[FeatureInfo], enabled = extra_feature in ctx.attr.extra_enabled_features) for extra_feature in extra_rules_based_features.to_list()])
+
     return cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
         features = features,
@@ -1985,6 +1989,24 @@ cc_toolchain_config = rule(
         "cxx_builtin_include_directories": attr.string_list(),
         "cxx_flags": attr.string_list(),
         "dbg_compile_flags": attr.string_list(),
+        "extra_enabled_features": attr.label_list(
+            providers = [FeatureInfo],
+            default = [],
+            doc = """
+Extra `cc_feature` features to add to this toolchain in an initially enabled state.
+This attribute has limited integration with `cc_feature`, and does not run additional correctness checks or handle things like `data` files.
+This is only offered as a migration bridge for projects transitioning to rule-based toolchain configurations, or sharing of simple argument sets with older toolchains.
+""",
+        ),
+        "extra_known_features": attr.label_list(
+            providers = [FeatureInfo],
+            default = [],
+            doc = """
+Extra `cc_feature` features to add to this toolchain in an initially disabled state.
+This attribute has limited integration with `cc_feature`, and does not run additional correctness checks or handle things like `data` files.
+This is only offered as a migration bridge for projects transitioning to rule-based toolchain configurations, or sharing of simple argument sets with older toolchains.
+""",
+        ),
         "extra_flags_per_feature": attr.string_list_dict(),
         "fastbuild_compile_flags": attr.string_list(),
         "host_system_name": attr.string(mandatory = True),

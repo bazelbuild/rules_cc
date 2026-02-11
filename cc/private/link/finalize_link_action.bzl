@@ -370,7 +370,7 @@ def _create_action(
     if "cpp_link" in _cc_internal.actions2ctx_cheat(actions).exec_groups:
         # TODO(b/338618120): ^ remove cheat, no idea how though, maybe always use cpp_link exec group?
         exec_group = "cpp_link"
-    elif "@@bazel_tools//tools/cpp:toolchain_type" in _cc_internal.actions2ctx_cheat(actions).toolchains:
+    elif "@@bazel_tools//tools/cpp:toolchain_type" in _cc_internal.actions2ctx_cheat(actions).toolchains:  # buildifier: disable=canonical-repository
         # TODO(b/338618120): ^ remove cheat, needs depot cleanup, always use a toolchain
         toolchain = semantics.toolchain
 

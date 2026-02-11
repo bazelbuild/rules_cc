@@ -48,6 +48,7 @@ CcCompilationContextInfo = provider(
         "validation_artifacts": "Returns the set of validation artifacts.",  # == headerTokens
         "_direct_module_maps": "Internal.",
         "_exporting_module_maps": "Internal",
+        "_exporting_module_map_files": "Internal",  # == [d.file for d in _exporting_module_maps]
         "_non_code_inputs": "Internal.",
         "_transitive_modules": "Internal",
         "_transitive_pic_modules": "Internal",
@@ -120,7 +121,8 @@ EMPTY_COMPILATION_CONTEXT = CcCompilationContextInfo(
     validation_artifacts = depset(),
     _virtual_to_original_headers = depset(),
     _module_map = None,
-    _exporting_module_maps = [],
+    _exporting_module_maps = depset(),
+    _exporting_module_map_files = depset(),
     _non_code_inputs = depset(),
     _transitive_modules = depset(),
     _transitive_pic_modules = depset(),
@@ -367,7 +369,8 @@ def create_compilation_context(
         validation_artifacts = depset(),
         _virtual_to_original_headers = virtual_to_original_headers if virtual_to_original_headers else depset(),
         _module_map = module_map,
-        _exporting_module_maps = [],
+        _exporting_module_maps = depset(),
+        _exporting_module_map_files = depset(),
         _non_code_inputs = depset(non_code_inputs),
         _transitive_modules = depset(),
         _transitive_pic_modules = depset(),
@@ -405,23 +408,20 @@ def _flat_depset(*, transitive = []):
     return all
 
 def _merge_compilation_contexts(*, compilation_context = EMPTY_COMPILATION_CONTEXT, exported_deps = [], deps = []):
-    direct_module_maps = set()
-    exporting_module_maps = set()
-
-    for dep in exported_deps:
-        if dep._module_map:
-            direct_module_maps.add(dep._module_map.file)
-            exporting_module_maps.add(dep._module_map)
-        for module_map in dep._exporting_module_maps:
-            direct_module_maps.add(module_map.file)
-        exporting_module_maps.update(dep._exporting_module_maps)
-    for dep in deps:
-        if dep._module_map:
-            direct_module_maps.add(dep._module_map.file)
-        for module_map in dep._exporting_module_maps:
-            direct_module_maps.add(module_map.file)
-
+    exporting_module_maps = depset(
+        direct = [dep._module_map for dep in exported_deps if dep._module_map],
+        transitive = [dep._exporting_module_maps for dep in exported_deps],
+    )
+    exporting_module_map_files = depset(
+        direct = [dep._module_map.file for dep in exported_deps if dep._module_map],
+        transitive = [dep._exporting_module_map_files for dep in exported_deps],
+    )
     all_deps = exported_deps + deps
+    direct_module_maps = depset(
+        direct = [dep._module_map.file for dep in all_deps if dep._module_map],
+        transitive = [dep._exporting_module_map_files for dep in all_deps],
+    )
+
     dep_header_infos = [dep._header_info for dep in all_deps]
     merged_header_infos = [dep._header_info for dep in exported_deps]
 
@@ -474,9 +474,10 @@ def _merge_compilation_contexts(*, compilation_context = EMPTY_COMPILATION_CONTE
         direct_public_headers = header_info.modular_public_headers,
         direct_private_headers = header_info.modular_private_headers,
         direct_textual_headers = header_info.textual_headers,
-        _direct_module_maps = depset(list(direct_module_maps)),
+        _direct_module_maps = direct_module_maps,
         _module_map = compilation_context._module_map,
-        _exporting_module_maps = _cc_internal.freeze(exporting_module_maps),
+        _exporting_module_maps = exporting_module_maps,
+        _exporting_module_map_files = exporting_module_map_files,
         _non_code_inputs = depset(
             direct = compilation_context._non_code_inputs.to_list(),
             transitive = [dep._non_code_inputs for dep in all_deps],
@@ -554,6 +555,7 @@ def create_compilation_context_with_extra_header_tokens(
         _virtual_to_original_headers = cc_compilation_context._virtual_to_original_headers,
         _module_map = cc_compilation_context._module_map,
         _exporting_module_maps = cc_compilation_context._exporting_module_maps,
+        _exporting_module_map_files = cc_compilation_context._exporting_module_map_files,
         _non_code_inputs = cc_compilation_context._non_code_inputs,
         _transitive_modules = cc_compilation_context._transitive_modules,
         _transitive_pic_modules = cc_compilation_context._transitive_pic_modules,
@@ -603,6 +605,7 @@ def create_cc_compilation_context_with_cpp20_modules(
         _virtual_to_original_headers = cc_compilation_context._virtual_to_original_headers,
         _module_map = cc_compilation_context._module_map,
         _exporting_module_maps = cc_compilation_context._exporting_module_maps,
+        _exporting_module_map_files = cc_compilation_context._exporting_module_map_files,
         _non_code_inputs = cc_compilation_context._non_code_inputs,
         _transitive_modules = cc_compilation_context._transitive_modules,
         _transitive_pic_modules = cc_compilation_context._transitive_pic_modules,
