@@ -373,8 +373,15 @@ def root_relative_path(file):
     Returns:
         (str) The root-relative path of the file.
     """
+
+    # This function matches Bazel's Artifact.getRootRelativePath() implementation bug-for-bug,
+    # including the surprising behavior that the result starts with "external/<repo>/" for external
+    # source files, but not for external generated files.
     if not file.is_source:
+        # https://github.com/bazelbuild/bazel/blob/795af54db5c348af5ca8b2961a982b399206ea20/src/main/java/com/google/devtools/build/lib/actions/Artifact.java#L310
         return file.path[len(file.root.path) + 1:]
+
+    # https://github.com/bazelbuild/bazel/blob/795af54db5c348af5ca8b2961a982b399206ea20/src/main/java/com/google/devtools/build/lib/actions/Artifact.java#L786
     short_path = file.short_path
     if not short_path.startswith("../"):
         return short_path
