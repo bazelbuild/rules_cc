@@ -814,7 +814,7 @@ def _impl(ctx):
                     ],
                     flag_groups = [
                         flag_group(
-                            flags = default_compile_flags_list,
+                            flags = default_compile_flags_list + ctx.attr.default_compile_flags,
                         ),
                     ],
                 ),
