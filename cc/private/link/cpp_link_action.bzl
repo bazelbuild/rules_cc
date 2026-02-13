@@ -14,7 +14,7 @@
 """Functions that create C++ link action."""
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
-load("//cc/common:cc_helper_internal.bzl", artifact_category = "artifact_category_names")
+load("//cc/common:cc_helper_internal.bzl", "root_relative_path", artifact_category = "artifact_category_names")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private/link:finalize_link_action.bzl", "finalize_link_action")
 load("//cc/private/link:link_build_variables.bzl", "setup_linking_variables")
@@ -192,7 +192,8 @@ def link_action(
         output,
         _cc_internal.dynamic_library_soname(
             actions,
-            output.short_path,
+            # Must match https://github.com/bazelbuild/bazel/blob/795af54db5c348af5ca8b2961a982b399206ea20/src/main/java/com/google/devtools/build/lib/rules/cpp/SolibSymlinkAction.java#L169.
+            root_relative_path(output),
             link_type != LINK_TARGET_TYPE.NODEPS_DYNAMIC_LIBRARY,
         ),
         interface_output,
