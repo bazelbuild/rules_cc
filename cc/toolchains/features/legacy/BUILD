@@ -102,6 +102,18 @@ cc_external_feature(
 )
 
 cc_external_feature(
+    name = "windows_export_all_symbols",
+    feature_name = "windows_export_all_symbols",
+    overridable = True,
+)
+
+cc_external_feature(
+    name = "no_windows_export_all_symbols",
+    feature_name = "no_windows_export_all_symbols",
+    overridable = True,
+)
+
+cc_external_feature(
     name = "linkstamps",
     feature_name = "linkstamps",
     overridable = True,

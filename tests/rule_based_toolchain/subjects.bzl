@@ -232,6 +232,7 @@ _ToolchainConfigFactory = generate_factory(
         features = ProviderDepset(_FeatureFactory),
         enabled_features = _subjects.collection,
         tool_map = optional_subject(_ToolConfigFactory.factory),
+        compiler_feature = optional_subject(_FeatureFactory.factory),
         args = ProviderSequence(_ArgsFactory),
         files = dict_key_subject(_subjects.depset_file),
         allowlist_include_directories = _FakeDirectoryDepset,

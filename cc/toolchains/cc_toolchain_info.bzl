@@ -229,6 +229,7 @@ ToolchainConfigInfo = provider(
         "features": "(Sequence[FeatureInfo]) The features available for this toolchain",
         "enabled_features": "(Sequence[FeatureInfo]) The features That are enabled by default for this toolchain",
         "tool_map": "(ToolConfigInfo) A provider mapping toolchain action types to tools.",
+        "compiler_feature": "(FeatureInfo) The feature indicating the type of compiler",
         "args": "(Sequence[ArgsInfo]) A list of arguments to be unconditionally applied to the toolchain.",
         "artifact_name_patterns": "Sequence[ArtifactNamePatternInfo] A artifact name patterns for this toolchain",
         "make_variables": "Sequence[MakeVariableInfo] Make variable substitutions for this toolchain",
