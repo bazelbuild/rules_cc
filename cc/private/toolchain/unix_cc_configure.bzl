@@ -597,7 +597,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
         ) +
         # Always included in case the user has Xcode + the CLT installed, both
         # paths can be used interchangeably
-        ["/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"],
+        (["/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"] if darwin else []),
     )
 
     generate_modulemap = is_clang
