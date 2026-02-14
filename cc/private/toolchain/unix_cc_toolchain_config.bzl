@@ -531,7 +531,6 @@ def _impl(ctx):
                     ACTION_NAMES.linkstamp_compile,
                     ACTION_NAMES.c_compile,
                     ACTION_NAMES.cpp_compile,
-                    ACTION_NAMES.cpp_header_parsing,
                     ACTION_NAMES.cpp_module_compile,
                     ACTION_NAMES.cpp_module_codegen,
                     ACTION_NAMES.cpp_module_deps_scanning,
@@ -544,6 +543,17 @@ def _impl(ctx):
                 flag_groups = [
                     flag_group(
                         flags = ["-c", "%{source_file}"],
+                        expand_if_available = "source_file",
+                    ),
+                ],
+            ),
+            flag_set(
+                actions = [
+                    ACTION_NAMES.cpp_header_parsing,
+                ],
+                flag_groups = [
+                    flag_group(
+                        flags = ["%{source_file}"],
                         expand_if_available = "source_file",
                     ),
                 ],
