@@ -1,0 +1,13 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+cc_library(
+    name = "b",
+    srcs = ["b1.h", "b2.h"],
+)
+
+cc_binary(
+    name = "a",
+    srcs = ["a.cc"],
+    deps = [":b"],
+)
