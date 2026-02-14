@@ -129,7 +129,9 @@ def parse_headers_support(parse_headers_tool_path):
                                 # disable parsing.
                                 "-xc++-header",
                                 "-fsyntax-only",
+                                "%{source_file}",
                             ],
+                            expand_if_available = "source_file",
                         ),
                     ],
                 ),
@@ -531,7 +533,6 @@ def _impl(ctx):
                     ACTION_NAMES.linkstamp_compile,
                     ACTION_NAMES.c_compile,
                     ACTION_NAMES.cpp_compile,
-                    ACTION_NAMES.cpp_header_parsing,
                     ACTION_NAMES.cpp_module_compile,
                     ACTION_NAMES.cpp_module_codegen,
                     ACTION_NAMES.cpp_module_deps_scanning,
