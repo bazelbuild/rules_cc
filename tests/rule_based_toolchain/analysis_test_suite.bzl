@@ -33,15 +33,25 @@ def analysis_test_suite(name, tests, targets = [_DEFAULT_TARGET]):
     targets = [native.package_relative_label(target) for target in targets]
 
     test_case_names = []
-    for test_name, impl in tests.items():
+    for test_name, test in tests.items():
         if not test_name.endswith("_test"):
             fail("Expected test keys to end with '_test', got test case %r" % test_name)
         test_case_names.append(":" + test_name)
+        config_settings = {}
+        if type(test) == "struct":
+            if not hasattr(test, "impl"):
+                fail("Expected struct tests to define an 'impl' field, got %r" % test_name)
+            impl = test.impl
+            if hasattr(test, "config_settings"):
+                config_settings = test.config_settings
+        else:
+            impl = test
         analysis_test(
             name = test_name,
             impl = impl,
             provider_subject_factories = FACTORIES,
             targets = {label.name: label for label in targets},
+            config_settings = config_settings,
         )
 
     native.test_suite(
