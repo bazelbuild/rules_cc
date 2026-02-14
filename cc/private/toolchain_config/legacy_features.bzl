@@ -26,7 +26,10 @@ load(
     "with_feature_set",
 )
 
-def get_legacy_features(platform, existing_feature_names, linker_tool_path):
+def _is_gcc_compiler(compiler):
+    return "gcc" in compiler
+
+def get_legacy_features(platform, existing_feature_names, linker_tool_path, compiler):
     """The features added to all legacy toolchains
 
     Note: these features won't be added to the crosstools that defines
@@ -37,10 +40,14 @@ def get_legacy_features(platform, existing_feature_names, linker_tool_path):
         platform: (str) One of 'linux' or 'mac'
         existing_feature_names: ([str])
         linker_tool_path: (str)
+        compiler: (str) The compiler identifier (e.g. 'gcc', 'clang').
 
     Returns:
         ([FeatureInfo])
     """
+    profile_correction_flags = (
+        ["-fprofile-correction"] if _is_gcc_compiler(compiler) else []
+    )
     result = []
     if "legacy_compile_flags" not in existing_feature_names:
         result.append(feature(
@@ -285,8 +292,7 @@ def get_legacy_features(platform, existing_feature_names, linker_tool_path):
                         "-fprofile-use=%{fdo_profile_path}",
                         "-Wno-profile-instr-unprofiled",
                         "-Wno-profile-instr-out-of-date",
-                        "-fprofile-correction",
-                    ],
+                    ] + profile_correction_flags,
                 )],
             )],
         ))
@@ -326,8 +332,7 @@ def get_legacy_features(platform, existing_feature_names, linker_tool_path):
                         "-fprofile-use=%{fdo_profile_path}",
                         "-Wno-profile-instr-unprofiled",
                         "-Wno-profile-instr-out-of-date",
-                        "-fprofile-correction",
-                    ],
+                    ] + profile_correction_flags,
                 )],
             )],
         ))
@@ -364,8 +369,7 @@ def get_legacy_features(platform, existing_feature_names, linker_tool_path):
                     expand_if_available = "fdo_profile_path",
                     flags = [
                         "-fauto-profile=%{fdo_profile_path}",
-                        "-fprofile-correction",
-                    ],
+                    ] + profile_correction_flags,
                 )],
             )],
         ))
