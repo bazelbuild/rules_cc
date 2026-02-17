@@ -631,10 +631,11 @@ def _impl(ctx):
                             iterate_over = "user_archiver_flags",
                             expand_if_available = "user_archiver_flags",
                         ),
+                    ] + ([
                         flag_group(
                             flags = ctx.attr.archiver_flags,
                         ),
-                    ],
+                    ] if ctx.attr.archiver_flags else []),
                 ),
             ],
         )
@@ -645,7 +646,9 @@ def _impl(ctx):
             flag_sets = [
                 flag_set(
                     actions = all_link_actions,
-                    flag_groups = [flag_group(flags = ctx.attr.default_link_flags)],
+                    flag_groups = [
+                        flag_group(flags = ctx.attr.default_link_flags),
+                    ] if ctx.attr.default_link_flags else [],
                 ),
             ],
         )
