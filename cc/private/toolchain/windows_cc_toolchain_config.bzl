@@ -23,6 +23,7 @@ load(
     "feature",
     "flag_group",
     "flag_set",
+    "get_profile_correction_flags",
     "make_variable",
     "tool",
     "tool_path",
@@ -100,6 +101,8 @@ def _use_msvc_toolchain(ctx):
     return ctx.attr.cpu in ["x64_windows", "arm64_windows"] and (ctx.attr.compiler == "msvc-cl" or ctx.attr.compiler == "clang-cl")
 
 def _impl(ctx):
+    profile_correction_flags = get_profile_correction_flags(ctx)
+
     if _use_msvc_toolchain(ctx):
         artifact_name_patterns = [
             artifact_name_pattern(
@@ -1551,8 +1554,7 @@ def _impl(ctx):
                             flag_group(
                                 flags = [
                                     "-fprofile-use=%{fdo_profile_path}",
-                                    "-fprofile-correction",
-                                ],
+                                ] + profile_correction_flags,
                                 expand_if_available = "fdo_profile_path",
                             ),
                         ],

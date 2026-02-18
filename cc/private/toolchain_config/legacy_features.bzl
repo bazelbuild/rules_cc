@@ -21,12 +21,13 @@ load(
     "feature_set",
     "flag_group",
     "flag_set",
+    "get_profile_correction_flags",
     "tool",
     "variable_with_value",
     "with_feature_set",
 )
 
-def get_legacy_features(platform, existing_feature_names, linker_tool_path):
+def get_legacy_features(ctx, platform, existing_feature_names, linker_tool_path):
     """The features added to all legacy toolchains
 
     Note: these features won't be added to the crosstools that defines
@@ -34,6 +35,7 @@ def get_legacy_features(platform, existing_feature_names, linker_tool_path):
     to be modified separately.
 
     Args:
+        ctx: bazel rule context
         platform: (str) One of 'linux' or 'mac'
         existing_feature_names: ([str])
         linker_tool_path: (str)
@@ -41,6 +43,7 @@ def get_legacy_features(platform, existing_feature_names, linker_tool_path):
     Returns:
         ([FeatureInfo])
     """
+    profile_correction_flags = get_profile_correction_flags(ctx)
     result = []
     if "legacy_compile_flags" not in existing_feature_names:
         result.append(feature(
@@ -285,8 +288,7 @@ def get_legacy_features(platform, existing_feature_names, linker_tool_path):
                         "-fprofile-use=%{fdo_profile_path}",
                         "-Wno-profile-instr-unprofiled",
                         "-Wno-profile-instr-out-of-date",
-                        "-fprofile-correction",
-                    ],
+                    ] + profile_correction_flags,
                 )],
             )],
         ))
@@ -326,8 +328,7 @@ def get_legacy_features(platform, existing_feature_names, linker_tool_path):
                         "-fprofile-use=%{fdo_profile_path}",
                         "-Wno-profile-instr-unprofiled",
                         "-Wno-profile-instr-out-of-date",
-                        "-fprofile-correction",
-                    ],
+                    ] + profile_correction_flags,
                 )],
             )],
         ))
@@ -364,8 +365,7 @@ def get_legacy_features(platform, existing_feature_names, linker_tool_path):
                     expand_if_available = "fdo_profile_path",
                     flags = [
                         "-fauto-profile=%{fdo_profile_path}",
-                        "-fprofile-correction",
-                    ],
+                    ] + profile_correction_flags,
                 )],
             )],
         ))
