@@ -21,7 +21,7 @@ load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 MyCCompileInfo = provider(doc = "", fields = ["object"])
 
 DISABLED_FEATURES = [
-    "module_maps",  # # copybara-comment-this-out-please
+    # "module_maps",  # copybara-comment-this-out-please
 ]
 
 def _my_c_compile_impl(ctx):
