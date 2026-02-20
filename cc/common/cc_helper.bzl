@@ -812,13 +812,13 @@ def _get_cc_flags_make_variable(_ctx, feature_configuration, cc_toolchain):
 def _package_exec_path(ctx, package, sibling_repository_layout):
     return get_relative_path(_repository_exec_path(ctx.label.workspace_name, sibling_repository_layout), package)
 
-def _include_dirs(ctx, additional_make_variable_substitutions):
+def _include_dirs(ctx, additional_make_variable_substitutions, attr = "includes"):
     result = []
     sibling_repository_layout = ctx.configuration.is_sibling_repository_layout()
     package = ctx.label.package
     package_exec_path = _package_exec_path(ctx, package, sibling_repository_layout)
     package_source_root = _package_source_root(ctx.label.workspace_name, package, sibling_repository_layout)
-    for include in ctx.attr.includes:
+    for include in getattr(ctx.attr, attr):
         includes_attr = _expand(ctx, include, additional_make_variable_substitutions)
         if is_path_absolute(includes_attr):
             continue
