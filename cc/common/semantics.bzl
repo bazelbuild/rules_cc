@@ -129,6 +129,10 @@ def _get_cc_link_memlimit(_compilation_mode, exec_info):
 def _get_nocopts_attr():
     return {}
 
+def _is_allowed_nocopts(
+        nocopts):  # @unused
+    return False
+
 def _get_experimental_link_static_libraries_once(ctx):
     return ctx.fragments.cpp.experimental_link_static_libraries_once()
 
@@ -203,6 +207,7 @@ semantics = struct(
     get_coverage_env = _get_coverage_env,
     get_proto_aspects = _get_proto_aspects,
     get_nocopts_attr = _get_nocopts_attr,
+    is_allowed_nocopts = _is_allowed_nocopts,
     get_experimental_link_static_libraries_once = _get_experimental_link_static_libraries_once,
     cpp_modules_tools = _cpp_modules_tools,
     check_cc_shared_library_tags = _check_cc_shared_library_tags,

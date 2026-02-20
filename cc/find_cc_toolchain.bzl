@@ -58,7 +58,7 @@ CC_TOOLCHAIN_TYPE = Label("@bazel_tools//tools/cpp:toolchain_type")
 
 CC_TOOLCHAIN_ATTRS = {
     # Needed for Bazel 6.x and 7.x compatibility.
-    "_cc_toolchain": attr.label(default = Label("@rules_cc//cc:current_cc_toolchain")),
+    "_cc_toolchain": attr.label(default = Label("@rules_cc//cc:current_cc_toolchain")),  # copybara-uncomment-this-please
 }
 
 def find_cc_toolchain(ctx, *, mandatory = True):

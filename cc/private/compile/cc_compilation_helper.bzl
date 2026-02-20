@@ -181,19 +181,19 @@ def _collect_module_maps(deps, cc_toolchain_compilation_context, additional_cpp_
     # It should be evaluated whether this is ok.  If this turned into a problem at some
     # point, we could probably just declare two different modules with different use-declarations
     # in the module map file.
-    module_maps = []
+    direct_module_maps = []
+    transitive_module_maps = []
     for cc_context in deps:
         if cc_context._module_map != None:
-            module_maps.append(cc_context._module_map)
-        module_maps.extend(cc_context._exporting_module_maps)
+            direct_module_maps.append(cc_context._module_map)
+        transitive_module_maps.append(cc_context._exporting_module_maps)
 
     if cc_toolchain_compilation_context != None and cc_toolchain_compilation_context._module_map != None:
-        module_maps.append(cc_toolchain_compilation_context._module_map)
+        direct_module_maps.append(cc_toolchain_compilation_context._module_map)
 
-    for additional_cpp_module_map in additional_cpp_module_maps:
-        module_maps.append(additional_cpp_module_map)
+    direct_module_maps.extend(additional_cpp_module_maps)
 
-    return module_maps
+    return depset(direct = direct_module_maps, transitive = transitive_module_maps)
 
 _ModuleMapInfo = provider(
     doc = "An internal provider for create_module_map_action().",
@@ -279,7 +279,8 @@ def _module_map_struct_to_module_map_content(parameters, tree_expander):
         add_header(path = path, visibility = "", can_compile = False)
         added_paths.add(path)
 
-    for dep in parameters.dependency_module_maps:
+    dependency_module_maps = parameters.dependency_module_maps.to_list()
+    for dep in dependency_module_maps:
         lines.append("  use \"" + dep.name + "\"")
 
     if parameters.separate_module_headers:
@@ -296,13 +297,13 @@ def _module_map_struct_to_module_map_content(parameters, tree_expander):
             add_header(path = header.path, visibility = "", can_compile = True)
             added_paths.add(header.path)
 
-        for dep in parameters.dependency_module_maps:
+        for dep in dependency_module_maps:
             lines.append("  use \"" + dep.name + "\"")
 
     lines.append("}")
 
     if parameters.extern_dependencies:
-        for dep in parameters.dependency_module_maps:
+        for dep in dependency_module_maps:
             lines.append(
                 "extern module \"" + dep.name + "\" \"" +
                 parameters.leading_periods + dep.file.path + "\"",
@@ -329,7 +330,6 @@ def _create_module_map_action(
     leading_periods = "" if module_map_home_is_cwd else "../" * segments_to_exec_path
     public_headers = _cc_internal.freeze(public_headers)
     private_headers = _cc_internal.freeze(private_headers)
-    dependency_module_maps = _cc_internal.freeze(dependency_module_maps)
     additional_exported_headers = _cc_internal.freeze(additional_exported_headers)
     separate_module_headers = _cc_internal.freeze(separate_module_headers)
     data_struct = _ModuleMapInfo(

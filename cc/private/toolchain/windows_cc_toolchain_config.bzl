@@ -23,6 +23,7 @@ load(
     "feature",
     "flag_group",
     "flag_set",
+    "get_profile_correction_flags",
     "make_variable",
     "tool",
     "tool_path",
@@ -31,6 +32,7 @@ load(
 )
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
+load("@rules_cc//cc/toolchains:feature_injection.bzl", "FeatureInfo", "convert_feature")
 
 all_compile_actions = [
     ACTION_NAMES.c_compile,
@@ -99,6 +101,8 @@ def _use_msvc_toolchain(ctx):
     return ctx.attr.cpu in ["x64_windows", "arm64_windows"] and (ctx.attr.compiler == "msvc-cl" or ctx.attr.compiler == "clang-cl")
 
 def _impl(ctx):
+    profile_correction_flags = get_profile_correction_flags(ctx)
+
     if _use_msvc_toolchain(ctx):
         artifact_name_patterns = [
             artifact_name_pattern(
@@ -630,10 +634,11 @@ def _impl(ctx):
                             iterate_over = "user_archiver_flags",
                             expand_if_available = "user_archiver_flags",
                         ),
+                    ] + ([
                         flag_group(
                             flags = ctx.attr.archiver_flags,
                         ),
-                    ],
+                    ] if ctx.attr.archiver_flags else []),
                 ),
             ],
         )
@@ -644,7 +649,9 @@ def _impl(ctx):
             flag_sets = [
                 flag_set(
                     actions = all_link_actions,
-                    flag_groups = [flag_group(flags = ctx.attr.default_link_flags)],
+                    flag_groups = [
+                        flag_group(flags = ctx.attr.default_link_flags),
+                    ] if ctx.attr.default_link_flags else [],
                 ),
             ],
         )
@@ -813,7 +820,7 @@ def _impl(ctx):
                     ],
                     flag_groups = [
                         flag_group(
-                            flags = default_compile_flags_list,
+                            flags = default_compile_flags_list + ctx.attr.default_compile_flags,
                         ),
                     ],
                 ),
@@ -1547,8 +1554,7 @@ def _impl(ctx):
                             flag_group(
                                 flags = [
                                     "-fprofile-use=%{fdo_profile_path}",
-                                    "-fprofile-correction",
-                                ],
+                                ] + profile_correction_flags,
                                 expand_if_available = "fdo_profile_path",
                             ),
                         ],
@@ -1703,9 +1709,14 @@ def _impl(ctx):
         ],
         enabled = True,
     )
+    features.extend([cpp_modules_feature, cpp_module_modmap_file_feature, cpp20_module_compile_flags_feature])
+
+    extra_rules_based_features = depset(ctx.attr.extra_enabled_features + ctx.attr.extra_known_features)
+    features.extend([convert_feature(extra_feature[FeatureInfo], enabled = extra_feature in ctx.attr.extra_enabled_features) for extra_feature in extra_rules_based_features.to_list()])
+
     return cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
-        features = features + [cpp_modules_feature, cpp_module_modmap_file_feature, cpp20_module_compile_flags_feature],
+        features = features,
         action_configs = action_configs,
         artifact_name_patterns = artifact_name_patterns,
         cxx_builtin_include_directories = ctx.attr.cxx_builtin_include_directories,
@@ -1736,6 +1747,24 @@ cc_toolchain_config = rule(
         "dbg_mode_debug_flag": attr.string(default = ""),
         "default_compile_flags": attr.string_list(default = []),
         "default_link_flags": attr.string_list(default = []),
+        "extra_enabled_features": attr.label_list(
+            providers = [FeatureInfo],
+            default = [],
+            doc = """
+Extra `cc_feature` features to add to this toolchain in an initially enabled state.
+This attribute has limited integration with `cc_feature`, and does not run additional correctness checks or handle things like `data` files.
+This is only offered as a migration bridge for projects transitioning to rule-based toolchain configurations, or sharing of simple argument sets with older toolchains.
+""",
+        ),
+        "extra_known_features": attr.label_list(
+            providers = [FeatureInfo],
+            default = [],
+            doc = """
+Extra `cc_feature` features to add to this toolchain in an initially disabled state.
+This attribute has limited integration with `cc_feature`, and does not run additional correctness checks or handle things like `data` files.
+This is only offered as a migration bridge for projects transitioning to rule-based toolchain configurations, or sharing of simple argument sets with older toolchains.
+""",
+        ),
         "fastbuild_mode_debug_flag": attr.string(default = ""),
         "host_system_name": attr.string(),
         "link_flags": attr.string_list(),

@@ -342,8 +342,8 @@ def flag_set(
             specify at least one action.
         with_features: A list of feature sets defining when this flag set gets
             applied. The flag set will be applied when any one of the feature
-            sets evaluate to true. (That is, when when every 'feature' is
-            enabled, and every 'not_feature' is not enabled.)
+            sets evaluate to true. (That is, when every 'feature' is enabled,
+            and every 'not_feature' is not enabled.)
             If 'with_feature' is omitted, the flag set will be applied
             unconditionally for every action specified.
         flag_groups: A FlagGroup list - the flags applied via this flag set.
@@ -614,3 +614,9 @@ def artifact_name_pattern(category_name, prefix, extension):
         extension = extension,
         type_name = "artifact_name_pattern",
     )
+
+def _is_gcc_compiler(compiler):
+    return "gcc" in compiler
+
+def get_profile_correction_flags(ctx):
+    return ["-fprofile-correction"] if hasattr(ctx.attr, "compiler") and _is_gcc_compiler(ctx.attr.compiler) else []

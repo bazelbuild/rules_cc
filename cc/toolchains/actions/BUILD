@@ -153,19 +153,17 @@ cc_action_type(
     action_name = ACTION_NAMES.validate_static_library,
 )
 
-# ld_embed_data is only available within google.
 cc_action_type(
-    # # copybara-comment-this-out-please
-    name = "ld_embed_data_action",  # # copybara-comment-this-out-please
-    action_name = "ld_embed_data",  # # copybara-comment-this-out-please
-)  # # copybara-comment-this-out-please
+    name = "ld_embed_data_action",
+    action_name = "ld_embed_data",
+)
 
-# To make things simple, both internal and external rules will refer to
-# ld_embed_data, but externally it will evaluate to the empty set.
+# ld_embed_data is not presently used by any rules in rules_cc
+
 cc_action_type_set(
     name = "ld_embed_data",
     actions = [
-        ":ld_embed_data_action",  # # copybara-comment-this-out-please
+        ":ld_embed_data_action",
     ],
     allow_empty = True,
     visibility = ["//cc/toolchains:__subpackages__"],

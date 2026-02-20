@@ -55,7 +55,7 @@ bzl_library(
 bzl_library(
     name = "cc_shared_library_info_bzl",
     srcs = ["cc_shared_library_info.bzl"],
-    visibility = ["//cc:__subpackages__"],
+    visibility = ["//visibility:public"],
     deps = [
         "@cc_compatibility_proxy//:symbols_bzl",
     ],
