@@ -194,6 +194,7 @@ def _cc_library_impl(ctx):
         feature_configuration,
         ctx.fragments.cpp.force_pic(),
         precompiled_files,
+        ctx.attr.alwayslink,
     )
 
     if not cc_helper.is_compilation_outputs_empty(compilation_outputs):
@@ -373,7 +374,8 @@ def _convert_precompiled_libraries_to_library_to_link(
         cc_toolchain,
         feature_configuration,
         force_pic,
-        precompiled_files):
+        precompiled_files,
+        alwayslink):
     static_libraries = _build_map_identifier_to_artifact(precompiled_files[2])
     pic_static_libraries = _build_map_identifier_to_artifact(precompiled_files[3])
     alwayslink_static_libraries = _build_map_identifier_to_artifact(precompiled_files[4])
@@ -413,7 +415,7 @@ def _convert_precompiled_libraries_to_library_to_link(
             static_library = static_library,
             pic_static_library = pic_static_library,
             dynamic_library = dynamic_library,
-            alwayslink = identifier in alwayslink_static_libraries,
+            alwayslink = alwayslink or identifier in alwayslink_static_libraries,
         )
         libraries.append(library)
 
@@ -435,7 +437,7 @@ def _convert_precompiled_libraries_to_library_to_link(
             feature_configuration = feature_configuration,
             cc_toolchain = cc_toolchain,
             pic_static_library = pic_static_library,
-            alwayslink = identifier in alwayslink_static_libraries,
+            alwayslink = alwayslink or identifier in alwayslink_static_libraries,
         )
         libraries.append(library)
 
