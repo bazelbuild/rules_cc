@@ -86,7 +86,9 @@ bzl_library(
     name = "find_cc_toolchain_bzl",
     srcs = ["find_cc_toolchain.bzl"],
     visibility = ["//visibility:public"],
-    deps = ["//cc/common"],
+    deps = [
+        "//cc/common",
+    ],
 )
 
 bzl_library(
