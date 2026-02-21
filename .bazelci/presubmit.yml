@@ -40,7 +40,8 @@ tasks:
     platform: ubuntu2004
     build_targets:
       - "//docs/..."
-      - "-//docs:toolchain_api_diff_test" # Bazel adds loads statements in examples
+    test_targets:
+      - "//docs/..."
 
 # Bazel@HEAD
   ubuntu2004_head:
