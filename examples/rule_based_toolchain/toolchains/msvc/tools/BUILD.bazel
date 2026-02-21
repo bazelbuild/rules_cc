@@ -1,0 +1,80 @@
+# Copyright 2026 The Bazel Authors. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc/toolchains:tool.bzl", "cc_tool")
+load("@rules_cc//cc/toolchains:tool_map.bzl", "cc_tool_map")
+
+licenses(["notice"])
+
+COMMON_TOOLS = {
+    "@rules_cc//cc/toolchains/actions:assembly_actions": ":msvc_ml",
+    "@rules_cc//cc/toolchains/actions:c_compile": ":msvc_cl",
+    "@rules_cc//cc/toolchains/actions:cpp_compile_actions": ":msvc_cl",
+    "@rules_cc//cc/toolchains/actions:link_actions": ":msvc_link",
+    "@rules_cc//cc/toolchains/actions:objcopy_embed_data": ":msvc_nop",
+    "@rules_cc//cc/toolchains/actions:strip": ":msvc_nop",
+}
+
+cc_tool_map(
+    name = "msvc_tools",
+    tools = COMMON_TOOLS | {
+        "@rules_cc//cc/toolchains/actions:ar_actions": ":msvc_lib",
+    },
+    visibility = ["//visibility:public"],
+)
+
+cc_tool(
+    name = "msvc_cl",
+    src = "@windows_msvc//:cl",
+    capabilities = [
+        "@rules_cc//cc/toolchains/capabilities:targets_windows",
+    ],
+    tags = ["manual"],
+)
+
+cc_tool(
+    name = "msvc_link",
+    src = "@windows_msvc//:link",
+    capabilities = [
+        "@rules_cc//cc/toolchains/capabilities:targets_windows",
+        "@rules_cc//cc/toolchains/capabilities:supports_interface_shared_libraries",
+        "@rules_cc//cc/toolchains/capabilities:has_configured_linker_path",
+        "@rules_cc//cc/toolchains/capabilities:copy_dynamic_libraries_to_binary",
+    ],
+    tags = ["manual"],
+)
+
+cc_tool(
+    name = "msvc_lib",
+    src = "@windows_msvc//:lib",
+    capabilities = [
+        "@rules_cc//cc/toolchains/capabilities:targets_windows",
+    ],
+    tags = ["manual"],
+)
+
+cc_tool(
+    name = "msvc_ml",
+    src = "@windows_msvc//:ml",
+    capabilities = [
+        "@rules_cc//cc/toolchains/capabilities:targets_windows",
+    ],
+    tags = ["manual"],
+)
+
+cc_tool(
+    name = "msvc_nop",
+    src = ":msvc_nop.bat",
+    tags = ["manual"],
+)

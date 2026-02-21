@@ -1,4 +1,3 @@
-load("//cc/toolchains:feature.bzl", "cc_feature")
 load("//cc/toolchains:feature_set.bzl", "cc_feature_set")
 
 package(default_visibility = ["//visibility:public"])
@@ -15,7 +14,6 @@ package(default_visibility = ["//visibility:public"])
 cc_feature_set(
     name = "experimental_replace_legacy_action_config_features",
     all_of = [
-        ":backfill_legacy_args",
         "//cc/toolchains/args/archiver_flags:feature",
         "//cc/toolchains/args/pic_flags:feature",
         "//cc/toolchains/args/libraries_to_link:feature",
@@ -30,24 +28,23 @@ cc_feature_set(
         "//cc/toolchains/args/soname_flags:feature",
         "//cc/toolchains/args/static_libgcc:feature",
         "//cc/toolchains/args/include_flags:feature",
-        "//cc/toolchains/args/compiler_input_flags:feature",
         "//cc/toolchains/args/compiler_output_flags:feature",
+        "//cc/toolchains/args/compiler_input_flags:feature",  # the inputs must follow the outputs, or ml.exe assembler doesn't work
+        "//cc/toolchains/args/windows:def_file_feature",
+        "//cc/toolchains/args/windows:default_compile_flags_feature",
+        "//cc/toolchains/args/windows:default_cpp_std_feature",
+        "//cc/toolchains/args/windows:cpp20_module_compile_flags_feature",
+        "//cc/toolchains/args/windows:determinism_feature",
+        "//cc/toolchains/args/windows:nologo_feature",
+        "//cc/toolchains/args/windows:windows_machine_flags_feature",
+        "//cc/toolchains/args/windows:remove_unreferenced_code_feature",
+        "//cc/toolchains/args/windows:ignore_noisy_warnings_feature",
         "//cc/toolchains/args/fission_flags:feature",
+        "//cc/toolchains/args/windows:dynamic_link_msvcrt_feature",
         "//cc/toolchains/args/link_flags:feature",
         "//cc/toolchains/args/linkstamp_flags:feature",
         "//cc/toolchains/args/library_search_directories:feature",
         "//cc/toolchains/args/dependency_file:feature",
         "//cc/toolchains/args/compile_flags:feature",  # NOTE: This should come below default flags so user flags can override them
     ],
-)
-
-cc_feature(
-    name = "backfill_legacy_args",
-    feature_name = "experimental_replace_legacy_action_config_features",
-    # TODO: Convert remaining items in this list into their actual args.
-    implies = [
-        "//cc/toolchains/features/legacy:build_interface_libraries",
-        "//cc/toolchains/features/legacy:dynamic_library_linker_tool",
-    ],
-    visibility = ["//visibility:private"],
 )

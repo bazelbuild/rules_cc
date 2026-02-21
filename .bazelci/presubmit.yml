@@ -195,3 +195,17 @@ tasks:
       - "--enable_bzlmod"
     build_targets:
       - "//..."
+
+  windows_rule_based_toolchains:
+    name: Windows rule-based toolchains (msvc-cl)
+    platform: windows
+    working_directory: examples/rule_based_toolchain
+    build_flags:
+      - "--enable_bzlmod"
+      - "--config=msvc-cl"
+    build_targets:
+      - "//..."
+    test_flags:
+      - "--config=msvc-cl"
+    test_targets:
+      - "//..."
