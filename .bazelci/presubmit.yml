@@ -176,7 +176,10 @@ tasks:
       - "--enable_bzlmod"
       - "--ignore_dev_dependency"
 
-  ubuntu_rule_based_toolchains:
+# Rules-based toolchains
+  ubuntu_rule_based_toolchains_bazel_7:
+    name: Ubuntu rule-based toolchains (Bazel 7)
+    bazel: 7.2.1
     name: Ubuntu rule-based toolchains
     platform: ubuntu1804
     working_directory: examples/rule_based_toolchain
@@ -187,8 +190,53 @@ tasks:
     test_targets:
       - "//..."
 
-  macos_rule_based_toolchains:
-    name: macOS rule-based toolchains
+  ubuntu_rule_based_toolchains_bazel_8:
+    name: Ubuntu rule-based toolchains (Bazel 8)
+    bazel: 8.5.0
+    platform: ubuntu1804
+    working_directory: examples/rule_based_toolchain
+    build_flags:
+      - "--enable_bzlmod"
+    build_targets:
+      - "//..."
+    test_targets:
+      - "//..."
+
+  ubuntu_rule_based_toolchains_bazel_9:
+    name: Ubuntu rule-based toolchains (Bazel 9)
+    bazel: 9.0.0rc3
+    platform: ubuntu1804
+    working_directory: examples/rule_based_toolchain
+    build_flags:
+      - "--enable_bzlmod"
+    build_targets:
+      - "//..."
+    test_targets:
+      - "//..."
+
+  macos_rule_based_toolchains_bazel_7:
+    name: macOS rule-based toolchains (Bazel 7)
+    bazel: 7.2.1
+    platform: macos
+    working_directory: examples/rule_based_toolchain
+    build_flags:
+      - "--enable_bzlmod"
+    build_targets:
+      - "//..."
+
+  macos_rule_based_toolchains_bazel_8:
+    name: macOS rule-based toolchains (Bazel 8)
+    bazel: 8.5.0
+    platform: macos
+    working_directory: examples/rule_based_toolchain
+    build_flags:
+      - "--enable_bzlmod"
+    build_targets:
+      - "//..."
+
+  macos_rule_based_toolchains_bazel_9:
+    name: macOS rule-based toolchains (Bazel 9)
+    bazel: 9.0.0rc3
     platform: macos
     working_directory: examples/rule_based_toolchain
     build_flags:
