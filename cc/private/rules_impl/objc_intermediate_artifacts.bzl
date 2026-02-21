@@ -34,29 +34,6 @@ def _create_archive(ctx, enforce_always_link, archive_file_name_suffix):
         extension,
     )
 
-def _get_module_name(ctx):
-    if hasattr(ctx.attr, "module_name") and ctx.attr.module_name != "":
-        return ctx.attr.module_name
-    return (
-        str(ctx.label)
-            .replace("//", "")
-            .replace("@", "")
-            .replace("-", "_")
-            .replace("/", "_")
-            .replace(":", "_")
-    )
-
-def _swift_module_map(ctx):
-    module_name = _get_module_name(ctx)
-    custom_module_map = getattr(ctx.attr, "module_map", None)
-    return cc_common.create_module_map(
-        file = custom_module_map if custom_module_map else _declare_file_with_extension(
-            ctx,
-            ".modulemaps/module.modulemap",
-        ),
-        name = module_name,
-    )
-
 def _internal_module_map(ctx):
     return cc_common.create_module_map(
         file = _declare_file_with_extension(ctx, ".internal.cppmap"),
@@ -69,7 +46,6 @@ def _create_closure_struct(ctx, archive_file_name_suffix, enforce_always_link):
         # TODO(b/331163027): Consider renaming publicly to "create_combined_architecture_archive".
         # Alteratively, consider deleting this method as it is not used anywhere in the repo.
         combined_architecture_archive = lambda: _create_combined_architecture_archive(ctx),
-        swift_module_map = lambda: _swift_module_map(ctx),
         internal_module_map = lambda: _internal_module_map(ctx),
         # TODO(b/331163027): Consider renaming publicly to "create_archive".
         archive = lambda: _create_archive(ctx, enforce_always_link, archive_file_name_suffix),
