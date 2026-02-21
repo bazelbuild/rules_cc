@@ -50,6 +50,11 @@ all_compile_actions = [
     ACTION_NAMES.lto_backend,
 ]
 
+all_c_compile_actions = [
+    ACTION_NAMES.c_compile,
+    ACTION_NAMES.clif_match,
+]
+
 all_cpp_compile_actions = [
     ACTION_NAMES.cpp_compile,
     ACTION_NAMES.linkstamp_compile,
@@ -768,6 +773,17 @@ def _impl(ctx):
             ],
         )
 
+        default_c_std_feature = feature(
+            name = "default_c_std",
+            enabled = True,
+            flag_sets = [
+                flag_set(
+                    actions = all_c_compile_actions,
+                    flag_groups = [flag_group(flags = ["/std:c17"])],
+                ),
+            ],
+        )
+
         default_cpp_std_feature = feature(
             name = "default_cpp_std",
             enabled = True,
@@ -1331,6 +1347,7 @@ def _impl(ctx):
             no_stripping_feature,
             targets_windows_feature,
             copy_dynamic_libraries_to_binary_feature,
+            default_c_std_feature,
             default_cpp_std_feature,
             default_compile_flags_feature,
             msvc_env_feature,
