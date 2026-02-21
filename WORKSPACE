@@ -65,3 +65,31 @@ bazel_features_deps()
 load("//cc:extensions.bzl", "compatibility_proxy_repo")
 
 compatibility_proxy_repo()
+
+http_archive(
+    name = "rules_bazel_integration_test",
+    sha256 = "caadcd3adafc2cdcd4b020cf0ae530ddab4dc61201a9948473909b75a91e9192",
+    urls = [
+        "https://github.com/bazel-contrib/rules_bazel_integration_test/releases/download/v0.35.0/rules_bazel_integration_test.v0.35.0.tar.gz",
+    ],
+)
+
+load("@rules_bazel_integration_test//bazel_integration_test:deps.bzl", "bazel_integration_test_rules_dependencies")
+
+bazel_integration_test_rules_dependencies()
+
+load("@cgrindel_bazel_starlib//:deps.bzl", "bazel_starlib_dependencies")
+
+bazel_starlib_dependencies()
+
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+
+bazel_skylib_workspace()
+
+load("@rules_bazel_integration_test//bazel_integration_test:defs.bzl", "bazel_binaries")
+
+bazel_binaries(versions = [
+    "//:.bazelversion",
+    "8.5.1",
+    "last_green",
+])
