@@ -19,8 +19,7 @@ load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/common:cc_helper.bzl", "cc_helper")
 load("//cc/common:cc_info.bzl", "CcInfo")
 load("//cc/common:semantics.bzl", "semantics")
-
-visibility("private")
+load(":function_providing_rule.bzl", "wrap_starlark_function")
 
 def _cc_library_impl(ctx):
     semantics.validate(ctx, "cc_library")
@@ -556,3 +555,4 @@ ALLOWED_SRC_FILES.extend(cc_helper.extensions.PIC_OBJECT_FILE)
 LINKER_SCRIPT = [".ld", ".lds", ".ldscript"]
 
 cc_library_impl = _cc_library_impl
+cc_library_impl_wrapper = wrap_starlark_function(_cc_library_impl)

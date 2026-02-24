@@ -419,6 +419,10 @@ See <a href="${link cc_binary.linkshared}"><code>cc_binary.linkshared</code></a>
         "_stl": semantics.get_stl(),
         "_def_parser": semantics.get_def_parser(),
         "_use_auto_exec_groups": attr.bool(default = True),
+        "_impl_delegate": attr.label(
+            default = Label("//cc/private/rules_impl/wrappers:cc_library_impl_wrapper"),
+            cfg = "exec",
+        ),
     } | semantics.get_implementation_deps_allowed_attr() | semantics.get_nocopts_attr(),  # buildifier: disable=attr-licenses
     toolchains = use_cc_toolchain() + semantics.get_runtimes_toolchain(),
     fragments = ["cpp"] + semantics.additional_fragments(),

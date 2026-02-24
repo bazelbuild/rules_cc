@@ -18,6 +18,7 @@ filegroup(
         "**/BUILD",
     ]) + [
         "//cc/private/rules_impl/fdo:srcs",
+        "//cc/private/rules_impl/wrappers:srcs",
     ],
 )
 
@@ -57,6 +58,7 @@ bzl_library(
         "@cc_compatibility_proxy//:__pkg__",
     ],
     deps = [
+        ":function_providing_rule_bzl",
         ":objc_common",
         ":objc_compilation_support_bzl",
         "//cc:action_names_bzl",
@@ -144,4 +146,10 @@ bzl_library(
         "//cc:__subpackages__",
         "@cc_compatibility_proxy//:__pkg__",
     ],
+)
+
+bzl_library(
+    name = "function_providing_rule_bzl",
+    srcs = ["function_providing_rule.bzl"],
+    visibility = ["//cc:__subpackages__"],
 )

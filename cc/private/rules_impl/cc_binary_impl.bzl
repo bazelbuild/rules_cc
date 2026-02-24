@@ -23,11 +23,10 @@ load("//cc/common:cc_info.bzl", "CcInfo")
 load("//cc/common:debug_package_info.bzl", "DebugPackageInfo")
 load("//cc/common:semantics.bzl", "semantics")
 load("//cc/private:graph_node_info.bzl", "GraphNodeInfo")
-load(":cc_shared_library.bzl", "add_unused_dynamic_deps", "build_exports_map_from_only_dynamic_deps", "build_link_once_static_libs_map", "merge_cc_shared_library_infos", "separate_static_and_dynamic_link_libraries", "sort_linker_inputs", "throw_linked_but_not_exported_errors")
+load(":cc_shared_library_impl.bzl", "add_unused_dynamic_deps", "build_exports_map_from_only_dynamic_deps", "build_link_once_static_libs_map", "merge_cc_shared_library_infos", "separate_static_and_dynamic_link_libraries", "sort_linker_inputs", "throw_linked_but_not_exported_errors")
+load(":function_providing_rule.bzl", "wrap_starlark_function")
 
-visibility("private")
-
-_CcLauncherInfo = cc_common.launcher_provider
+_CcLauncherInfo = getattr(cc_common, "launcher_provider", None)
 
 # TODO(blaze-team): cleanup lint target types
 _EXECUTABLE = "executable"
@@ -871,3 +870,4 @@ def _impl(ctx):
     return providers
 
 impl = _impl
+cc_binary_impl_wrapper = wrap_starlark_function(_impl)

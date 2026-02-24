@@ -49,7 +49,10 @@ be <code>main</code>.
   empty file.</li>
 </ul>
 """ + semantics.cc_binary_extra_docs,
-    attrs = cc_binary_attrs,
+    attrs = cc_binary_attrs | {"_impl_delegate": attr.label(
+        default = Label("//cc/private/rules_impl/wrappers:cc_binary_impl_wrapper"),
+        cfg = "exec",
+    )},
     outputs = {
         "dwp_file": "%{name}.dwp",
         "stripped_binary": "%{name}.stripped",

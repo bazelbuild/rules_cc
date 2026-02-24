@@ -16,10 +16,8 @@
 
 load("//cc/common:cc_helper.bzl", "cc_helper")
 load("//cc/common:semantics.bzl", "semantics")
-load(":attrs.bzl", "cc_binary_attrs", "linkstatic_doc", "stamp_doc")
 load(":cc_binary_impl.bzl", "cc_binary_impl")
-
-visibility("private")
+load(":function_providing_rule.bzl", "wrap_starlark_function")
 
 _CC_TEST_TOOLCHAIN_TYPE = "@bazel_tools//tools/cpp:test_runner_toolchain_type"
 
@@ -74,25 +72,5 @@ def _impl(ctx):
     providers.extend(test_providers)
     return providers
 
-_cc_test_attrs = dict(cc_binary_attrs)
-
-# Update cc_test defaults:
-_cc_test_attrs.update(
-    _is_test = attr.bool(default = True),
-    _apple_constraints = attr.label_list(
-        default = [
-            "@platforms//os:ios",
-            "@platforms//os:macos",
-            "@platforms//os:tvos",
-            "@platforms//os:watchos",
-        ],
-    ),
-    # Starlark tests don't get `env_inherit` by default.
-    env_inherit = attr.string_list(),
-    stamp = attr.int(values = [-1, 0, 1], default = 0, doc = stamp_doc),
-    linkstatic = attr.bool(default = False, doc = linkstatic_doc),
-)
-_cc_test_attrs.update(semantics.get_test_malloc_attr())
-_cc_test_attrs.update(semantics.get_coverage_attrs())
-
 impl = _impl
+cc_test_impl_wrapper = wrap_starlark_function(_impl)

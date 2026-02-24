@@ -40,6 +40,10 @@ _cc_test_attrs.update(
     env_inherit = attr.string_list(),
     stamp = attr.int(values = [-1, 0, 1], default = 0, doc = stamp_doc),
     linkstatic = attr.bool(default = False, doc = linkstatic_doc),
+    _impl_delegate = attr.label(
+        default = Label("//cc/private/rules_impl/wrappers:cc_test_impl_wrapper"),
+        cfg = "exec",
+    ),
 )
 _cc_test_attrs.update(semantics.get_test_malloc_attr())
 _cc_test_attrs.update(semantics.get_coverage_attrs())
