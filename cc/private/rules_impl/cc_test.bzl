@@ -20,7 +20,7 @@ load("//cc/common:cc_info.bzl", "CcInfo")
 load("//cc/common:semantics.bzl", "semantics")
 load(":attrs.bzl", "cc_binary_attrs", "linkstatic_doc", "stamp_doc")
 load(":cc_shared_library.bzl", "dynamic_deps_initializer")
-load(":cc_test_impl.bzl", "impl")
+load(":function_providing_rule.bzl", "proxy")
 
 _CC_TEST_TOOLCHAIN_TYPE = "@bazel_tools//tools/cpp:test_runner_toolchain_type"
 _cc_test_attrs = dict(cc_binary_attrs)
@@ -70,7 +70,7 @@ def cc_test_initializer(**kwargs):
 
 cc_test = rule(
     initializer = cc_test_initializer,
-    implementation = impl,
+    implementation = proxy,
     doc = """
 <p>
 A <code>cc_test()</code> rule compiles a test.  Here, a test
