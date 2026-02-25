@@ -20,6 +20,7 @@ visibility("public")
 _DEFAULT_SYSROOT_ACTIONS = [
     Label("//cc/toolchains/actions:assembly_actions"),
     Label("//cc/toolchains/actions:c_compile"),
+    Label("//cc/toolchains/actions:objc_compile"),
     Label("//cc/toolchains/actions:cpp_compile_actions"),
     Label("//cc/toolchains/actions:link_actions"),
 ]
