@@ -14,8 +14,8 @@
 
 """cc_test Starlark declaration."""
 
-load("//cc:cc_postmark.bzl", "postmark")
-load("//cc:find_cc_toolchain.bzl", "use_cc_toolchain")
+load("//cc:cc_postmark_initializers.bzl", "postmark_initializer")
+load("//cc:use_cc_toolchain.bzl", "use_cc_toolchain")
 load("//cc/common:cc_info.bzl", "CcInfo")
 load("//cc/common:semantics.bzl", "semantics")
 load(":attrs.bzl", "cc_binary_attrs", "linkstatic_doc", "stamp_doc")
@@ -64,7 +64,7 @@ def cc_test_initializer(**kwargs):
 
     if "linkstatic" not in kwargs:
         kwargs["linkstatic"] = semantics.get_linkstatic_default_for_test()
-    kwargs = postmark.initializer(**kwargs)
+    kwargs = postmark_initializer(**kwargs)
 
     return dynamic_deps_initializer(**kwargs)
 

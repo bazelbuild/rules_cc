@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """
 Helpers for CC Toolchains.
 
@@ -52,18 +53,16 @@ https://github.com/bazelbuild/bazel/issues/7260 is flipped (and support for old
 Bazel version is not needed), it's enough to only keep the toolchain type.
 """
 
+load("//cc:use_cc_toolchain.bzl", _CC_TOOLCHAIN_ATTRS = "CC_TOOLCHAIN_ATTRS", _CC_TOOLCHAIN_TYPE = "CC_TOOLCHAIN_TYPE", _use_cc_toolchain = "use_cc_toolchain")
 load("//cc/common:cc_common.bzl", "cc_common")
 
-CC_TOOLCHAIN_TYPE = Label("@bazel_tools//tools/cpp:toolchain_type")
-
-CC_TOOLCHAIN_ATTRS = {
-    # Needed for Bazel 6.x and 7.x compatibility.
-    "_cc_toolchain": attr.label(default = Label("@rules_cc//cc:current_cc_toolchain")),  # copybara-uncomment-this-please
-}
+use_cc_toolchain = _use_cc_toolchain
+CC_TOOLCHAIN_TYPE = _CC_TOOLCHAIN_TYPE
+CC_TOOLCHAIN_ATTRS = _CC_TOOLCHAIN_ATTRS
 
 def find_cc_toolchain(ctx, *, mandatory = True):
     """
-    Returns the current `CcToolchainInfo`.
+Returns the current `CcToolchainInfo`.
 
     Args:
       ctx: The rule context for which to find a toolchain.
@@ -110,22 +109,3 @@ def find_cpp_toolchain(ctx):
       A CcToolchainInfo.
     """
     return find_cc_toolchain(ctx)
-
-def use_cc_toolchain(mandatory = True):
-    """
-    Helper to depend on the cc toolchain.
-
-    Usage:
-    ```
-    my_rule = rule(
-        toolchains = [other toolchain types] + use_cc_toolchain(),
-    )
-    ```
-
-    Args:
-      mandatory: Whether or not it should be an error if the toolchain cannot be resolved.
-
-    Returns:
-      A list that can be used as the value for `rule.toolchains`.
-    """
-    return [config_common.toolchain_type(CC_TOOLCHAIN_TYPE, mandatory = mandatory)]

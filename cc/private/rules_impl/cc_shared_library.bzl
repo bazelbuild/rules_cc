@@ -15,8 +15,7 @@
 """Implementation of cc_shared_library"""
 
 load("@com_google_protobuf//bazel/common:proto_info.bzl", "ProtoInfo")
-load("//cc:find_cc_toolchain.bzl", "use_cc_toolchain")
-load("//cc/common:cc_helper.bzl", "cc_helper")
+load("//cc:use_cc_toolchain.bzl", "use_cc_toolchain")
 load("//cc/common:cc_info.bzl", "CcInfo")
 load("//cc/common:cc_shared_library_hint_info.bzl", "CcSharedLibraryHintInfo")
 load("//cc/common:cc_shared_library_info.bzl", "CcSharedLibraryInfo")
@@ -329,6 +328,14 @@ following:
     fragments = ["cpp"] + semantics.additional_fragments(),
 )
 
+def _is_non_empty_list_or_select(value, attr):
+    if type(value) == "list":
+        return len(value) > 0
+    elif type(value) == "select":
+        return True
+    else:
+        fail("Only select or list is valid for {} attr".format(attr))
+
 def dynamic_deps_initializer(**kwargs):
     """Initializes dynamic_deps_attrs
 
@@ -338,7 +345,7 @@ def dynamic_deps_initializer(**kwargs):
     Returns:
         (dict)
     """
-    if "dynamic_deps" in kwargs and cc_helper.is_non_empty_list_or_select(kwargs["dynamic_deps"], "dynamic_deps"):
+    if "dynamic_deps" in kwargs and _is_non_empty_list_or_select(kwargs["dynamic_deps"], "dynamic_deps"):
         # Propagate an aspect if dynamic_deps attribute is specified.
         # Use += for lists rather than extend or append to allow for the case where deps
         # is a select.

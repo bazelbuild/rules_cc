@@ -14,7 +14,7 @@
 
 """cc_library Starlark declaration replacing native"""
 
-load("//cc:find_cc_toolchain.bzl", "use_cc_toolchain")
+load("//cc:use_cc_toolchain.bzl", "use_cc_toolchain")
 load("//cc/common:cc_info.bzl", "CcInfo")
 load("//cc/common:semantics.bzl", "semantics")
 load(":attrs.bzl", "common_attrs", "linkstatic_doc")

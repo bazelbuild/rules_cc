@@ -392,14 +392,6 @@ def _matches_extension(extension, patterns):
             return True
     return False
 
-def _is_non_empty_list_or_select(value, attr):
-    if type(value) == "list":
-        return len(value) > 0
-    elif type(value) == "select":
-        return True
-    else:
-        fail("Only select or list is valid for {} attr".format(attr))
-
 def _gen_empty_def_file(ctx):
     trivial_def_file = ctx.actions.declare_file(ctx.label.name + ".gen.empty.def")
     ctx.actions.write(trivial_def_file, "", False)
@@ -1104,7 +1096,6 @@ cc_helper = struct(
     stringify_linker_input = _stringify_linker_input,
     generate_def_file = _generate_def_file,
     get_windows_def_file_for_linking = _get_windows_def_file_for_linking,
-    is_non_empty_list_or_select = _is_non_empty_list_or_select,
     check_file_extensions = _check_file_extensions,
     check_srcs_extensions = _check_srcs_extensions,
     libraries_from_linking_context = _libraries_from_linking_context,

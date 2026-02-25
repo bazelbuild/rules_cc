@@ -84,7 +84,10 @@ filegroup(
 
 bzl_library(
     name = "find_cc_toolchain_bzl",
-    srcs = ["find_cc_toolchain.bzl"],
+    srcs = [
+        "find_cc_toolchain.bzl",
+        "use_cc_toolchain.bzl",
+    ],
     visibility = ["//visibility:public"],
     deps = [
         "//cc/common",
@@ -128,7 +131,10 @@ bzl_library(
 
 bzl_library(
     name = "cc_postmark_bzl",
-    srcs = ["cc_postmark.bzl"],
+    srcs = [
+        "cc_postmark.bzl",
+        "cc_postmark_initializers.bzl",
+    ],
     visibility = ["//visibility:public"],
 )
 
