@@ -19,15 +19,15 @@ load("//cc:use_cc_toolchain.bzl", "use_cc_toolchain")
 load("//cc/common:cc_info.bzl", "CcInfo")
 load("//cc/common:semantics.bzl", "semantics")
 load(":attrs.bzl", "cc_binary_attrs")
+load(":cc_binary_impl.bzl", "impl")
 load(":cc_shared_library.bzl", "dynamic_deps_initializer")
-load(":function_providing_rule.bzl", "proxy")
 
 def _cc_binary_initializer(**kwargs):
     kwargs = postmark_initializer(**kwargs)
     return dynamic_deps_initializer(**kwargs)
 
 cc_binary = rule(
-    implementation = proxy,
+    implementation = impl,
     initializer = _cc_binary_initializer,
     doc = """
 <p>It produces an executable binary.</p>
