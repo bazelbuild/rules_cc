@@ -25,6 +25,7 @@ load(
     "nested_args_provider",
 )
 load("//tests/rule_based_toolchain:generics.bzl", "struct_subject")
+load("//tests/rule_based_toolchain:helpers.bzl", "path_pattern")
 load("//tests/rule_based_toolchain:subjects.bzl", "result_fn_wrapper", "subjects")
 
 visibility("private")
@@ -108,8 +109,8 @@ def _format_args_test(env, targets):
     ).ok()
     res.args().contains_exactly([
         "a %{foo}",
-        "b " + targets.directory[DirectoryInfo].path,
-        "c " + targets.bin_wrapper[DefaultInfo].files.to_list()[0].path,
+        "b " + path_pattern(targets.directory[DirectoryInfo].path),
+        "c " + path_pattern(targets.bin_wrapper[DefaultInfo].files.to_list()[0].path),
     ]).in_order()
     res.used_items().contains_exactly([
         "var",

@@ -16,6 +16,7 @@
 load("//cc/toolchains:cc_toolchain_info.bzl", "ToolInfo")
 load("//cc/toolchains/impl:collect.bzl", _collect_tools = "collect_tools")
 load("//cc/toolchains/impl:legacy_converter.bzl", "convert_tool")
+load("//tests/rule_based_toolchain:helpers.bzl", "path_pattern")
 load("//tests/rule_based_toolchain:subjects.bzl", "result_fn_wrapper", "subjects")
 
 visibility("private")
@@ -69,8 +70,8 @@ def _tool_env_expansion_test(env, targets):
     tool = env.expect.that_target(targets.tool_with_env).provider(ToolInfo)
     tool.env().contains_exactly({
         "STATIC": "value",
-        "TOOL_ENV": "tests/rule_based_toolchain/testdata/file1",
-        "TOOL_ENV_AGAIN": "tests/rule_based_toolchain/testdata/file1",
+        "TOOL_ENV": path_pattern("tests/rule_based_toolchain/testdata/file1"),
+        "TOOL_ENV_AGAIN": path_pattern("tests/rule_based_toolchain/testdata/file1"),
     })
 
 def _collect_tools_collects_tools_test(env, targets):

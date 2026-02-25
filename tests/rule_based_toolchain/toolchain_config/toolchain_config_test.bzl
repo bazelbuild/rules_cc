@@ -27,6 +27,7 @@ load(
 load("//cc/toolchains:cc_toolchain_info.bzl", "ActionTypeInfo", "ToolchainConfigInfo")
 load("//cc/toolchains/impl:legacy_converter.bzl", "convert_toolchain")
 load("//cc/toolchains/impl:toolchain_config_info.bzl", _toolchain_config_info = "toolchain_config_info")
+load("//tests/rule_based_toolchain:helpers.bzl", "path_pattern")
 load("//tests/rule_based_toolchain:subjects.bzl", "result_fn_wrapper", "subjects")
 
 visibility("private")
@@ -226,7 +227,7 @@ def _toolchain_collects_files_test(env, targets):
                 legacy_flag_set(
                     flag_groups = [
                         legacy_flag_group(flags = [
-                            "--sysroot=tests/rule_based_toolchain/testdata",
+                            "--sysroot=" + path_pattern("tests/rule_based_toolchain/testdata"),
                         ]),
                     ],
                 ),
@@ -246,7 +247,7 @@ def _toolchain_collects_files_test(env, targets):
                 legacy_flag_set(
                     flag_groups = [
                         legacy_flag_group(flags = [
-                            "--sysroot=tests/rule_based_toolchain/testdata",
+                            "--sysroot=" + path_pattern("tests/rule_based_toolchain/testdata"),
                         ]),
                     ],
                 ),
@@ -267,8 +268,8 @@ def _tool_env_wires_into_toolchain_test(env, targets):
                     actions = ["c_compile"],
                     env_entries = [
                         legacy_env_entry(key = "STATIC", value = "value"),
-                        legacy_env_entry(key = "TOOL_ENV", value = "tests/rule_based_toolchain/testdata/file1"),
-                        legacy_env_entry(key = "TOOL_ENV_AGAIN", value = "tests/rule_based_toolchain/testdata/file1"),
+                        legacy_env_entry(key = "TOOL_ENV", value = path_pattern("tests/rule_based_toolchain/testdata/file1")),
+                        legacy_env_entry(key = "TOOL_ENV_AGAIN", value = path_pattern("tests/rule_based_toolchain/testdata/file1")),
                     ],
                 ),
                 legacy_env_set(

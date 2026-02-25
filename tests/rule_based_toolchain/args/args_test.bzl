@@ -36,6 +36,7 @@ load(
     "format_dict_values",
 )
 load("//tests/rule_based_toolchain:generics.bzl", "struct_subject")
+load("//tests/rule_based_toolchain:helpers.bzl", "path_pattern")
 load(
     "//tests/rule_based_toolchain:subjects.bzl",
     "result_fn_wrapper",
@@ -182,7 +183,7 @@ def _directory_format_in_args_test(env, targets):
     )
     converted.flag_sets().contains_exactly([flag_set(
         actions = ["c_compile", "cpp_compile"],
-        flag_groups = [flag_group(flags = ["-resource-dir=" + targets.directory[DirectoryInfo].path])],
+        flag_groups = [flag_group(flags = ["-resource-dir=" + path_pattern(targets.directory[DirectoryInfo].path)])],
     )])
 
 TARGETS = [
@@ -241,7 +242,7 @@ def _format_dict_values_test(env, targets):
         {"bar": targets.directory},
     ).ok()
     res.env().contains_exactly([
-        ("foo", targets.directory[DirectoryInfo].path),
+        ("foo", path_pattern(targets.directory[DirectoryInfo].path)),
     ])
     res.used_items().contains_exactly(["bar"])
 
@@ -251,7 +252,7 @@ def _format_dict_values_test(env, targets):
         {"bar": targets.bin_wrapper},
     ).ok()
     res.env().contains_exactly([
-        ("foo", targets.bin_wrapper[DefaultInfo].files.to_list()[0].path),
+        ("foo", path_pattern(targets.bin_wrapper[DefaultInfo].files.to_list()[0].path)),
     ])
     res.used_items().contains_exactly(["bar"])
 
@@ -269,9 +270,9 @@ def _format_dict_values_test(env, targets):
         },
     ).ok()
     res.env().contains_exactly([
-        ("foo", targets.directory[DirectoryInfo].path),
-        ("baz", targets.bin_wrapper[DefaultInfo].files.to_list()[0].path),
-        ("bat", targets.subdirectory_1[DirectoryInfo].path),
+        ("foo", path_pattern(targets.directory[DirectoryInfo].path)),
+        ("baz", path_pattern(targets.bin_wrapper[DefaultInfo].files.to_list()[0].path)),
+        ("bat", path_pattern(targets.subdirectory_1[DirectoryInfo].path)),
     ])
     res.used_items().contains_exactly(["bar", "quuz", "qux"])
 
@@ -319,7 +320,7 @@ def _genrule_data_with_env_format_test(env, targets):
         targets.cpp_compile.label,
     ])
     genrule_args.env().entries().contains_exactly({
-        "GENERATED_PATH": targets.generated_file[DefaultInfo].files.to_list()[0].path,
+        "GENERATED_PATH": path_pattern(targets.generated_file[DefaultInfo].files.to_list()[0].path),
     })
     genrule_args.files().contains_exactly(["tests/rule_based_toolchain/args/generated_file.txt"])
 

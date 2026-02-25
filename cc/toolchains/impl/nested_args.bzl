@@ -13,6 +13,7 @@
 # limitations under the License.
 """Helper functions for working with args."""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@bazel_skylib//rules/directory:providers.bzl", "DirectoryInfo")
 load("//cc:cc_toolchain_config_lib.bzl", "flag_group", "variable_with_value")
 load("//cc/toolchains:cc_toolchain_info.bzl", "NestedArgsInfo", "VariableInfo")
@@ -294,14 +295,26 @@ def _escape(s):
 def _format_target(target, fail = fail):
     if VariableInfo in target:
         return "%%{%s}" % target[VariableInfo].name
-    elif DirectoryInfo in target:
-        return _escape(target[DirectoryInfo].path)
 
-    files = target[DefaultInfo].files.to_list()
-    if len(files) == 1:
-        return _escape(files[0].path)
+    path = None
+    if DirectoryInfo in target:
+        path = target[DirectoryInfo].path
+    else:
+        files = target[DefaultInfo].files.to_list()
+        if len(files) == 1:
+            path = files[0].path
+    if path == None:
+        fail("%s should be either a variable, a directory, or a single file." % target.label)
+    if "}" in path:
+        fail("The path %r of target %s used with 'format' cannot contain } because it would interfere with the formatting." % (
+            path,
+            target.label,
+        ))
+    if not bazel_features.cc.supports_path_variable_patterns:
+        return path
 
-    fail("%s should be either a variable, a directory, or a single file." % target.label)
+    # Mark as a path to support path mapping (https://github.com/bazelbuild/bazel/discussions/22658).
+    return "%%{path:%s}" % path
 
 def _format_string(arg, format, used_vars, fail = fail):
     upto = 0
