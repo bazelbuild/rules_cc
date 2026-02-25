@@ -230,7 +230,7 @@ def get_cc_toolchain_provider(ctx, attributes):
 
     module_map = None
     if attributes.module_map != None and attributes.module_map_artifact != None:
-        module_map = cc_common.create_module_map(file = attributes.module_map_artifact, name = "crosstool")
+        module_map = cc_common.create_module_map(file = attributes.module_map_artifact, identifier = "crosstool")
 
     cc_compilation_context = cc_common.create_compilation_context(module_map = module_map)
 

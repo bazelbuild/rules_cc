@@ -215,7 +215,6 @@ _ModuleMapInfo = provider(
 def _module_map_struct_to_module_map_content(parameters, tree_expander):
     lines = []
     module_map = parameters.module_map
-    lines.append("module \"%s\" {" % module_map.name)
     lines.append("  export *")
 
     def expanded(artifacts):
@@ -345,6 +344,7 @@ def _create_module_map_action(
         extern_dependencies = extern_dependencies,
         leading_periods = leading_periods,
     )
+    content.add(module_map.identifier, format = "module \"%s\" {")
     content.add_all([data_struct], map_each = _module_map_struct_to_module_map_content)
 
     # We need to add all tree artifacts to the args object directly so we they can be
@@ -508,7 +508,7 @@ def _init_cc_compilation_context(
         if not module_map:
             module_map = create_module_map(
                 file = actions.declare_file(label.name + ".cppmap"),
-                name = label.workspace_name + "//" + label.package + ":" + label.name,
+                identifier = label,
             )
 
         # There are different modes for module compilation:
