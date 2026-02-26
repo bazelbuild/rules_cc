@@ -21,7 +21,7 @@ load("//cc/common:cc_shared_library_hint_info.bzl", "CcSharedLibraryHintInfo")
 load("//cc/common:cc_shared_library_info.bzl", "CcSharedLibraryInfo")
 load("//cc/common:semantics.bzl", "semantics")
 load("//cc/private:graph_node_info.bzl", "GraphNodeInfo")
-load(":cc_shared_library_impl.bzl", "cc_shared_library_impl")
+load(":function_providing_rule.bzl", "proxy")
 
 # TODO(#5200): Add export_define to library_to_link and cc_library
 
@@ -95,7 +95,7 @@ def _cc_shared_library_initializer(**kwargs):
     return kwargs | {"exports_filter": canonical_exports_filter}
 
 cc_shared_library = rule(
-    implementation = cc_shared_library_impl,
+    implementation = proxy,
     initializer = _cc_shared_library_initializer,
     doc = """
 <p>It produces a shared library.</p>
