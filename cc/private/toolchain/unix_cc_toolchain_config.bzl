@@ -1604,12 +1604,54 @@ def _impl(ctx):
                 flag_groups = ([
                     flag_group(flags = ctx.attr.coverage_compile_flags),
                 ] if ctx.attr.coverage_compile_flags else []),
+                with_features = [
+                    with_feature_set(
+                        # Use coverage_enabled/coverage_instrumented instead if
+                        # supported by this version of Bazel.
+                        not_features = ["coverage_enabled"],
+                    ),
+                ],
             ),
             flag_set(
                 actions = all_link_actions + lto_index_actions,
                 flag_groups = ([
                     flag_group(flags = ctx.attr.coverage_link_flags),
                 ] if ctx.attr.coverage_link_flags else []),
+                with_features = [
+                    with_feature_set(
+                        # Use coverage_enabled/coverage_instrumented instead if
+                        # supported by this version of Bazel.
+                        not_features = ["coverage_enabled"],
+                    ),
+                ],
+            ),
+        ],
+    )
+    coverage_enabled_feature = feature(
+        name = "coverage_enabled",
+        flag_sets = [
+            flag_set(
+                actions = all_link_actions + lto_index_actions,
+                flag_groups = ([
+                    flag_group(flags = ctx.attr.coverage_link_flags),
+                ] if ctx.attr.coverage_link_flags else []),
+            ),
+        ],
+    )
+    coverage_instrumented_feature = feature(
+        name = "coverage_instrumented",
+        flag_sets = [
+            flag_set(
+                actions = [
+                    ACTION_NAMES.preprocess_assemble,
+                    ACTION_NAMES.c_compile,
+                    ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cpp_header_parsing,
+                    ACTION_NAMES.cpp_module_compile,
+                ],
+                flag_groups = ([
+                    flag_group(flags = ctx.attr.coverage_compile_flags),
+                ] if ctx.attr.coverage_compile_flags else []),
             ),
         ],
     )
@@ -1865,6 +1907,8 @@ def _impl(ctx):
             fission_support_feature,
             strip_debug_symbols_feature,
             coverage_feature,
+            coverage_enabled_feature,
+            coverage_instrumented_feature,
             supports_pic_feature,
             prefer_pic_for_opt_binaries_feature,
             asan_feature,
@@ -1930,6 +1974,8 @@ def _impl(ctx):
             ] if ctx.attr.supports_start_end_lib else []
         ) + [
             coverage_feature,
+            coverage_enabled_feature,
+            coverage_instrumented_feature,
             default_compile_flags_feature,
             default_link_flags_feature,
             user_link_flags_feature,
