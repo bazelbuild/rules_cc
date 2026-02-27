@@ -58,7 +58,6 @@ def _create_context_and_provider(
         compilation_attributes,
         compilation_artifacts,
         intermediate_artifacts,
-        has_module_map,
         deps,
         implementation_deps,
         attr_linkopts,
@@ -150,10 +149,6 @@ def _create_context_and_provider(
         objc_compilation_context_kwargs["private_hdrs"].extend(
             _filter_by_extension(compilation_artifacts.srcs, HEADERS),
         )
-
-    if has_module_map:
-        module_map = intermediate_artifacts.swift_module_map()
-        objc_provider_kwargs["module_map"].append(module_map.file if type(module_map.file) == "File" else module_map.file())
 
     objc_provider_kwargs_built = {}
     for k, v in objc_provider_kwargs.items():
