@@ -38,6 +38,7 @@ filegroup(
         "//cc/private/link:srcs",
         "//cc/private/rules_impl:srcs",
         "//cc/private/toolchain:srcs",
+        "//cc/private/toolchain/test:srcs",
         "//cc/private/toolchain_config:srcs",
     ],
     visibility = ["//visibility:public"],
