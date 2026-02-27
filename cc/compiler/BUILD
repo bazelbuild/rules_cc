@@ -45,6 +45,54 @@ load("//cc/toolchains:compiler_flag.bzl", "compiler_flag")
 
 package(default_visibility = ["//visibility:public"])
 
+# Constraint setting and values for platform-based toolchain selection.
+# Use these in your platform() definitions to constrain by compiler type.
+#
+# Example:
+#   platform(
+#       name = "windows_clang_cl",
+#       constraint_values = [
+#           "@platforms//os:windows",
+#           "@rules_cc//cc/compiler:clang-cl",
+#       ],
+#   )
+
+constraint_setting(
+    name = "cc_compiler",
+    # This is the canonical location for compiler constraint values.
+    # The values in cc/private/toolchain are aliases to these for backward compatibility.
+)
+
+constraint_value(
+    name = "clang_constraint",
+    constraint_setting = ":cc_compiler",
+)
+
+constraint_value(
+    name = "gcc_constraint",
+    constraint_setting = ":cc_compiler",
+)
+
+constraint_value(
+    name = "msvc_constraint",
+    constraint_setting = ":cc_compiler",
+)
+
+constraint_value(
+    name = "clang-cl_constraint",
+    constraint_setting = ":cc_compiler",
+)
+
+constraint_value(
+    name = "mingw_constraint",
+    constraint_setting = ":cc_compiler",
+)
+
+constraint_value(
+    name = "msys_constraint",
+    constraint_setting = ":cc_compiler",
+)
+
 licenses(["notice"])
 
 compiler_flag(name = "compiler")
