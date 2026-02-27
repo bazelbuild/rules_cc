@@ -43,7 +43,7 @@ def _perform_error_checks(
 
     if (shared_library_artifact != None and
         not cc_helper.is_valid_shared_library_artifact(shared_library_artifact)):
-        fail("'shared_library' does not produce any cc_import shared_library files (expected .so, .dylib, .dll or .pyd)")
+        fail("'shared_library' does not produce any cc_import shared_library files (expected .so, .dylib, .dll, .pyd or .xll)")
 
 def _create_archive_action(
         ctx,

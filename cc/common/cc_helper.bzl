@@ -68,7 +68,8 @@ def _is_valid_shared_library_name(shared_library_name):
         shared_library_name.endswith(".dll") or
         shared_library_name.endswith(".dylib") or
         shared_library_name.endswith(".pyd") or
-        shared_library_name.endswith(".wasm")):
+        shared_library_name.endswith(".wasm") or
+        shared_library_name.endswith(".xll")):
         return True
 
     return is_versioned_shared_library_extension_valid(shared_library_name)
@@ -503,7 +504,7 @@ def _get_toolchain_global_make_variables(cc_toolchain):
     result["CROSSTOOLTOP"] = cc_toolchain._crosstool_top_path
     return result
 
-_SHARED_LIBRARY_EXTENSIONS = ["so", "dll", "dylib", "pyd", "wasm"]
+_SHARED_LIBRARY_EXTENSIONS = ["so", "dll", "dylib", "pyd", "wasm", "xll"]
 
 def _is_valid_shared_library_artifact(shared_library):
     if (shared_library.extension in _SHARED_LIBRARY_EXTENSIONS):
