@@ -72,3 +72,12 @@ config_setting(
     ],
     visibility = ["//visibility:public"],
 )
+
+config_setting(
+    name = "windows_aarch64",
+    constraint_values = [
+        "@platforms//os:windows",
+        "@platforms//cpu:aarch64",
+    ],
+    visibility = ["//visibility:public"],
+)

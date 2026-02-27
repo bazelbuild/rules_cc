@@ -5,4 +5,10 @@ build --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
 build --enable_platform_specific_config
 build:macos --platforms=//:linux_x86_64
 
+build:linux --deleted_packages=toolchains/clang_cl,toolchains/clang_cl/tools,toolchains/msvc,toolchains/msvc/tools
+build:macos --deleted_packages=toolchains/clang_cl,toolchains/clang_cl/tools,toolchains/msvc,toolchains/msvc/tools,toolchains/gcc,toolchains/gcc/tools,toolchains/gcc/args
+build:windows --deleted_packages=toolchains/clang,toolchains/clang/tools,toolchains/clang/args,toolchains/gcc,toolchains/gcc/tools,toolchains/gcc/args
+
 build:gcc --//toolchains:compiler_kind=gcc
+build:msvc-cl --//toolchains:compiler_kind=msvc-cl
+build:clang-cl --//toolchains:compiler_kind=clang-cl

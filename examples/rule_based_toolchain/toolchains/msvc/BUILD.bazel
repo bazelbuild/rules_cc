@@ -1,0 +1,88 @@
+# Copyright 2026 The Bazel Authors. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc/toolchains:make_variable.bzl", "cc_make_variable")
+load("@rules_cc//cc/toolchains:toolchain.bzl", "cc_toolchain")
+
+licenses(["notice"])
+
+cc_make_variable(
+    name = "example_variable",
+    value = "-DEXAMPLE=1",
+    variable_name = "EXAMPLE_SUBSTITUTION",
+)
+
+cc_toolchain(
+    name = "host_msvc_cl",
+    args = [
+        "//toolchains/args:windows_builtin_includes",
+        "//toolchains/args:windows_builtin_libs",
+        "@rules_cc//cc/toolchains/args/windows:windows_machine_flags",
+        "//toolchains/args:windows_msvc_path",
+    ],
+    artifact_name_patterns = [
+        "//toolchains/windows:object_file",
+        "//toolchains/windows:static_library",
+        "//toolchains/windows:alwayslink_static_library",
+        "//toolchains/windows:executable",
+        "//toolchains/windows:dynamic_library",
+        "//toolchains/windows:interface_library",
+    ],
+    compiler = "msvc-cl",
+    enabled_features = [
+        "@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features",
+        "@rules_cc//cc/toolchains/args/windows:parse_showincludes_feature",
+        "@rules_cc//cc/toolchains/args/windows:default_cpp_std_feature",
+        "@rules_cc//cc/toolchains/args/windows:cpp20_module_compile_flags_feature",
+        "@rules_cc//cc/toolchains/args/windows:determinism_feature",
+        "@rules_cc//cc/toolchains/args/windows:nologo_feature",
+        "@rules_cc//cc/toolchains/args/windows:remove_unreferenced_code_feature",
+        "@rules_cc//cc/toolchains/args/windows:ignore_noisy_warnings_feature",
+        "@rules_cc//cc/toolchains/features/legacy:windows_export_all_symbols",
+    ],
+    known_features = [
+        "@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features",
+        "@rules_cc//cc/toolchains/args/windows:parse_showincludes_feature",
+        "@rules_cc//cc/toolchains/args/windows:dynamic_link_msvcrt_feature",
+        "@rules_cc//cc/toolchains/args/windows:static_link_msvcrt_feature",
+        "@rules_cc//cc/toolchains/args/windows:default_cpp_std_feature",
+        "@rules_cc//cc/toolchains/args/windows:cpp20_module_compile_flags_feature",
+        "@rules_cc//cc/toolchains/args/windows:determinism_feature",
+        "@rules_cc//cc/toolchains/args/windows:nologo_feature",
+        "@rules_cc//cc/toolchains/args/windows:remove_unreferenced_code_feature",
+        "@rules_cc//cc/toolchains/args/windows:ignore_noisy_warnings_feature",
+        "@rules_cc//cc/toolchains/args/windows:treat_warnings_as_errors_feature",
+        "@rules_cc//cc/toolchains/args/windows:symbol_check_feature",
+        "@rules_cc//cc/toolchains/args/windows:opt_feature",
+        "@rules_cc//cc/toolchains/args/windows:frame_pointer_feature",
+        "@rules_cc//cc/toolchains/args/windows:smaller_binary_feature",
+        "@rules_cc//cc/toolchains/args/windows:disable_assertions_feature",
+        "@rules_cc//cc/toolchains/args/windows:dbg_feature",
+        "@rules_cc//cc/toolchains/args/windows:fastbuild_feature",
+        "@rules_cc//cc/toolchains/features/legacy:windows_export_all_symbols",
+        "@rules_cc//cc/toolchains/features/legacy:no_windows_export_all_symbols",
+    ],
+    make_variables = [":example_variable"],
+    tool_map = "//toolchains/msvc/tools:msvc_tools",
+)
+
+toolchain(
+    name = "host_msvc_cl_toolchain",
+    exec_compatible_with = [
+        "@platforms//os:windows",
+    ],
+    toolchain = ":host_msvc_cl",
+    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+    visibility = ["//visibility:public"],
+)
