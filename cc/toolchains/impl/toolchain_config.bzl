@@ -19,6 +19,7 @@ load(
     "ActionTypeSetInfo",
     "ArgsListInfo",
     "ArtifactNamePatternInfo",
+    "CoverageConfigInfo",
     "FeatureSetInfo",
     "MakeVariableInfo",
     "ToolConfigInfo",
@@ -61,6 +62,7 @@ def _cc_toolchain_config_impl(ctx):
         tool_map = ctx.attr.tool_map,
         args = ctx.attr.args,
         artifact_name_patterns = ctx.attr.artifact_name_patterns,
+        coverage_config = ctx.attr.coverage_config,
         make_variables = ctx.attr.make_variables,
     )
 
@@ -110,6 +112,7 @@ cc_toolchain_config = rule(
         "known_features": attr.label_list(providers = [FeatureSetInfo]),
         "enabled_features": attr.label_list(providers = [FeatureSetInfo]),
         "artifact_name_patterns": attr.label_list(providers = [ArtifactNamePatternInfo]),
+        "coverage_config": attr.label_list(providers = [CoverageConfigInfo]),
         "make_variables": attr.label_list(providers = [MakeVariableInfo]),
         "_builtin_features": attr.label(default = "//cc/toolchains/features:all_builtin_features"),
     },
