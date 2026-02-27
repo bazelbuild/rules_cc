@@ -17,7 +17,7 @@ register_toolchains(
     "//cc/private/toolchain/test:default_test_runner_toolchain",
 )
 
-bazel_dep(name = "rules_shell", version = "0.2.0", dev_dependency = True)
+bazel_dep(name = "rules_shell", version = "0.6.1", dev_dependency = True)
 bazel_dep(name = "googletest", version = "1.17.0", dev_dependency = True)
 single_version_override(
     module_name = "googletest",
