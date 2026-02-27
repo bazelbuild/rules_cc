@@ -167,7 +167,7 @@ def cc_toolchain(
         if group in kwargs:
             fail("Don't use legacy file groups such as %s. Instead, associate files with `cc_tool` or `cc_args` rules." % group)
 
-    config_name = "_{}_config".format(name)
+    config_name = "{}_config".format(name)
     cc_toolchain_config(
         name = config_name,
         tool_map = tool_map,
@@ -193,7 +193,7 @@ def cc_toolchain(
     # Provides ar_files, compiler_files, linker_files, ...
     legacy_file_groups = {}
     for group, actions in _LEGACY_FILE_GROUPS.items():
-        group_name = "_{}_{}".format(name, group)
+        group_name = "{}_{}".format(name, group)
         cc_legacy_file_group(
             name = group_name,
             config = config_name,
