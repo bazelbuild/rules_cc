@@ -13,6 +13,11 @@
 # limitations under the License.
 """CcInfo"""
 
-load("@cc_compatibility_proxy//:symbols.bzl", _CcInfo = "CcInfo")
+load(
+    "@cc_compatibility_proxy//:symbols.bzl",
+    _CcInfo = "CcInfo",
+    _merge_cc_infos = "merge_cc_infos",
+)
 
 CcInfo = _CcInfo
+merge_cc_infos = _merge_cc_infos

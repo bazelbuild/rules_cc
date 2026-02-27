@@ -93,7 +93,7 @@ cc_toolchain_alias = _cc_toolchain_alias
             "symbols.bzl",
             """
 load("@rules_cc//cc/private:cc_common.bzl", _cc_common = "cc_common")
-load("@rules_cc//cc/private:cc_info.bzl", _CcInfo = "CcInfo")
+load("@rules_cc//cc/private:cc_info.bzl", _CcInfo = "CcInfo", _merge_cc_infos = "merge_cc_infos")
 load("@rules_cc//cc/private:cc_shared_library_info.bzl", _CcSharedLibraryInfo = "CcSharedLibraryInfo")
 load("@rules_cc//cc/private:debug_package_info.bzl", _DebugPackageInfo = "DebugPackageInfo")
 load("@rules_cc//cc/private:objc_info.bzl", _ObjcInfo = "ObjcInfo")
@@ -101,6 +101,7 @@ load("@rules_cc//cc/private/toolchain_config:cc_toolchain_config_info.bzl", _CcT
 
 cc_common = _cc_common
 CcInfo = _CcInfo
+merge_cc_infos = _merge_cc_infos
 DebugPackageInfo = _DebugPackageInfo
 CcToolchainConfigInfo = _CcToolchainConfigInfo
 ObjcInfo = _ObjcInfo
@@ -158,6 +159,7 @@ load("@rules_cc//cc/private/rules_impl:native_providers.bzl", "NativeCcToolchain
 load("@rules_cc//cc/private/rules_impl:native_providers.bzl", "NativeCcSharedLibraryInfo")
 cc_common = native_cc_common
 CcInfo = NativeCcInfo
+merge_cc_infos = cc_common.merge_cc_infos
 DebugPackageInfo = NativeDebugPackageInfo
 CcToolchainConfigInfo = NativeCcToolchainConfigInfo
 ObjcInfo = apple_common.Objc
