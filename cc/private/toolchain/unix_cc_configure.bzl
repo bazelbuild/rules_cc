@@ -512,7 +512,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     # TODO: It's unclear why these flags aren't added on macOS.
     if bin_search_flags and not darwin:
         force_linker_flags.extend(bin_search_flags)
-    use_libcpp = darwin or bsd
+    use_libcpp = is_clang and (darwin or bsd)
     is_as_needed_supported = _is_linker_option_supported(
         repository_ctx,
         cc,
