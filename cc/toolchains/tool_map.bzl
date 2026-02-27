@@ -18,6 +18,7 @@ load(
     "collect_provider",
     "collect_tools",
 )
+load("//cc/toolchains/impl:utils.bzl", "bazel_supports_starlarkified_cc_toolchains")
 load(
     ":cc_toolchain_info.bzl",
     "ActionTypeSetInfo",
@@ -56,7 +57,7 @@ See //cc/toolchains/actions:BUILD for valid options.
         ),
         "tools": attr.label_list(
             mandatory = True,
-            cfg = "exec",
+            cfg = "target" if bazel_supports_starlarkified_cc_toolchains() else "exec",
             allow_files = True,
             doc = """The tool to use for the specified actions.
 

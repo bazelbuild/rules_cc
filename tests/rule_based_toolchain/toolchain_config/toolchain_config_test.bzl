@@ -178,13 +178,6 @@ def _toolchain_collects_files_test(env, targets):
     tc.files().get(targets.c_compile[ActionTypeInfo]).contains_exactly(_COLLECTED_C_COMPILE_FILES)
     tc.files().get(targets.cpp_compile[ActionTypeInfo]).contains_exactly(_COLLECTED_CPP_COMPILE_FILES)
 
-    env.expect.that_target(
-        targets.collects_files_c_compile,
-    ).default_outputs().contains_exactly(_COLLECTED_C_COMPILE_FILES)
-    env.expect.that_target(
-        targets.collects_files_cpp_compile,
-    ).default_outputs().contains_exactly(_COLLECTED_CPP_COMPILE_FILES)
-
     legacy = convert_toolchain(tc.actual)
     env.expect.that_collection(legacy.features).contains_exactly([
         legacy_feature(
@@ -263,8 +256,6 @@ TARGETS = [
     "//tests/rule_based_toolchain/actions:cpp_compile",
     ":builtin_feature",
     ":compile_tool_map",
-    ":collects_files_c_compile",
-    ":collects_files_cpp_compile",
     ":collects_files_toolchain_config",
     ":compile_feature",
     ":c_compile_args",

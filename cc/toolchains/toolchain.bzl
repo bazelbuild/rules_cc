@@ -14,45 +14,25 @@
 """Implementation of the cc_toolchain rule."""
 
 load("//cc/toolchains:cc_toolchain.bzl", _cc_toolchain = "cc_toolchain")
+load("//cc/toolchains:legacy_file_group.bzl", "LEGACY_FILE_GROUPS")
 load(
     "//cc/toolchains/impl:toolchain_config.bzl",
     "cc_legacy_file_group",
     "cc_toolchain_config",
 )
+load("//cc/toolchains/impl:utils.bzl", "bazel_supports_starlarkified_cc_toolchains")
 
 visibility("public")
 
-# Taken from https://bazel.build/docs/cc-toolchain-config-reference#actions
-# TODO: This is best-effort. Update this with the correct file groups once we
-#  work out what actions correspond to what file groups.
-_LEGACY_FILE_GROUPS = {
-    "ar_files": [
-        Label("//cc/toolchains/actions:ar_actions"),
-    ],
-    "as_files": [
-        Label("//cc/toolchains/actions:assembly_actions"),
-    ],
-    "compiler_files": [
-        Label("//cc/toolchains/actions:cc_flags_make_variable"),
-        Label("//cc/toolchains/actions:c_compile"),
-        Label("//cc/toolchains/actions:cpp_compile"),
-        Label("//cc/toolchains/actions:cpp_header_parsing"),
-    ],
-    # There are no actions listed for coverage and objcopy in action_names.bzl.
-    "coverage_files": [],
-    "dwp_files": [
-        Label("//cc/toolchains/actions:dwp"),
-    ],
-    "linker_files": [
-        Label("//cc/toolchains/actions:cpp_link_dynamic_library"),
-        Label("//cc/toolchains/actions:cpp_link_nodeps_dynamic_library"),
-        Label("//cc/toolchains/actions:cpp_link_executable"),
-    ],
-    "objcopy_files": [],
-    "strip_files": [
-        Label("//cc/toolchains/actions:strip"),
-    ],
-}
+_CPU = select({
+    Label("//cc/toolchains/impl:darwin_aarch64"): "darwin_arm64",
+    Label("//cc/toolchains/impl:darwin_x86_64"): "darwin_x86_64",
+    Label("//cc/toolchains/impl:linux_aarch64"): "aarch64",
+    Label("//cc/toolchains/impl:linux_x86_64"): "k8",
+    Label("//cc/toolchains/impl:windows_x86_32"): "win32",
+    Label("//cc/toolchains/impl:windows_x86_64"): "win64",
+    "//conditions:default": "",
+})
 
 def cc_toolchain(
         *,
@@ -161,9 +141,32 @@ def cc_toolchain(
         **kwargs: [common attributes](https://bazel.build/reference/be/common-definitions#common-attributes)
             that should be applied to all rules created by this macro.
     """
+
     cc_toolchain_visibility = kwargs.pop("visibility", default = None)
 
-    for group in _LEGACY_FILE_GROUPS:
+    if bazel_supports_starlarkified_cc_toolchains():
+        _cc_toolchain(
+            name = name,
+            tool_map = tool_map,
+            args = args,
+            artifact_name_patterns = artifact_name_patterns,
+            make_variables = make_variables,
+            known_features = known_features,
+            enabled_features = enabled_features,
+            compiler = compiler,
+            cpu = _CPU,
+            dynamic_runtime_lib = dynamic_runtime_lib,
+            libc_top = libc_top,
+            module_map = module_map,
+            static_runtime_lib = static_runtime_lib,
+            supports_header_parsing = supports_header_parsing,
+            supports_param_files = supports_param_files,
+            visibility = cc_toolchain_visibility,
+            **kwargs
+        )
+        return
+
+    for group in LEGACY_FILE_GROUPS:
         if group in kwargs:
             fail("Don't use legacy file groups such as %s. Instead, associate files with `cc_tool` or `cc_args` rules." % group)
 
@@ -177,22 +180,14 @@ def cc_toolchain(
         known_features = known_features,
         enabled_features = enabled_features,
         compiler = compiler,
-        cpu = select({
-            Label("//cc/toolchains/impl:darwin_aarch64"): "darwin_arm64",
-            Label("//cc/toolchains/impl:darwin_x86_64"): "darwin_x86_64",
-            Label("//cc/toolchains/impl:linux_aarch64"): "aarch64",
-            Label("//cc/toolchains/impl:linux_x86_64"): "k8",
-            Label("//cc/toolchains/impl:windows_x86_32"): "win32",
-            Label("//cc/toolchains/impl:windows_x86_64"): "win64",
-            "//conditions:default": "",
-        }),
+        cpu = _CPU,
         visibility = ["//visibility:private"],
         **kwargs
     )
 
     # Provides ar_files, compiler_files, linker_files, ...
     legacy_file_groups = {}
-    for group, actions in _LEGACY_FILE_GROUPS.items():
+    for group, actions in LEGACY_FILE_GROUPS.items():
         group_name = "_{}_{}".format(name, group)
         cc_legacy_file_group(
             name = group_name,
