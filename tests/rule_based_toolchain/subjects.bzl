@@ -210,6 +210,7 @@ _ToolFactory = generate_factory(
         exe = _subjects.file,
         runfiles = runfiles_subject,
         execution_requirements = _subjects.collection,
+        env = _subjects.dict,
         allowlist_include_directories = _FakeDirectoryDepset,
         capabilities = ProviderSequence(_ToolCapabilityFactory),
     ),
