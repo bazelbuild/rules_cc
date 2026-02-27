@@ -26,6 +26,8 @@ licenses(["notice"])  # Apache 2.0
 
 cc_library(name = "empty_lib")
 
+%{std_module}
+
 # Label flag for extra libraries to be linked into every binary.
 # TODO(bazel-team): Support passing flag multiple times to build a list.
 label_flag(

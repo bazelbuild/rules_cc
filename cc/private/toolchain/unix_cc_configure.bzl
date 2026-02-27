@@ -141,6 +141,9 @@ def _get_cxx_include_directories(repository_ctx, print_resource_dir_supported, c
 
     return inc_directories
 
+def _get_share_libcxx_v1_dir(repository_ctx, cc, additional_flags = []):
+    return repository_ctx.execute([cc, "-print-resource-dir"] + additional_flags).stdout.strip() + "/../../../share/libc++/v1"
+
 def _is_compiler_option_supported(repository_ctx, cc, option):
     """Checks that `option` is supported by the C compiler. Doesn't %-escape the option."""
     result = repository_ctx.execute([
@@ -625,6 +628,11 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
             extra_flags_per_feature["use_module_maps"] = ["-Xclang", "-fno-cxx-modules"]
 
     write_builtin_include_directory_paths(repository_ctx, cc, builtin_include_directories)
+    if is_clang:
+        libcxx_v1_dir = _get_share_libcxx_v1_dir(repository_ctx, cc)
+        files = repository_ctx.execute(["ls", libcxx_v1_dir]).stdout.strip().split("\n")
+        for file in files:
+            repository_ctx.symlink(libcxx_v1_dir + "/" + file, file)
     repository_ctx.template(
         "BUILD",
         paths["@rules_cc//cc/private/toolchain:BUILD.tpl"],
@@ -785,5 +793,13 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
                     "-D__TIME__=\\\"redacted\\\"",
                 ],
             ),
+            "%{std_module}": """
+cc_library(
+    name = "std_modules",
+    srcs = glob(["std/**"]),
+    module_interfaces = ["std.cppm"],
+    features = ["cpp_modules"],
+)
+""",
         },
     )
