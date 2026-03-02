@@ -76,7 +76,7 @@ cc_nested_args(
 cc_nested_args(
     name = "single_library_args",
     nested = select({
-        "@platforms//os:macos": [],
+        "//cc/toolchains/platforms:apple": [],
         "//conditions:default": [":optional_whole_archive_start"],
     }) + [
         ":optional_object_file_group",
@@ -85,11 +85,11 @@ cc_nested_args(
         ":optional_static_library",
         ":optional_dynamic_library",
     ] + select({
-        # maOS has a minor nuance where it uses the path to the library instead of `-l:{library_name}`.
-        "@platforms//os:macos": [":macos_optional_versioned_dynamic_library"],
+        # Apple platforms have a minor nuance where they use the path to the library instead of `-l:{library_name}`.
+        "//cc/toolchains/platforms:apple": [":apple_optional_versioned_dynamic_library"],
         "//conditions:default": [":generic_optional_versioned_dynamic_library"],
     }) + select({
-        "@platforms//os:macos": [],
+        "//cc/toolchains/platforms:apple": [],
         "//conditions:default": [":optional_whole_archive_end"],
     }),
 )
@@ -166,7 +166,7 @@ cc_nested_args(
 )
 
 cc_nested_args(
-    name = "macos_optional_versioned_dynamic_library",
+    name = "apple_optional_versioned_dynamic_library",
     args = ["{library_path}"],
     format = {
         "library_path": "//cc/toolchains/variables:libraries_to_link.path",
