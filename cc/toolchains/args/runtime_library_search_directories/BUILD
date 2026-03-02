@@ -77,7 +77,7 @@ cc_nested_args(
         "-rpath",
         "-Xlinker",
     ] + select({
-        "@platforms//os:macos": ["@loader_path/{search_path}"],
+        "//cc/toolchains/platforms:apple": ["@loader_path/{search_path}"],
         "//conditions:default": ["$ORIGIN/{search_path}"],
     }),
     format = {
@@ -106,7 +106,7 @@ cc_nested_args(
         "-rpath",
         "-Xlinker",
     ] + select({
-        "@platforms//os:macos": ["@loader_path/{search_path}"],
+        "//cc/toolchains/platforms:apple": ["@loader_path/{search_path}"],
         "//conditions:default": ["$ORIGIN/{search_path}"],
     }),
     format = {
