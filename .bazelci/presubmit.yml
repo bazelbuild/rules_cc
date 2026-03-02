@@ -31,9 +31,12 @@ test_targets_bazel_6: &test_targets_bazel_6
   - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
   - "-//tests/system_library:system_library_test" # Should be skipped on Windows and MacOS
 
-# Test failures are not collected under `coverage` invocations.
-# https://github.com/bazelbuild/continuous-integration/issues/1838
 common_coverage_flags: &common_coverage_flags
+  # Starting in Bazel 9 coverage collection causes some tests to fail.
+  # https://github.com/bazelbuild/rules_cc/issues/613
+  - "--test_env=IGNORE_COVERAGE_COLLECTION_FAILURES=1"
+  # Test failures are not collected under `coverage` invocations.
+  # https://github.com/bazelbuild/continuous-integration/issues/1838
   - "--test_output=errors"
 
 buildifier:
