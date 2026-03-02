@@ -298,10 +298,16 @@ cc_import(
     {includes}
 )
 
+config_setting(
+    name = "remote",
+    values = {{"define": "EXECUTOR=remote"}},
+    visibility = ["//visibility:private"],
+)
+
 alias(
     name = "{name}",
     actual = select({{
-        "@bazel_tools//src/conditions:remote": "remote_includes",
+        ":remote": "remote_includes",
         "//conditions:default": "local_includes",
     }}),
     visibility = ["//visibility:public"],
