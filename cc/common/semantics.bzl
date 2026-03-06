@@ -82,7 +82,7 @@ def _get_coverage_attrs():
             cfg = config.exec(exec_group = "test"),
         ),
         "_collect_cc_coverage": attr.label(
-            default = "@bazel_tools//tools/test:collect_cc_coverage",
+            default = Label("//cc/private/coverage:collect_cc_coverage"),
             executable = True,
             cfg = config.exec(exec_group = "test"),
         ),
