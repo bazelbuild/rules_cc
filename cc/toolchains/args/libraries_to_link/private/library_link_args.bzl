@@ -15,7 +15,7 @@
 
 load("//cc/toolchains:nested_args.bzl", "cc_nested_args")
 
-def macos_force_load_library_args(name, variable):
+def apple_force_load_library_args(name, variable):
     """A helper for declaring -force_load argument expansion for a library.
 
     This creates an argument expansion that will expand to -Wl,-force_load,<library>
@@ -65,8 +65,8 @@ def library_link_args(name, library_type, from_variable, iterate_over_variable =
             },
         )
 
-    For macos, this expands to a more complex cc_nested_args structure that
-    handles the -force_load flag.
+    For Apple platforms, this expands to a more complex cc_nested_args structure
+    that handles the -force_load flag.
 
     Args:
       name: The name of the rule.
@@ -77,7 +77,7 @@ def library_link_args(name, library_type, from_variable, iterate_over_variable =
     native.alias(
         name = name,
         actual = select({
-            "@platforms//os:macos": ":macos_{}".format(name),
+            "//cc/toolchains/platforms:apple": ":apple_{}".format(name),
             "//conditions:default": ":generic_{}".format(name),
         }),
     )
@@ -92,13 +92,13 @@ def library_link_args(name, library_type, from_variable, iterate_over_variable =
         },
     )
     cc_nested_args(
-        name = "macos_{}".format(name),
+        name = "apple_{}".format(name),
         requires_equal = "//cc/toolchains/variables:libraries_to_link.type",
         requires_equal_value = library_type,
         iterate_over = from_variable if iterate_over_variable else None,
         nested = [":{}_maybe_force_load".format(name)],
     )
-    macos_force_load_library_args(
+    apple_force_load_library_args(
         name = "{}_maybe_force_load".format(name),
         variable = from_variable,
     )
