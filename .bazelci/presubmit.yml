@@ -115,8 +115,6 @@ tasks:
     platform: windows
     build_targets: *build_targets
     test_targets: *test_targets
-    coverage_flags: *common_coverage_flags
-    coverage_targets: *test_targets
 
 # Bazel 6
   ubuntu2004_bazel_6:
@@ -169,8 +167,6 @@ tasks:
     platform: windows
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
-    coverage_flags: *common_coverage_flags
-    coverage_targets: *test_targets_bazel_6
 
 # Bazel 8
   ubuntu2004_bazel_8:
@@ -203,8 +199,6 @@ tasks:
     platform: windows
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
-    coverage_flags: *common_coverage_flags
-    coverage_targets: *test_targets_bazel_6
 
 # Bazel 9
   ubuntu2004:
@@ -235,8 +229,6 @@ tasks:
     bazel: 9.x
     build_targets: *build_targets
     test_targets: *test_targets
-    coverage_flags: *common_coverage_flags
-    coverage_targets: *test_targets
   ubuntu_bzlmod:
     name: Ubuntu 20.04 (Bazel 9, bzlmod)
     bazel: 9.x
