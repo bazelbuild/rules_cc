@@ -50,6 +50,7 @@ _SIMPLE_FILES = [
     "tests/rule_based_toolchain/testdata/multiple2",
 ]
 _TOOL_DIRECTORY = "tests/rule_based_toolchain/testdata"
+_OVERRIDDEN_MIN_OS = "-mmacosx-version-min=13.0"
 
 _CONVERTED_ARGS = subjects.struct(
     flag_sets = subjects.collection,
@@ -169,11 +170,55 @@ def _with_dir_and_data_test(env, targets):
     )
     c_compile.files().contains_at_least(_SIMPLE_FILES)
 
+def _build_setting_format_test(env, targets):
+    build_setting = env.expect.that_target(targets.build_setting_format).provider(ArgsInfo)
+    build_setting.actions().contains_exactly([
+        targets.c_compile.label,
+        targets.cpp_compile.label,
+    ])
+    build_setting.env().entries().contains_exactly({"APPLE_MIN_OS": "-mmacosx-version-min=12.0"})
+
+    converted = env.expect.that_value(
+        convert_args(targets.build_setting_format[ArgsInfo]),
+        factory = _CONVERTED_ARGS,
+    )
+    converted.env_sets().contains_exactly([env_set(
+        actions = ["c_compile", "cpp_compile"],
+        env_entries = [env_entry(key = "APPLE_MIN_OS", value = "-mmacosx-version-min=12.0")],
+    )])
+    converted.flag_sets().contains_exactly([flag_set(
+        actions = ["c_compile", "cpp_compile"],
+        flag_groups = [flag_group(flags = ["-mmacosx-version-min=12.0"])],
+    )])
+
+def _build_setting_format_override_test(env, targets):
+    build_setting = env.expect.that_target(targets.build_setting_format_override).provider(ArgsInfo)
+    build_setting.actions().contains_exactly([
+        targets.c_compile.label,
+        targets.cpp_compile.label,
+    ])
+    build_setting.env().entries().contains_exactly({"APPLE_MIN_OS": _OVERRIDDEN_MIN_OS})
+
+    converted = env.expect.that_value(
+        convert_args(targets.build_setting_format_override[ArgsInfo]),
+        factory = _CONVERTED_ARGS,
+    )
+    converted.env_sets().contains_exactly([env_set(
+        actions = ["c_compile", "cpp_compile"],
+        env_entries = [env_entry(key = "APPLE_MIN_OS", value = _OVERRIDDEN_MIN_OS)],
+    )])
+    converted.flag_sets().contains_exactly([flag_set(
+        actions = ["c_compile", "cpp_compile"],
+        flag_groups = [flag_group(flags = [_OVERRIDDEN_MIN_OS])],
+    )])
+
 TARGETS = [
     ":simple",
     ":some_variable",
     ":env_only",
     ":env_only_requires",
+    ":build_setting_format",
+    ":build_setting_format_override",
     ":with_dir",
     ":with_dir_and_data",
     ":iterate_over_optional",
@@ -361,6 +406,8 @@ TESTS = {
     "env_only_requires_test": _env_only_requires_test,
     "with_dir_test": _with_dir_test,
     "with_dir_and_data_test": _with_dir_and_data_test,
+    "build_setting_format_test": _build_setting_format_test,
+    "build_setting_format_override_test": _build_setting_format_override_test,
     "good_env_format_test": _good_env_format_test,
     "good_env_format_optional_test": _good_env_format_optional_test,
 }
