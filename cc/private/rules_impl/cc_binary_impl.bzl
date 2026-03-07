@@ -792,6 +792,9 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
         output_groups["def_file"] = depset([generated_def_file])
     if linkmap:
         output_groups["linkmap"] = depset([linkmap])
+    su_files = list(cc_compilation_outputs._su_files) + list(cc_compilation_outputs._pic_su_files)
+    if su_files:
+        output_groups["stack_usage"] = depset(su_files)
 
     if cc_linking_outputs_binary_library != None:
         # For consistency and readability.

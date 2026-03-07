@@ -344,6 +344,8 @@ def compile(
         "lto_compilation_context": {},
         "gcno_files": [],
         "pic_gcno_files": [],
+        "su_files": [],
+        "pic_su_files": [],
         "dwo_files": [],
         "pic_dwo_files": [],
         "cpp_module_files": [],
@@ -1600,6 +1602,16 @@ def _create_compile_source_action(
             object_file = object_file,
         )
 
+    su_file = None
+    if feature_configuration.is_enabled("generate_stack_usage"):
+        su_file_name = paths.replace_extension(paths.basename(object_file.path), ".su")
+        su_file = _cc_internal.declare_other_output_file(
+            ctx = action_construction_context,
+            output_name = su_file_name,
+            object_file = object_file,
+        )
+        additional_outputs = list(additional_outputs) + [su_file]
+
     lto_indexing_file = None
     if bitcode_output and not feature_configuration.is_enabled("no_use_lto_indexing_bitcode_file"):
         lto_indexing_file_name = paths.replace_extension(
@@ -1678,15 +1690,13 @@ def _create_compile_source_action(
         additional_inputs = additional_compilation_inputs + auxiliary_fdo_inputs.to_list()
 
     # Provide these args conditionally as they require a recent version of Bazel.
+    module_args = {}
+    if additional_outputs:
+        module_args["additional_outputs"] = additional_outputs
     if modmap_file:
-        module_args = {
-            "additional_outputs": additional_outputs,
-            "module_files": module_files,
-            "modmap_file": modmap_file,
-            "modmap_input_file": modmap_input_file,
-        }
-    else:
-        module_args = {}
+        module_args["module_files"] = module_files
+        module_args["modmap_file"] = modmap_file
+        module_args["modmap_input_file"] = modmap_input_file
 
     _cc_internal.create_cc_compile_action(
         action_construction_context = action_construction_context,
@@ -1733,6 +1743,11 @@ def _create_compile_source_action(
             outputs["pic_gcno_files"].append(gcno_file)
         else:
             outputs["gcno_files"].append(gcno_file)
+    if su_file:
+        if use_pic:
+            outputs["pic_su_files"].append(su_file)
+        else:
+            outputs["su_files"].append(su_file)
     return object_file
 
 def _create_temps_action(
