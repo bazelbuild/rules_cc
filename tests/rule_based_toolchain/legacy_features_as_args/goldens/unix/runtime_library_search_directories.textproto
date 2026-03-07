@@ -28,6 +28,19 @@ flag_sets {
     }
   }
   with_features {
+    features: "compiler_clang"
+    features: "static_link_cpp_runtimes"
+  }
+  with_features {
+    features: "compiler_gcc"
+    features: "static_link_cpp_runtimes"
+  }
+  with_features {
+    features: "compiler_mingw_gcc"
+    features: "static_link_cpp_runtimes"
+  }
+  with_features {
+    features: "compiler_emscripten"
     features: "static_link_cpp_runtimes"
   }
 }
@@ -50,6 +63,19 @@ flag_sets {
     }
   }
   with_features {
+    features: "compiler_clang"
+    not_features: "static_link_cpp_runtimes"
+  }
+  with_features {
+    features: "compiler_gcc"
+    not_features: "static_link_cpp_runtimes"
+  }
+  with_features {
+    features: "compiler_mingw_gcc"
+    not_features: "static_link_cpp_runtimes"
+  }
+  with_features {
+    features: "compiler_emscripten"
     not_features: "static_link_cpp_runtimes"
   }
 }
