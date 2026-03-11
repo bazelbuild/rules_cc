@@ -618,12 +618,13 @@ def _get_clang_version(repository_ctx, clang_cl):
     first_line = result.stderr.strip().splitlines()[0].strip()
 
     # The first line of stderr should look like "[vendor ]clang version X.X.X[ vendor]"
+    clang_version_prefix = "clang version "
     if result.return_code != 0:
         auto_configure_fail("Failed to get clang version by running \"%s -v\"" % clang_cl)
-    version_start = first_line.find("clang version ")
+    version_start = first_line.find(clang_version_prefix)
     if version_start == -1:
         auto_configure_fail("Failed to get clang version: unknown version string format: \"%s\"" % first_line)
-    return first_line[version_start + len("clang version "):].split(" ")[0]
+    return first_line[version_start + len(clang_version_prefix):].split(" ")[0]
 
 def _get_clang_dir(repository_ctx, llvm_path, clang_version):
     """Get the clang installation directory."""
