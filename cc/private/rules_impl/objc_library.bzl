@@ -106,10 +106,32 @@ def _objc_library_impl(ctx):
         metadata_files = gcno_files + pic_gcno_files,
     )
 
+    runfiles_list = []
+    for data_dep in ctx.attr.data:
+        if data_dep[DefaultInfo].data_runfiles.files:
+            runfiles_list.append(data_dep[DefaultInfo].data_runfiles)
+        else:
+            # This branch ensures interop with custom Starlark rules following
+            # https://bazel.build/extending/rules#runfiles_features_to_avoid
+            runfiles_list.append(ctx.runfiles(transitive_files = data_dep[DefaultInfo].files))
+            runfiles_list.append(data_dep[DefaultInfo].default_runfiles)
+
+    for src in ctx.attr.srcs:
+        runfiles_list.append(src[DefaultInfo].default_runfiles)
+
+    for dep in ctx.attr.deps:
+        runfiles_list.append(dep[DefaultInfo].default_runfiles)
+
+    for dep in ctx.attr.implementation_deps:
+        runfiles_list.append(dep[DefaultInfo].default_runfiles)
+
+    runfiles = ctx.runfiles(files = files).merge_all(runfiles_list)
+
     return [
         DefaultInfo(
             files = depset(files),
-            data_runfiles = ctx.runfiles(files = files),
+            default_runfiles = runfiles,
+            data_runfiles = runfiles,
         ),
         CcInfo(
             compilation_context = compilation_context,
