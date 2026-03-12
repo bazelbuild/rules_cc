@@ -1,9 +1,12 @@
 """Tests for cc_import."""
 
+load("@bazel_features//private:util.bzl", _bazel_version_ge = "ge")
 load("@rules_testing//lib:truth.bzl", "matching")
 load("@rules_testing//lib:util.bzl", "util")
 load("//cc:cc_import.bzl", "cc_import")
 load("//tests/cc/testutil:cc_analysis_test.bzl", "cc_analysis_test", "cc_test_suite")
+
+_use_rules_cc_impls = _bazel_version_ge("9.0.0-pre.20250911")
 
 def _test_data_in_runfiles(name, **kwargs):
     util.helper_target(
@@ -29,5 +32,5 @@ def cc_import_configured_target_tests(name):
         name = name,
         tests = [
             _test_data_in_runfiles,
-        ],
+        ] if _use_rules_cc_impls else [],
     )
