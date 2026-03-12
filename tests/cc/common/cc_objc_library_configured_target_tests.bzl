@@ -14,6 +14,7 @@ def _test_data_in_runfiles(name, **kwargs):
         name = name + "_lib_with_data",
         hdrs = ["header.h"],
         data = ["data_file.txt"],
+        target_compatible_with = ["@platforms//os:macos"],
     )
     cc_analysis_test(
         name = name,
