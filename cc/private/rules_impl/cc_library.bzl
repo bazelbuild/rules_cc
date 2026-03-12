@@ -18,7 +18,7 @@ load("//cc:use_cc_toolchain.bzl", "use_cc_toolchain")
 load("//cc/common:cc_info.bzl", "CcInfo")
 load("//cc/common:semantics.bzl", "semantics")
 load(":attrs.bzl", "common_attrs", "linkstatic_doc")
-load(":cc_library_impl.bzl", "cc_library_impl")
+load(":function_providing_rule.bzl", "proxy")
 
 LINKER_SCRIPT = [".ld", ".lds", ".ldscript"]
 PREPROCESSED_C = [".i"]
@@ -40,7 +40,7 @@ DEPS_ALLOWED_RULES = [
 ]
 
 cc_library = rule(
-    implementation = cc_library_impl,
+    implementation = proxy,
     doc = """
 <p>Use <code>cc_library()</code> for C++-compiled libraries.
   The result is  either a <code>.so</code>, <code>.lo</code>,

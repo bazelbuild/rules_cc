@@ -37,11 +37,13 @@ rules_shell_dependencies()
 
 rules_shell_toolchains()
 
+# Required commit 288cdbd "Add meta field to ActionSubject."
+# TODO: pzembrod - Change to a released version again when the commit is in a release.
 http_archive(
     name = "rules_testing",
-    sha256 = "02c62574631876a4e3b02a1820cb51167bb9cdcdea2381b2fa9d9b8b11c407c4",
-    strip_prefix = "rules_testing-0.6.0",
-    url = "https://github.com/bazelbuild/rules_testing/releases/download/v0.6.0/rules_testing-v0.6.0.tar.gz",
+    integrity = "sha256-7Uj90x7fnhUKBxRytq/R4E9gOBisIoDW1KoUxHCDVd4=",
+    strip_prefix = "rules_testing-288cdbd3ef4839a89d9d5911319fd9edde44b106",
+    url = "https://github.com/bazelbuild/rules_testing/archive/288cdbd3ef4839a89d9d5911319fd9edde44b106.tar.gz",
 )
 
 http_archive(
@@ -53,9 +55,9 @@ http_archive(
 
 http_archive(
     name = "bazel_features",
-    sha256 = "07bd2b18764cdee1e0d6ff42c9c0a6111ffcbd0c17f0de38e7f44f1519d1c0cd",
-    strip_prefix = "bazel_features-1.32.0",
-    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.32.0/bazel_features-v1.32.0.tar.gz",
+    sha256 = "c26b4e69cf02fea24511a108d158188b9d8174426311aac59ce803a78d107648",
+    strip_prefix = "bazel_features-1.43.0",
+    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.43.0/bazel_features-v1.43.0.tar.gz",
 )
 
 load("@bazel_features//:deps.bzl", "bazel_features_deps")
