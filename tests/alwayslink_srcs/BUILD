@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_features//private:util.bzl", _bazel_version_ge = "ge")
 load("//cc:cc_library.bzl", "cc_library")
 load("//cc:cc_test.bzl", "cc_test")
 
 licenses(["notice"])
+
+VERSION_GATE = [] if _bazel_version_ge("9.0.0-pre.20250911") else ["@platforms//:incompatible"]
 
 # Library that provides the registration state (was_registered/set_registered).
 cc_library(
@@ -45,6 +48,10 @@ genrule(
 cc_library(
     name = "registerer_alwayslink",
     srcs = [":copy_registerer_archive"],
+    target_compatible_with = VERSION_GATE + select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [":registered"],
     alwayslink = True,
 )
