@@ -310,7 +310,7 @@ def get_specific_compile_build_variables(
     result = {}
 
     if feature_configuration.is_enabled("module_maps") and cpp_module_map:
-        result[_VARS.MODULE_NAME] = cpp_module_map.name
+        result[_VARS.MODULE_NAME] = str(cpp_module_map.identifier)
         result[_VARS.MODULE_MAP_FILE] = cpp_module_map.file
         result[_VARS.DEPENDENT_MODULE_MAP_FILES] = direct_module_maps
 
