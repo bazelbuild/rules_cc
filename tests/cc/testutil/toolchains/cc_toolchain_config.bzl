@@ -387,6 +387,32 @@ _user_compile_flags_feature = feature(
     ],
 )
 
+_preprocessor_defines_feature = feature(
+    name = FEATURE_NAMES.preprocessor_defines,
+    enabled = True,
+    flag_sets = [
+        flag_set(
+            actions = [
+                ACTION_NAMES.preprocess_assemble,
+                ACTION_NAMES.linkstamp_compile,
+                ACTION_NAMES.c_compile,
+                ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cpp_header_parsing,
+                ACTION_NAMES.cpp_module_compile,
+                ACTION_NAMES.objc_compile,
+                ACTION_NAMES.objcpp_compile,
+                ACTION_NAMES.clif_match,
+            ],
+            flag_groups = [
+                flag_group(
+                    flags = ["-D%{preprocessor_defines}"],
+                    iterate_over = "preprocessor_defines",
+                ),
+            ],
+        ),
+    ],
+)
+
 _no_use_lto_indexing_bitcode_file_feature = feature(
     name = FEATURE_NAMES.no_use_lto_indexing_bitcode_file,
 )
@@ -1368,6 +1394,7 @@ _feature_name_to_feature = {
     FEATURE_NAMES.generate_pdb_file: _generate_pdb_file_feature,
     FEATURE_NAMES.generate_linkmap: _generate_linkmap_feature,
     FEATURE_NAMES.shorten_virtual_includes: _shorten_virtual_includes_feature,
+    FEATURE_NAMES.preprocessor_defines: _preprocessor_defines_feature,
     "header_modules_feature_configuration": _header_modules_feature_configuration,
     "env_var_feature_configuration": _env_var_feature_configuration,
     "host_and_nonhost_configuration": _host_and_nonhost_configuration,
