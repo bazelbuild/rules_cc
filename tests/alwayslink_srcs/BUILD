@@ -25,6 +25,10 @@ cc_library(
     name = "registered",
     srcs = ["registered.c"],
     hdrs = ["registered.h"],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
 )
 
 # Library that registers itself via a static constructor.
@@ -48,10 +52,7 @@ genrule(
 cc_library(
     name = "registerer_alwayslink",
     srcs = [":copy_registerer_archive"],
-    target_compatible_with = VERSION_GATE + select({
-        "@platforms//os:windows": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
+    target_compatible_with = VERSION_GATE,
     deps = [":registered"],
     alwayslink = True,
 )
