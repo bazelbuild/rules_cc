@@ -349,7 +349,12 @@ stripped.
 The prefix to add to the paths of the headers of this rule.
 
 <p>When set, the headers in the <code>hdrs</code> attribute of this rule are accessible
-at is the value of this attribute prepended to their repository-relative path.
+at a path formed by prepending this attribute's value to their repository-relative path.
+
+<p>For example, if a library in package <code>foo</code> sets
+<code>include_prefix = "mylib"</code> and has <code>bar.h</code> in <code>hdrs</code>,
+dependent rules would include it as <code>#include "mylib/bar.h"</code> instead of
+<code>#include "foo/bar.h"</code>.
 
 <p>The prefix in the <code>strip_include_prefix</code> attribute is removed before this
 prefix is added.
