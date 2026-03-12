@@ -64,6 +64,14 @@ passed not only to the compiler for this target (as <code>copts</code>
 are) but also to all <code>objc_</code> dependers of this target.
 Subject to <a href="${link make-variables}">"Make variable"</a> substitution and
 <a href="${link common-definitions#sh-tokenization}">Bourne shell tokenization</a>."""),
+        "local_defines": attr.string_list(doc = """
+List of defines to add to the compile line.
+Subject to <a href="${link make-variables}">"Make" variable</a> substitution and
+<a href="${link common-definitions#sh-tokenization}">Bourne shell tokenization</a>.
+Each string, which must consist of a single Bourne shell token,
+is prepended with <code>-D</code> and added to the compile command line for this target,
+but not to its dependents. Unlike <code>defines</code>, the defines are only added to the
+compile command line for this target."""),
         "linkopts": attr.string_list(doc = "Extra flags to pass to the linker."),
         # How many rules use this in the depot?
         "stamp": attr.bool(),
