@@ -1,29 +1,22 @@
 """Specialized analysis_test and test_suite for rules_cc."""
 
-load("@rules_testing//lib:analysis_test.bzl", "analysis_test", "test_suite")
+load("@rules_testing//lib:analysis_test.bzl", "analysis_test")
 
-def cc_analysis_test(name, *, is_windows, **kwargs):
+def cc_analysis_test(name, **kwargs):
+    """Runs an analysis_test with the a mock C++ toolchain.
+
+    Args:
+        name: The name of the test.
+        **kwargs: Args passed through to test_suite
+    """
+    config_settings = {
+        "//command_line_option:extra_toolchains": "//tests/cc/testutil/toolchains:cc-toolchain-k8-compiler",
+    }
+    if "config_settings" in kwargs:
+        config_settings = dict(config_settings, **kwargs["config_settings"])
+        kwargs.pop("config_settings")
     analysis_test(
         name = name,
-        attrs = {
-            "is_windows": attr.bool(),
-        },
-        attr_values = {
-            "is_windows": is_windows,
-        },
+        config_settings = config_settings,
         **kwargs
-    )
-
-def cc_test_suite(name, *, tests = [], basic_tests = [], test_kwargs = {}):
-    test_kwargs = dict(test_kwargs, **{
-        "is_windows": select({
-            "@platforms//os:windows": True,
-            "//conditions:default": False,
-        }),
-    })
-    test_suite(
-        name = name,
-        tests = tests,
-        basic_tests = basic_tests,
-        test_kwargs = test_kwargs,
     )
