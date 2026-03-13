@@ -36,7 +36,7 @@ archive_override(
     urls = ["https://github.com/bazelbuild/rules_testing/archive/288cdbd3ef4839a89d9d5911319fd9edde44b106.tar.gz"],
 )
 
-bazel_dep(name = "stardoc", version = "0.8.0", dev_dependency = True)
+bazel_dep(name = "stardoc", version = "0.8.1", dev_dependency = True)
 
 # Compatibility layer
 compat = use_extension("//cc:extensions.bzl", "compatibility_proxy")
