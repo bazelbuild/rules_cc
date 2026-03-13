@@ -17,7 +17,7 @@ load("@rules_testing//lib:truth.bzl", "subjects")
 
 def _cc_binary_target_subject_from_target(env, target):
     helper_target_subject = env.expect.that_target(target)
-    binary_extension = ".exe" if env.ctx.attr.is_windows else ""
+    binary_extension = ""
     meta = helper_target_subject.meta.derive(
         expr = "cc_binary_target({})".format(target.label),
         details = ["cc_binary_target: {}".format(target.label)],
