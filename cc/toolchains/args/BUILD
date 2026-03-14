@@ -34,7 +34,6 @@ cc_feature_set(
         "//cc/toolchains/args/compiler_output_flags:feature",
         "//cc/toolchains/args/fission_flags:feature",
         "//cc/toolchains/args/link_flags:feature",
-        "//cc/toolchains/args/linkstamp_flags:feature",
         "//cc/toolchains/args/library_search_directories:feature",
         "//cc/toolchains/args/dependency_file:feature",
         "//cc/toolchains/args/compile_flags:feature",  # NOTE: This should come below default flags so user flags can override them
