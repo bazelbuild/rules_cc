@@ -313,12 +313,6 @@ cc_variable(
 )
 
 cc_variable(
-    name = "linkstamp_paths",
-    actions = ["//cc/toolchains/actions:link_actions"],
-    type = types.option(types.list(types.file)),
-)
-
-cc_variable(
     name = "lto_indexing_bitcode_file",
     actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.option(types.file),
@@ -663,7 +657,6 @@ cc_builtin_variables(
         ":linked_binary",
         ":linker_param_file",
         ":linkmap_exec_path",
-        ":linkstamp_paths",
         ":lto_indexing_bitcode_file",
         ":memprof_profile_changelist",
         ":module_files",
