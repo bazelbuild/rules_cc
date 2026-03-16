@@ -462,8 +462,8 @@ def _quote_replacement(s):
 
 def _resource_set(os, inputs):
     if os == "osx":
-        return {"memory": 15 + 0.05 * inputs, "cpu": 1}
+        return {"memory": max(256, 250 + 2.5 * inputs), "cpu": 1}
     elif os == "linux":
-        return {"memory": max(50, -100 + 0.1 * inputs), "cpu": 1}
+        return {"memory": max(256, 250 + 2.5 * inputs), "cpu": 1}
     else:
-        return {"memory": 1500 + inputs, "cpu": 1}
+        return {"memory": 1500 + 2.5 * inputs, "cpu": 1}
