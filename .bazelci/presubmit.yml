@@ -30,6 +30,7 @@ test_targets_bazel_6: &test_targets_bazel_6
   - "-//cc:optional_current_cc_toolchain" # Not supported in Bazel 6
   - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
   - "-//tests/system_library:system_library_test" # Should be skipped on Windows and MacOS
+  - "-//tests/cc/common:test_runtime_dynamic_libraries_copy_behavior" # known bug, see https://github.com/bazelbuild/rules_cc/pull/623
 
 buildifier:
   version: latest

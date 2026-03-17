@@ -1,9 +1,11 @@
 """Tests for cc_binary."""
 
-load("@rules_testing//lib:analysis_test.bzl", "test_suite")
+load("@rules_testing//lib:analysis_test.bzl", "analysis_test", "test_suite")
 load("@rules_testing//lib:truth.bzl", "matching")
-load("@rules_testing//lib:util.bzl", "util")
+load("@rules_testing//lib:util.bzl", "TestingAspectInfo", "util")
 load("//cc:cc_binary.bzl", "cc_binary")
+load("//cc:cc_import.bzl", "cc_import")
+load("//cc:cc_library.bzl", "cc_library")
 load("//tests/cc/testutil:cc_analysis_test.bzl", "cc_analysis_test")
 load("//tests/cc/testutil:cc_binary_target_subject.bzl", "cc_binary_target_subject")
 load("//tests/cc/testutil:link_action_subject.bzl", "link_action_subject")
@@ -125,6 +127,112 @@ def _test_action_graph_impl(env, target):
 
     # TODO: Test stripped action
 
+def _make_dll(name):
+    # make a fake dll so the dll shows up in the output directory (where the
+    # binary will be) instead of as a source file (the way cc_import on its own would)
+    # Example taken from
+    # https://github.com/bazelbuild/bazel/blob/f720ed385e245e292b0afe19ebd84e4283c30565/examples/windows/dll/windows_dll_library.bzl
+    dll = name + ".dll"
+    mask = name + "_mask"
+
+    util.helper_target(
+        cc_binary,
+        name = dll,
+        srcs = ["hello.cc"],
+        linkshared = 1,
+    )
+
+    # Mask the cc_binary behind a cc_import so we can depend on it as a library
+    util.helper_target(
+        cc_import,
+        name = mask,
+        shared_library = dll,
+    )
+
+    # cc_imports are always source files, so make it a generated file again
+    cc_library(
+        name = name,
+        deps = [mask],
+    )
+
+def _test_runtime_dynamic_libraries_copy_behavior(name, **kwargs):
+    sub_dir_lib = name + "/dst/sub/sub_dir_lib"
+    same_dir_lib = name + "/dst/same_dir_lib"
+    binary_target = name + "/dst/hello"
+
+    # project a dll into the same directory as the binary, and a second one in
+    # a subdirectory
+    _make_dll(same_dir_lib)
+    _make_dll(sub_dir_lib)
+
+    util.helper_target(
+        cc_binary,
+        name = binary_target,
+        srcs = ["hello.cc"],
+        deps = [
+            same_dir_lib,
+            sub_dir_lib,
+        ],
+        linkstatic = False,
+    )
+
+    analysis_test(
+        name = name,
+        impl = _test_runtime_dynamic_libraries_copy_behavior_impl,
+        target = binary_target,
+        # TODO: This would be better-done with the mock toolchain, once that is
+        # wired up
+        attrs = {
+            "copy_feature_supported": attr.bool(),
+        },
+        attr_values = {
+            "copy_feature_supported": select({
+                # copy_dynamic_libraries_to_binary is only defined in the
+                # windows toolchain currently
+                "@platforms//os:windows": True,
+                "//conditions:default": False,
+            }),
+            "size": "small",
+        },
+        **kwargs
+    )
+
+def _test_runtime_dynamic_libraries_copy_behavior_impl(env, target):
+    if not env.ctx.attr.copy_feature_supported:
+        return
+
+    test_name = env.ctx.label.name
+
+    expected_copied_library = "tests/cc/common/{name}/dst/sub_dir_lib.dll".format(
+        name = test_name,
+    )
+    expected_same_dir_library = "tests/cc/common/{name}/dst/same_dir_lib.dll".format(
+        name = test_name,
+    )
+
+    # Both libraries should be listed as runtime dependencies, but...
+    expected_libraries = [expected_copied_library, expected_same_dir_library]
+
+    env.expect \
+        .that_target(target) \
+        .output_group("runtime_dynamic_libraries") \
+        .contains_exactly(expected_libraries)
+
+    actions = {}
+    for action in target[TestingAspectInfo].actions:
+        if action.mnemonic != "Symlink":
+            continue
+
+        for output in action.outputs.to_list():
+            if output.short_path in expected_libraries:
+                actions[output.short_path] = action
+
+    # ... only one of the libraries should have a Symlink action (Copying
+    # Execution Dynamic Library) since the other one should already be in the
+    # same dir
+    expected_copies = [expected_copied_library]
+    env.expect.that_dict(actions).keys().contains_exactly(expected_copies)
+
 def cc_binary_configured_target_tests(name):
     test_suite(
         name = name,
@@ -133,5 +241,6 @@ def cc_binary_configured_target_tests(name):
             _test_headers_not_passed_to_linking_action,
             _test_no_duplicate_linkopts,
             _test_action_graph,
+            _test_runtime_dynamic_libraries_copy_behavior,
         ],
     )
