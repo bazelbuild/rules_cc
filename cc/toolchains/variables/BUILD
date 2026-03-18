@@ -317,6 +317,12 @@ cc_variable(
 )
 
 cc_variable(
+    name = "pch_file",
+    actions = ["//cc/toolchains/actions:compile_actions"],
+    type = types.option(types.file),
+)
+
+cc_variable(
     name = "output_assembly_file",
     actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.option(types.file),
@@ -328,6 +334,36 @@ cc_variable(
         "//cc/toolchains/actions:cpp_link_static_library",
         "//cc/toolchains/actions:link_actions",
     ],
+    type = types.option(types.file),
+)
+
+cc_variable(
+    name = "fully_linked_archive_path",
+    actions = ["//cc/toolchains/actions:objc_fully_link"],
+    type = types.option(types.file),
+)
+
+cc_variable(
+    name = "objc_library_exec_paths",
+    actions = ["//cc/toolchains/actions:objc_fully_link"],
+    type = types.option(types.list(types.file)),
+)
+
+cc_variable(
+    name = "cc_library_exec_paths",
+    actions = ["//cc/toolchains/actions:objc_fully_link"],
+    type = types.option(types.list(types.file)),
+)
+
+cc_variable(
+    name = "imported_library_exec_paths",
+    actions = ["//cc/toolchains/actions:objc_fully_link"],
+    type = types.option(types.list(types.file)),
+)
+
+cc_variable(
+    name = "linkmap_exec_path",
+    actions = ["//cc/toolchains/actions:link_actions"],
     type = types.option(types.file),
 )
 
@@ -496,6 +532,7 @@ cc_variable(
 cc_builtin_variables(
     name = "variables",
     srcs = [
+        ":cc_library_exec_paths",
         ":cs_fdo_instrument_path",
         ":def_file_path",
         ":dependency_file",
@@ -507,8 +544,10 @@ cc_builtin_variables(
         ":fdo_profile_path",
         ":force_pic",
         ":framework_include_paths",
+        ":fully_linked_archive_path",
         ":gcov_gcno_file",
         ":generate_interface_library",
+        ":imported_library_exec_paths",
         ":include",
         ":include_paths",
         ":includes",
@@ -523,6 +562,7 @@ cc_builtin_variables(
         ":libraries_to_link",
         ":library_search_directories",
         ":linker_param_file",
+        ":linkmap_exec_path",
         ":linkstamp_paths",
         ":lto_indexing_bitcode_file",
         ":module_files",
@@ -530,10 +570,12 @@ cc_builtin_variables(
         ":module_name",
         ":no_objc_arc",
         ":objc_arc",
+        ":objc_library_exec_paths",
         ":output_assembly_file",
         ":output_execpath",
         ":output_file",
         ":output_preprocess_file",
+        ":pch_file",
         ":per_object_debug_info_file",
         ":pic",
         ":preprocessor_defines",
