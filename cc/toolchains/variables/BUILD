@@ -24,6 +24,12 @@ cc_variable(
 )
 
 cc_variable(
+    name = "dbg_mode_debug_flag",
+    actions = ["//cc/toolchains/actions:link_actions"],
+    type = types.option(types.string),
+)
+
+cc_variable(
     name = "dependent_module_map_files",
     actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.option(types.list(types.file)),
@@ -31,7 +37,13 @@ cc_variable(
 
 cc_variable(
     name = "external_include_paths",
-    actions = ["//cc/toolchains/actions:compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:compile_actions",
+        "//cc/toolchains/actions:cpp_module_deps_scanning",
+        "//cc/toolchains/actions:cpp20_module_compile",
+        "//cc/toolchains/actions:clif_match",
+        "//cc/toolchains/actions:objcpp_compile",
+    ],
     type = types.option(types.list(types.directory)),
 )
 
@@ -54,6 +66,12 @@ cc_variable(
     name = "fdo_profile_path",
     actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.option(types.file),
+)
+
+cc_variable(
+    name = "fastbuild_mode_debug_flag",
+    actions = ["//cc/toolchains/actions:link_actions"],
+    type = types.option(types.string),
 )
 
 cc_variable(
@@ -299,6 +317,15 @@ cc_variable(
 )
 
 cc_variable(
+    name = "cpp_module_output_file",
+    actions = [
+        "//cc/toolchains/actions:compile_actions",
+        "//cc/toolchains/actions:cpp20_module_compile",
+    ],
+    type = types.option(types.file),
+)
+
+cc_variable(
     name = "module_name",
     actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.option(types.string),
@@ -318,7 +345,12 @@ cc_variable(
 
 cc_variable(
     name = "output_assembly_file",
-    actions = ["//cc/toolchains/actions:compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:compile_actions",
+        "//cc/toolchains/actions:cpp_module_deps_scanning",
+        "//cc/toolchains/actions:cpp20_module_compile",
+        "//cc/toolchains/actions:cpp20_module_codegen",
+    ],
     type = types.option(types.file),
 )
 
@@ -341,6 +373,9 @@ cc_variable(
     name = "output_file",
     actions = [
         "//cc/toolchains/actions:compile_actions",
+        "//cc/toolchains/actions:cpp_module_deps_scanning",
+        "//cc/toolchains/actions:cpp20_module_compile",
+        "//cc/toolchains/actions:cpp20_module_codegen",
         "//cc/toolchains/actions:strip",
     ],
     type = types.option(types.file),
@@ -348,7 +383,12 @@ cc_variable(
 
 cc_variable(
     name = "output_preprocess_file",
-    actions = ["//cc/toolchains/actions:compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:compile_actions",
+        "//cc/toolchains/actions:cpp_module_deps_scanning",
+        "//cc/toolchains/actions:cpp20_module_compile",
+        "//cc/toolchains/actions:cpp20_module_codegen",
+    ],
     type = types.option(types.file),
 )
 
@@ -366,7 +406,21 @@ cc_variable(
 
 cc_variable(
     name = "preprocessor_defines",
-    actions = ["//cc/toolchains/actions:source_compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:assemble",
+        "//cc/toolchains/actions:preprocess_assemble",
+        "//cc/toolchains/actions:c_compile",
+        "//cc/toolchains/actions:linkstamp_compile",
+        "//cc/toolchains/actions:cpp_compile",
+        "//cc/toolchains/actions:cpp_header_parsing",
+        "//cc/toolchains/actions:cpp_module_compile",
+        "//cc/toolchains/actions:cpp_module_codegen",
+        "//cc/toolchains/actions:cpp_module_deps_scanning",
+        "//cc/toolchains/actions:cpp20_module_compile",
+        "//cc/toolchains/actions:clif_match",
+        "//cc/toolchains/actions:objc_compile",
+        "//cc/toolchains/actions:objcpp_compile",
+    ],
     type = types.list(types.string),
 )
 
@@ -402,7 +456,12 @@ cc_variable(
 
 cc_variable(
     name = "source_file",
-    actions = ["//cc/toolchains/actions:compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:compile_actions",
+        "//cc/toolchains/actions:cpp_module_deps_scanning",
+        "//cc/toolchains/actions:cpp20_module_compile",
+        "//cc/toolchains/actions:cpp20_module_codegen",
+    ],
     type = types.option(types.file),
 )
 
@@ -496,12 +555,15 @@ cc_variable(
 cc_builtin_variables(
     name = "variables",
     srcs = [
+        ":cpp_module_output_file",
         ":cs_fdo_instrument_path",
+        ":dbg_mode_debug_flag",
         ":def_file_path",
         ":dependency_file",
         ":dependent_module_map_files",
         ":dsym_path",
         ":external_include_paths",
+        ":fastbuild_mode_debug_flag",
         ":fdo_instrument_path",
         ":fdo_prefetch_hints_path",
         ":fdo_profile_path",

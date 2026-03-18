@@ -49,7 +49,9 @@ _COLLECTED_C_COMPILE_FILES = _COLLECTED_CPP_COMPILE_FILES + [
     "tests/rule_based_toolchain/testdata/subdir3/file_baz",
 ]
 
-def _expect_that_toolchain(env, expr = None, **kwargs):
+def _expect_that_toolchain(env, targets, expr = None, **kwargs):
+    if "compiler_feature" not in kwargs:
+        kwargs["compiler_feature"] = targets.gcc
     return env.expect.that_value(
         value = toolchain_config_info(label = Label("//:toolchain"), **kwargs),
         expr = expr,
@@ -59,6 +61,7 @@ def _expect_that_toolchain(env, expr = None, **kwargs):
 def _missing_tool_map_invalid_test(env, _targets):
     _expect_that_toolchain(
         env,
+        _targets,
         tool_map = None,
         expr = "missing_tool_map",
     ).err().contains(
@@ -68,12 +71,14 @@ def _missing_tool_map_invalid_test(env, _targets):
 def _empty_toolchain_valid_test(env, targets):
     _expect_that_toolchain(
         env,
+        targets,
         tool_map = targets.empty_tool_map,  # tool_map is always required.
     ).ok()
 
 def _duplicate_feature_names_invalid_test(env, targets):
     _expect_that_toolchain(
         env,
+        targets,
         known_features = [targets.simple_feature, targets.same_feature_name],
         tool_map = targets.empty_tool_map,
         expr = "duplicate_feature_name",
@@ -86,6 +91,7 @@ def _duplicate_feature_names_invalid_test(env, targets):
     # Overriding a feature gives it the same name. Ensure this isn't blocked.
     _expect_that_toolchain(
         env,
+        targets,
         known_features = [targets.builtin_feature, targets.overrides_feature],
         tool_map = targets.empty_tool_map,
         expr = "override_feature",
@@ -94,6 +100,7 @@ def _duplicate_feature_names_invalid_test(env, targets):
 def _feature_config_implies_missing_feature_invalid_test(env, targets):
     _expect_that_toolchain(
         env,
+        targets,
         expr = "feature_with_implies",
         known_features = [targets.simple_feature, targets.implies_simple_feature],
         tool_map = targets.empty_tool_map,
@@ -101,6 +108,7 @@ def _feature_config_implies_missing_feature_invalid_test(env, targets):
 
     _expect_that_toolchain(
         env,
+        targets,
         known_features = [targets.implies_simple_feature],
         tool_map = targets.empty_tool_map,
         expr = "feature_missing_implies",
@@ -111,18 +119,21 @@ def _feature_config_implies_missing_feature_invalid_test(env, targets):
 def _feature_missing_requirements_invalid_test(env, targets):
     _expect_that_toolchain(
         env,
+        targets,
         known_features = [targets.requires_any_simple_feature, targets.simple_feature],
         tool_map = targets.empty_tool_map,
         expr = "requires_any_simple_has_simple",
     ).ok()
     _expect_that_toolchain(
         env,
+        targets,
         known_features = [targets.requires_any_simple_feature, targets.simple_feature2],
         tool_map = targets.empty_tool_map,
         expr = "requires_any_simple_has_simple2",
     ).ok()
     _expect_that_toolchain(
         env,
+        targets,
         known_features = [targets.requires_any_simple_feature],
         tool_map = targets.empty_tool_map,
         expr = "requires_any_simple_has_none",
@@ -132,12 +143,14 @@ def _feature_missing_requirements_invalid_test(env, targets):
 
     _expect_that_toolchain(
         env,
+        targets,
         known_features = [targets.requires_all_simple_feature, targets.simple_feature, targets.simple_feature2],
         tool_map = targets.empty_tool_map,
         expr = "requires_all_simple_has_both",
     ).ok()
     _expect_that_toolchain(
         env,
+        targets,
         known_features = [targets.requires_all_simple_feature, targets.simple_feature],
         tool_map = targets.empty_tool_map,
         expr = "requires_all_simple_has_simple",
@@ -146,6 +159,7 @@ def _feature_missing_requirements_invalid_test(env, targets):
     )
     _expect_that_toolchain(
         env,
+        targets,
         known_features = [targets.requires_all_simple_feature, targets.simple_feature2],
         tool_map = targets.empty_tool_map,
         expr = "requires_all_simple_has_simple2",
@@ -156,6 +170,7 @@ def _feature_missing_requirements_invalid_test(env, targets):
 def _args_missing_requirements_invalid_test(env, targets):
     _expect_that_toolchain(
         env,
+        targets,
         args = [targets.requires_all_simple_args],
         known_features = [targets.simple_feature, targets.simple_feature2],
         tool_map = targets.empty_tool_map,
@@ -163,6 +178,7 @@ def _args_missing_requirements_invalid_test(env, targets):
     ).ok()
     _expect_that_toolchain(
         env,
+        targets,
         args = [targets.requires_all_simple_args],
         known_features = [targets.simple_feature],
         tool_map = targets.empty_tool_map,
@@ -198,6 +214,10 @@ def _toolchain_collects_files_test(env, targets):
             )],
         ),
         legacy_feature(
+            name = "compiler_gcc",
+            enabled = True,
+        ),
+        legacy_feature(
             name = "compile_feature",
             enabled = False,
             flag_sets = [legacy_flag_set(
@@ -208,8 +228,28 @@ def _toolchain_collects_files_test(env, targets):
             )],
         ),
         legacy_feature(
-            name = "supports_pic",
+            name = "compiler_clang",
             enabled = False,
+        ),
+        legacy_feature(
+            name = "compiler_clang_cl",
+            enabled = False,
+        ),
+        legacy_feature(
+            name = "compiler_mingw_gcc",
+            enabled = False,
+        ),
+        legacy_feature(
+            name = "compiler_msvc_cl",
+            enabled = False,
+        ),
+        legacy_feature(
+            name = "compiler_emscripten",
+            enabled = False,
+        ),
+        legacy_feature(
+            name = "supports_pic",
+            enabled = True,
         ),
         legacy_feature(
             name = "implied_by_always_enabled_env_sets",
@@ -259,6 +299,7 @@ def _toolchain_collects_files_test(env, targets):
     ]).in_order()
 
 TARGETS = [
+    "//cc/toolchains/compiler:gcc",
     "//tests/rule_based_toolchain/actions:c_compile",
     "//tests/rule_based_toolchain/actions:cpp_compile",
     ":builtin_feature",
