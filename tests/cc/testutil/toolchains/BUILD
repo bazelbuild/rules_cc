@@ -1,3 +1,4 @@
+load("@bazel_skylib//rules:common_settings.bzl", "string_list_flag")
 load("//cc:cc_library.bzl", "cc_library")
 load("//cc/toolchains:cc_toolchain.bzl", "cc_toolchain")
 load("//cc/toolchains:cc_toolchain_alias.bzl", "cc_toolchain_alias")
@@ -8,6 +9,13 @@ toolchain_type(name = "toolchain_type")
 toolchain_type(name = "test_runner_toolchain_type")
 
 cc_toolchain_alias(name = "current_cc_toolchain")
+
+# Sets the mock toolchain's available features. You can then use --features=foo to enable features.
+# See features.bzl for values.
+string_list_flag(
+    name = "with_features",
+    build_setting_default = [],
+)
 
 filegroup(
     name = "everything-multilib",

@@ -9,6 +9,7 @@ load("//cc:cc_library.bzl", "cc_library")
 load("//tests/cc/testutil:cc_analysis_test.bzl", "cc_analysis_test")
 load("//tests/cc/testutil:cc_binary_target_subject.bzl", "cc_binary_target_subject")
 load("//tests/cc/testutil:link_action_subject.bzl", "link_action_subject")
+load("//tests/cc/testutil/toolchains:features.bzl", "FEATURE_NAMES")
 
 def _test_files_to_build(name, **kwargs):
     util.helper_target(
@@ -233,6 +234,32 @@ def _test_runtime_dynamic_libraries_copy_behavior_impl(env, target):
     expected_copies = [expected_copied_library]
     env.expect.that_dict(actions).keys().contains_exactly(expected_copies)
 
+def _test_pic(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/hello",
+        srcs = ["hello.cc"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_pic_impl,
+        target = name + "/hello",
+        test_features = [FEATURE_NAMES.supports_pic],
+        **kwargs
+    )
+
+def _test_pic_impl(env, target):
+    executable = target[DefaultInfo].files_to_run.executable
+    link_action = env.expect.that_target(target).action_generating(executable.short_path)
+    hello_obj_files = [
+        f
+        for f in link_action.actual.inputs.to_list()
+        if f.basename.startswith("hello.") and f.extension in ["o", "obj"]
+    ]
+
+    env.expect.that_collection(hello_obj_files).has_size(1)
+    env.expect.that_file(hello_obj_files[0]).basename().equals("hello.pic.o")
+
 def cc_binary_configured_target_tests(name):
     test_suite(
         name = name,
@@ -242,5 +269,6 @@ def cc_binary_configured_target_tests(name):
             _test_no_duplicate_linkopts,
             _test_action_graph,
             _test_runtime_dynamic_libraries_copy_behavior,
+            _test_pic,
         ],
     )
