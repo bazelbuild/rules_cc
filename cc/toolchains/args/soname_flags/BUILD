@@ -13,7 +13,7 @@ cc_feature(
 
 cc_args(
     name = "macos_set_install_name",
-    actions = ["//cc/toolchains/actions:link_actions"],
+    actions = ["//cc/toolchains/actions:dynamic_library_link_actions"],
     args = ["-Wl,-install_name,@rpath/{runtime_solib_name}"],
     format = {"runtime_solib_name": "//cc/toolchains/variables:runtime_solib_name"},
     requires_not_none = "//cc/toolchains/variables:runtime_solib_name",
@@ -22,7 +22,7 @@ cc_args(
 
 cc_args(
     name = "set_soname",
-    actions = ["//cc/toolchains/actions:link_actions"],
+    actions = ["//cc/toolchains/actions:dynamic_library_link_actions"],
     args = ["-Wl,-soname,{runtime_solib_name}"],
     format = {"runtime_solib_name": "//cc/toolchains/variables:runtime_solib_name"},
     requires_not_none = "//cc/toolchains/variables:runtime_solib_name",
