@@ -88,6 +88,7 @@ def _test_action_graph(name, **kwargs):
             "-no_dotd_file",
             "-parse_showincludes",
         ],
+        "//command_line_option:force_pic": False,
     }
 
     cc_analysis_test(
@@ -245,6 +246,9 @@ def _test_pic(name, **kwargs):
         impl = _test_pic_impl,
         target = name + "/hello",
         test_features = [FEATURE_NAMES.supports_pic],
+        config_settings = {
+            "//command_line_option:force_pic": True,
+        },
         **kwargs
     )
 
