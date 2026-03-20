@@ -54,13 +54,13 @@ def _swift_module_map(ctx):
             ctx,
             ".modulemaps/module.modulemap",
         ),
-        name = module_name,
+        identifier = module_name,
     )
 
 def _internal_module_map(ctx):
     return cc_common.create_module_map(
         file = _declare_file_with_extension(ctx, ".internal.cppmap"),
-        name = str(ctx.label),
+        identifier = ctx.label,
     )
 
 def _create_closure_struct(ctx, archive_file_name_suffix, enforce_always_link):
