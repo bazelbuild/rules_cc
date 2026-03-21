@@ -36,13 +36,11 @@ def get_action_type(args_list, action_type):
 
     return struct(action = action_type, args = tuple(), files = depset([]))
 
-def validate_nested_args(*, nested_args, variables, actions, label, fail = fail):
+def validate_nested_args(*, nested_args, actions, label, fail = fail):
     """Validates the typing for an nested_args invocation.
 
     Args:
         nested_args: (NestedArgsInfo) The nested_args to validate
-        variables: (Dict[str, VariableInfo]) A mapping from variable name to
-          the metadata (variable type and valid actions).
         actions: (List[ActionTypeInfo]) The actions we require these variables
           to be valid for.
         label: (Label) The label of the rule we're currently validating.
@@ -59,10 +57,11 @@ def validate_nested_args(*, nested_args, variables, actions, label, fail = fail)
             # Make sure we don't keep using the same object.
             overrides = dict(**overrides)
 
+        node_variables = nested_args.referenced_variables
         if nested_args.iterate_over != None:
             type = get_type(
                 name = nested_args.iterate_over,
-                variables = variables,
+                variables = node_variables,
                 overrides = overrides,
                 actions = actions,
                 args_label = label,
@@ -88,7 +87,7 @@ def validate_nested_args(*, nested_args, variables, actions, label, fail = fail)
                     if requirement.after_option_unwrap == after_option_unwrap:
                         type = get_type(
                             name = var_name,
-                            variables = variables,
+                            variables = node_variables,
                             overrides = overrides,
                             actions = actions,
                             args_label = label,
@@ -107,7 +106,7 @@ def validate_nested_args(*, nested_args, variables, actions, label, fail = fail)
                 for var in nested_args.unwrap_options:
                     type = get_type(
                         name = var,
-                        variables = variables,
+                        variables = node_variables,
                         overrides = overrides,
                         actions = actions,
                         args_label = label,

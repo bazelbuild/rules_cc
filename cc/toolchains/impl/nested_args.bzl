@@ -77,6 +77,25 @@ directory as additional files.
     "requires_equal_value": attr.string(),
 }
 
+def collect_referenced_variables(ctx):
+    result = {}
+    for target in [
+        ctx.attr.iterate_over,
+        ctx.attr.requires_equal,
+        ctx.attr.requires_false,
+        ctx.attr.requires_none,
+        ctx.attr.requires_not_none,
+        ctx.attr.requires_true,
+    ]:
+        if target != None:
+            vi = target[VariableInfo]
+            result[vi.name] = vi
+    for target in ctx.attr.format:
+        if VariableInfo in target:
+            vi = target[VariableInfo]
+            result[vi.name] = vi
+    return result
+
 def _var(target):
     if target == None:
         return None
@@ -84,16 +103,20 @@ def _var(target):
 
 # TODO: Consider replacing this with a subrule in the future. However, maybe not
 # for a long time, since it'll break compatibility with all bazel versions < 7.
-def nested_args_provider_from_ctx(ctx, maybe_used_vars = []):
+def nested_args_provider_from_ctx(ctx, maybe_used_vars = [], variables = None):
     """Gets the nested args provider from a rule that has NESTED_ARGS_ATTRS.
 
     Args:
         ctx: The rule context
         maybe_used_vars: (List[str]) A list of format variables that are not needed during args formatting.
+        variables: (Optional[dict[str, VariableInfo]]) Pre-computed referenced
+          variables. If None, collected from ctx.
 
     Returns:
         NestedArgsInfo
     """
+    if variables == None:
+        variables = collect_referenced_variables(ctx)
     return nested_args_provider(
         label = ctx.label,
         args = ctx.attr.args,
@@ -108,6 +131,7 @@ def nested_args_provider_from_ctx(ctx, maybe_used_vars = []):
         requires_equal = _var(ctx.attr.requires_equal),
         requires_equal_value = ctx.attr.requires_equal_value,
         maybe_used_vars = maybe_used_vars,
+        variables = variables,
     )
 
 def nested_args_provider(
@@ -125,6 +149,7 @@ def nested_args_provider(
         requires_equal = None,
         requires_equal_value = "",
         maybe_used_vars = [],
+        variables = {},
         fail = fail):
     """Creates a validated NestedArgsInfo.
 
@@ -153,6 +178,8 @@ def nested_args_provider(
         requires_equal_value: (str) The value to compare the requires_equal
           variable with
         maybe_used_vars: (List[str]) A list of format variables that are not needed during args formatting.
+        variables: (dict[str, VariableInfo]) Variables referenced by this
+          node. Only local, not transitive.
         fail: A fail function. Use only for testing.
     Returns:
         NestedArgsInfo
@@ -286,6 +313,7 @@ def nested_args_provider(
         unwrap_options = unwrap_options,
         requires_types = requires_types,
         legacy_flag_group = flag_group(**kwargs),
+        referenced_variables = variables,
     )
 
 def _escape(s):

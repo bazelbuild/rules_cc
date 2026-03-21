@@ -167,7 +167,7 @@ def _requires_types_test(env, targets):
     _expect_that_nested(
         env,
         requires_not_none = "abc",
-        requires_none = "def",
+        requires_true = "def",
         args = ["--foo"],
         expr = "mutually_exclusive",
     ).err().equals(REQUIRES_MUTUALLY_EXCLUSIVE_ERR)

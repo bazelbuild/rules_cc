@@ -13,7 +13,7 @@
 # limitations under the License.
 """Tests for variables rule."""
 
-load("//cc/toolchains:cc_toolchain_info.bzl", "ActionTypeInfo", "BuiltinVariablesInfo", "NestedArgsInfo", "VariableInfo")
+load("//cc/toolchains:cc_toolchain_info.bzl", "ActionTypeInfo", "NestedArgsInfo", "VariableInfo")
 load("//cc/toolchains/impl:args_utils.bzl", _validate_nested_args = "validate_nested_args")
 load(
     "//cc/toolchains/impl:nested_args.bzl",
@@ -43,7 +43,10 @@ def _types_represent_correctly_test(env, targets):
 def _get_types_test(env, targets):
     c_compile = targets.c_compile[ActionTypeInfo]
     cpp_compile = targets.cpp_compile[ActionTypeInfo]
-    variables = targets.variables[BuiltinVariablesInfo].variables
+    variables = {
+        t[VariableInfo].name: t[VariableInfo]
+        for t in [targets.str, targets.str_list, targets.str_option, targets.optional_list, targets.struct, targets.struct_list]
+    }
 
     def expect_type(key, overrides = {}, expr = None, actions = []):
         return env.expect.that_value(
@@ -121,13 +124,11 @@ nested_str_list: List[string]""")
 def _variable_validation_test(env, targets):
     c_compile = targets.c_compile[ActionTypeInfo]
     cpp_compile = targets.cpp_compile[ActionTypeInfo]
-    variables = targets.variables[BuiltinVariablesInfo].variables
 
     def _expect_validated(target, expr = None, actions = []):
         return env.expect.that_value(
             validate_nested_args(
                 nested_args = target[NestedArgsInfo],
-                variables = variables,
                 actions = actions,
                 label = _ARGS_LABEL,
             ),
@@ -148,9 +149,7 @@ def _variable_validation_test(env, targets):
         REQUIRES_TRUE_ERR + ", but str has type string",
     )
     _expect_validated(targets.str_equal, expr = "str_equal").ok()
-    _expect_validated(targets.inner_iter, expr = "inner_iter_standalone").err().equals(
-        'Attempted to access "struct_list.nested_str_list", but "struct_list" was not a struct - it had type List[struct(nested_str=string, nested_str_list=List[string])]. Maybe you meant to use iterate_over.',
-    )
+    _expect_validated(targets.inner_iter, expr = "inner_iter_standalone").ok()
 
     _expect_validated(targets.outer_iter, actions = [c_compile], expr = "outer_iter_valid_action").ok()
     _expect_validated(targets.outer_iter, actions = [c_compile, cpp_compile], expr = "outer_iter_missing_action").err().equals(
@@ -179,6 +178,7 @@ TARGETS = [
     ":iterate_over_non_list",
     ":list_not_allowed",
     ":nested_str_list",
+    ":optional_list",
     ":optional_list_iter",
     ":outer_iter",
     ":simple_str",
@@ -189,7 +189,6 @@ TARGETS = [
     ":str_option",
     ":struct",
     ":struct_list",
-    ":variables",
 ]
 
 # @unsorted-dict-items

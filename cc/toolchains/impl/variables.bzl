@@ -109,13 +109,41 @@ cc_builtin_variables = rule(
     },
 )
 
+def _check_actions(vi, actions, args_label, nested_label, fail):
+    """Checks that a variable is accessible from all given actions.
+
+    Args:
+        vi: (VariableInfo) The variable to check.
+        actions: (list[ActionTypeInfo]) The actions to validate against.
+        args_label: (Label) The label for the args rule. Used for error messages.
+        nested_label: (Label) The label for the nested rule. Used for error messages.
+        fail: A function to be called upon failure.
+    Returns:
+        types.void if the check failed, or None if it passed.
+    """
+    if vi.actions == None:
+        return None
+    valid_actions = vi.actions.to_list()
+    for action in actions:
+        if action not in valid_actions:
+            fail("The variable {var} is inaccessible from the action {action}. This is required because it is referenced in {nested_label}, which is included by {args_label}, which references that action".format(
+                var = vi.label,
+                nested_label = nested_label,
+                args_label = args_label,
+                action = action.label,
+            ))
+
+            # buildifier: disable=unreachable
+            return types.void
+    return None
+
 def get_type(*, name, variables, overrides, actions, args_label, nested_label, fail):
     """Gets the type of a variable.
 
     Args:
         name: (str) The variable to look up.
         variables: (dict[str, VariableInfo]) Mapping from variable name to
-          metadata. Top-level variables only
+          metadata. May contain dotted names for sub-field targets.
         overrides: (dict[str, type]) Mapping from variable names to type.
           Can be used for nested variables.
         actions: (depset[ActionTypeInfo]) The set of actions for which the
@@ -128,6 +156,13 @@ def get_type(*, name, variables, overrides, actions, args_label, nested_label, f
     Returns:
         The type of the variable "name".
     """
+    if name in variables:
+        vi = variables[name]
+        err = _check_actions(vi, actions, args_label, nested_label, fail)
+        if err != None:
+            return err
+        return overrides.get(name, vi.type)
+
     outer = name.split(".")[0]
     if outer not in variables:
         # With a fail function, we actually need to return since the fail
@@ -137,19 +172,9 @@ def get_type(*, name, variables, overrides, actions, args_label, nested_label, f
         # buildifier: disable=unreachable
         return types.void
 
-    if variables[outer].actions != None:
-        valid_actions = variables[outer].actions.to_list()
-        for action in actions:
-            if action not in valid_actions:
-                fail("The variable {var} is inaccessible from the action {action}. This is required because it is referenced in {nested_label}, which is included by {args_label}, which references that action".format(
-                    var = variables[outer].label,
-                    nested_label = nested_label,
-                    args_label = args_label,
-                    action = action.label,
-                ))
-
-                # buildifier: disable=unreachable
-                return types.void
+    err = _check_actions(variables[outer], actions, args_label, nested_label, fail)
+    if err != None:
+        return err
 
     type = overrides.get(outer, variables[outer].type)
 

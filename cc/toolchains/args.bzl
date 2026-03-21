@@ -27,13 +27,13 @@ load(
     "NESTED_ARGS_ATTRS",
     "format_dict_values",
     "nested_args_provider_from_ctx",
+    "collect_referenced_variables",
 )
 load(
     ":cc_toolchain_info.bzl",
     "ActionTypeSetInfo",
     "ArgsInfo",
     "ArgsListInfo",
-    "BuiltinVariablesInfo",
     "EnvInfo",
     "FeatureConstraintInfo",
     "VariableInfo",
@@ -54,13 +54,14 @@ def _cc_args_impl(ctx):
         if not is_path_absolute(path):
             fail("`{}` is not an absolute paths".format(path))
 
+    referenced_variables = collect_referenced_variables(ctx)
+
     nested = None
     if ctx.attr.args or ctx.attr.nested:
         # Forward the format variables used by the env formatting so they don't trigger
         # errors if they go unused during the argument formatting.
-        nested = nested_args_provider_from_ctx(ctx, used_format_vars)
+        nested = nested_args_provider_from_ctx(ctx, used_format_vars, referenced_variables)
         validate_nested_args(
-            variables = ctx.attr._variables[BuiltinVariablesInfo].variables,
             nested_args = nested,
             actions = actions.to_list(),
             label = ctx.label,
@@ -79,7 +80,7 @@ def _cc_args_impl(ctx):
     validate_env_variables(
         actions = actions.to_list(),
         env = env,
-        variables = ctx.attr._variables[BuiltinVariablesInfo].variables,
+        variables = referenced_variables,
         used_format_vars = used_format_vars,
     )
 
@@ -134,9 +135,6 @@ _cc_args = rule(
         "requires_any_of": attr.label_list(
             providers = [FeatureConstraintInfo],
             doc = """See documentation for cc_args macro wrapper.""",
-        ),
-        "_variables": attr.label(
-            default = "//cc/toolchains/variables:variables",
         ),
     } | NESTED_ARGS_ATTRS,
     provides = [ArgsInfo],

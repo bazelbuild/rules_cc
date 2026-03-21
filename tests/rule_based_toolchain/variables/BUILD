@@ -1,5 +1,5 @@
 load("//cc/toolchains:nested_args.bzl", "cc_nested_args")
-load("//cc/toolchains/impl:variables.bzl", "cc_builtin_variables", "cc_variable", "types")
+load("//cc/toolchains/impl:variables.bzl", "cc_variable", "types")
 load("//tests/rule_based_toolchain:analysis_test_suite.bzl", "analysis_test_suite")
 load(":variables_test.bzl", "TARGETS", "TESTS")
 
@@ -43,7 +43,7 @@ cc_variable(
 
 cc_variable(
     name = "struct_list.nested_str_list",
-    type = types.unknown,
+    type = types.list(types.string),
 )
 
 # Dots in the name confuse the test rules.
@@ -131,25 +131,6 @@ cc_nested_args(
     name = "optional_list_iter",
     args = ["--foo"],
     iterate_over = ":optional_list",
-)
-
-cc_builtin_variables(
-    name = "variables",
-    srcs = [
-        ":optional_list",
-        ":str",
-        ":str_list",
-        ":str_option",
-        ":struct",
-        ":struct_list",
-    ],
-)
-
-cc_builtin_variables(
-    name = "nested_variables",
-    srcs = [
-        ":struct_list.nested_str_list",
-    ],
 )
 
 analysis_test_suite(

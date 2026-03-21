@@ -94,6 +94,7 @@ NestedArgsInfo = provider(
         "requires_types": "(dict[str, str]) A mapping from variables to their expected type name (not type). This means that we can require the generic type Option, rather than an Option[T]",
         "legacy_flag_group": "(flag_group) The flag_group this corresponds to",
         "unwrap_options": "(List[str]) A list of variables for which we should unwrap the option. For example, if a user writes `requires_not_none = \":foo\"`, then we change the type of foo from Option[str] to str",
+        "referenced_variables": "(dict[str, VariableInfo]) Variables referenced directly by this node (not transitive)",
     },
 )
 
