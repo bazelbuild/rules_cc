@@ -16,6 +16,8 @@
 load(
     "//cc:cc_toolchain_config_lib.bzl",
     legacy_action_config = "action_config",
+    legacy_env_entry = "env_entry",
+    legacy_env_set = "env_set",
     legacy_feature = "feature",
     legacy_flag_group = "flag_group",
     legacy_flag_set = "flag_set",
@@ -258,6 +260,32 @@ def _toolchain_collects_files_test(env, targets):
         ),
     ]).in_order()
 
+def _tool_env_wires_into_toolchain_test(env, targets):
+    tc = env.expect.that_target(targets.tool_env_toolchain_config).provider(ToolchainConfigInfo)
+    legacy = convert_toolchain(tc.actual)
+
+    env.expect.that_collection(legacy.features).contains_exactly([
+        legacy_feature(
+            name = "implied_by_always_enabled_env_sets",
+            enabled = True,
+            env_sets = [
+                legacy_env_set(
+                    actions = ["c_compile"],
+                    env_entries = [
+                        legacy_env_entry(key = "STATIC", value = "value"),
+                        legacy_env_entry(key = "TOOL_ENV", value = "tests/rule_based_toolchain/testdata/file1"),
+                    ],
+                ),
+                legacy_env_set(
+                    actions = ["c_compile"],
+                    env_entries = [
+                        legacy_env_entry(key = "FROM_ARGS", value = "args-env"),
+                    ],
+                ),
+            ],
+        ),
+    ])
+
 TARGETS = [
     "//tests/rule_based_toolchain/actions:c_compile",
     "//tests/rule_based_toolchain/actions:cpp_compile",
@@ -269,6 +297,9 @@ TARGETS = [
     ":compile_feature",
     ":c_compile_args",
     ":c_compile_tool_map",
+    ":tool_env_toolchain_config",
+    ":tool_env_tool_map",
+    ":c_compile_env_args",
     ":empty_tool_map",
     ":implies_simple_feature",
     ":overrides_feature",
@@ -289,4 +320,5 @@ TESTS = {
     "feature_missing_requirements_invalid_test": _feature_missing_requirements_invalid_test,
     "args_missing_requirements_invalid_test": _args_missing_requirements_invalid_test,
     "toolchain_collects_files_test": _toolchain_collects_files_test,
+    "tool_env_wires_into_toolchain_test": _tool_env_wires_into_toolchain_test,
 }
