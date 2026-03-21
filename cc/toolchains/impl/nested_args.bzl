@@ -24,7 +24,7 @@ visibility([
     "//tests/rule_based_toolchain/...",
 ])
 
-REQUIRES_MUTUALLY_EXCLUSIVE_ERR = "requires_none, requires_not_none, requires_true, requires_false, and requires_equal are mutually exclusive"
+REQUIRES_MUTUALLY_EXCLUSIVE_ERR = "requires_none and requires_not_none are mututally exclusive with requires_true, requires_false, and requires_equal"
 REQUIRES_NOT_NONE_ERR = "requires_not_none only works on options"
 REQUIRES_NONE_ERR = "requires_none only works on options"
 REQUIRES_TRUE_ERR = "requires_true only works on bools"
@@ -199,17 +199,11 @@ def nested_args_provider(
     transitive_files = [ea.files for ea in nested]
     transitive_files.append(files)
 
-    has_value = [attr for attr in [
-        requires_not_none,
-        requires_none,
-        requires_true,
-        requires_false,
-        requires_equal,
-    ] if attr != None]
-
     # We may want to reconsider this down the line, but it's easier to open up
     # an API than to lock down an API.
-    if len(has_value) > 1:
+    optional_checks = any([requires_not_none, requires_none])
+    boolean_checks = any([requires_true, requires_false, requires_equal])
+    if optional_checks and boolean_checks:
         fail(REQUIRES_MUTUALLY_EXCLUSIVE_ERR)
 
     kwargs = {}
