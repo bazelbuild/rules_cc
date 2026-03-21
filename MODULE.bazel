@@ -9,6 +9,20 @@ bazel_dep(name = "bazel_skylib", version = "1.7.1")
 bazel_dep(name = "platforms", version = "0.0.10")
 bazel_dep(name = "protobuf", version = "27.0", repo_name = "com_google_protobuf")
 
+bazel_dep(name = "apple_support", version = "2.3.0", dev_dependency = True)
+
+apple_cc_configure = use_extension(
+    "@apple_support//crosstool:setup.bzl",
+    "apple_cc_configure_extension",
+    dev_dependency = True,
+)
+use_repo(apple_cc_configure, "local_config_apple_cc_toolchains")
+
+register_toolchains(
+    "@local_config_apple_cc_toolchains//:all",
+    dev_dependency = True,
+)
+
 cc_configure = use_extension("//cc:extensions.bzl", "cc_configure_extension")
 use_repo(cc_configure, "local_config_cc", "local_config_cc_toolchains")
 
