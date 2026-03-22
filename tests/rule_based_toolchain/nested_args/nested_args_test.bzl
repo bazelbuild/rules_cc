@@ -15,6 +15,7 @@
 
 load("@bazel_skylib//rules/directory:providers.bzl", "DirectoryInfo")
 load("//cc:cc_toolchain_config_lib.bzl", "flag_group", "variable_with_value")
+load("//cc/toolchains:cc_toolchain_info.bzl", "NestedArgsInfo")
 load(
     "//cc/toolchains/impl:nested_args.bzl",
     "FORMAT_ARGS_ERR",
@@ -225,9 +226,14 @@ def _requires_types_test(env, targets):
         flags = ["--foo=%{foo}"],
     ))
 
+def _nested_make_vars_test(env, targets):
+    nested = env.expect.that_target(targets.nested_with_make_vars).provider(NestedArgsInfo)
+    nested.legacy_flag_group().equals(flag_group(flags = ["--path=/usr/local", "-DFOO"]))
+
 TARGETS = [
     ":foo",
     ":my_list",
+    ":nested_with_make_vars",
     "//tests/rule_based_toolchain/testdata:directory",
     "//tests/rule_based_toolchain/testdata:bin_wrapper",
 ]
@@ -236,4 +242,5 @@ TESTS = {
     "format_args_test": _format_args_test,
     "iterate_over_test": _iterate_over_test,
     "requires_types_test": _requires_types_test,
+    "nested_make_vars_test": _nested_make_vars_test,
 }
