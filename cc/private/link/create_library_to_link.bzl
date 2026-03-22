@@ -146,8 +146,8 @@ def create_library_to_link(
         dynamic_library: (File|None) Dynamic library to be linked. Always used for runtime and used for
             linking if `interface_library` is not passed.
         interface_library: (File|None) Interface library to be linked.
-        pic_objects: (list[File]|None) Experimental, do not use.
-        objects: (list[File]|None) Experimental, do not use.
+        pic_objects: (list[File]|None) PIC object files to be linked.
+        objects: (list[File]|None)  Non-PIC object files to be linked.
         lto_compilation_context: (LtoCompilationContext) Experimental, do not use.
         pic_lto_compilation_context: (LtoCompilationContext) Experimental, do not use.
         alwayslink: (bool) Whether to link the static library/objects in the --whole_archive block.
