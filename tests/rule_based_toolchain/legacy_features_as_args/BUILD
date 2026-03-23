@@ -9,50 +9,98 @@ load(":compare_feature.bzl", "compare_feature_implementation")
 # for slight differences in structure due to implementation details. This also
 # makes it easier to review the final results.
 
+platform(
+    name = "linux",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+platform(
+    name = "macos",
+    constraint_values = [
+        "@platforms//os:macos",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
 compare_feature_implementation(
-    name = "archiver_flags_test",
+    name = "archiver_flags_macos_test",
     actual_implementation = "//cc/toolchains/args/archiver_flags",
-    expected = select({
-        "@platforms//os:macos": "//tests/rule_based_toolchain/legacy_features_as_args:goldens/macos/archiver_flags.textproto",
-        "//conditions:default": "//tests/rule_based_toolchain/legacy_features_as_args:goldens/unix/archiver_flags.textproto",
-    }),
+    expected = "goldens/macos/archiver_flags.textproto",
+    feature_name = "archiver_flags_test",
+    platform = ":macos",
 )
 
 compare_feature_implementation(
-    name = "force_pic_flags_test",
+    name = "archiver_flags_unix_test",
+    actual_implementation = "//cc/toolchains/args/archiver_flags",
+    expected = "goldens/unix/archiver_flags.textproto",
+    feature_name = "archiver_flags_test",
+    platform = ":linux",
+)
+
+compare_feature_implementation(
+    name = "force_pic_flags_macos_test",
     actual_implementation = "//cc/toolchains/args/pic_flags:force_pic_flags",
-    expected = select({
-        "@platforms//os:macos": "//tests/rule_based_toolchain/legacy_features_as_args:goldens/macos/force_pic_flags.textproto",
-        "//conditions:default": "//tests/rule_based_toolchain/legacy_features_as_args:goldens/unix/force_pic_flags.textproto",
-    }),
+    expected = "goldens/macos/force_pic_flags.textproto",
+    feature_name = "force_pic_flags_test",
+    platform = ":macos",
 )
 
 compare_feature_implementation(
-    name = "libraries_to_link_test",
+    name = "force_pic_flags_unix_test",
+    actual_implementation = "//cc/toolchains/args/pic_flags:force_pic_flags",
+    expected = "goldens/unix/force_pic_flags.textproto",
+    feature_name = "force_pic_flags_test",
+    platform = ":linux",
+)
+
+compare_feature_implementation(
+    name = "libraries_to_link_macos_test",
     actual_implementation = "//cc/toolchains/args/libraries_to_link",
-    expected = select({
-        "@platforms//os:macos": "//tests/rule_based_toolchain/legacy_features_as_args:goldens/macos/libraries_to_link.textproto",
-        "//conditions:default": "//tests/rule_based_toolchain/legacy_features_as_args:goldens/unix/libraries_to_link.textproto",
-    }),
+    expected = "goldens/macos/libraries_to_link.textproto",
+    feature_name = "libraries_to_link_test",
+    platform = ":macos",
+)
+
+compare_feature_implementation(
+    name = "libraries_to_link_unix_test",
+    actual_implementation = "//cc/toolchains/args/libraries_to_link",
+    expected = "goldens/unix/libraries_to_link.textproto",
+    feature_name = "libraries_to_link_test",
+    platform = ":linux",
 )
 
 compare_feature_implementation(
     name = "linker_param_file_test",
     actual_implementation = "//cc/toolchains/args/linker_param_file",
-    expected = "//tests/rule_based_toolchain/legacy_features_as_args:goldens/unix/linker_param_file.textproto",
+    expected = "goldens/unix/linker_param_file.textproto",
+    feature_name = "linker_param_file_test",
+    platform = ":linux",
 )
 
 compare_feature_implementation(
-    name = "runtime_library_search_directories_test",
+    name = "runtime_library_search_directories_macos_test",
     actual_implementation = "//cc/toolchains/args/runtime_library_search_directories",
-    expected = select({
-        "@platforms//os:macos": "//tests/rule_based_toolchain/legacy_features_as_args:goldens/macos/runtime_library_search_directories.textproto",
-        "//conditions:default": "//tests/rule_based_toolchain/legacy_features_as_args:goldens/unix/runtime_library_search_directories.textproto",
-    }),
+    expected = "goldens/macos/runtime_library_search_directories.textproto",
+    feature_name = "runtime_library_search_directories_test",
+    platform = ":macos",
+)
+
+compare_feature_implementation(
+    name = "runtime_library_search_directories_unix_test",
+    actual_implementation = "//cc/toolchains/args/runtime_library_search_directories",
+    expected = "goldens/unix/runtime_library_search_directories.textproto",
+    feature_name = "runtime_library_search_directories_test",
+    platform = ":linux",
 )
 
 compare_feature_implementation(
     name = "shared_flag_test",
     actual_implementation = "//cc/toolchains/args/shared_flag",
-    expected = "//tests/rule_based_toolchain/legacy_features_as_args:goldens/unix/shared_flag.textproto",
+    expected = "goldens/unix/shared_flag.textproto",
+    feature_name = "shared_flag_test",
+    platform = ":linux",
 )
