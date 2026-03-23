@@ -42,10 +42,42 @@ def _test_same_cc_file_twice_impl(env, target):
         ),
     )
 
+def _test_same_header_file_twice(name):
+    util.helper_target(
+        native.filegroup,
+        name = name + "/a1",
+        srcs = ["a.h"],
+    )
+    util.helper_target(
+        native.filegroup,
+        name = name + "/a2",
+        srcs = ["a.h"],
+    )
+    util.helper_target(
+        cc_library,
+        name = name + "/a",
+        srcs = [
+            "a.cc",
+            name + "/a1",
+            name + "/a2",
+        ],
+        features = ["parse_headers"],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_same_header_file_twice_impl,
+        target = name + "/a",
+    )
+
+def _test_same_header_file_twice_impl(env, target):
+    env.expect.that_target(target).failures().contains_exactly([])
+
 def cc_common_tests(name):
     test_suite(
         name = name,
         tests = [
             _test_same_cc_file_twice,
+            _test_same_header_file_twice,
         ],
     )
