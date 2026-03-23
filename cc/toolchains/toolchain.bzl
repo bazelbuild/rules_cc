@@ -186,7 +186,7 @@ def cc_toolchain(
             Label("//cc/toolchains/impl:windows_x86_64"): "win64",
             "//conditions:default": "",
         }),
-        visibility = ["//visibility:private"],
+        visibility = cc_toolchain_visibility,
         **kwargs
     )
 
