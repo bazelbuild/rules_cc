@@ -1,6 +1,7 @@
 """A custom @rules_testing subject for the CcInfo provider"""
 
 load("@rules_testing//lib:truth.bzl", "subjects")
+load("//cc/common:cc_info.bzl", "CcInfo")
 load(":testutil.bzl", "testutil")
 
 def _new_cc_info_subject(cc_info, meta):
@@ -9,8 +10,44 @@ def _new_cc_info_subject(cc_info, meta):
         meta = meta,
     )
     public = struct(
+        compilation_context = lambda: _new_cc_compilation_context_subject(
+            self.actual.compilation_context,
+            self.meta.derive("compilation_context"),
+        ),
         linking_context = lambda: _new_cc_info_linking_context_subject(self.actual, self.meta),
-        native_libraries = lambda: subjects.collection(testutil.cc_info_transitive_native_libraries(self.actual), self.meta.derive("transitive_native_libraries()")),
+        native_libraries = lambda: subjects.collection(
+            testutil.cc_info_transitive_native_libraries(self.actual),
+            self.meta.derive("transitive_native_libraries()"),
+        ),
+    )
+    return public
+
+def _new_cc_info_subject_from_target(env, target):
+    env.expect.that_target(target).has_provider(CcInfo)
+    return _new_cc_info_subject(target[CcInfo], env.expect.meta)
+
+def _new_cc_compilation_context_subject(cc_compilation_context, meta):
+    self = struct(
+        actual = cc_compilation_context,
+        meta = meta,
+    )
+    public = struct(
+        include_dirs = lambda: subjects.collection(
+            self.actual.includes.to_list(),
+            self.meta.derive("include_dirs"),
+        ),
+        system_include_dirs = lambda: subjects.collection(
+            self.actual.system_includes.to_list(),
+            self.meta.derive("system_include_dirs"),
+        ),
+        quote_include_dirs = lambda: subjects.collection(
+            self.actual.quote_includes.to_list(),
+            self.meta.derive("quote_include_dirs"),
+        ),
+        external_include_dirs = lambda: subjects.collection(
+            self.actual.external_includes.to_list(),
+            self.meta.derive("external_include_dirs"),
+        ),
     )
     return public
 
@@ -99,7 +136,8 @@ def _get_singleton(seq):
     return seq[0]
 
 cc_info_subject = struct(
-    new_from_cc_info = _new_cc_info_subject,
-    new_from_java_info = lambda java_info, meta: _new_cc_info_subject(java_info.cc_link_params_info, meta.derive("cc_link_params_info")),
+    from_target = _new_cc_info_subject_from_target,
     libraries_to_link = _new_cc_info_libraries_to_link_subject,
+    new_from_cc_info = lambda cc_info, meta: _new_cc_info_subject(cc_info, meta),
+    new_from_java_info = lambda java_info, meta: _new_cc_info_subject(java_info.cc_link_params_info, meta.derive("cc_link_params_info")),
 )
