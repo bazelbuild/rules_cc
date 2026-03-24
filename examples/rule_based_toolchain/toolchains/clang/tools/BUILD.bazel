@@ -17,19 +17,6 @@ load("@rules_cc//cc/toolchains:tool_map.bzl", "cc_tool_map")
 
 licenses(["notice"])
 
-# This `select` happens under the target configuration. For macOS,
-# llvm-libtool-darwin should be used when creating static libraries even if the
-# exec platform is linux.
-alias(
-    name = "all_tools",
-    actual = select({
-        "@platforms//os:macos": ":macos_tools",
-        "//conditions:default": ":default_tools",
-    }),
-    tags = ["manual"],
-    visibility = ["//visibility:public"],
-)
-
 COMMON_TOOLS = {
     "@rules_cc//cc/toolchains/actions:assembly_actions": ":clang",
     "@rules_cc//cc/toolchains/actions:c_compile": ":clang",
@@ -45,7 +32,7 @@ cc_tool_map(
     tools = COMMON_TOOLS | {
         "@rules_cc//cc/toolchains/actions:ar_actions": ":llvm-ar",
     },
-    visibility = ["//visibility:private"],
+    visibility = ["//visibility:public"],
 )
 
 cc_tool_map(
@@ -54,7 +41,7 @@ cc_tool_map(
     tools = COMMON_TOOLS | {
         "@rules_cc//cc/toolchains/actions:ar_actions": ":llvm-libtool-darwin",
     },
-    visibility = ["//visibility:private"],
+    visibility = ["//visibility:public"],
 )
 
 cc_tool(

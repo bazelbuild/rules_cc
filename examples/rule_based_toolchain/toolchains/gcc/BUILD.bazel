@@ -30,6 +30,7 @@ cc_toolchain(
         "//toolchains/args:no_absolute_paths_for_builtins",
         "//toolchains/args:warnings",
     ],
+    compiler = "gcc",
     enabled_features = ["@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features"],
     known_features = ["@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features"],
     make_variables = [":example_variable"],
