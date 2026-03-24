@@ -105,6 +105,7 @@ bzl_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
+        "//cc:build_settings_bzl",
         "//cc/common",
         "@bazel_skylib//lib:paths",
     ],
@@ -116,6 +117,7 @@ bzl_library(
     visibility = ["//visibility:public"],
     deps = [
         ":objc_common",
+        "//cc:build_settings_bzl",
         "//cc/common:cc_helper_bzl",
         "@bazel_skylib//lib:paths",
     ],

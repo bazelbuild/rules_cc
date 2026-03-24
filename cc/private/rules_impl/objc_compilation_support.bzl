@@ -14,6 +14,7 @@
 """Utility methods used for creating objc_* rules actions"""
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("//cc:build_settings.bzl", "cc")
 load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/common:cc_helper.bzl", "cc_helper")
 load("//cc/common:semantics.bzl", cc_semantics = "semantics")
@@ -38,7 +39,7 @@ def _build_variable_extensions(ctx, arc_enabled):
     return extensions
 
 def _create_compilation_attributes(ctx):
-    disallow_sdk_frameworks = ctx.fragments.objc.disallow_sdk_frameworks_attributes
+    disallow_sdk_frameworks = cc.read_possibly_native_flag(ctx, "incompatible_disallow_sdk_frameworks_attributes")
     sdk_frameworks = getattr(ctx.attr, "sdk_frameworks", [])
     weak_sdk_frameworks = getattr(ctx.attr, "weak_sdk_frameworks", [])
     if disallow_sdk_frameworks:

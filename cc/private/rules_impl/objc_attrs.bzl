@@ -143,6 +143,9 @@ and all depending targets, where each path is relative to
         doc = """
 The list of targets that this target depend on.""",
     ),
+    "_incompatible_strip_executable_safely": attr.label(
+        default = "//cc:incompatible_strip_executable_safely",
+    ),
 }
 
 # buildifier: disable=unsorted-dict-items
@@ -167,6 +170,9 @@ Names of SDK .dylib libraries to link with. For instance, "libz" or
 Objective-C++ sources in its dependency tree. When linking a binary,
 all libraries named in that binary's transitive dependency graph are
 used."""),
+    "_incompatible_disallow_sdk_frameworks_attributes": attr.label(
+        default = "//cc:incompatible_disallow_sdk_frameworks_attributes",
+    ),
 }
 
 # buildifier: disable=unsorted-dict-items

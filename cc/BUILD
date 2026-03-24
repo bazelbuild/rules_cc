@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("//cc/toolchains:cc_toolchain_alias.bzl", "cc_toolchain_alias")
 load(":starlark_doc_extract_helper.bzl", "starlark_doc_extract_helper")
 
@@ -121,6 +122,7 @@ bzl_library(
     srcs = ["defs.bzl"],
     visibility = ["//visibility:public"],
     deps = [
+        ":build_settings_bzl",
         ":core_rules",
         "//cc/common",
         "//cc/common:cc_helper_bzl",
@@ -139,6 +141,29 @@ bzl_library(
 )
 
 bzl_library(
+    name = "build_settings_bzl",
+    srcs = ["build_settings.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@bazel_skylib//rules:common_settings",
+    ],
+)
+
+bool_flag(
+    name = "incompatible_disallow_sdk_frameworks_attributes",
+    build_setting_default = False,
+    scope = "universal",
+    visibility = ["//visibility:public"],
+)
+
+bool_flag(
+    name = "incompatible_strip_executable_safely",
+    build_setting_default = False,
+    scope = "universal",
+    visibility = ["//visibility:public"],
+)
+
+bzl_library(
     name = "core_rules",
     srcs = [
         "cc_binary.bzl",
@@ -152,6 +177,7 @@ bzl_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
+        ":build_settings_bzl",
         ":cc_postmark_bzl",
         "@cc_compatibility_proxy//:proxy_bzl",
     ],
