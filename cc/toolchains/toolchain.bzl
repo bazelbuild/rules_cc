@@ -70,6 +70,7 @@ def cc_toolchain(
         supports_header_parsing = False,
         supports_param_files = False,
         compiler = "",
+        target_system_name = None,
         **kwargs):
     """A C/C++ toolchain configuration.
 
@@ -158,6 +159,10 @@ def cc_toolchain(
         compiler: (str) The type of compiler used by this toolchain (e.g. "gcc", "clang"). The current
             toolchain's compiler is exposed to `@rules_cc//cc/private/toolchain:compiler
             (compiler_flag)` as a flag value.
+        target_system_name: (str) The target system name for this toolchain. Bazel doesn't use this
+            but starlark rules can read this value through `toolchain_info.target_gnu_system_name`.
+            This string is commonly the target triple you would pass to `clang -target` (e.g. "x86_64-unknown-linux-gnu").
+            If not provided, a best effort default is selected.
         **kwargs: [common attributes](https://bazel.build/reference/be/common-definitions#common-attributes)
             that should be applied to all rules created by this macro.
     """
@@ -177,6 +182,15 @@ def cc_toolchain(
         known_features = known_features,
         enabled_features = enabled_features,
         compiler = compiler,
+        target_system_name = target_system_name or select({
+            Label("//cc/toolchains/impl:darwin_aarch64"): "aarch64-apple-darwin",
+            Label("//cc/toolchains/impl:darwin_x86_64"): "x86_64-apple-darwin",
+            Label("//cc/toolchains/impl:linux_aarch64"): "aarch64-unknown-linux-gnu",
+            Label("//cc/toolchains/impl:linux_x86_64"): "x86_64-unknown-linux-gnu",
+            Label("//cc/toolchains/impl:windows_x86_32"): "i686-pc-windows-msvc",
+            Label("//cc/toolchains/impl:windows_x86_64"): "x86_64-pc-windows-msvc",
+            "//conditions:default": "",
+        }),
         cpu = select({
             Label("//cc/toolchains/impl:darwin_aarch64"): "darwin_arm64",
             Label("//cc/toolchains/impl:darwin_x86_64"): "darwin_x86_64",
