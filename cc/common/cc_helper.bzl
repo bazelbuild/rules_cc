@@ -464,17 +464,11 @@ def _get_compilation_contexts_from_deps(deps):
             compilation_contexts.append(dep[CcInfo].compilation_context)
     return compilation_contexts
 
-def _tool_path(cc_toolchain, tool, ctx = None, action_name = None):
+def _tool_path(cc_toolchain, tool, feature_configuration = None, action_name = None):
     tool = cc_toolchain._tool_paths.get(tool, None)
     if tool:
         return tool
-    if ctx != None and action_name != None:
-        feature_configuration = cc_common.configure_features(
-            ctx = ctx,
-            cc_toolchain = cc_toolchain,
-            requested_features = ctx.features,
-            unsupported_features = ctx.disabled_features,
-        )
+    if feature_configuration != None and action_name != None:
         if not cc_common.action_is_enabled(
             feature_configuration = feature_configuration,
             action_name = action_name,
@@ -1035,11 +1029,18 @@ def _get_coverage_environment(ctx, cc_config, cc_toolchain):
     if not ctx.configuration.coverage_enabled:
         return {}
 
+    feature_configuration = cc_common.configure_features(
+        ctx = ctx,
+        cc_toolchain = cc_toolchain,
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+
     # buildifier: disable=unsorted-dict-items
     env = {
-        "COVERAGE_GCOV_PATH": _tool_path(cc_toolchain, "gcov", ctx, ACTION_NAMES.gcov),
-        "LLVM_COV": _tool_path(cc_toolchain, "llvm-cov", ctx, ACTION_NAMES.llvm_cov),
-        "LLVM_PROFDATA": _tool_path(cc_toolchain, "llvm-profdata", ctx, ACTION_NAMES.llvm_profdata),
+        "COVERAGE_GCOV_PATH": _tool_path(cc_toolchain, "gcov", feature_configuration, ACTION_NAMES.gcov),
+        "LLVM_COV": _tool_path(cc_toolchain, "llvm-cov", feature_configuration, ACTION_NAMES.llvm_cov),
+        "LLVM_PROFDATA": _tool_path(cc_toolchain, "llvm-profdata", feature_configuration, ACTION_NAMES.llvm_profdata),
         "GENERATE_LLVM_LCOV": "1" if cc_config.generate_llvm_lcov() else "0",
     }
     for k in list(env.keys()):
