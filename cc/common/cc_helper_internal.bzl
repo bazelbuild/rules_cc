@@ -282,6 +282,20 @@ def repository_exec_path(repository, sibling_repository_layout):
         repository = repository[1:]
     return get_relative_path(prefix, repository)
 
+def is_tool_configuration(ctx):
+    """Returns whether the current configuration is a tool configuration.
+
+    Args:
+        ctx: The rule context.
+
+    Returns:
+        true if the current configuration is a tool configuration, false otherwise.
+    """
+    attr = ctx.configuration.is_tool_configuration
+    if type(attr) == type(True):
+        return attr
+    return attr()
+
 def is_stamping_enabled(ctx):
     """Returns the tri-state of whether to encode build information into the binary.
 
@@ -296,7 +310,7 @@ def is_stamping_enabled(ctx):
         0: Always replace build information by constant values. This gives good build result caching.
         -1: Embedding of build information is controlled by the [--[no]stamp][stamp] flag.
     """
-    if ctx.configuration.is_tool_configuration():
+    if is_tool_configuration(ctx):
         return 0
     stamp = 0
     if hasattr(ctx.attr, "stamp"):
@@ -315,7 +329,7 @@ def should_stamp(ctx):
         true if stamping should be performed, false otherwise.
     """
     stamping_tri_state = is_stamping_enabled(ctx)
-    return False if ctx.configuration.is_tool_configuration() else (
+    return False if is_tool_configuration(ctx) else (
         stamping_tri_state == 1 or (stamping_tri_state == -1 and ctx.configuration.stamp_binaries())
     )
 
