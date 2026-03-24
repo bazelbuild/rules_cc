@@ -2,7 +2,10 @@ load("@bazel_skylib//rules:common_settings.bzl", "string_list_flag")
 load("//cc:cc_library.bzl", "cc_library")
 load("//cc/toolchains:cc_toolchain.bzl", "cc_toolchain")
 load("//cc/toolchains:cc_toolchain_alias.bzl", "cc_toolchain_alias")
+load(":additional_toolchains.bzl", "mock_additional_toolchains")
 load(":cc_toolchain_config.bzl", "cc_toolchain_config")
+
+package(default_visibility = ["//tests:__subpackages__"])
 
 toolchain_type(name = "toolchain_type")
 
@@ -14,6 +17,12 @@ cc_toolchain_alias(name = "current_cc_toolchain")
 # See features.bzl for values.
 string_list_flag(
     name = "with_features",
+    build_setting_default = [],
+)
+
+# Sets the mock toolchain's action configs.
+string_list_flag(
+    name = "with_action_configs",
     build_setting_default = [],
 )
 
@@ -255,6 +264,8 @@ toolchain(
     toolchain_type = "//cc:toolchain_type",
 )
 
+mock_additional_toolchains()
+
 cc_toolchain_config(
     name = "k8-compiler_config",
     abi_libc_version = "local",
@@ -304,7 +315,7 @@ cc_library(
     srcs = ["linkextra.cc"],
 )
 
-cc_library(name = "malloc")
+cc_library(name = "mock_malloc")
 
 exports_files([
     "grep-includes",

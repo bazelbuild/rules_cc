@@ -3,13 +3,24 @@
 load("@rules_testing//lib:analysis_test.bzl", "analysis_test", "test_suite")
 load("@rules_testing//lib:truth.bzl", "matching")
 load("@rules_testing//lib:util.bzl", "TestingAspectInfo", "util")
-load("//cc:cc_binary.bzl", "cc_binary")
+load("//cc:action_names.bzl", "ACTION_NAMES")
+load("//cc:cc_binary.bzl", _actual_cc_binary = "cc_binary")
 load("//cc:cc_import.bzl", "cc_import")
 load("//cc:cc_library.bzl", "cc_library")
 load("//tests/cc/testutil:cc_analysis_test.bzl", "cc_analysis_test")
 load("//tests/cc/testutil:cc_binary_target_subject.bzl", "cc_binary_target_subject")
 load("//tests/cc/testutil:link_action_subject.bzl", "link_action_subject")
 load("//tests/cc/testutil/toolchains:features.bzl", "FEATURE_NAMES")
+
+# Wrap cc_binary to mock out common dependencies.
+def cc_binary(name, **kwargs):
+    if "malloc" not in kwargs:
+        # Avoid the real "malloc", which might use arbitrary toolchain actions and features.
+        kwargs["malloc"] = "//tests/cc/testutil/toolchains:mock_malloc"
+    _actual_cc_binary(
+        name = name,
+        **kwargs
+    )
 
 def _test_files_to_build(name, **kwargs):
     util.helper_target(
@@ -264,6 +275,31 @@ def _test_pic_impl(env, target):
     env.expect.that_collection(hello_obj_files).has_size(1)
     env.expect.that_file(hello_obj_files[0]).basename().equals("hello.pic.o")
 
+def _test_missing_action_config_for_strip_is_a_rule_error(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/hello",
+        srcs = ["hello.cc"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_missing_action_config_for_strip_is_a_rule_error_impl,
+        target = name + "/hello",
+        test_features = [FEATURE_NAMES.no_legacy_features, FEATURE_NAMES.pic],
+        with_action_configs = [
+            ACTION_NAMES.cpp_compile,
+            ACTION_NAMES.cpp_link_static_library,
+            ACTION_NAMES.cpp_link_executable,
+        ],
+        expect_failure = True,
+        **kwargs
+    )
+
+def _test_missing_action_config_for_strip_is_a_rule_error_impl(env, target):
+    env.expect.that_target(target).failures().contains_predicate(
+        matching.contains("Expected action_config for 'strip' to be configured."),
+    )
+
 def cc_binary_configured_target_tests(name):
     test_suite(
         name = name,
@@ -274,5 +310,6 @@ def cc_binary_configured_target_tests(name):
             _test_action_graph,
             _test_runtime_dynamic_libraries_copy_behavior,
             _test_pic,
+            _test_missing_action_config_for_strip_is_a_rule_error,
         ],
     )

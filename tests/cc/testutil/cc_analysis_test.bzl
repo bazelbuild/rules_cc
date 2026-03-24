@@ -1,8 +1,9 @@
 """Specialized analysis_test and test_suite for rules_cc."""
 
 load("@rules_testing//lib:analysis_test.bzl", "analysis_test")
+load("//tests/cc/testutil/toolchains:additional_toolchains.bzl", "ADDITIONAL_MOCK_TOOLCHAINS")
 
-def cc_analysis_test(name, with_features = None, test_features = [], **kwargs):
+def cc_analysis_test(name, with_features = None, test_features = [], with_action_configs = [], **kwargs):
     """Runs an analysis_test with the a mock C++ toolchain.
 
     Args:
@@ -14,19 +15,32 @@ def cc_analysis_test(name, with_features = None, test_features = [], **kwargs):
             requested features and features the toolchain supports.
         test_features: The features the test wants to enable. This is equivalent to setting
             the `--features` build flag.
+        with_action_configs: The toolchain's available action configs.
         **kwargs: Args passed through to test_suite.
     """
 
     if with_features == None:
         with_features = test_features
 
-    # Make this a Label to bind it to the rules_cc repo where its BUILD files lives. If we kept it
-    # as a string that would bind it to rules_testing where analysis_test lives.
+    # Mock these as Labels to bind to the rules_cc repo where the BUILD file lives. If we kept them
+    # as strings, they'd get bound to rules_testing where analysis_test lives.
+    #
+    # That's becuase these get passed as strings to analysis_test's config_settings parameter, which
+    # is passed into the native function analysis_test_transition at
+    # https://github.com/bazelbuild/rules_testing/blob/a8db9af940e51ea80a48836c49fea4d6a3660a2e/lib/private/analysis_test.bzl#L259-L261.
+    # That native code binds "//"-style labels to its calling context which is in rules_testing.
+
     with_features_flag = Label("//tests/cc/testutil/toolchains:with_features")
+    with_action_configs_flag = Label("//tests/cc/testutil/toolchains:with_action_configs")
+
+    mock_toolchains = [
+        "//tests/cc/testutil/toolchains:cc-toolchain-k8-compiler",
+    ] + ADDITIONAL_MOCK_TOOLCHAINS
 
     config_settings = {
-        "//command_line_option:extra_toolchains": "//tests/cc/testutil/toolchains:cc-toolchain-k8-compiler",
+        "//command_line_option:extra_toolchains": ",".join(mock_toolchains),
         str(with_features_flag): with_features,
+        str(with_action_configs_flag): with_action_configs,
         "//command_line_option:features": test_features,
     }
     if "config_settings" in kwargs:
