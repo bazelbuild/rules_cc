@@ -102,6 +102,8 @@ def create_debug_packager_actions(
         inputs = packager["inputs"],
         outputs = packager["outputs"],
         exec_group = dwp_exec_group,
+        env = packager["env"],
+        use_default_shell_env = True,
     )
     return dwo_files
 
@@ -205,6 +207,8 @@ def _create_intermediate_dwp_packagers(
                     arguments = [packager["arguments"]],
                     inputs = packager["inputs"],
                     outputs = packager["outputs"],
+                    env = packager["env"],
+                    use_default_shell_env = True,
                 )
                 intermediate_outputs.append(intermediate_output)
         else:
@@ -214,6 +218,11 @@ def _create_intermediate_dwp_packagers(
     return None
 
 def _new_dwp_action(ctx, cc_toolchain, feature_configuration, dwp_tools):
+    variables = cc_common.create_compile_variables(
+        feature_configuration = feature_configuration,
+        cc_toolchain = cc_toolchain,
+    )
+
     return {
         "tools": dwp_tools,
         # Old toolchains use tool_paths.  But, those same old toolchains don't support the new
@@ -225,4 +234,9 @@ def _new_dwp_action(ctx, cc_toolchain, feature_configuration, dwp_tools):
         "arguments": ctx.actions.args(),
         "inputs": [],
         "outputs": [],
+        "env": cc_common.get_environment_variables(
+            feature_configuration = feature_configuration,
+            action_name = ACTION_NAMES.dwp,
+            variables = variables,
+        ),
     }  # buildifier: disable=unsorted-dict-items
