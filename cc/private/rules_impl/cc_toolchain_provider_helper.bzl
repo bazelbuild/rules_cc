@@ -184,12 +184,16 @@ def get_cc_toolchain_provider(ctx, attributes):
     )
     tool_paths = _compute_tool_paths(toolchain_config_info, tools_directory)
     toolchain_features = cc_common.cc_toolchain_features(toolchain_config_info = toolchain_config_info, tools_directory = tools_directory)
+    feature_configuration = toolchain_features.configure_features(
+        requested_features = toolchain_features.default_features_and_action_configs(),
+    )
     fdo_context = create_fdo_context(
         llvm_profdata = tool_paths.get("llvm-profdata"),
         all_files = attributes.all_files,
         zipper = attributes.zipper,
         cc_toolchain_config_info = toolchain_config_info,
         coverage_enabled = ctx.configuration.coverage_enabled,
+        feature_configuration = feature_configuration,
     )
     if fdo_context == None:
         return None
