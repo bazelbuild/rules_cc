@@ -862,6 +862,22 @@ _simple_link_feature = feature(
     ],
 )
 
+_llvm_profdata_env_feature = feature(
+    name = FEATURE_NAMES.llvm_profdata_env,
+    enabled = True,
+    env_sets = [
+        env_set(
+            actions = [ACTION_NAMES.llvm_profdata],
+            env_entries = [
+                env_entry(
+                    key = "LLVM_PROFDATA_ENV_KEY",
+                    value = "LLVM_PROFDATA_ENV_VALUE",
+                ),
+            ],
+        ),
+    ],
+)
+
 _link_env_feature = feature(
     name = FEATURE_NAMES.link_env,
     env_sets = [
@@ -1371,6 +1387,7 @@ _feature_name_to_feature = {
     FEATURE_NAMES.simple_compile_feature: _simple_compile_feature,
     FEATURE_NAMES.simple_link_feature: _simple_link_feature,
     FEATURE_NAMES.link_env: _link_env_feature,
+    FEATURE_NAMES.llvm_profdata_env: _llvm_profdata_env_feature,
     FEATURE_NAMES.static_linking_mode: _static_linking_mode_feature,
     FEATURE_NAMES.dynamic_linking_mode: _dynamic_linking_mode_feature,
     FEATURE_NAMES.objcopy_embed_flags: _objcopy_embed_flags_feature,
