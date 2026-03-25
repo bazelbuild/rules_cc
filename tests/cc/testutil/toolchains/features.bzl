@@ -97,4 +97,5 @@ FEATURE_NAMES = struct(
     preprocessor_defines = "preprocessor_defines",
     skip_virtual_includes = "skip_virtual_includes",
     no_dotd_file = "no_dotd_file",
+    llvm_profdata_env = "llvm_profdata_env",
 )

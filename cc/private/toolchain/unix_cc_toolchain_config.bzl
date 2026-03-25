@@ -258,6 +258,18 @@ def _impl(ctx):
         )
         action_configs.append(llvm_cov_action)
 
+    llvm_profdata = ctx.attr.tool_paths.get("llvm-profdata")
+    if llvm_profdata:
+        llvm_profdata_action = action_config(
+            action_name = ACTION_NAMES.llvm_profdata,
+            tools = [
+                tool(
+                    path = llvm_profdata,
+                ),
+            ],
+        )
+        action_configs.append(llvm_profdata_action)
+
     objcopy = ctx.attr.tool_paths.get("objcopy")
     if objcopy:
         objcopy_action = action_config(
