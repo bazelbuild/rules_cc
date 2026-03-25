@@ -1025,16 +1025,9 @@ def _linkopts(ctx, additional_make_variable_substitutions, cc_toolchain):
         fail("in linkopts attribute of cc_library rule {}: Apple builds do not support statically linked binaries".format(ctx.label))
     return tokens
 
-def _get_coverage_environment(ctx, cc_config, cc_toolchain):
+def _get_coverage_environment(ctx, cc_config, cc_toolchain, feature_configuration):
     if not ctx.configuration.coverage_enabled:
         return {}
-
-    feature_configuration = cc_common.configure_features(
-        ctx = ctx,
-        cc_toolchain = cc_toolchain,
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
-    )
 
     # buildifier: disable=unsorted-dict-items
     env = {
@@ -1050,7 +1043,7 @@ def _get_coverage_environment(ctx, cc_config, cc_toolchain):
         env["FDO_DIR"] = cc_config.fdo_instrument()
     return env
 
-def _create_cc_instrumented_files_info(ctx, cc_config, cc_toolchain, metadata_files, virtual_to_original_headers = None):
+def _create_cc_instrumented_files_info(ctx, cc_config, cc_toolchain, feature_configuration, metadata_files, virtual_to_original_headers = None):
     source_extensions = extensions.CC_SOURCE + \
                         extensions.C_SOURCE + \
                         extensions.CC_HEADER + \
@@ -1058,7 +1051,7 @@ def _create_cc_instrumented_files_info(ctx, cc_config, cc_toolchain, metadata_fi
                         extensions.ASSEMBLER
     coverage_environment = {}
     if ctx.configuration.coverage_enabled:
-        coverage_environment = _get_coverage_environment(ctx, cc_config, cc_toolchain)
+        coverage_environment = _get_coverage_environment(ctx, cc_config, cc_toolchain, feature_configuration)
     coverage_support_files = cc_toolchain._coverage_files if ctx.configuration.coverage_enabled else depset([])
     info = coverage_common.instrumented_files_info(
         ctx = ctx,
