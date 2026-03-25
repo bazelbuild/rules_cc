@@ -186,6 +186,10 @@ def cc_toolchain(
             Label("//cc/toolchains/impl:windows_x86_64"): "win64",
             "//conditions:default": "",
         }),
+        target_libc = select({
+            Label("//cc/toolchains/platforms:apple"): "macosx",
+            "//conditions:default": "",
+        }),
         visibility = ["//visibility:private"],
         **kwargs
     )
