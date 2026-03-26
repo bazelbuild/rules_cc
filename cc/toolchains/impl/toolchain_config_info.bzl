@@ -13,7 +13,7 @@
 # limitations under the License.
 """Helper functions to create and validate a ToolchainConfigInfo."""
 
-load("//cc/toolchains:cc_toolchain_info.bzl", "ArtifactNamePatternInfo", "MakeVariableInfo", "ToolConfigInfo", "ToolchainConfigInfo")
+load("//cc/toolchains:cc_toolchain_info.bzl", "ArtifactNamePatternInfo", "LegacyToolInfo", "MakeVariableInfo", "ToolConfigInfo", "ToolchainConfigInfo")
 load(":args_utils.bzl", "get_action_type")
 load(":collect.bzl", "collect_args_lists", "collect_features")
 
@@ -162,7 +162,7 @@ def _collect_make_variables(targets, fail):
 
     return make_variables.values()
 
-def toolchain_config_info(label, known_features = [], enabled_features = [], args = [], artifact_name_patterns = [], make_variables = [], tool_map = None, fail = fail):
+def toolchain_config_info(label, known_features = [], enabled_features = [], args = [], artifact_name_patterns = [], make_variables = [], legacy_tools = [], tool_map = None, fail = fail):
     """Generates and validates a ToolchainConfigInfo from lists of labels.
 
     Args:
@@ -173,6 +173,7 @@ def toolchain_config_info(label, known_features = [], enabled_features = [], arg
         args: (List[Target]) A list of targets providing ArgsListInfo
         artifact_name_patterns: (List[Target]) A list of targets providing ArtifactNamePatternInfo.
         make_variables: (List[Target]) A list of targets providing MakeVariableInfo.
+        legacy_tools: (List[Target]) A list of targets providing LegacyToolInfo.
         tool_map: (Target) A target providing ToolMapInfo.
         fail: A fail function. Use only during tests.
     Returns:
@@ -192,6 +193,8 @@ def toolchain_config_info(label, known_features = [], enabled_features = [], arg
         # The `return` here is to support testing, since injecting `fail()` has a
         # side-effect of allowing code to continue.
         return None  # buildifier: disable=unreachable
+
+    legacy_tools_infos = tuple([t[LegacyToolInfo] for t in legacy_tools])
 
     args = collect_args_lists(args, label = label)
     tools = tool_map[ToolConfigInfo].configs
@@ -222,6 +225,7 @@ def toolchain_config_info(label, known_features = [], enabled_features = [], arg
         allowlist_absolute_include_directories = allowlist_absolute_include_directories,
         artifact_name_patterns = _collect_artifact_name_patterns(artifact_name_patterns, fail),
         make_variables = _collect_make_variables(make_variables, fail),
+        legacy_tools = legacy_tools_infos,
     )
     _validate_toolchain(toolchain_config, fail = fail)
     return toolchain_config
