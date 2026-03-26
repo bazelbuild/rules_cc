@@ -20,6 +20,7 @@ load(
     legacy_flag_group = "flag_group",
     legacy_flag_set = "flag_set",
     legacy_tool = "tool",
+    legacy_tool_path = "tool_path",  # buildifier: disable=deprecated-function
 )
 load("//cc/toolchains:cc_toolchain_info.bzl", "ActionTypeInfo", "ToolchainConfigInfo")
 load("//cc/toolchains/impl:legacy_converter.bzl", "convert_toolchain")
@@ -258,6 +259,16 @@ def _toolchain_collects_files_test(env, targets):
         ),
     ]).in_order()
 
+def _legacy_tools_produce_tool_paths_test(env, targets):
+    tc = env.expect.that_target(
+        targets.toolchain_config_with_legacy_tools,
+    ).provider(ToolchainConfigInfo)
+
+    legacy = convert_toolchain(tc.actual)
+    env.expect.that_collection(legacy.tool_paths).contains_exactly([
+        legacy_tool_path(name = "gcov", path = "/usr/bin/gcov"),
+    ])
+
 TARGETS = [
     "//tests/rule_based_toolchain/actions:c_compile",
     "//tests/rule_based_toolchain/actions:cpp_compile",
@@ -271,6 +282,7 @@ TARGETS = [
     ":c_compile_tool_map",
     ":empty_tool_map",
     ":implies_simple_feature",
+    ":legacy_gcov",
     ":overrides_feature",
     ":requires_any_simple_feature",
     ":requires_all_simple_feature",
@@ -278,6 +290,7 @@ TARGETS = [
     ":simple_feature",
     ":simple_feature2",
     ":same_feature_name",
+    ":toolchain_config_with_legacy_tools",
 ]
 
 # @unsorted-dict-items
@@ -289,4 +302,5 @@ TESTS = {
     "feature_missing_requirements_invalid_test": _feature_missing_requirements_invalid_test,
     "args_missing_requirements_invalid_test": _args_missing_requirements_invalid_test,
     "toolchain_collects_files_test": _toolchain_collects_files_test,
+    "legacy_tools_produce_tool_paths_test": _legacy_tools_produce_tool_paths_test,
 }
