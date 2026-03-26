@@ -370,6 +370,7 @@ def get_specific_compile_build_variables(
 _SOURCE_TYPES_FOR_CXXOPTS = set(
     extensions.CC_SOURCE +
     extensions.CC_HEADER +
+    extensions.CUDA_SOURCE +
     extensions.CLIF_INPUT_PROTO +
     extensions.CPP_MODULE_MAP +
     extensions.OBJCPP_SOURCE,
