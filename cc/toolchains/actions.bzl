@@ -64,9 +64,13 @@ cc_action_type(
 def _cc_action_type_set_impl(ctx):
     if not ctx.attr.actions and not ctx.attr.allow_empty:
         fail("Each cc_action_type_set must contain at least one action type.")
+    actions = collect_action_types(ctx.attr.actions)
+    if ctx.attr.excludes:
+        excludes = {a: True for a in collect_action_types(ctx.attr.excludes).to_list()}
+        actions = depset([a for a in actions.to_list() if a not in excludes])
     return [ActionTypeSetInfo(
         label = ctx.label,
-        actions = collect_action_types(ctx.attr.actions),
+        actions = actions,
     )]
 
 cc_action_type_set = rule(
@@ -94,6 +98,10 @@ cc_action_type_set(
             providers = [ActionTypeSetInfo],
             mandatory = True,
             doc = "A list of cc_action_type or cc_action_type_set",
+        ),
+        "excludes": attr.label_list(
+            providers = [ActionTypeSetInfo],
+            doc = "A list of cc_action_type or cc_action_type_set to exclude from the action set. Applied after accumulating all actions.",
         ),
         "allow_empty": attr.bool(default = False),
     },

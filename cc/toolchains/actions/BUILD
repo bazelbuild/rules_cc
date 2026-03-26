@@ -253,20 +253,10 @@ cc_action_type_set(
     ],
 )
 
-# This matches `compile_actions` with `lto_backend` omitted, because
-# `lto_backend` actions do not instantiate the full set of build variables.
 cc_action_type_set(
-    name = "source_compile_actions",
+    name = "compile_actions",
     actions = [
-        ":compile_actions_without_header_parsing",
-        ":cpp_header_parsing",
-    ],
-)
-
-cc_action_type_set(
-    name = "compile_actions_without_header_parsing",
-    actions = [
-        ":cpp_compile_without_header_parsing",
+        ":cpp_compile_actions",
         ":c_compile_actions",
         ":assembly_actions",
         ":objc_compile",
@@ -274,10 +264,23 @@ cc_action_type_set(
 )
 
 cc_action_type_set(
-    name = "compile_actions",
+    name = "source_compile_actions",
     actions = [
-        ":source_compile_actions",
+        ":compile_actions",
+    ],
+    excludes = [
+        # `lto_backend` actions do not instantiate the full set of build variables.
         ":lto_backend",
+    ],
+)
+
+cc_action_type_set(
+    name = "compile_actions_without_header_parsing",
+    actions = [
+        ":compile_actions",
+    ],
+    excludes = [
+        ":cpp_header_parsing",
     ],
 )
 
