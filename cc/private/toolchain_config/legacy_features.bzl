@@ -54,6 +54,7 @@ def get_legacy_features(ctx, platform, existing_feature_names, linker_tool_path)
                     ACTION_NAMES.assemble,
                     ACTION_NAMES.c_compile,
                     ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cuda_compile,
                     ACTION_NAMES.cpp_header_parsing,
                     ACTION_NAMES.cpp_module_codegen,
                     ACTION_NAMES.cpp_module_compile,
@@ -90,6 +91,7 @@ def get_legacy_features(ctx, platform, existing_feature_names, linker_tool_path)
                     ACTION_NAMES.assemble,
                     ACTION_NAMES.c_compile,
                     ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cuda_compile,
                     ACTION_NAMES.cpp_header_parsing,
                     ACTION_NAMES.cpp_module_compile,
                     ACTION_NAMES.clif_match,
@@ -118,6 +120,7 @@ def get_legacy_features(ctx, platform, existing_feature_names, linker_tool_path)
                 actions = [
                     ACTION_NAMES.c_compile,
                     ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cuda_compile,
                     ACTION_NAMES.cpp_module_codegen,
                     ACTION_NAMES.cpp_module_compile,
                 ],
@@ -137,6 +140,7 @@ def get_legacy_features(ctx, platform, existing_feature_names, linker_tool_path)
                     ACTION_NAMES.assemble,
                     ACTION_NAMES.c_compile,
                     ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cuda_compile,
                     ACTION_NAMES.cpp_module_codegen,
                     ACTION_NAMES.cpp_module_compile,
                     ACTION_NAMES.linkstamp_compile,
@@ -157,6 +161,7 @@ def get_legacy_features(ctx, platform, existing_feature_names, linker_tool_path)
                     ACTION_NAMES.assemble,
                     ACTION_NAMES.c_compile,
                     ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cuda_compile,
                     ACTION_NAMES.cpp_module_codegen,
                     ACTION_NAMES.preprocess_assemble,
                 ],
@@ -175,6 +180,7 @@ def get_legacy_features(ctx, platform, existing_feature_names, linker_tool_path)
                 actions = [
                     ACTION_NAMES.c_compile,
                     ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cuda_compile,
                     ACTION_NAMES.cpp_header_parsing,
                     ACTION_NAMES.cpp_module_compile,
                     ACTION_NAMES.clif_match,
@@ -196,6 +202,7 @@ def get_legacy_features(ctx, platform, existing_feature_names, linker_tool_path)
                 actions = [
                     ACTION_NAMES.c_compile,
                     ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cuda_compile,
                     ACTION_NAMES.cpp_header_parsing,
                     ACTION_NAMES.cpp_module_compile,
                     ACTION_NAMES.clif_match,
@@ -220,6 +227,7 @@ def get_legacy_features(ctx, platform, existing_feature_names, linker_tool_path)
                 actions = [
                     ACTION_NAMES.c_compile,
                     ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cuda_compile,
                     ACTION_NAMES.cpp_header_parsing,
                     ACTION_NAMES.cpp_module_compile,
                     ACTION_NAMES.clif_match,
@@ -257,6 +265,7 @@ def get_legacy_features(ctx, platform, existing_feature_names, linker_tool_path)
                 actions = [
                     ACTION_NAMES.c_compile,
                     ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cuda_compile,
                     ACTION_NAMES.cpp_link_dynamic_library,
                     ACTION_NAMES.cpp_link_executable,
                     ACTION_NAMES.cpp_link_nodeps_dynamic_library,
@@ -281,6 +290,7 @@ def get_legacy_features(ctx, platform, existing_feature_names, linker_tool_path)
                 actions = [
                     ACTION_NAMES.c_compile,
                     ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cuda_compile,
                 ],
                 flag_groups = [flag_group(
                     expand_if_available = "fdo_profile_path",
@@ -301,6 +311,7 @@ def get_legacy_features(ctx, platform, existing_feature_names, linker_tool_path)
                 actions = [
                     ACTION_NAMES.c_compile,
                     ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cuda_compile,
                     ACTION_NAMES.cpp_link_dynamic_library,
                     ACTION_NAMES.cpp_link_executable,
                     ACTION_NAMES.cpp_link_nodeps_dynamic_library,
@@ -340,6 +351,7 @@ def get_legacy_features(ctx, platform, existing_feature_names, linker_tool_path)
                 actions = [
                     ACTION_NAMES.c_compile,
                     ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cuda_compile,
                     ACTION_NAMES.lto_backend,
                 ],
                 flag_groups = [flag_group(
@@ -360,6 +372,7 @@ def get_legacy_features(ctx, platform, existing_feature_names, linker_tool_path)
                 actions = [
                     ACTION_NAMES.c_compile,
                     ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cuda_compile,
                 ],
                 flag_groups = [flag_group(
                     expand_if_available = "fdo_profile_path",
@@ -383,6 +396,7 @@ def get_legacy_features(ctx, platform, existing_feature_names, linker_tool_path)
                     actions = [
                         ACTION_NAMES.c_compile,
                         ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cuda_compile,
                         ACTION_NAMES.lto_backend,
                     ],
                     flag_groups = [flag_group(
@@ -981,6 +995,7 @@ def get_legacy_features(ctx, platform, existing_feature_names, linker_tool_path)
                         actions = [
                             ACTION_NAMES.c_compile,
                             ACTION_NAMES.cpp_compile,
+                            ACTION_NAMES.cuda_compile,
                             ACTION_NAMES.cpp_module_compile,
                             ACTION_NAMES.objc_compile,
                             ACTION_NAMES.objcpp_compile,
@@ -1015,6 +1030,7 @@ def get_legacy_features(ctx, platform, existing_feature_names, linker_tool_path)
                         actions = [
                             ACTION_NAMES.c_compile,
                             ACTION_NAMES.cpp_compile,
+                            ACTION_NAMES.cuda_compile,
                             ACTION_NAMES.cpp_module_compile,
                             ACTION_NAMES.objc_compile,
                             ACTION_NAMES.objc_executable,
@@ -1083,6 +1099,7 @@ def get_features_to_appear_last(existing_feature_names):
                     ACTION_NAMES.assemble,
                     ACTION_NAMES.c_compile,
                     ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cuda_compile,
                     ACTION_NAMES.cpp_header_parsing,
                     ACTION_NAMES.cpp_module_codegen,
                     ACTION_NAMES.cpp_module_compile,
@@ -1107,6 +1124,7 @@ def get_features_to_appear_last(existing_feature_names):
                 actions = [
                     ACTION_NAMES.c_compile,
                     ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cuda_compile,
                     ACTION_NAMES.cpp_header_parsing,
                     ACTION_NAMES.cpp_link_dynamic_library,
                     ACTION_NAMES.cpp_link_executable,
@@ -1139,6 +1157,7 @@ def get_features_to_appear_last(existing_feature_names):
                     ACTION_NAMES.assemble,
                     ACTION_NAMES.c_compile,
                     ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cuda_compile,
                     ACTION_NAMES.cpp_header_parsing,
                     ACTION_NAMES.cpp_module_codegen,
                     ACTION_NAMES.cpp_module_compile,
@@ -1194,6 +1213,7 @@ def get_features_to_appear_last(existing_feature_names):
                     ACTION_NAMES.assemble,
                     ACTION_NAMES.c_compile,
                     ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cuda_compile,
                     ACTION_NAMES.cpp_header_parsing,
                     ACTION_NAMES.cpp_module_codegen,
                     ACTION_NAMES.cpp_module_compile,
@@ -1219,6 +1239,7 @@ def get_features_to_appear_last(existing_feature_names):
                     ACTION_NAMES.assemble,
                     ACTION_NAMES.c_compile,
                     ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cuda_compile,
                     ACTION_NAMES.cpp_header_parsing,
                     ACTION_NAMES.cpp_module_codegen,
                     ACTION_NAMES.cpp_module_compile,
@@ -1281,6 +1302,7 @@ def get_legacy_action_configs(
         "c++-header-parsing",
         "c++-module-compile",
         "c++-module-codegen",
+        "cuda-compile",
     ]:
         if action_name not in existing_action_config_names:
             result.append(action_config(

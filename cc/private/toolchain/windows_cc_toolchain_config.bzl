@@ -37,6 +37,7 @@ load("@rules_cc//cc/toolchains:feature_injection.bzl", "FeatureInfo", "convert_f
 all_compile_actions = [
     ACTION_NAMES.c_compile,
     ACTION_NAMES.cpp_compile,
+    ACTION_NAMES.cuda_compile,
     ACTION_NAMES.linkstamp_compile,
     ACTION_NAMES.assemble,
     ACTION_NAMES.preprocess_assemble,
@@ -52,6 +53,7 @@ all_compile_actions = [
 
 all_cpp_compile_actions = [
     ACTION_NAMES.cpp_compile,
+    ACTION_NAMES.cuda_compile,
     ACTION_NAMES.linkstamp_compile,
     ACTION_NAMES.cpp_header_parsing,
     ACTION_NAMES.cpp_module_compile,
@@ -65,6 +67,7 @@ all_cpp_compile_actions = [
 preprocessor_compile_actions = [
     ACTION_NAMES.c_compile,
     ACTION_NAMES.cpp_compile,
+    ACTION_NAMES.cuda_compile,
     ACTION_NAMES.linkstamp_compile,
     ACTION_NAMES.preprocess_assemble,
     ACTION_NAMES.cpp_header_parsing,
@@ -77,6 +80,7 @@ preprocessor_compile_actions = [
 codegen_compile_actions = [
     ACTION_NAMES.c_compile,
     ACTION_NAMES.cpp_compile,
+    ACTION_NAMES.cuda_compile,
     ACTION_NAMES.linkstamp_compile,
     ACTION_NAMES.assemble,
     ACTION_NAMES.preprocess_assemble,
@@ -242,6 +246,19 @@ def _impl(ctx):
             tools = [tool(path = ctx.attr.msvc_cl_path)],
         )
 
+        cuda_compile_action = action_config(
+            action_name = ACTION_NAMES.cuda_compile,
+            implies = [
+                "compiler_input_flags",
+                "compiler_output_flags",
+                "nologo",
+                "msvc_env",
+                "user_compile_flags",
+                "sysroot",
+            ],
+            tools = [tool(path = ctx.attr.msvc_cl_path)],
+        )
+
         cpp_link_executable_action = action_config(
             action_name = ACTION_NAMES.cpp_link_executable,
             implies = [
@@ -348,6 +365,7 @@ def _impl(ctx):
             c_compile_action,
             linkstamp_compile_action,
             cpp_compile_action,
+            cuda_compile_action,
             cpp_link_executable_action,
             cpp_link_dynamic_library_action,
             cpp_link_nodeps_dynamic_library_action,
@@ -389,7 +407,11 @@ def _impl(ctx):
             enabled = True,
             flag_sets = [
                 flag_set(
-                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                    actions = [
+                        ACTION_NAMES.c_compile,
+                        ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cuda_compile,
+                    ],
                     flag_groups = [
                         flag_group(
                             flags = [
@@ -414,6 +436,7 @@ def _impl(ctx):
                         ACTION_NAMES.c_compile,
                         ACTION_NAMES.linkstamp_compile,
                         ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cuda_compile,
                         ACTION_NAMES.cpp_header_parsing,
                         ACTION_NAMES.cpp_module_compile,
                         ACTION_NAMES.cpp_module_codegen,
@@ -445,6 +468,7 @@ def _impl(ctx):
                         ACTION_NAMES.c_compile,
                         ACTION_NAMES.linkstamp_compile,
                         ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cuda_compile,
                         ACTION_NAMES.cpp_header_parsing,
                         ACTION_NAMES.cpp_module_compile,
                         ACTION_NAMES.cpp_module_codegen,
@@ -549,7 +573,11 @@ def _impl(ctx):
             name = "fastbuild",
             flag_sets = [
                 flag_set(
-                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                    actions = [
+                        ACTION_NAMES.c_compile,
+                        ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cuda_compile,
+                    ],
                     flag_groups = [flag_group(flags = ["/Od", "/Z7"])],
                 ),
                 flag_set(
@@ -579,6 +607,7 @@ def _impl(ctx):
                     actions = [
                         ACTION_NAMES.linkstamp_compile,
                         ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cuda_compile,
                         ACTION_NAMES.cpp_header_parsing,
                         ACTION_NAMES.cpp_module_compile,
                         ACTION_NAMES.cpp_module_codegen,
@@ -597,6 +626,7 @@ def _impl(ctx):
                         ACTION_NAMES.c_compile,
                         ACTION_NAMES.linkstamp_compile,
                         ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cuda_compile,
                         ACTION_NAMES.cpp_header_parsing,
                         ACTION_NAMES.cpp_module_compile,
                         ACTION_NAMES.cpp_module_codegen,
@@ -660,12 +690,12 @@ def _impl(ctx):
             name = "static_link_msvcrt",
             flag_sets = [
                 flag_set(
-                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile, ACTION_NAMES.cuda_compile],
                     flag_groups = [flag_group(flags = ["/MT"])],
                     with_features = [with_feature_set(not_features = ["dbg"])],
                 ),
                 flag_set(
-                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile, ACTION_NAMES.cuda_compile],
                     flag_groups = [flag_group(flags = ["/MTd"])],
                     with_features = [with_feature_set(features = ["dbg"])],
                 ),
@@ -687,12 +717,12 @@ def _impl(ctx):
             enabled = True,
             flag_sets = [
                 flag_set(
-                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile, ACTION_NAMES.cuda_compile],
                     flag_groups = [flag_group(flags = ["/MD"])],
                     with_features = [with_feature_set(not_features = ["dbg", "static_link_msvcrt"])],
                 ),
                 flag_set(
-                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile, ACTION_NAMES.cuda_compile],
                     flag_groups = [flag_group(flags = ["/MDd"])],
                     with_features = [with_feature_set(features = ["dbg"], not_features = ["static_link_msvcrt"])],
                 ),
@@ -713,7 +743,7 @@ def _impl(ctx):
             name = "dbg",
             flag_sets = [
                 flag_set(
-                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile, ACTION_NAMES.cuda_compile],
                     flag_groups = [flag_group(flags = ["/Od", "/Z7"])],
                 ),
                 flag_set(
@@ -732,7 +762,7 @@ def _impl(ctx):
             name = "opt",
             flag_sets = [
                 flag_set(
-                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile, ACTION_NAMES.cuda_compile],
                     flag_groups = [flag_group(flags = ["/O2"])],
                 ),
             ],
@@ -809,6 +839,7 @@ def _impl(ctx):
                         ACTION_NAMES.linkstamp_compile,
                         ACTION_NAMES.c_compile,
                         ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cuda_compile,
                         ACTION_NAMES.cpp_header_parsing,
                         ACTION_NAMES.cpp_module_compile,
                         ACTION_NAMES.cpp_module_codegen,
@@ -835,6 +866,7 @@ def _impl(ctx):
                         ACTION_NAMES.c_compile,
                         ACTION_NAMES.linkstamp_compile,
                         ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cuda_compile,
                         ACTION_NAMES.cpp_module_compile,
                         ACTION_NAMES.cpp_module_codegen,
                         ACTION_NAMES.cpp_header_parsing,
@@ -860,6 +892,7 @@ def _impl(ctx):
                         ACTION_NAMES.c_compile,
                         ACTION_NAMES.linkstamp_compile,
                         ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cuda_compile,
                         ACTION_NAMES.cpp_header_parsing,
                         ACTION_NAMES.cpp_module_compile,
                         ACTION_NAMES.cpp_module_deps_scanning,
@@ -918,7 +951,7 @@ def _impl(ctx):
             enabled = True,
             flag_sets = [
                 flag_set(
-                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile, ACTION_NAMES.cuda_compile],
                     flag_groups = [flag_group(flags = ["/DNDEBUG"])],
                     with_features = [with_feature_set(features = ["opt"])],
                 ),
@@ -970,6 +1003,7 @@ def _impl(ctx):
                         ACTION_NAMES.c_compile,
                         ACTION_NAMES.linkstamp_compile,
                         ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cuda_compile,
                         ACTION_NAMES.cpp_module_compile,
                         ACTION_NAMES.cpp_header_parsing,
                         ACTION_NAMES.cpp_module_deps_scanning,
@@ -985,6 +1019,7 @@ def _impl(ctx):
                         ACTION_NAMES.c_compile,
                         ACTION_NAMES.linkstamp_compile,
                         ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cuda_compile,
                         ACTION_NAMES.cpp_module_compile,
                         ACTION_NAMES.cpp_header_parsing,
                     ],
@@ -1010,7 +1045,7 @@ def _impl(ctx):
             name = "treat_warnings_as_errors",
             flag_sets = [
                 flag_set(
-                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile] + all_link_actions,
+                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile, ACTION_NAMES.cuda_compile] + all_link_actions,
                     flag_groups = [flag_group(flags = ["/WX"])],
                 ),
             ],
@@ -1031,6 +1066,7 @@ def _impl(ctx):
                         ACTION_NAMES.c_compile,
                         ACTION_NAMES.linkstamp_compile,
                         ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cuda_compile,
                         ACTION_NAMES.cpp_header_parsing,
                         ACTION_NAMES.cpp_module_compile,
                     ],
@@ -1061,6 +1097,7 @@ def _impl(ctx):
                         ACTION_NAMES.linkstamp_compile,
                         ACTION_NAMES.c_compile,
                         ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cuda_compile,
                         ACTION_NAMES.cpp_header_parsing,
                         ACTION_NAMES.cpp_module_compile,
                         ACTION_NAMES.cpp_module_deps_scanning,
@@ -1116,7 +1153,7 @@ def _impl(ctx):
             name = "frame_pointer",
             flag_sets = [
                 flag_set(
-                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile, ACTION_NAMES.cuda_compile],
                     flag_groups = [flag_group(flags = ["/Oy-"])],
                 ),
             ],
@@ -1146,6 +1183,7 @@ def _impl(ctx):
                         ACTION_NAMES.c_compile,
                         ACTION_NAMES.linkstamp_compile,
                         ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cuda_compile,
                         ACTION_NAMES.cpp_header_parsing,
                         ACTION_NAMES.cpp_module_compile,
                         ACTION_NAMES.cpp_module_codegen,
@@ -1195,6 +1233,7 @@ def _impl(ctx):
                         ACTION_NAMES.c_compile,
                         ACTION_NAMES.linkstamp_compile,
                         ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cuda_compile,
                         ACTION_NAMES.cpp_module_compile,
                         ACTION_NAMES.cpp_module_codegen,
                         ACTION_NAMES.cpp_header_parsing,
@@ -1218,7 +1257,7 @@ def _impl(ctx):
             enabled = True,
             flag_sets = [
                 flag_set(
-                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile, ACTION_NAMES.cuda_compile],
                     flag_groups = [flag_group(flags = ["/Gy", "/Gw"])],
                     with_features = [with_feature_set(features = ["opt"])],
                 ),
@@ -1235,7 +1274,7 @@ def _impl(ctx):
             enabled = True,
             flag_sets = [
                 flag_set(
-                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile, ACTION_NAMES.cuda_compile],
                     flag_groups = [flag_group(flags = ["/Zc:inline"])],
                 ),
             ],
@@ -1251,6 +1290,7 @@ def _impl(ctx):
                         ACTION_NAMES.c_compile,
                         ACTION_NAMES.linkstamp_compile,
                         ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cuda_compile,
                         ACTION_NAMES.cpp_header_parsing,
                         ACTION_NAMES.cpp_module_compile,
                         ACTION_NAMES.cpp_module_codegen,
@@ -1291,6 +1331,7 @@ def _impl(ctx):
                         ACTION_NAMES.c_compile,
                         ACTION_NAMES.linkstamp_compile,
                         ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cuda_compile,
                         ACTION_NAMES.cpp_module_compile,
                         ACTION_NAMES.cpp_module_codegen,
                         ACTION_NAMES.cpp_header_parsing,
@@ -1397,6 +1438,7 @@ def _impl(ctx):
                         ACTION_NAMES.c_compile,
                         ACTION_NAMES.linkstamp_compile,
                         ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cuda_compile,
                         ACTION_NAMES.cpp_module_compile,
                         ACTION_NAMES.cpp_module_codegen,
                         ACTION_NAMES.cpp_header_parsing,
@@ -1425,6 +1467,7 @@ def _impl(ctx):
                     actions = [
                         ACTION_NAMES.linkstamp_compile,
                         ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cuda_compile,
                         ACTION_NAMES.cpp_header_parsing,
                         ACTION_NAMES.cpp_module_compile,
                         ACTION_NAMES.cpp_module_codegen,
@@ -1459,7 +1502,7 @@ def _impl(ctx):
             name = "dbg",
             flag_sets = [
                 flag_set(
-                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile, ACTION_NAMES.cuda_compile],
                     flag_groups = [flag_group(flags = ["-g", "-Og"])],
                 ),
             ],
@@ -1469,7 +1512,7 @@ def _impl(ctx):
             name = "opt",
             flag_sets = [
                 flag_set(
-                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile, ACTION_NAMES.cuda_compile],
                     flag_groups = [flag_group(flags = [
                         "-g0",
                         "-O3",
@@ -1523,6 +1566,7 @@ def _impl(ctx):
                             ACTION_NAMES.linkstamp_compile,
                             ACTION_NAMES.c_compile,
                             ACTION_NAMES.cpp_compile,
+                            ACTION_NAMES.cuda_compile,
                             ACTION_NAMES.cpp_header_parsing,
                             ACTION_NAMES.cpp_module_compile,
                             ACTION_NAMES.cpp_module_codegen,
@@ -1549,7 +1593,7 @@ def _impl(ctx):
                 name = "fdo_optimize",
                 flag_sets = [
                     flag_set(
-                        actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                        actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile, ACTION_NAMES.cuda_compile],
                         flag_groups = [
                             flag_group(
                                 flags = [
@@ -1567,7 +1611,7 @@ def _impl(ctx):
                 name = "treat_warnings_as_errors",
                 flag_sets = [
                     flag_set(
-                        actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                        actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile, ACTION_NAMES.cuda_compile],
                         flag_groups = [flag_group(flags = ["-Werror"])],
                     ),
                     flag_set(
@@ -1593,6 +1637,7 @@ def _impl(ctx):
                         actions = [
                             ACTION_NAMES.linkstamp_compile,
                             ACTION_NAMES.cpp_compile,
+                            ACTION_NAMES.cuda_compile,
                             ACTION_NAMES.cpp_header_parsing,
                             ACTION_NAMES.cpp_module_compile,
                             ACTION_NAMES.cpp_module_codegen,
@@ -1612,6 +1657,7 @@ def _impl(ctx):
                             ACTION_NAMES.linkstamp_compile,
                             ACTION_NAMES.c_compile,
                             ACTION_NAMES.cpp_compile,
+                            ACTION_NAMES.cuda_compile,
                             ACTION_NAMES.cpp_header_parsing,
                             ACTION_NAMES.cpp_module_compile,
                             ACTION_NAMES.cpp_module_codegen,
@@ -1679,6 +1725,7 @@ def _impl(ctx):
             flag_set(
                 actions = [
                     ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cuda_compile,
                     ACTION_NAMES.cpp20_module_compile,
                     ACTION_NAMES.cpp20_module_codegen,
                 ],

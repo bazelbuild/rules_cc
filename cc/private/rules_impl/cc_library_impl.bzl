@@ -535,6 +535,7 @@ ALLOWED_SRC_FILES = []
 ALLOWED_SRC_FILES.extend(cc_helper.extensions.CC_SOURCE)
 ALLOWED_SRC_FILES.extend(cc_helper.extensions.C_SOURCE)
 ALLOWED_SRC_FILES.extend(cc_helper.extensions.CC_HEADER)
+ALLOWED_SRC_FILES.extend(cc_helper.extensions.CUDA_SOURCE)
 ALLOWED_SRC_FILES.extend(cc_helper.extensions.ASSEMBLER_WITH_C_PREPROCESSOR)
 ALLOWED_SRC_FILES.extend(cc_helper.extensions.ASSEMBLER)
 ALLOWED_SRC_FILES.extend(cc_helper.extensions.ARCHIVE)
@@ -546,6 +547,7 @@ ALLOWED_SRC_FILES.extend(cc_helper.extensions.SHARED_LIBRARY)
 SRCS_FOR_COMPILATION = []
 SRCS_FOR_COMPILATION.extend(cc_helper.extensions.CC_SOURCE)
 SRCS_FOR_COMPILATION.extend(cc_helper.extensions.C_SOURCE)
+SRCS_FOR_COMPILATION.extend(cc_helper.extensions.CUDA_SOURCE)
 SRCS_FOR_COMPILATION.extend(cc_helper.extensions.ASSEMBLER_WITH_C_PREPROCESSOR)
 SRCS_FOR_COMPILATION.extend(cc_helper.extensions.ASSEMBLER)
 

@@ -30,6 +30,7 @@ load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfig
 all_compile_actions = [
     ACTION_NAMES.c_compile,
     ACTION_NAMES.cpp_compile,
+    ACTION_NAMES.cuda_compile,
     ACTION_NAMES.linkstamp_compile,
     ACTION_NAMES.assemble,
     ACTION_NAMES.preprocess_assemble,
@@ -42,6 +43,7 @@ all_compile_actions = [
 
 all_cpp_compile_actions = [
     ACTION_NAMES.cpp_compile,
+    ACTION_NAMES.cuda_compile,
     ACTION_NAMES.linkstamp_compile,
     ACTION_NAMES.cpp_header_parsing,
     ACTION_NAMES.cpp_module_compile,
@@ -208,6 +210,7 @@ def _impl(ctx):
                 actions = [
                     ACTION_NAMES.c_compile,
                     ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cuda_compile,
                     ACTION_NAMES.linkstamp_compile,
                     ACTION_NAMES.preprocess_assemble,
                     ACTION_NAMES.cpp_header_parsing,
