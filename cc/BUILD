@@ -163,6 +163,13 @@ bool_flag(
     visibility = ["//visibility:public"],
 )
 
+bool_flag(
+    name = "incompatible_objc_alwayslink_by_default",
+    build_setting_default = False,
+    scope = "universal",
+    visibility = ["//visibility:public"],
+)
+
 bzl_library(
     name = "core_rules",
     srcs = [

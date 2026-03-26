@@ -14,6 +14,7 @@
 
 """objc_import Starlark implementation replacing native"""
 
+load("//cc:build_settings.bzl", "cc")
 load("//cc:find_cc_toolchain.bzl", "find_cc_toolchain", "use_cc_toolchain")
 load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/common:cc_info.bzl", "CcInfo")
@@ -23,7 +24,7 @@ load(":objc_compilation_support.bzl", "compilation_support")
 
 def _objc_import_impl(ctx):
     cc_toolchain = find_cc_toolchain(ctx)
-    alwayslink = ctx.fragments.objc.target_should_alwayslink(ctx)
+    alwayslink = cc.target_should_alwayslink(ctx)
     common_variables = compilation_support.build_common_variables(
         ctx = ctx,
         deps = ctx.attr.deps,
@@ -77,6 +78,7 @@ def _objc_import_impl(ctx):
 
 objc_import = rule(
     implementation = _objc_import_impl,
+    initializer = common_attrs.alwayslink_initializer,
     doc = """
 <p>This rule encapsulates an already-compiled static library in the form of an
 <code>.a</code> file. It also allows exporting headers and resources using the same

@@ -218,7 +218,27 @@ symbols referenced by the binary.
 This is useful if your code isn't explicitly called by code in
 the binary, e.g., if your code registers to receive some callback
 provided by some service."""),
+    # Private attribute used by target_should_alwayslink() to determine if
+    # "alwayslink" was explicitly specified by the user or was left at its
+    # default value. This replicates the native
+    # AttributeMap.isAttributeValueExplicitlySpecified() functionality.
+    "_alwayslink_explicitly_set": attr.bool(default = False),
+    # Reference to the Starlark build setting that determines if objc_library
+    # and objc_import should default to alwayslink=True.
+    "_incompatible_objc_alwayslink_by_default": attr.label(
+        default = "//cc:incompatible_objc_alwayslink_by_default",
+    ),
 }
+
+def _alwayslink_initializer(**kwargs):
+    """Initializer for starlarkified alwayslink rules.
+
+    Sets _alwayslink_explicitly_set to True if the 'alwayslink' attribute was
+    provided in the rule invocation.
+    """
+    if "alwayslink" in kwargs:
+        kwargs["_alwayslink_explicitly_set"] = True
+    return kwargs
 
 def _union(*dictionaries):
     result = {}
@@ -229,6 +249,7 @@ def _union(*dictionaries):
 common_attrs = struct(
     union = _union,
     ALWAYSLINK_RULE = _ALWAYSLINK_RULE,
+    alwayslink_initializer = _alwayslink_initializer,
     COMPILING_RULE = _get_compiling_rule_attrs(),
     COMPILE_DEPENDENCY_RULE = _COMPILE_DEPENDENCY_RULE,
     COPTS_RULE = _COPTS_RULE,

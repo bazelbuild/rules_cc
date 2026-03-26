@@ -14,6 +14,7 @@
 
 """objc_library Starlark implementation replacing native"""
 
+load("//cc:build_settings.bzl", "cc")
 load("//cc:find_cc_toolchain.bzl", "find_cc_toolchain", "use_cc_toolchain")
 load("//cc/common:cc_helper.bzl", "cc_helper")
 load("//cc/common:cc_info.bzl", "CcInfo")
@@ -62,7 +63,7 @@ def _objc_library_impl(ctx):
         deps = ctx.attr.deps,
         implementation_deps = ctx.attr.implementation_deps,
         attr_linkopts = ctx.attr.linkopts,
-        alwayslink = ctx.fragments.objc.target_should_alwayslink(ctx),
+        alwayslink = cc.target_should_alwayslink(ctx),
     )
     files = []
     if common_variables.compilation_artifacts.archive != None:
@@ -114,6 +115,7 @@ def _objc_library_impl(ctx):
 
 objc_library = rule(
     implementation = _objc_library_impl,
+    initializer = common_attrs.alwayslink_initializer,
     doc = """
 <p>This rule produces a static library from the given Objective-C source files.</p>""",
     attrs = common_attrs.union(

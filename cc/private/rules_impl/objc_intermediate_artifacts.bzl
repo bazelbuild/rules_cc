@@ -15,6 +15,7 @@
 """Factory class for generating artifacts which are used as intermediate output."""
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("//cc:build_settings.bzl", "cc")
 load("//cc/common:cc_common.bzl", "cc_common")
 
 def _declare_file_with_extension(ctx, extension):
@@ -25,7 +26,7 @@ def _create_combined_architecture_archive(ctx):
 
 def _create_archive(ctx, enforce_always_link, archive_file_name_suffix):
     extension = ".lo" if enforce_always_link else (
-        ".lo" if ctx.fragments.objc.target_should_alwayslink(ctx) else ".a"
+        ".lo" if cc.target_should_alwayslink(ctx) else ".a"
     )
     return ctx.actions.declare_file(
         "lib" +
