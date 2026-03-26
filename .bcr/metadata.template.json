@@ -2,9 +2,9 @@
   "homepage": "https://github.com/bazelbuild/rules_cc",
   "maintainers": [
     {
-      "email": "ilist@google.com",
-      "github": "comius",
-      "name": "Ivo Ristovski List"
+      "email": "trybka@google.com",
+      "github": "trybka",
+      "name": "Tom Rybka"
     },
     {
       "email": "pzembrod@google.com",
