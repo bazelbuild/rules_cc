@@ -15,6 +15,14 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//cc:starlark_doc_extract_helper.bzl", "starlark_doc_extract_helper")
 
+exports_files(
+    [
+        "cc_common.bzl",
+        "cc_info.bzl",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 bzl_library(
     name = "common",
     srcs = [
