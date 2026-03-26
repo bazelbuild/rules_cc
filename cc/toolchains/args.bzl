@@ -44,11 +44,19 @@ visibility("public")
 def _cc_args_impl(ctx):
     actions = collect_action_types(ctx.attr.actions)
 
+    format_targets = {k: v for v, k in ctx.attr.format.items()}
     formatted_env, used_format_vars = format_dict_values(
         env = ctx.attr.env,
         must_use = [],  # checking for unused variables in done when formatting `args`.
-        format = {k: v for v, k in ctx.attr.format.items()},
+        format = format_targets,
     )
+
+    # Ignore file / directory replacements for validation
+    used_format_vars = [
+        v
+        for v in used_format_vars
+        if v in format_targets and VariableInfo in format_targets[v]
+    ]
 
     for path in ctx.attr.allowlist_absolute_include_directories:
         if not is_path_absolute(path):

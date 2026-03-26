@@ -169,6 +169,22 @@ def _with_dir_and_data_test(env, targets):
     )
     c_compile.files().contains_at_least(_SIMPLE_FILES)
 
+def _directory_format_in_args_test(env, targets):
+    dir_args = env.expect.that_target(targets.directory_format_in_args).provider(ArgsInfo)
+    dir_args.actions().contains_exactly([
+        targets.c_compile.label,
+        targets.cpp_compile.label,
+    ])
+
+    converted = env.expect.that_value(
+        convert_args(targets.directory_format_in_args[ArgsInfo]),
+        factory = _CONVERTED_ARGS,
+    )
+    converted.flag_sets().contains_exactly([flag_set(
+        actions = ["c_compile", "cpp_compile"],
+        flag_groups = [flag_group(flags = ["-resource-dir=" + targets.directory[DirectoryInfo].path])],
+    )])
+
 TARGETS = [
     ":simple",
     ":some_variable",
@@ -179,6 +195,9 @@ TARGETS = [
     ":iterate_over_optional",
     ":good_env_format",
     ":good_env_format_optional",
+    ":genrule_data_with_env_format",
+    ":generated_file",
+    ":directory_format_in_args",
     "//tests/rule_based_toolchain/actions:c_compile",
     "//tests/rule_based_toolchain/actions:cpp_compile",
     "//tests/rule_based_toolchain/testdata:directory",
@@ -293,6 +312,17 @@ def _format_dict_values_test(env, targets):
         must_use = ["var"],
     ).err().contains('"var" was not used')
 
+def _genrule_data_with_env_format_test(env, targets):
+    genrule_args = env.expect.that_target(targets.genrule_data_with_env_format).provider(ArgsInfo)
+    genrule_args.actions().contains_exactly([
+        targets.c_compile.label,
+        targets.cpp_compile.label,
+    ])
+    genrule_args.env().entries().contains_exactly({
+        "GENERATED_PATH": targets.generated_file[DefaultInfo].files.to_list()[0].path,
+    })
+    genrule_args.files().contains_exactly(["tests/rule_based_toolchain/args/generated_file.txt"])
+
 def _good_env_format_test(env, targets):
     good_env = env.expect.that_target(targets.good_env_format).provider(ArgsInfo)
     good_env.env().entries().contains_exactly({"FOO": "%{gcov_gcno_file}"})
@@ -361,6 +391,8 @@ TESTS = {
     "env_only_requires_test": _env_only_requires_test,
     "with_dir_test": _with_dir_test,
     "with_dir_and_data_test": _with_dir_and_data_test,
+    "genrule_data_with_env_format_test": _genrule_data_with_env_format_test,
+    "directory_format_in_args_test": _directory_format_in_args_test,
     "good_env_format_test": _good_env_format_test,
     "good_env_format_optional_test": _good_env_format_optional_test,
 }

@@ -134,6 +134,30 @@ expect_failure_test(
     target = ":bad_env_format_wrong_action",
 )
 
+genrule(
+    name = "generated_file",
+    outs = ["generated_file.txt"],
+    cmd = "echo 'generated content' > $@",
+)
+
+util.helper_target(
+    cc_args,
+    name = "genrule_data_with_env_format",
+    actions = ["//tests/rule_based_toolchain/actions:all_compile"],
+    data = [":generated_file"],
+    env = {"GENERATED_PATH": "{generated_file}"},
+    format = {"generated_file": ":generated_file"},
+)
+
+util.helper_target(
+    cc_args,
+    name = "directory_format_in_args",
+    actions = ["//tests/rule_based_toolchain/actions:all_compile"],
+    args = ["-resource-dir={resource_dir}"],
+    data = ["//tests/rule_based_toolchain/testdata:directory"],
+    format = {"resource_dir": "//tests/rule_based_toolchain/testdata:directory"},
+)
+
 analysis_test_suite(
     name = "test_suite",
     targets = TARGETS,
