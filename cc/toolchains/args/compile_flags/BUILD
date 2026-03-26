@@ -16,6 +16,7 @@ cc_feature(
     name = "legacy_compile_flags_feature",
     args = [":legacy_compile_flags"],
     overrides = "//cc/toolchains/features/legacy:legacy_compile_flags",
+    visibility = ["//visibility:public"],
 )
 
 cc_args(
@@ -31,6 +32,7 @@ cc_feature(
     name = "user_compile_flags_feature",
     args = [":user_compile_flags"],
     overrides = "//cc/toolchains/features/legacy:user_compile_flags",
+    visibility = ["//visibility:public"],
 )
 
 cc_args(
@@ -46,6 +48,7 @@ cc_feature(
     name = "unfiltered_compile_flags_feature",
     args = [":unfiltered_compile_flags"],
     overrides = "//cc/toolchains/features/legacy:unfiltered_compile_flags",
+    visibility = ["//visibility:public"],
 )
 
 cc_args(
