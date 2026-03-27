@@ -48,6 +48,14 @@ def _new_cc_compilation_context_subject(cc_compilation_context, meta):
             self.actual.external_includes.to_list(),
             self.meta.derive("external_include_dirs"),
         ),
+        direct_public_headers = lambda: subjects.collection(
+            self.actual.direct_public_headers,
+            self.meta.derive("direct_public_headers"),
+        ),
+        headers = lambda: subjects.depset_file(
+            self.actual.headers,
+            meta = self.meta.derive("headers"),
+        ),
     )
     return public
 
