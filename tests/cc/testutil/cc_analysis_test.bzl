@@ -35,6 +35,7 @@ def cc_analysis_test(name, with_features = None, test_features = [], with_action
 
     mock_toolchains = [
         "//tests/cc/testutil/toolchains:cc-toolchain-k8-compiler",
+        "//tests/cc/testutil/toolchains:cc-toolchain-macos-compiler",
     ] + ADDITIONAL_MOCK_TOOLCHAINS
 
     config_settings = {

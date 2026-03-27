@@ -1,7 +1,8 @@
 """Tests for cc_binary."""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@rules_testing//lib:analysis_test.bzl", "analysis_test", "test_suite")
-load("@rules_testing//lib:truth.bzl", "matching")
+load("@rules_testing//lib:truth.bzl", "matching", "subjects")
 load("@rules_testing//lib:util.bzl", "TestingAspectInfo", "util")
 load("//cc:action_names.bzl", "ACTION_NAMES")
 load("//cc:cc_binary.bzl", _actual_cc_binary = "cc_binary")
@@ -300,16 +301,89 @@ def _test_missing_action_config_for_strip_is_a_rule_error_impl(env, target):
         matching.contains("Expected action_config for 'strip' to be configured."),
     )
 
+def _test_sanitize_pwd_feature_enabled(name, **kwargs):
+    """sanitize_pwd is on by default, PWD should be set via the feature's env_set."""
+    util.helper_target(
+        cc_binary,
+        name = name + "/hello",
+        srcs = ["hello.cc"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_sanitize_pwd_feature_enabled_impl,
+        target = name + "/hello",
+        config_settings = {
+            "//command_line_option:platforms": str(Label("//tests/cc/testutil/toolchains:linux_x86_64")),
+        },
+        **kwargs
+    )
+
+def _test_sanitize_pwd_feature_enabled_impl(env, target):
+    link_action = link_action_subject.from_target(env, target)
+    link_action.env().get("PWD", factory = subjects.str).equals("/proc/self/cwd")
+
+def _test_sanitize_pwd_feature_disabled(name, **kwargs):
+    """When sanitize_pwd is explicitly disabled, the legacy requires_darwin fallback still applies."""
+    util.helper_target(
+        cc_binary,
+        name = name + "/hello",
+        srcs = ["hello.cc"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_sanitize_pwd_feature_disabled_impl,
+        target = name + "/hello",
+        config_settings = {
+            "//command_line_option:features": ["-sanitize_pwd"],
+        },
+        **kwargs
+    )
+
+def _test_sanitize_pwd_feature_disabled_impl(env, target):
+    link_action = link_action_subject.from_target(env, target)
+    link_action.env().get("PWD", factory = subjects.str).equals("/proc/self/cwd")
+
+def _test_sanitize_pwd_macos_no_pwd(name, **kwargs):
+    """On macOS, sanitize_pwd is enabled but should not set PWD."""
+    util.helper_target(
+        cc_binary,
+        name = name + "/hello",
+        srcs = ["hello.cc"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_sanitize_pwd_macos_no_pwd_impl,
+        target = name + "/hello",
+        config_settings = {
+            "//command_line_option:platforms": str(Label("//tests/cc/testutil/toolchains:macos_arm64")),
+        },
+        **kwargs
+    )
+
+def _test_sanitize_pwd_macos_no_pwd_impl(env, target):
+    link_action = link_action_subject.from_target(env, target)
+    link_action.env().keys().not_contains("PWD")
+
 def cc_binary_configured_target_tests(name):
+    tests = [
+        _test_files_to_build,
+        _test_headers_not_passed_to_linking_action,
+        _test_no_duplicate_linkopts,
+        _test_action_graph,
+        _test_runtime_dynamic_libraries_copy_behavior,
+        _test_pic,
+        _test_missing_action_config_for_strip_is_a_rule_error,
+    ]
+
+    # sanitize_pwd is implemented in Starlark in rules_cc, requires Bazel 9+.
+    if bazel_features.cc.cc_common_is_in_rules_cc:
+        tests.extend([
+            _test_sanitize_pwd_feature_enabled,
+            _test_sanitize_pwd_feature_disabled,
+            _test_sanitize_pwd_macos_no_pwd,
+        ])
+
     test_suite(
         name = name,
-        tests = [
-            _test_files_to_build,
-            _test_headers_not_passed_to_linking_action,
-            _test_no_duplicate_linkopts,
-            _test_action_graph,
-            _test_runtime_dynamic_libraries_copy_behavior,
-            _test_pic,
-            _test_missing_action_config_for_strip_is_a_rule_error,
-        ],
+        tests = tests,
     )
