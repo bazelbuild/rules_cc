@@ -163,7 +163,8 @@ def _make_dll(name):
     )
 
     # cc_imports are always source files, so make it a generated file again
-    cc_library(
+    util.helper_target(
+        cc_library,
         name = name,
         deps = [mask],
     )
