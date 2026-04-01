@@ -27,6 +27,31 @@ util.helper_target(
     visibility = ["//tests/rule_based_toolchain:__subpackages__"],
 )
 
+util.helper_target(
+    cc_action_type_set,
+    name = "all_compile_except_c",
+    actions = [
+        ":c_compile",
+        ":cpp_compile",
+    ],
+    excludes = [
+        ":c_compile",
+    ],
+    visibility = ["//tests/rule_based_toolchain:__subpackages__"],
+)
+
+util.helper_target(
+    cc_action_type_set,
+    name = "all_compile_except_c_nested",
+    actions = [
+        ":all_compile",
+    ],
+    excludes = [
+        ":c_compile",
+    ],
+    visibility = ["//tests/rule_based_toolchain:__subpackages__"],
+)
+
 analysis_test_suite(
     name = "test_suite",
     targets = TARGETS,
