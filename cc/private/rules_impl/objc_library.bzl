@@ -16,6 +16,7 @@
 
 load("//cc:build_settings.bzl", "cc")
 load("//cc:find_cc_toolchain.bzl", "find_cc_toolchain", "use_cc_toolchain")
+load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/common:cc_helper.bzl", "cc_helper")
 load("//cc/common:cc_info.bzl", "CcInfo")
 load("//cc/common:semantics.bzl", cc_semantics = "semantics")
@@ -86,12 +87,18 @@ def _objc_library_impl(ctx):
         pic_gcno_files = compilation_outputs.pic_gcno_files()
     else:
         pic_gcno_files = compilation_outputs._pic_gcno_files
+    feature_configuration = cc_common.configure_features(
+        ctx = ctx,
+        cc_toolchain = cc_toolchain,
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
     instrumented_files_info = coverage_common.instrumented_files_info(
         ctx = ctx,
         source_attributes = ["srcs", "non_arc_srcs", "hdrs"],
         dependency_attributes = ["deps", "data", "binary", "xctest_app"],
         extensions = extensions.NON_CPP_SOURCES + extensions.CPP_SOURCES + extensions.HEADERS,
-        coverage_environment = cc_helper.get_coverage_environment(ctx, ctx.fragments.cpp, cc_toolchain),
+        coverage_environment = cc_helper.get_coverage_environment(ctx, ctx.fragments.cpp, cc_toolchain, feature_configuration),
         # TODO(cmita): Use ctx.coverage_instrumented() instead when rules_swift can access
         # cc_toolchain.coverage_files and the coverage_support_files parameter of
         # coverage_common.instrumented_files_info(...)
