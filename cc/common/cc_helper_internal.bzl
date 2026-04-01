@@ -92,6 +92,7 @@ PRIVATE_STARLARKIFICATION_ALLOWLIST = [
 
 _CC_SOURCE = [".cc", ".cpp", ".cxx", ".c++", ".C", ".cu", ".cl"]
 _C_SOURCE = [".c"]
+_CUDA_SOURCE = [".cu"]
 _OBJC_SOURCE = [".m"]
 _OBJCPP_SOURCE = [".mm"]
 _CLIF_INPUT_PROTO = [".ipb"]
@@ -115,6 +116,7 @@ _LTO_INDEXING_OBJECT_FILE = [".indexing.o"]
 _CC_AND_OBJC = []
 _CC_AND_OBJC.extend(_CC_SOURCE)
 _CC_AND_OBJC.extend(_C_SOURCE)
+_CC_AND_OBJC.extend(_CUDA_SOURCE)
 _CC_AND_OBJC.extend(_OBJC_SOURCE)
 _CC_AND_OBJC.extend(_OBJCPP_SOURCE)
 _CC_AND_OBJC.extend(_CC_HEADER)
@@ -134,6 +136,7 @@ _DISALLOWED_HDRS_FILES.extend(_PIC_OBJECT_FILE)
 extensions = struct(
     CC_SOURCE = _CC_SOURCE,
     C_SOURCE = _C_SOURCE,
+    CUDA_SOURCE = _CUDA_SOURCE,
     OBJC_SOURCE = _OBJC_SOURCE,
     OBJCPP_SOURCE = _OBJCPP_SOURCE,
     CC_HEADER = _CC_HEADER,

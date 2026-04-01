@@ -17,6 +17,7 @@ cc_args(
         ":lto_index_actions",
         "@rules_cc//cc/toolchains/actions:c_compile",
         "@rules_cc//cc/toolchains/actions:cpp_compile",
+        "@rules_cc//cc/toolchains/actions:cuda_compile",
         "@rules_cc//cc/toolchains/actions:link_actions",
     ],
     args = [

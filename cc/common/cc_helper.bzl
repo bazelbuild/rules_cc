@@ -1032,6 +1032,7 @@ def _create_cc_instrumented_files_info(ctx, cc_config, cc_toolchain, metadata_fi
     source_extensions = extensions.CC_SOURCE + \
                         extensions.C_SOURCE + \
                         extensions.CC_HEADER + \
+                        extensions.CUDA_SOURCE + \
                         extensions.ASSEMBLER_WITH_C_PREPROCESSOR + \
                         extensions.ASSEMBLER
     coverage_environment = {}

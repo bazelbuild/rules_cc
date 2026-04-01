@@ -72,6 +72,7 @@ SOURCE_CATEGORY_CC = set(
     extensions.CC_SOURCE +
     extensions.CC_HEADER +
     extensions.C_SOURCE +
+    extensions.CUDA_SOURCE +
     extensions.ASSEMBLER +
     extensions.ASSESMBLER_WITH_C_PREPROCESSOR +
     extensions.CLIF_INPUT_PROTO,
@@ -81,6 +82,7 @@ SOURCE_CATEGORY_CC = set(
 SOURCE_CATEGORY_CC_AND_OBJC = set(
     extensions.CC_SOURCE +
     extensions.CC_HEADER +
+    extensions.CUDA_SOURCE +
     extensions.OBJC_SOURCE +
     extensions.OBJCPP_SOURCE +
     extensions.C_SOURCE +
@@ -90,7 +92,7 @@ SOURCE_CATEGORY_CC_AND_OBJC = set(
 # LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/rules/cpp/CppCompileActionTemplate.java:cc_and_objc_file_types)
 
 # Filetypes that generate LLVM bitcode when -flto is specified.
-LTO_SOURCE_EXTENSIONS = set(extensions.CC_SOURCE + extensions.C_SOURCE)
+LTO_SOURCE_EXTENSIONS = set(extensions.CC_SOURCE + extensions.C_SOURCE + extensions.CUDA_SOURCE)
 
 # LINT.IfChange(compile_api)
 def compile(
@@ -874,7 +876,7 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
         modmap_input_file = None
 
         # Only C++ compilation unit will be compiled with C++20 Modules.
-        if "." + source_artifact.extension in extensions.CC_SOURCE:
+        if "." + source_artifact.extension in extensions.CC_SOURCE + extensions.CUDA_SOURCE:
             modmap_file = _get_compile_output_file(
                 action_construction_context,
                 label,
@@ -1764,9 +1766,10 @@ def _create_temps_action(
     extension = filename[filename.find("."):]
     c_source = extension in extensions.C_SOURCE
     cpp_source = extension in extensions.CC_SOURCE
+    cuda_source = extension in extensions.CUDA_SOURCE
     objc_source = extension in extensions.OBJC_SOURCE
     objcpp_source = extension in extensions.OBJCPP_SOURCE
-    if not c_source and not cpp_source and not objc_source and not objcpp_source:
+    if not c_source and not cpp_source and not objc_source and not objcpp_source and not cuda_source:
         return []
 
     category = artifact_category.PREPROCESSED_C_SOURCE if c_source else artifact_category.PREPROCESSED_CPP_SOURCE
@@ -2155,7 +2158,7 @@ def _use_dotd_file(feature_configuration, source_file):
     header_discover_required = extension not in (extensions.ASSEMBLER + extensions.CPP_MODULE)
     use_header_modules = (
         feature_configuration.is_enabled("use_header_modules") and
-        extension in extensions.CC_SOURCE + extensions.CC_HEADER + extensions.CPP_MODULE_MAP
+        extension in extensions.CC_SOURCE + extensions.CC_HEADER + extensions.CPP_MODULE_MAP + extensions.CUDA_SOURCE
     )
     return header_discover_required and not use_header_modules
 

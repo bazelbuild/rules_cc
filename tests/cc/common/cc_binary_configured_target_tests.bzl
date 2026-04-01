@@ -288,6 +288,7 @@ def _test_missing_action_config_for_strip_is_a_rule_error(name, **kwargs):
         test_features = [FEATURE_NAMES.no_legacy_features, FEATURE_NAMES.pic],
         with_action_configs = [
             ACTION_NAMES.cpp_compile,
+            ACTION_NAMES.cuda_compile,
             ACTION_NAMES.cpp_link_static_library,
             ACTION_NAMES.cpp_link_executable,
         ],
