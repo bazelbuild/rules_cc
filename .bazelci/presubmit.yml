@@ -32,14 +32,6 @@ test_targets_bazel_6: &test_targets_bazel_6
   - "-//tests/system_library:system_library_test" # Should be skipped on Windows and MacOS
   - "-//tests/cc/common:test_runtime_dynamic_libraries_copy_behavior" # known bug, see https://github.com/bazelbuild/rules_cc/pull/623
 
-common_coverage_flags: &common_coverage_flags
-  # Starting in Bazel 9 coverage collection causes some tests to fail.
-  # https://github.com/bazelbuild/rules_cc/issues/613
-  - "--test_env=IGNORE_COVERAGE_COLLECTION_FAILURES=1"
-  # Test failures are not collected under `coverage` invocations.
-  # https://github.com/bazelbuild/continuous-integration/issues/1838
-  - "--test_output=errors"
-
 buildifier:
   version: latest
 
@@ -100,7 +92,6 @@ tasks:
     platform: macos
     build_targets: *build_targets
     test_targets: *test_targets
-    coverage_flags: *common_coverage_flags
     coverage_targets: *test_targets
   macos_rolling:
     name: MacOS (Bazel rolling)
@@ -108,7 +99,6 @@ tasks:
     platform: macos_arm64
     build_targets: *build_targets
     test_targets: *test_targets
-    coverage_flags: *common_coverage_flags
     coverage_targets: *test_targets
   windows_rolling:
     name: Windows (Bazel rolling)
@@ -116,6 +106,7 @@ tasks:
     platform: windows
     build_targets: *build_targets
     test_targets: *test_targets
+    coverage_targets: *test_targets
 
 # Bazel 7
   ubuntu2004_bazel_7:
@@ -124,7 +115,6 @@ tasks:
     platform: ubuntu2004
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
-    coverage_flags: *common_coverage_flags
     coverage_targets: *test_targets_bazel_6
   macos_intel_bazel_7:
     name: MacOS Intel (Bazel 7)
@@ -132,7 +122,6 @@ tasks:
     platform: macos
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
-    coverage_flags: *common_coverage_flags
     coverage_targets: *test_targets_bazel_6
   macos_bazel_7:
     name: MacOS (Bazel 7)
@@ -140,7 +129,6 @@ tasks:
     platform: macos_arm64
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
-    coverage_flags: *common_coverage_flags
     coverage_targets: *test_targets_bazel_6
   windows_bazel_7:
     name: Windows (Bazel 7)
@@ -148,6 +136,7 @@ tasks:
     platform: windows
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
+    coverage_targets: *test_targets_bazel_6
 
 # Bazel 8
   ubuntu2004_bazel_8:
@@ -156,7 +145,6 @@ tasks:
     platform: ubuntu2004
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
-    coverage_flags: *common_coverage_flags
     coverage_targets: *test_targets_bazel_6
   macos_intel_bazel_8:
     name: MacOS Intel (Bazel 8)
@@ -164,7 +152,6 @@ tasks:
     platform: macos
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
-    coverage_flags: *common_coverage_flags
     coverage_targets: *test_targets_bazel_6
   macos_bazel_8:
     name: MacOS (Bazel 8)
@@ -172,7 +159,6 @@ tasks:
     platform: macos_arm64
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
-    coverage_flags: *common_coverage_flags
     coverage_targets: *test_targets_bazel_6
   windows_bazel_8:
     name: Windows (Bazel 8)
@@ -180,6 +166,7 @@ tasks:
     platform: windows
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
+    coverage_targets: *test_targets_bazel_6
 
 # Bazel 9
   ubuntu2004:
@@ -187,7 +174,6 @@ tasks:
     bazel: 9.x
     build_targets: *build_targets
     test_targets: *test_targets
-    coverage_flags: *common_coverage_flags
     coverage_targets: *test_targets
   macos_intel:
     name: MacOS Intel (Bazel 9)
@@ -195,7 +181,6 @@ tasks:
     platform: macos
     build_targets: *build_targets
     test_targets: *test_targets
-    coverage_flags: *common_coverage_flags
     coverage_targets: *test_targets
   macos:
     name: MacOS (Bazel 9)
@@ -203,13 +188,13 @@ tasks:
     platform: macos_arm64
     build_targets: *build_targets
     test_targets: *test_targets
-    coverage_flags: *common_coverage_flags
     coverage_targets: *test_targets
   windows:
     name: Windows (Bazel 9)
     bazel: 9.x
     build_targets: *build_targets
     test_targets: *test_targets
+    coverage_targets: *test_targets
   ubuntu_bzlmod:
     name: Ubuntu 20.04 (Bazel 9, bzlmod)
     bazel: 9.x
