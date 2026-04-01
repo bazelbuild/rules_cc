@@ -47,7 +47,6 @@ cc_args(
         ],
         "//conditions:default": ["rcsD"],
     }),
-    requires_not_none = "//cc/toolchains/variables:output_execpath",
 )
 
 cc_args(
