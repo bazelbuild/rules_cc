@@ -22,6 +22,7 @@ cc_args(
     actions = [
         "//cc/toolchains/actions:link_actions",
         "//cc/toolchains/actions:ar_actions",
+        "//cc/toolchains/actions:objc_fully_link",
     ],
     args = ["@{param_file}"],
     format = {"param_file": "//cc/toolchains/variables:linker_param_file"},
