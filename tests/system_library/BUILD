@@ -23,6 +23,7 @@ sh_test(
         "//cc:system_library.bzl",
         "@bazel_tools//tools/bash/runfiles",
     ],
+    env_inherit = ["PATH"],
     target_compatible_with = [
         "@platforms//os:linux",
     ],
