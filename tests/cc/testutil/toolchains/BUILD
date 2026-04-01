@@ -7,6 +7,22 @@ load(":cc_toolchain_config.bzl", "cc_toolchain_config")
 
 package(default_visibility = ["//tests:__subpackages__"])
 
+platform(
+    name = "linux_x86_64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+platform(
+    name = "macos_arm64",
+    constraint_values = [
+        "@platforms//os:macos",
+        "@platforms//cpu:arm64",
+    ],
+)
+
 toolchain_type(name = "toolchain_type")
 
 toolchain_type(name = "test_runner_toolchain_type")
@@ -284,6 +300,52 @@ cc_toolchain_config(
     target_system_name = "local",
     tool_paths = {},
     toolchain_identifier = "mock-toolchain-k8",
+)
+
+toolchain(
+    name = "cc-toolchain-macos-compiler",
+    target_compatible_with = ["@platforms//os:macos"],
+    toolchain = ":cc-compiler-macos-compiler",
+    toolchain_type = "//cc:toolchain_type",
+)
+
+cc_toolchain_config(
+    name = "macos-compiler_config",
+    abi_libc_version = "local",
+    abi_version = "local",
+    action_configs = [],
+    artifact_name_patterns = {},
+    builtin_sysroot = "/usr/grte/v1",
+    cc_target_os = "macos",
+    compiler = "compiler",
+    cpu = "darwin_arm64",
+    cxx_builtin_include_directories = [],
+    feature_names = [],
+    host_system_name = "local",
+    make_variables = {},
+    target_libc = "macosx",  # NOTE: This value is read for legacy features
+    target_system_name = "local",
+    tool_paths = {},
+    toolchain_identifier = "mock-toolchain-macos",
+)
+
+cc_toolchain(
+    name = "cc-compiler-macos-compiler",
+    all_files = ":every-file",
+    ar_files = "ar-k8",
+    as_files = "as-k8",
+    compiler_files = "compile-k8",
+    coverage_files = "coverage-file",
+    dwp_files = "dwp-k8",
+    licenses = ["unencumbered"],
+    linker_files = "link-k8",
+    module_map = "crosstool.cppmap",
+    objcopy_files = "objcopy-k8",
+    output_licenses = ["unencumbered"],
+    strip_files = ":every-file",
+    supports_header_parsing = 1,
+    toolchain_config = ":macos-compiler_config",
+    toolchain_identifier = "mock-toolchain-macos",
 )
 
 cc_toolchain(
