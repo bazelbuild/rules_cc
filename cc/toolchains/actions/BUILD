@@ -201,7 +201,10 @@ cc_action_type(
 
 cc_action_type_set(
     name = "ar_actions",
-    actions = [":cpp_link_static_library"],
+    actions = [
+        ":cpp_link_static_library",
+        ":objc_fully_link",
+    ],
 )
 
 cc_action_type_set(
