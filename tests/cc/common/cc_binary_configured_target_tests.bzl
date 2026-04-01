@@ -1113,6 +1113,40 @@ def _test_dynamic_deps_runfiles_impl(env, targets):
                     runfiles.not_contains_predicate(predicate)
                 runfiles.contains_predicate(matching.str_endswith(lib + "_data.txt"))
 
+def _test_deps_runfiles(name, **kwargs):
+    util.helper_target(
+        cc_library,
+        name = name + "/transitive",
+        srcs = ["transitive.cc"],
+        data = ["transitive_data.txt"],
+    )
+    util.helper_target(
+        cc_library,
+        name = name + "/dep",
+        srcs = ["dep.cc"],
+        data = ["dep_data.txt"],
+        deps = [name + "/transitive"],
+    )
+    util.helper_target(
+        cc_shared_library,
+        name = name + "/dep_shared",
+        deps = [name + "/dep"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_deps_runfiles_impl,
+        target = name + "/dep_shared",
+        **kwargs
+    )
+
+def _test_deps_runfiles_impl(env, target):
+    # The shared library links its deps statically, so it needs their runfiles.
+    target = env.expect.that_target(target)
+    for runfiles in [target.runfiles(), target.data_runfiles()]:
+        runfiles.contains_predicate(matching.str_endswith("libdep_shared.so"))
+        for lib in ["dep", "transitive"]:
+            runfiles.contains_predicate(matching.str_endswith(lib + "_data.txt"))
+
 def _create_three_rules_chain(name):
     util.helper_target(
         cc_library,
@@ -2080,6 +2114,7 @@ def cc_binary_configured_target_tests(name):
         _setup_cc_runtimes_mock()
         tests.extend([
             _test_dynamic_deps_runfiles,
+            _test_deps_runfiles,
             _test_sanitize_pwd_feature_enabled,
             _test_sanitize_pwd_feature_disabled,
             _test_sanitize_pwd_macos_no_pwd,
