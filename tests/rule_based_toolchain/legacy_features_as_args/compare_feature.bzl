@@ -18,9 +18,18 @@ load("//cc:cc_toolchain_config_lib.bzl", "feature")
 load("//cc/toolchains:cc_toolchain_info.bzl", "ArgsListInfo")
 load("//cc/toolchains/impl:legacy_converter.bzl", "convert_args")
 
+def _force_platform_transition_impl(_settings, attr):
+    return {"//command_line_option:platforms": [str(attr.platform)]}
+
+_force_platform_transition = transition(
+    implementation = _force_platform_transition_impl,
+    inputs = [],
+    outputs = ["//command_line_option:platforms"],
+)
+
 def _generate_textproto_for_args_impl(ctx):
     out = ctx.actions.declare_file(ctx.attr.output.name)
-    converted_args = [convert_args(arg) for arg in ctx.attr.actual_implementation[ArgsListInfo].args]
+    converted_args = [convert_args(arg) for arg in ctx.attr.actual_implementation[0][ArgsListInfo].args]
     feature_impl = feature(
         name = ctx.attr.feature_name,
         flag_sets = [fs for one_arg in converted_args for fs in one_arg.flag_sets],
@@ -39,19 +48,33 @@ _generate_textproto_for_args = rule(
         "actual_implementation": attr.label(
             mandatory = True,
             providers = [ArgsListInfo],
+            cfg = _force_platform_transition,
         ),
         "feature_name": attr.string(mandatory = True),
         "output": attr.output(mandatory = True),
+        "platform": attr.label(mandatory = True),
     },
 )
 
-def compare_feature_implementation(name, actual_implementation, expected):
+def compare_feature_implementation(name, actual_implementation, expected, platform, feature_name = None):
+    """Compares the feature implementation of a given ArgsListInfo against an expected textproto.
+
+    Args:
+        name: The name of the test.
+        actual_implementation: The label of the rule that provides ArgsListInfo to be tested.
+        expected: The file containing the expected textproto output.
+        platform: The platform to transition to for testing.
+        feature_name: The name of the feature to extract from the ArgsListInfo. If None, defaults to the test name.
+    """
+    if feature_name == None:
+        feature_name = name
     output_filename = name + ".actual.textproto"
     _generate_textproto_for_args(
         name = name + "_implementation",
         actual_implementation = actual_implementation,
-        feature_name = name,
+        feature_name = feature_name,
         output = output_filename,
+        platform = platform,
         testonly = True,
     )
     diff_test(
