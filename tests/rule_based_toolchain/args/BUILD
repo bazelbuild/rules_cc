@@ -1,13 +1,20 @@
+load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 load("@rules_testing//lib:util.bzl", "util")
 load("//cc/toolchains:args.bzl", "cc_args")
 load("//cc/toolchains/impl:variables.bzl", "cc_variable", "types")
 load("//tests/rule_based_toolchain:analysis_test_suite.bzl", "analysis_test_suite")
 load("//tests/rule_based_toolchain:testing_rules.bzl", "expect_failure_test")
 load(":args_test.bzl", "TARGETS", "TESTS")
+load(":override_args.bzl", "override_args")
 
 cc_variable(
     name = "some_variable",
     type = types.string,
+)
+
+string_flag(
+    name = "macos_min_os_flag",
+    build_setting_default = "-mmacosx-version-min=12.0",
 )
 
 util.helper_target(
@@ -53,6 +60,21 @@ util.helper_target(
     format = {"user_compile_flags": "//cc/toolchains/variables:user_compile_flags"},
     iterate_over = "//cc/toolchains/variables:user_compile_flags",
     requires_not_none = "//cc/toolchains/variables:user_compile_flags",
+)
+
+util.helper_target(
+    cc_args,
+    name = "build_setting_format",
+    actions = ["//tests/rule_based_toolchain/actions:all_compile"],
+    args = ["{min_os_flag}"],
+    env = {"APPLE_MIN_OS": "{min_os_flag}"},
+    format = {"min_os_flag": ":macos_min_os_flag"},
+)
+
+override_args(
+    name = "build_setting_format_override",
+    target = ":build_setting_format",
+    value = "-mmacosx-version-min=13.0",
 )
 
 util.helper_target(
