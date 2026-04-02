@@ -18,6 +18,7 @@ A module to create C/C++ link actions in a consistent way.
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
     "//cc/common:cc_helper_internal.bzl",
+    "root_relative_path",
     "wrap_with_check_private_api",
     _use_pic_for_binaries = "use_pic_for_binaries",
     _use_pic_for_dynamic_libs = "use_pic_for_dynamic_libs",
@@ -301,8 +302,9 @@ def _create_dynamic_link_actions(
         if not feature_configuration.is_enabled("targets_windows"):
             link_action_kwargs["linkopts"].append("-Wl,-soname=" + _cc_internal.dynamic_library_soname(
                 actions,
-                linker_output.short_path,
-                False,
+                # Must match https://github.com/bazelbuild/bazel/blob/795af54db5c348af5ca8b2961a982b399206ea20/src/main/java/com/google/devtools/build/lib/rules/cpp/SolibSymlinkAction.java#L169.
+                root_relative_path(linker_output),
+                dynamic_link_type != LINK_TARGET_TYPE.NODEPS_DYNAMIC_LIBRARY,
             ))
 
     mnemonic = "ObjcLink" if dynamic_link_type == LINK_TARGET_TYPE.OBJC_EXECUTABLE else None
