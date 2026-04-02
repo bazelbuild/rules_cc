@@ -57,9 +57,9 @@ http_archive(
 # TODO: pzembrod - Change to a released version again when the commit is in a release.
 http_archive(
     name = "bazel_features",
-    sha256 = "sha256-Q+hJsju3CWDN1K9InhbErlZNk093AewwEPnI3BodltQ=",
-    strip_prefix = "bazel_features-9f66dfd288cec395f373950b7c8eaaf11c2624fc",
-    url = "https://github.com/bazel-contrib/bazel_features/archive/9f66dfd288cec395f373950b7c8eaaf11c2624fc.tar.gz",
+    sha256 = "5b9a77ddd2904260af051241e2ff9b7c7a7593b7b9cd21a1d4e573d77ee07627",
+    strip_prefix = "bazel_features-8e514d242b8dea2b4f65e7f6da0f13ecb94afe05",
+    url = "https://github.com/bazel-contrib/bazel_features/archive/8e514d242b8dea2b4f65e7f6da0f13ecb94afe05.tar.gz",
 )
 
 load("@bazel_features//:deps.bzl", "bazel_features_deps")
