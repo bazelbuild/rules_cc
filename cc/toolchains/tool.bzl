@@ -15,6 +15,7 @@
 
 load("@bazel_skylib//rules/directory:providers.bzl", "DirectoryInfo")
 load("//cc/toolchains/impl:collect.bzl", "collect_data", "collect_provider")
+load("//cc/toolchains/impl:nested_args.bzl", "format_dict_values")
 load(
     ":cc_toolchain_info.bzl",
     "ToolCapabilityInfo",
@@ -30,12 +31,20 @@ def _cc_tool_impl(ctx):
     else:
         fail("Expected cc_tool's src attribute to be either an executable or a single file")
 
+    format_targets = {k: v for v, k in ctx.attr.format.items()}
+    env, _ = format_dict_values(
+        env = ctx.attr.env,
+        format = format_targets,
+        must_use = format_targets.keys(),
+    )
+
     runfiles = collect_data(ctx, ctx.attr.data + [ctx.attr.src])
     tool = ToolInfo(
         label = ctx.label,
         exe = exe,
         runfiles = runfiles,
         execution_requirements = tuple(ctx.attr.tags),
+        env = env,
         allowlist_include_directories = depset(
             direct = [d[DirectoryInfo] for d in ctx.attr.allowlist_include_directories],
         ),
@@ -59,7 +68,7 @@ def _cc_tool_impl(ctx):
         ),
     ]
 
-cc_tool = rule(
+_cc_tool = rule(
     implementation = _cc_tool_impl,
     # @unsorted-dict-items
     attrs = {
@@ -100,6 +109,20 @@ This can help work around errors like:
 (if these are builtin files, make sure these paths are in your toolchain)`.
 """,
         ),
+        "env": attr.string_dict(
+            doc = """Environment variables to apply when running this tool.
+
+Format expansion is performed on values using the format attribute.
+""",
+        ),
+        "format": attr.label_keyed_string_dict(
+            allow_files = True,
+            doc = """Variables to be used in substitutions for env values.
+
+The keys are targets and the values are format strings. Use the cc_tool macro
+to provide the inverted mapping from format string to target.
+""",
+        ),
         "capabilities": attr.label_list(
             providers = [ToolCapabilityInfo],
             doc = """Declares that a tool is capable of doing something.
@@ -136,3 +159,86 @@ cc_tool(
 """,
     executable = True,
 )
+
+def cc_tool(
+        *,
+        name,
+        src = None,
+        data = None,
+        allowlist_include_directories = None,
+        env = None,
+        format = {},
+        capabilities = None,
+        **kwargs):
+    """Declares a tool for use by toolchain actions.
+
+    `cc_tool` rules are used in a `cc_tool_map` rule to ensure all files and
+    metadata required to run a tool are available when constructing a `cc_toolchain`.
+
+    In general, include all files that are always required to run a tool (e.g. libexec/** and
+    cross-referenced tools in bin/*) in the [data](#cc_tool-data) attribute. If some files are only
+    required when certain flags are passed to the tool, consider using a `cc_args` rule to
+    bind the files to the flags that require them. This reduces the overhead required to properly
+    enumerate a sandbox with all the files required to run a tool, and ensures that there isn't
+    unintentional leakage across configurations and actions.
+
+    Example:
+    ```
+    load("//cc/toolchains:tool.bzl", "cc_tool")
+
+    cc_tool(
+        name = "clang",
+        src = "@llvm_toolchain//:bin/clang",
+        # Suppose clang needs libc to run.
+        data = ["@llvm_toolchain//:lib/x86_64-linux-gnu/libc.so.6"]
+        capabilities = ["//cc/toolchains/capabilities:supports_pic"],
+    )
+    ```
+
+    Args:
+        name: (str) The name of the target.
+        src: (Label) The underlying binary that this tool represents.
+            Usually just a single prebuilt (e.g. @toolchain//:bin/clang), but may be any
+            executable label.
+        data: (List[Label]) Additional files that are required for this tool to run.
+            Frequently, clang and gcc require additional files to execute as they often shell out to
+            other binaries (e.g. `cc1`).
+        allowlist_include_directories: (List[Label]) Include paths implied by using this tool.
+            Compilers may include a set of built-in headers that are implicitly available
+            unless flags like `-nostdinc` are provided. Bazel checks that all included
+            headers are properly provided by a dependency or allowlisted through this
+            mechanism.
+
+            As a rule of thumb, only use this if Bazel is complaining about absolute paths in your
+            toolchain and you've ensured that the toolchain is compiling with the
+            `-no-canonical-prefixes` and/or `-fno-canonical-system-headers` arguments.
+
+            These files are not automatically passed to each action. If they need to be,
+            add them to 'data' as well.
+
+            This can help work around errors like:
+            `the source file 'main.c' includes the following non-builtin files with absolute paths
+            (if these are builtin files, make sure these paths are in your toolchain)`.
+        env: (Dict[str, str]) Environment variables to apply when running this tool.
+            Format expansion is performed on values using `format`.
+        format: (Dict[str, Label]) A mapping of format strings to the label of a corresponding
+            target. This target can be a `directory`, `subdirectory`, or a single file that the
+            value should be pulled from. All instances of `{variable_name}` in the `env` dictionary
+            values will be replaced with the expanded value in this dictionary.
+        capabilities: (List[Label]) Declares that a tool is capable of doing something.
+            For example, `@rules_cc//cc/toolchains/capabilities:supports_pic`.
+        **kwargs: [common attributes](https://bazel.build/reference/be/common-definitions#common-attributes)
+            that should be applied to this rule.
+    """
+    return _cc_tool(
+        name = name,
+        src = src,
+        data = data,
+        allowlist_include_directories = allowlist_include_directories,
+        env = env,
+        # We flip the key/value pairs in the dictionary here because Bazel doesn't have a
+        # string-keyed label dict attribute type.
+        format = {k: v for v, k in format.items()},
+        capabilities = capabilities,
+        **kwargs
+    )

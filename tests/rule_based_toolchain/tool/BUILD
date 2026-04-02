@@ -25,6 +25,23 @@ cc_tool(
     visibility = ["//tests/rule_based_toolchain:__subpackages__"],
 )
 
+cc_tool(
+    name = "tool_with_env",
+    src = "//tests/rule_based_toolchain/testdata:bin_wrapper.sh",
+    data = [
+        "//tests/rule_based_toolchain/testdata:bin",
+        "//tests/rule_based_toolchain/testdata:file1",
+    ],
+    env = {
+        "STATIC": "value",
+        "TOOL_ENV": "{tool_env}",
+    },
+    format = {
+        "tool_env": "//tests/rule_based_toolchain/testdata:file1",
+    },
+    visibility = ["//tests/rule_based_toolchain:__subpackages__"],
+)
+
 cc_directory_tool(
     name = "directory_tool",
     data = ["bin"],
