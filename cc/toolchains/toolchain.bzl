@@ -205,6 +205,10 @@ def cc_toolchain(
         )
         legacy_file_groups[group] = group_name
 
+    # TODO: Inline when we drop bazel 8.x support
+    if interface_library_builder:
+        kwargs["interface_library_builder"] = interface_library_builder
+
     _cc_toolchain(
         name = name,
         toolchain_config = config_name,
@@ -215,7 +219,6 @@ def cc_toolchain(
         static_runtime_lib = static_runtime_lib,
         supports_header_parsing = supports_header_parsing,
         supports_param_files = supports_param_files,
-        interface_library_builder = interface_library_builder,
         # This is required for Bazel versions <= 7.x.x. It is ignored in later versions.
         exec_transition_for_inputs = False,
         visibility = cc_toolchain_visibility,
