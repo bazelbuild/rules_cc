@@ -69,6 +69,7 @@ def cc_toolchain(
         static_runtime_lib = None,
         supports_header_parsing = False,
         supports_param_files = False,
+        interface_library_builder = None,
         compiler = "",
         **kwargs):
     """A C/C++ toolchain configuration.
@@ -155,6 +156,7 @@ def cc_toolchain(
             See
             [`cc_toolchain.supports_param_files`](https://bazel.build/reference/be/c-cpp#cc_toolchain.supports_param_files)
             for more information.
+        interface_library_builder: (Label) A single file used for producing interface libraries when enabled.
         compiler: (str) The type of compiler used by this toolchain (e.g. "gcc", "clang"). The current
             toolchain's compiler is exposed to `@rules_cc//cc/private/toolchain:compiler
             (compiler_flag)` as a flag value.
@@ -213,6 +215,7 @@ def cc_toolchain(
         static_runtime_lib = static_runtime_lib,
         supports_header_parsing = supports_header_parsing,
         supports_param_files = supports_param_files,
+        interface_library_builder = interface_library_builder,
         # This is required for Bazel versions <= 7.x.x. It is ignored in later versions.
         exec_transition_for_inputs = False,
         visibility = cc_toolchain_visibility,
