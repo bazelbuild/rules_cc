@@ -20,6 +20,13 @@ cc_args(
     target_compatible_with = ["@platforms//os:macos"],
 )
 
+cc_feature(
+    name = "set_soname_feature",
+    args = [":set_soname"],
+    feature_name = "set_soname",
+    visibility = ["//visibility:public"],
+)
+
 cc_args(
     name = "set_soname",
     actions = ["//cc/toolchains/actions:link_actions"],
