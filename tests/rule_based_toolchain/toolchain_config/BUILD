@@ -158,6 +158,14 @@ util.helper_target(
 )
 
 util.helper_target(
+    cc_args,
+    name = "requires_supports_pic_args",
+    actions = ["//tests/rule_based_toolchain/actions:c_compile"],
+    args = ["--pic"],
+    requires_any_of = ["//cc/toolchains/capabilities:supports_pic"],
+)
+
+util.helper_target(
     cc_feature,
     name = "requires_all_simple_feature",
     args = [":c_compile_args"],
