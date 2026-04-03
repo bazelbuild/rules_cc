@@ -635,6 +635,7 @@ def _impl(ctx):
     )
 
     supports_dynamic_linker_feature = feature(name = "supports_dynamic_linker", enabled = True)
+    supports_dynamic_library_deps_feature = feature(name = "supports_dynamic_library_deps", enabled = True)
 
     user_compile_flags_feature = feature(
         name = "user_compile_flags",
@@ -1886,6 +1887,7 @@ def _impl(ctx):
             static_libgcc_feature,
             fdo_optimize_feature,
             supports_dynamic_linker_feature,
+            supports_dynamic_library_deps_feature,
             fastbuild_feature,
             dbg_feature,
             opt_feature,
@@ -1948,6 +1950,7 @@ def _impl(ctx):
             unfiltered_compile_flags_feature,
             treat_warnings_as_errors_feature,
             archive_param_file_feature,
+            supports_dynamic_library_deps_feature,
             generate_linkmap_feature,
             no_dotd_file_feature,
         ] + layering_check_features(ctx.attr.compiler, ctx.attr.extra_flags_per_feature, is_macos = True)
