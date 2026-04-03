@@ -41,6 +41,11 @@ _supports_dynamic_linker_feature = feature(
     enabled = True,
 )
 
+_supports_dynamic_library_deps_feature = feature(
+    name = FEATURE_NAMES.supports_dynamic_library_deps,
+    enabled = True,
+)
+
 _shorten_virtual_includes_feature = feature(
     name = FEATURE_NAMES.shorten_virtual_includes,
     enabled = True,
@@ -1290,6 +1295,7 @@ _feature_name_to_feature = {
     FEATURE_NAMES.no_legacy_features: _no_legacy_features_feature,
     FEATURE_NAMES.do_not_split_linking_cmdline: _do_not_split_linking_cmdline_feature,
     FEATURE_NAMES.supports_dynamic_linker: _supports_dynamic_linker_feature,
+    FEATURE_NAMES.supports_dynamic_library_deps: _supports_dynamic_library_deps_feature,
     FEATURE_NAMES.supports_interface_shared_libraries: _supports_interface_shared_libraries_feature,
     FEATURE_NAMES.pic: _pic_feature,
     FEATURE_NAMES.define_with_space: _define_with_space,

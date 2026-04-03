@@ -15,5 +15,9 @@ cc_tool_capability(
 )
 
 cc_tool_capability(
+    name = "supports_dynamic_library_deps",
+)
+
+cc_tool_capability(
     name = "supports_pic",
 )
