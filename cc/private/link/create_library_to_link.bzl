@@ -276,11 +276,12 @@ def _validate_symlink_path(attr, path):
 
 def _validate_extension(path, extensions, func = None, not_ext = [], fail = fail, empty_ext = False):
     path = getattr(path, "basename", path)  # Handle str|File
+    path_lower = path.lower()
     for ext in not_ext:
-        if path.endswith(ext):
+        if path_lower.endswith(ext.lower()):
             fail("'%s' does not have any of the allowed extensions %s" % (path, ", ".join(extensions)))
     for ext in extensions:
-        if path.endswith(ext):
+        if path_lower.endswith(ext.lower()):
             return
     if empty_ext:
         _, actual_ext = paths.split_extension(path)
