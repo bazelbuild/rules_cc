@@ -11,8 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """cc_toolchain rule"""
 
-def cc_toolchain(**kwargs):
-    native.cc_toolchain(**kwargs)  # buildifier: disable=native-cc-toolchain
+load("@cc_compatibility_proxy//:proxy.bzl", _cc_toolchain = "cc_toolchain")
+
+cc_toolchain = _cc_toolchain

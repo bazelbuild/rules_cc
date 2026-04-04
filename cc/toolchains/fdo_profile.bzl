@@ -11,8 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """fdo_profile rule"""
 
-def fdo_profile(**kwargs):
-    native.fdo_profile(**kwargs)  # buildifier: disable=native-cc-fdo-profile
+load("@cc_compatibility_proxy//:proxy.bzl", _fdo_profile = "fdo_profile")
+
+fdo_profile = _fdo_profile

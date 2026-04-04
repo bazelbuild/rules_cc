@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """memprof_profile rule"""
 
-memprof_profile = native.memprof_profile
+load("@cc_compatibility_proxy//:proxy.bzl", _memprof_profile = "memprof_profile")
+
+memprof_profile = _memprof_profile

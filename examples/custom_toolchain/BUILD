@@ -20,18 +20,9 @@
 # - https://docs.bazel.build/versions/master/tutorial/cc-toolchain-config.html
 # - https://docs.bazel.build/versions/master/be/c-cpp.html#cc_toolchain
 #
-# There are two ways to select C++ toolchains:
-#
-#  - NEW (USE IF POSSIBLE): with the --platforms flag
-#  - LEGACY: with the --crosstool_top and --cpu flags
-#
-# See https://docs.bazel.build/versions/master/platforms-intro.html#c for details.
-#
-# This example demonstrates both approaches.
 
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc/toolchains:cc_toolchain.bzl", "cc_toolchain")
-load("@rules_cc//cc/toolchains:cc_toolchain_suite.bzl", "cc_toolchain_suite")
 
 # Load the Starlark logic defining the toolchain's behavior. For example: what
 # program runs to compile a source file and how its command line is
@@ -73,18 +64,6 @@ filegroup(
         "sample_compiler",
         "sample_linker",
     ],
-)
-
-# Implements legacy toolchain selection.
-#
-# Setting --crosstool_top here registers the set of available
-# toolchains. Setting --cpu to one of the toolchain attribute's keys selects a
-#toolchain.
-cc_toolchain_suite(
-    name = "legacy_selector",
-    toolchains = {
-        "k8": ":my_custom_toolchain",
-    },
 )
 
 # Implements platform-based (recommended) toolchain selection.

@@ -39,7 +39,7 @@ def _get_list_from_env_var(repo_ctx, var_name, key):
     return _split_env_var(repo_ctx, var_name).get(key, default = [])
 
 def _execute_bash(repo_ctx, cmd):
-    return repo_ctx.execute(["/bin/bash", "-c", cmd]).stdout.strip("\n")
+    return repo_ctx.execute(["/usr/bin/env", "bash", "-c", cmd]).stdout.strip("\n")
 
 def _find_linker(repo_ctx):
     ld = _execute_bash(repo_ctx, "which ld")
@@ -268,7 +268,8 @@ genrule(
         executable = False,
         content =
             """
-load("@bazel_tools//tools/build_defs/cc:cc_import.bzl", "cc_import")
+load({cc_import_bzl}, "cc_import")
+
 cc_import(
     name = "local_includes",
     {static_library}
@@ -297,15 +298,22 @@ cc_import(
     {includes}
 )
 
+config_setting(
+    name = "remote",
+    values = {{"define": "EXECUTOR=remote"}},
+    visibility = ["//visibility:private"],
+)
+
 alias(
     name = "{name}",
     actual = select({{
-        "@bazel_tools//src/conditions:remote": "remote_includes",
+        ":remote": "remote_includes",
         "//conditions:default": "local_includes",
     }}),
     visibility = ["//visibility:public"],
 )
 """.format(
+                cc_import_bzl = repr(str(Label("@rules_cc//cc:cc_import.bzl"))),
                 static_library = static_library_param,
                 shared_library = shared_library_param,
                 hdrs = hdrs_param,

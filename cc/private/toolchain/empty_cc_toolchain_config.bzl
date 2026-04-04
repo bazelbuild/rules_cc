@@ -14,6 +14,7 @@
 """A fake C++ toolchain configuration rule"""
 
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
 
 def _impl(ctx):
     out = ctx.actions.declare_file(ctx.label.name)

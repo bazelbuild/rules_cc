@@ -21,7 +21,9 @@ load(
     "auto_configure_warning_maybe",
     "escape_string",
     "execute",
+    "get_starlark_list",
     "resolve_labels",
+    "split_escaped",
     "write_builtin_include_directory_paths",
 )
 
@@ -615,10 +617,14 @@ def _get_clang_version(repository_ctx, clang_cl):
     result = repository_ctx.execute([clang_cl, "-v"])
     first_line = result.stderr.strip().splitlines()[0].strip()
 
-    # The first line of stderr should look like "[vendor ]clang version X.X.X"
-    if result.return_code != 0 or first_line.find("clang version ") == -1:
+    # The first line of stderr should look like "[vendor ]clang version X.X.X[ vendor]"
+    clang_version_prefix = "clang version "
+    if result.return_code != 0:
         auto_configure_fail("Failed to get clang version by running \"%s -v\"" % clang_cl)
-    return first_line.split(" ")[-1]
+    version_start = first_line.find(clang_version_prefix)
+    if version_start == -1:
+        auto_configure_fail("Failed to get clang version: unknown version string format: \"%s\"" % first_line)
+    return first_line[version_start + len(clang_version_prefix):].split(" ")[0]
 
 def _get_clang_dir(repository_ctx, llvm_path, clang_version):
     """Get the clang installation directory."""
@@ -850,6 +856,45 @@ def _get_msvc_deps_scanner_vars(repository_ctx, paths, template_vars, target_arc
         "%{msvc_deps_scanner_wrapper_path_" + target_arch + "}": "msvc_deps_scanner_wrapper_" + target_arch + ".bat",
     }
 
+def _get_copts(repository_ctx):
+    """Get the variables we need to populate the msys/mingw toolchains."""
+    conly_opts = split_escaped(_get_env_var(
+        repository_ctx,
+        "BAZEL_CONLYOPTS",
+        "",
+    ), ":")
+    all_compile_opts = split_escaped(_get_env_var(
+        repository_ctx,
+        "BAZEL_COPTS",
+        "",
+    ), ":")
+    cxx_opts = split_escaped(_get_env_var(
+        repository_ctx,
+        "BAZEL_CXXOPTS",
+        "",
+    ), ":")
+    link_opts = split_escaped(_get_env_var(
+        repository_ctx,
+        "BAZEL_LINKOPTS",
+        "",
+    ), ":")
+    win32_winnt_opts = _get_env_var(
+        repository_ctx,
+        "BAZEL_WIN32_WINNT",
+        None,
+    )
+    copts_vars = {
+        "%{all_compile_flags}": get_starlark_list(all_compile_opts),
+        "%{conly_flags}": get_starlark_list(conly_opts),
+        "%{cxx_flags}": get_starlark_list(cxx_opts),
+        "%{link_flags}": get_starlark_list(link_opts),
+        # None means the user didn't provide the override.
+        # Fall back to the default in that case.
+        "%{win32_winnt_flag}": '    win32_winnt_flag = "' + escape_string(win32_winnt_opts) + '", ' if win32_winnt_opts != None else "",
+    }
+
+    return copts_vars
+
 def configure_windows_toolchain(repository_ctx):
     """Configure C++ toolchain on Windows.
 
@@ -884,6 +929,7 @@ def configure_windows_toolchain(repository_ctx):
     template_vars.update(msvc_vars_x64)
     template_vars.update(_get_clang_cl_vars(repository_ctx, paths, msvc_vars_x64, "x64"))
     template_vars.update(_get_msys_mingw_vars(repository_ctx))
+    template_vars.update(_get_copts(repository_ctx))
     template_vars.update(_get_msvc_vars(repository_ctx, paths, "x86", msvc_vars_x64))
     template_vars.update(_get_msvc_vars(repository_ctx, paths, "arm", msvc_vars_x64))
     msvc_vars_arm64 = _get_msvc_vars(repository_ctx, paths, "arm64", msvc_vars_x64)

@@ -16,6 +16,7 @@ cc_args_list(
     name = "strip_flags",
     args = [
         ":strip_debug",
+        ":stripopts",
         ":preserve_dates",
         ":output_file",
         ":input_file",
@@ -30,10 +31,19 @@ cc_args(
 )
 
 cc_args(
+    name = "stripopts",
+    actions = ["//cc/toolchains/actions:strip"],
+    args = ["{stripopts}"],
+    format = {"stripopts": "//cc/toolchains/variables:stripopts"},
+    iterate_over = "//cc/toolchains/variables:stripopts",
+)
+
+cc_args(
     name = "preserve_dates",
     actions = ["//cc/toolchains/actions:strip"],
     args = select({
         "@platforms//os:macos": [],
+        "@platforms//os:windows": [],
         "//conditions:default": ["-p"],
     }),
 )
@@ -54,4 +64,5 @@ cc_args(
     actions = ["//cc/toolchains/actions:strip"],
     args = ["{input_file}"],
     format = {"input_file": "//cc/toolchains/variables:input_file"},
+    requires_not_none = "//cc/toolchains/variables:input_file",
 )

@@ -11,9 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """cc_common module"""
 
-load("//cc/private/rules_impl:native.bzl", "native_cc_common")
+load("@cc_compatibility_proxy//:symbols.bzl", _cc_common = "cc_common")
 
-cc_common = native_cc_common
+cc_common = _cc_common

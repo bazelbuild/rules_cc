@@ -196,8 +196,13 @@ def _find_linker_path(repository_ctx, cc, linker, is_clang):
 
     # Extract linker path from:
     # /usr/bin/clang ...
-    # "/usr/bin/ld.lld" -pie -z ...
-    linker_command = result.stderr.splitlines()[-1]
+    #  "/usr/bin/ld.lld" -pie -z ...
+    # We use the leading space and quoted path to find invocations.
+    # https://github.com/llvm/llvm-project/blob/85c78274358717e4d5d019a801decba5c1add484/clang/lib/Driver/Job.cpp#L207-L209
+    invocations = [line for line in result.stderr.splitlines() if line.startswith(" \"")]
+    if not invocations:
+        return linker
+    linker_command = invocations[-1]
     return linker_command.strip().split(" ")[0].strip("\"'")
 
 def _add_compiler_option_if_supported(repository_ctx, cc, option):
@@ -271,7 +276,13 @@ def _is_gcc(repository_ctx, cc):
     # GCC's version output uses the basename of argv[0] as the program name:
     # https://gcc.gnu.org/git/?p=gcc.git;a=blob;f=gcc/gcc.cc;h=158461167951c1b9540322fb19be6a89d6da07fc;hb=HEAD#l8728
     cc_stdout = repository_ctx.execute([cc, "--version"]).stdout
-    return cc_stdout.startswith("gcc ") or cc_stdout.startswith("gcc-")
+    if cc_stdout.startswith("gcc ") or cc_stdout.startswith("gcc-"):
+        return True
+
+    # As a fallback, also check specs output in case argv[0] was a symlink.
+    specs = repository_ctx.execute([cc, "-v"]).stderr
+    last_line = specs.rstrip("\n").split("\n")[-1]
+    return "gcc version " in last_line
 
 def _get_compiler_name(repository_ctx, cc):
     if _is_clang(repository_ctx, cc):
@@ -459,6 +470,12 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
         },
     )
 
+    all_compile_opts = split_escaped(get_env_var(
+        repository_ctx,
+        "BAZEL_COPTS",
+        "",
+        False,
+    ), ":")
     conly_opts = split_escaped(get_env_var(
         repository_ctx,
         "BAZEL_CONLYOPTS",
@@ -580,7 +597,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
         ) +
         # Always included in case the user has Xcode + the CLT installed, both
         # paths can be used interchangeably
-        ["/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"],
+        (["/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"] if darwin else []),
     )
 
     generate_modulemap = is_clang
@@ -662,10 +679,12 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
                 False,
             )),
             "%{conly_flags}": get_starlark_list(conly_opts),
+            "%{all_compile_flags}": get_starlark_list(all_compile_opts),
             "%{coverage_compile_flags}": coverage_compile_flags,
             "%{coverage_link_flags}": coverage_link_flags,
             "%{cxx_builtin_include_directories}": get_starlark_list(builtin_include_directories),
             "%{cxx_flags}": get_starlark_list(cxx_opts + _escaped_cplus_include_paths(repository_ctx)),
+            "%{fastbuild_compile_flags}": get_starlark_list([]),
             "%{dbg_compile_flags}": get_starlark_list(["-g"]),
             "%{extra_flags_per_feature}": repr(extra_flags_per_feature),
             "%{host_system_name}": escape_string(get_env_var(

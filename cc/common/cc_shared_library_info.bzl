@@ -13,6 +13,6 @@
 # limitations under the License.
 """CcSharedLibraryInfo"""
 
-load("//cc/private/rules_impl:native.bzl", "NativeCcSharedLibraryInfo")
+load("@cc_compatibility_proxy//:symbols.bzl", _CcSharedLibraryInfo = "CcSharedLibraryInfo")
 
-CcSharedLibraryInfo = NativeCcSharedLibraryInfo
+CcSharedLibraryInfo = _CcSharedLibraryInfo

@@ -25,6 +25,7 @@ load(
     "with_feature_set",
 )  # buildifier: disable=deprecated-function
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
 
 all_compile_actions = [
     ACTION_NAMES.c_compile,
@@ -82,7 +83,7 @@ def _impl(ctx):
                 flag_groups = [
                     flag_group(
                         flags = [
-                            "-lstdc++",
+                            "-lc++",
                             "-Wl,-z,relro,-z,now",
                             "-no-canonical-prefixes",
                         ],

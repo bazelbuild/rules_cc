@@ -6,7 +6,13 @@ licenses(["notice"])
 
 exports_files(["LICENSE"])
 
-cc_library(name = "empty_lib")
+cc_library(
+    name = "empty_lib",
+    # compatible_with = [...]
+    tags = [
+        "__DONT_DEPEND_ON_DEF_PARSER__",
+    ],
+)
 
 # Label flag for extra libraries to be linked into every binary.
 # TODO(bazel-team): Support passing flag multiple times to build a list.
@@ -19,7 +25,20 @@ label_flag(
 # the above flag, but may also include more libraries depending on config.
 cc_library(
     name = "link_extra_lib",
+    # compatible_with = [...]
+    tags = [
+        "__DONT_DEPEND_ON_DEF_PARSER__",
+    ],
     deps = [
         ":link_extra_libs",
     ],
+)
+
+filegroup(
+    name = "for_bazel_tests",
+    testonly = 1,
+    srcs = [
+        "BUILD",
+    ],
+    visibility = ["//:__subpackages__"],
 )

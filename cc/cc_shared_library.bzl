@@ -13,5 +13,7 @@
 # limitations under the License.
 """cc_library rule"""
 
+load("@cc_compatibility_proxy//:proxy.bzl", _cc_shared_library = "cc_shared_library")
+
 def cc_shared_library(**kwargs):
-    native.cc_shared_library(**kwargs)  # buildifier: disable=native-cc-shared-library
+    _cc_shared_library(**kwargs)

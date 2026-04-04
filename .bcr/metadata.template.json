@@ -2,11 +2,19 @@
   "homepage": "https://github.com/bazelbuild/rules_cc",
   "maintainers": [
     {
-      "email": "ilist@google.com",
-      "github": "comius",
-      "name": "Ivo Ristovski List"
+      "email": "trybka@google.com",
+      "github": "trybka",
+      "name": "Tom Rybka"
+    },
+    {
+      "email": "pzembrod@google.com",
+      "github": "pzembrod",
+      "name": "Philip Zembrod"
     }
   ],
   "versions": [],
-  "yanked_versions": {}
+  "yanked_versions": {},
+  "repository": [
+    "github:bazelbuild/rules_cc"
+  ]
 }

@@ -36,12 +36,6 @@ cc_external_feature(
 )
 
 cc_external_feature(
-    name = "per_object_debug_info",
-    feature_name = "per_object_debug_info",
-    overridable = True,
-)
-
-cc_external_feature(
     name = "static_link_cpp_runtimes",
     feature_name = "static_link_cpp_runtimes",
     overridable = True,
@@ -55,7 +49,6 @@ cc_feature_set(
         ":fastbuild",
         ":static_linking_mode",
         ":dynamic_linking_mode",
-        ":per_object_debug_info",
         ":static_link_cpp_runtimes",
     ],
     visibility = ["//visibility:private"],

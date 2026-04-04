@@ -45,6 +45,26 @@ ActionTypeSetInfo = provider(
     },
 )
 
+ArtifactCategoryInfo = provider(
+    doc = "A category of artifacts (eg. static_library, executable, object_file)",
+    # @unsorted-dict-items
+    fields = {
+        "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
+        "name": "(str) The name of the artifact category, as defined by Bazel",
+    },
+)
+
+ArtifactNamePatternInfo = provider(
+    doc = "A name pattern for artifacts",
+    # @unsorted-dict-items
+    fields = {
+        "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
+        "category": "(ArtifactCategoryInfo) The artifact category this pattern is for",
+        "prefix": "(str) The prefix for creating the artifact",
+        "extension": "(str) The extension for creating the artifact",
+    },
+)
+
 VariableInfo = provider(
     """A variable defined by the toolchain""",
     # @unsorted-dict-items
@@ -77,6 +97,16 @@ NestedArgsInfo = provider(
     },
 )
 
+EnvInfo = provider(
+    doc = "A set of environment variables to be added to the environment for specific actions",
+    # @unsorted-dict-items
+    fields = {
+        "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
+        "entries": "(dict[str, str]) A mapping from environment variable name to value",
+        "requires_not_none": "(Optional[str]) The variable that must be not None to apply these environment variables",
+    },
+)
+
 ArgsInfo = provider(
     doc = "A set of arguments to be added to the command line for specific actions",
     # @unsorted-dict-items
@@ -86,8 +116,9 @@ ArgsInfo = provider(
         "requires_any_of": "(Sequence[FeatureConstraintInfo]) This will be enabled if any of the listed predicates are met. Equivalent to with_features",
         "nested": "(Optional[NestedArgsInfo]) The args expand. Equivalent to a flag group.",
         "files": "(depset[File]) Files required for the args",
-        "env": "(dict[str, str]) Environment variables to apply",
+        "env": "(EnvInfo) Environment variables to apply",
         "allowlist_include_directories": "(depset[DirectoryInfo]) Include directories implied by these arguments that should be allowlisted in Bazel's include checker",
+        "allowlist_absolute_include_directories": "(depset[str]) Absolute include directories implied by these arguments that should be allowlisted in Bazel's include checker",
     },
 )
 ArgsListInfo = provider(
@@ -99,6 +130,7 @@ ArgsListInfo = provider(
         "files": "(depset[File]) The files required for all of the arguments",
         "by_action": "(Sequence[struct(action=ActionTypeInfo, args=List[ArgsInfo], files=depset[Files])]) Relevant information about the args keyed by the action type.",
         "allowlist_include_directories": "(depset[DirectoryInfo]) Include directories implied by these arguments that should be allowlisted in Bazel's include checker",
+        "allowlist_absolute_include_directories": "(depset[str]) Absolute include directories implied by these arguments that should be allowlisted in Bazel's include checker",
     },
 )
 
@@ -117,6 +149,7 @@ FeatureInfo = provider(
         "overridable": "(bool) Whether the feature is an overridable feature.",
         "overrides": "(Optional[FeatureInfo]) The feature that this overrides. Must be a known feature",
         "allowlist_include_directories": "(depset[DirectoryInfo]) Include directories implied by this feature that should be allowlisted in Bazel's include checker",
+        "allowlist_absolute_include_directories": "(depset[str]) Absolute include directories implied by these arguments that should be allowlisted in Bazel's include checker",
     },
 )
 FeatureSetInfo = provider(
@@ -135,6 +168,16 @@ FeatureConstraintInfo = provider(
         "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
         "all_of": "(depset[FeatureInfo]) A set of features which must be enabled",
         "none_of": "(depset[FeatureInfo]) A set of features, none of which can be enabled",
+    },
+)
+
+MakeVariableInfo = provider(
+    doc = "Provider for make variables attached to toolchains",
+    # @unsorted-dict-items
+    fields = {
+        "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
+        "key": "(str) The string key to replace",
+        "value": "(str) The value to replace it with",
     },
 )
 
@@ -187,7 +230,10 @@ ToolchainConfigInfo = provider(
         "enabled_features": "(Sequence[FeatureInfo]) The features That are enabled by default for this toolchain",
         "tool_map": "(ToolConfigInfo) A provider mapping toolchain action types to tools.",
         "args": "(Sequence[ArgsInfo]) A list of arguments to be unconditionally applied to the toolchain.",
+        "artifact_name_patterns": "Sequence[ArtifactNamePatternInfo] A artifact name patterns for this toolchain",
+        "make_variables": "Sequence[MakeVariableInfo] Make variable substitutions for this toolchain",
         "files": "(dict[ActionTypeInfo, depset[File]]) Files required for the toolchain, keyed by the action type.",
         "allowlist_include_directories": "(depset[DirectoryInfo]) Built-in include directories implied by this toolchain's args and tools that should be allowlisted in Bazel's include checker",
+        "allowlist_absolute_include_directories": "(List[str]) Built-in include directories allowed the sandbox. Use with care",
     },
 )

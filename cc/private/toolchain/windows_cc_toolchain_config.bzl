@@ -23,6 +23,7 @@ load(
     "feature",
     "flag_group",
     "flag_set",
+    "get_profile_correction_flags",
     "make_variable",
     "tool",
     "tool_path",
@@ -30,6 +31,8 @@ load(
     "with_feature_set",
 )
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
+load("@rules_cc//cc/toolchains:feature_injection.bzl", "FeatureInfo", "convert_feature")
 
 all_compile_actions = [
     ACTION_NAMES.c_compile,
@@ -88,10 +91,18 @@ all_link_actions = [
     ACTION_NAMES.cpp_link_nodeps_dynamic_library,
 ]
 
+lto_index_actions = [
+    ACTION_NAMES.lto_index_for_executable,
+    ACTION_NAMES.lto_index_for_dynamic_library,
+    ACTION_NAMES.lto_index_for_nodeps_dynamic_library,
+]
+
 def _use_msvc_toolchain(ctx):
     return ctx.attr.cpu in ["x64_windows", "arm64_windows"] and (ctx.attr.compiler == "msvc-cl" or ctx.attr.compiler == "clang-cl")
 
 def _impl(ctx):
+    profile_correction_flags = get_profile_correction_flags(ctx)
+
     if _use_msvc_toolchain(ctx):
         artifact_name_patterns = [
             artifact_name_pattern(
@@ -482,16 +493,6 @@ def _impl(ctx):
                     ],
                 ),
                 flag_set(
-                    actions = all_link_actions,
-                    flag_groups = [
-                        flag_group(
-                            flags = ["%{libopts}"],
-                            iterate_over = "libopts",
-                            expand_if_available = "libopts",
-                        ),
-                    ],
-                ),
-                flag_set(
                     actions = all_link_actions +
                               [ACTION_NAMES.cpp_link_static_library],
                     flag_groups = [
@@ -567,6 +568,30 @@ def _impl(ctx):
             name = "user_compile_flags",
             flag_sets = [
                 flag_set(
+                    actions = [ACTION_NAMES.c_compile],
+                    flag_groups = ([
+                        flag_group(
+                            flags = ctx.attr.conly_flags,
+                        ),
+                    ] if ctx.attr.conly_flags else []),
+                ),
+                flag_set(
+                    actions = [
+                        ACTION_NAMES.linkstamp_compile,
+                        ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cpp_header_parsing,
+                        ACTION_NAMES.cpp_module_compile,
+                        ACTION_NAMES.cpp_module_codegen,
+                        ACTION_NAMES.lto_backend,
+                        ACTION_NAMES.clif_match,
+                    ],
+                    flag_groups = ([
+                        flag_group(
+                            flags = ctx.attr.cxx_flags,
+                        ),
+                    ] if ctx.attr.cxx_flags else []),
+                ),
+                flag_set(
                     actions = [
                         ACTION_NAMES.preprocess_assemble,
                         ACTION_NAMES.c_compile,
@@ -579,7 +604,11 @@ def _impl(ctx):
                         ACTION_NAMES.cpp20_module_compile,
                         ACTION_NAMES.cpp20_module_codegen,
                     ],
-                    flag_groups = [
+                    flag_groups = ([
+                        flag_group(
+                            flags = ctx.attr.all_compile_flags,
+                        ),
+                    ] if ctx.attr.all_compile_flags else []) + [
                         flag_group(
                             flags = ["%{user_compile_flags}"],
                             iterate_over = "user_compile_flags",
@@ -605,10 +634,11 @@ def _impl(ctx):
                             iterate_over = "user_archiver_flags",
                             expand_if_available = "user_archiver_flags",
                         ),
+                    ] + ([
                         flag_group(
                             flags = ctx.attr.archiver_flags,
                         ),
-                    ],
+                    ] if ctx.attr.archiver_flags else []),
                 ),
             ],
         )
@@ -619,7 +649,9 @@ def _impl(ctx):
             flag_sets = [
                 flag_set(
                     actions = all_link_actions,
-                    flag_groups = [flag_group(flags = ctx.attr.default_link_flags)],
+                    flag_groups = [
+                        flag_group(flags = ctx.attr.default_link_flags),
+                    ] if ctx.attr.default_link_flags else [],
                 ),
             ],
         )
@@ -716,6 +748,14 @@ def _impl(ctx):
             name = "user_link_flags",
             flag_sets = [
                 flag_set(
+                    actions = all_link_actions + lto_index_actions,
+                    flag_groups = ([
+                        flag_group(
+                            flags = ctx.attr.link_flags,
+                        ),
+                    ] if ctx.attr.link_flags else []),
+                ),
+                flag_set(
                     actions = all_link_actions,
                     flag_groups = [
                         flag_group(
@@ -727,6 +767,36 @@ def _impl(ctx):
                 ),
             ],
         )
+
+        default_cpp_std_feature = feature(
+            name = "default_cpp_std",
+            enabled = True,
+            flag_sets = [
+                flag_set(
+                    actions = all_cpp_compile_actions,
+                    flag_groups = [
+                        flag_group(
+                            flags = ["/std:c++17"],
+                        ),
+                    ],
+                ),
+            ],
+        )
+
+        default_compile_flags_list = [
+            "/DNOMINMAX",
+            "/D_CRT_SECURE_NO_DEPRECATE",
+            "/D_CRT_SECURE_NO_WARNINGS",
+            "/bigobj",
+            "/Zm500",
+            "/EHsc",
+            "/wd4351",
+            "/wd4291",
+            "/wd4250",
+            "/wd4996",
+        ]
+        if ctx.attr.win32_winnt_flag:
+            default_compile_flags_list.append(ctx.attr.win32_winnt_flag)
 
         default_compile_flags_feature = feature(
             name = "default_compile_flags",
@@ -750,20 +820,7 @@ def _impl(ctx):
                     ],
                     flag_groups = [
                         flag_group(
-                            flags = [
-                                "/DCOMPILER_MSVC",
-                                "/DNOMINMAX",
-                                "/D_WIN32_WINNT=0x0601",
-                                "/D_CRT_SECURE_NO_DEPRECATE",
-                                "/D_CRT_SECURE_NO_WARNINGS",
-                                "/bigobj",
-                                "/Zm500",
-                                "/EHsc",
-                                "/wd4351",
-                                "/wd4291",
-                                "/wd4250",
-                                "/wd4996",
-                            ],
+                            flags = default_compile_flags_list + ctx.attr.default_compile_flags,
                         ),
                     ],
                 ),
@@ -942,6 +999,11 @@ def _impl(ctx):
         no_dotd_file_feature = feature(
             name = "no_dotd_file",
             enabled = True,
+        )
+
+        shorten_virtual_includes_feature = feature(
+            name = "shorten_virtual_includes",
+            enabled = ctx.attr.shorten_virtual_includes,
         )
 
         treat_warnings_as_errors_feature = feature(
@@ -1269,6 +1331,7 @@ def _impl(ctx):
             no_stripping_feature,
             targets_windows_feature,
             copy_dynamic_libraries_to_binary_feature,
+            default_cpp_std_feature,
             default_compile_flags_feature,
             msvc_env_feature,
             msvc_compile_env_feature,
@@ -1278,6 +1341,7 @@ def _impl(ctx):
             preprocessor_defines_feature,
             parse_showincludes_feature,
             no_dotd_file_feature,
+            shorten_virtual_includes_feature,
             generate_pdb_file_feature,
             generate_linkmap_feature,
             shared_flag_feature,
@@ -1490,8 +1554,7 @@ def _impl(ctx):
                             flag_group(
                                 flags = [
                                     "-fprofile-use=%{fdo_profile_path}",
-                                    "-fprofile-correction",
-                                ],
+                                ] + profile_correction_flags,
                                 expand_if_available = "fdo_profile_path",
                             ),
                         ],
@@ -1519,6 +1582,30 @@ def _impl(ctx):
                 enabled = True,
                 flag_sets = [
                     flag_set(
+                        actions = [ACTION_NAMES.c_compile],
+                        flag_groups = ([
+                            flag_group(
+                                flags = ctx.attr.conly_flags,
+                            ),
+                        ] if ctx.attr.conly_flags else []),
+                    ),
+                    flag_set(
+                        actions = [
+                            ACTION_NAMES.linkstamp_compile,
+                            ACTION_NAMES.cpp_compile,
+                            ACTION_NAMES.cpp_header_parsing,
+                            ACTION_NAMES.cpp_module_compile,
+                            ACTION_NAMES.cpp_module_codegen,
+                            ACTION_NAMES.lto_backend,
+                            ACTION_NAMES.clif_match,
+                        ],
+                        flag_groups = ([
+                            flag_group(
+                                flags = ctx.attr.cxx_flags,
+                            ),
+                        ] if ctx.attr.cxx_flags else []),
+                    ),
+                    flag_set(
                         actions = [
                             ACTION_NAMES.assemble,
                             ACTION_NAMES.preprocess_assemble,
@@ -1534,7 +1621,11 @@ def _impl(ctx):
                             ACTION_NAMES.lto_backend,
                             ACTION_NAMES.clif_match,
                         ],
-                        flag_groups = [
+                        flag_groups = ([
+                            flag_group(
+                                flags = ctx.attr.all_compile_flags,
+                            ),
+                        ] if ctx.attr.all_compile_flags else []) + [
                             flag_group(
                                 flags = ["%{user_compile_flags}"],
                                 iterate_over = "user_compile_flags",
@@ -1618,9 +1709,14 @@ def _impl(ctx):
         ],
         enabled = True,
     )
+    features.extend([cpp_modules_feature, cpp_module_modmap_file_feature, cpp20_module_compile_flags_feature])
+
+    extra_rules_based_features = depset(ctx.attr.extra_enabled_features + ctx.attr.extra_known_features)
+    features.extend([convert_feature(extra_feature[FeatureInfo], enabled = extra_feature in ctx.attr.extra_enabled_features) for extra_feature in extra_rules_based_features.to_list()])
+
     return cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
-        features = features + [cpp_modules_feature, cpp_module_modmap_file_feature, cpp20_module_compile_flags_feature],
+        features = features,
         action_configs = action_configs,
         artifact_name_patterns = artifact_name_patterns,
         cxx_builtin_include_directories = ctx.attr.cxx_builtin_include_directories,
@@ -1642,14 +1738,36 @@ cc_toolchain_config = rule(
         "abi_libc_version": attr.string(),
         "abi_version": attr.string(),
         "archiver_flags": attr.string_list(default = []),
+        "all_compile_flags": attr.string_list(),
         "compiler": attr.string(),
+        "conly_flags": attr.string_list(),
         "cpu": attr.string(mandatory = True),
         "cxx_builtin_include_directories": attr.string_list(),
+        "cxx_flags": attr.string_list(),
         "dbg_mode_debug_flag": attr.string(default = ""),
         "default_compile_flags": attr.string_list(default = []),
         "default_link_flags": attr.string_list(default = []),
+        "extra_enabled_features": attr.label_list(
+            providers = [FeatureInfo],
+            default = [],
+            doc = """
+Extra `cc_feature` features to add to this toolchain in an initially enabled state.
+This attribute has limited integration with `cc_feature`, and does not run additional correctness checks or handle things like `data` files.
+This is only offered as a migration bridge for projects transitioning to rule-based toolchain configurations, or sharing of simple argument sets with older toolchains.
+""",
+        ),
+        "extra_known_features": attr.label_list(
+            providers = [FeatureInfo],
+            default = [],
+            doc = """
+Extra `cc_feature` features to add to this toolchain in an initially disabled state.
+This attribute has limited integration with `cc_feature`, and does not run additional correctness checks or handle things like `data` files.
+This is only offered as a migration bridge for projects transitioning to rule-based toolchain configurations, or sharing of simple argument sets with older toolchains.
+""",
+        ),
         "fastbuild_mode_debug_flag": attr.string(default = ""),
         "host_system_name": attr.string(),
+        "link_flags": attr.string_list(),
         "msvc_cl_path": attr.string(default = "vc_installation_error.bat"),
         "msvc_env_include": attr.string(default = "msvc_not_found"),
         "msvc_env_lib": attr.string(default = "msvc_not_found"),
@@ -1658,12 +1776,14 @@ cc_toolchain_config = rule(
         "msvc_lib_path": attr.string(default = "vc_installation_error.bat"),
         "msvc_link_path": attr.string(default = "vc_installation_error.bat"),
         "msvc_ml_path": attr.string(default = "vc_installation_error.bat"),
+        "shorten_virtual_includes": attr.bool(default = False),
         "supports_parse_showincludes": attr.bool(),
         "target_libc": attr.string(),
         "target_system_name": attr.string(),
         "tool_bin_path": attr.string(default = "not_found"),
         "tool_paths": attr.string_dict(),
         "toolchain_identifier": attr.string(),
+        "win32_winnt_flag": attr.string(default = "/D_WIN32_WINNT=0x0601"),
     },
     provides = [CcToolchainConfigInfo],
 )

@@ -75,6 +75,7 @@ def _my_c_archive_impl(ctx):
         executable = archiver_path,
         arguments = [args],
         env = env,
+        mnemonic = "MyCArchive",
         inputs = depset(
             direct = [object_file],
             transitive = [

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """ A library of functions creating structs for CcToolchainConfigInfo."""
 
 def _check_is_none(obj, parameter_name, method_name):
@@ -343,8 +342,8 @@ def flag_set(
             specify at least one action.
         with_features: A list of feature sets defining when this flag set gets
             applied. The flag set will be applied when any one of the feature
-            sets evaluate to true. (That is, when when every 'feature' is
-            enabled, and every 'not_feature' is not enabled.)
+            sets evaluate to true. (That is, when every 'feature' is enabled,
+            and every 'not_feature' is not enabled.)
             If 'with_feature' is omitted, the flag set will be applied
             unconditionally for every action specified.
         flag_groups: A FlagGroup list - the flags applied via this flag set.
@@ -394,7 +393,7 @@ def feature(
             explicitly marks it as unsupported.
         flag_sets: A FlagSet list - If the given feature is enabled, the flag
             sets will be applied for the actions are specified for.
-        env_sets: an EnvSet list - If the given feature is enabled, the env
+        env_sets: An EnvSet list - If the given feature is enabled, the env
             sets will be applied for the actions they are specified for.
         requires: A list of feature sets defining when this feature is
             supported by the  toolchain. The feature is supported if any of the
@@ -615,3 +614,9 @@ def artifact_name_pattern(category_name, prefix, extension):
         extension = extension,
         type_name = "artifact_name_pattern",
     )
+
+def _is_gcc_compiler(compiler):
+    return "gcc" in compiler
+
+def get_profile_correction_flags(ctx):
+    return ["-fprofile-correction"] if hasattr(ctx.attr, "compiler") and _is_gcc_compiler(ctx.attr.compiler) else []
