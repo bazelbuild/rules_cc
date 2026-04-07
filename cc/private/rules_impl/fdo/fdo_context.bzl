@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """FDO context describes how C++ FDO compilation should be done."""
+#foo
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("//cc/common:cc_common.bzl", "cc_common")
