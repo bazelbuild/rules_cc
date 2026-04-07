@@ -63,7 +63,6 @@ def create_cc_link_actions(
         native_deps = False,
         additional_linkstamp_defines = [],
         alwayslink = False,
-        link_artifact_name_suffix = "",
         linker_output_artifact = None,  # TODO(b/331164666): rename to main_output
         emit_interface_shared_libraries = True,
         linked_dll_name_suffix = ""):
@@ -109,12 +108,6 @@ def create_cc_link_actions(
         whole_archive: (bool) undocumented.
         additional_linkstamp_defines: (list[str]) undocumented.
         alwayslink: (bool) undocumented.
-        link_artifact_name_suffix: (str)
-          Adds a suffix for paths of linked artifacts. Normally their paths are derived solely from rule
-          labels. In the case of multiple callers (e.g., aspects) acting on a single rule, they may
-          generate the same linked artifact and therefore lead to artifact conflicts. This method
-          provides a way to avoid this artifact conflict by allowing different callers acting on the same
-          rule to provide a suffix that will be used to scope their own linked artifacts.
         linker_output_artifact: (None|File) Name of the main output artifact that will be produced by the linker.
             Only set this if the default name generation does not match you needs
             For output_type=executable, this is the final executable filename.
@@ -186,7 +179,6 @@ def create_cc_link_actions(
             name,
             static_link_type,
             cc_toolchain,
-            link_artifact_name_suffix,
             use_pic_for_binaries,
             use_pic_for_dynamic_libs,
             link_action_kwargs,
@@ -221,7 +213,6 @@ def create_cc_link_actions(
                 linker_output_artifact,
                 neverlink,
                 test_only_target,
-                link_artifact_name_suffix,
                 emit_interface_shared_libraries,
                 linked_dll_name_suffix,
                 link_action_kwargs,
@@ -262,7 +253,6 @@ def _create_dynamic_link_actions(
         linker_output_artifact,
         neverlink,
         test_only_target,
-        link_artifact_name_suffix,
         emit_interface_shared_libraries,
         linked_dll_name_suffix,
         link_action_kwargs):
@@ -282,7 +272,6 @@ def _create_dynamic_link_actions(
             name,
             dynamic_link_type,
             cc_toolchain,
-            link_artifact_name_suffix,
             linked_dll_name_suffix,
         )
 
@@ -295,7 +284,7 @@ def _create_dynamic_link_actions(
         cc_toolchain._cpp_configuration.interface_shared_objects()
     )
     if emit_interface_shared_libraries:
-        so_interface, _ = _get_linked_artifact(actions, name, LINK_TARGET_TYPE.INTERFACE_DYNAMIC_LIBRARY, cc_toolchain, link_artifact_name_suffix)
+        so_interface, _ = _get_linked_artifact(actions, name, LINK_TARGET_TYPE.INTERFACE_DYNAMIC_LIBRARY, cc_toolchain)
 
         # TODO(b/28946988): Remove this hard-coded flag.
         if not feature_configuration.is_enabled("targets_windows"):
@@ -518,8 +507,8 @@ def _construct_dynamic_library_to_link(
     return library_to_link
 
 # TODO(b/338618120): There's a second get_linked_artifact in cc_helper. Simplify this one and converge the two.
-def _get_linked_artifact(actions, name, link_target_type, cc_toolchain, link_artifact_name_suffix, linked_dll_name_suffix = ""):
-    maybe_pic_name = name + link_artifact_name_suffix
+def _get_linked_artifact(actions, name, link_target_type, cc_toolchain, linked_dll_name_suffix = ""):
+    maybe_pic_name = name
     if link_target_type.is_pic:
         maybe_pic_name = _cc_internal.get_artifact_name_for_category(
             cc_toolchain = cc_toolchain,
@@ -556,7 +545,6 @@ def _create_no_pic_and_pic_static_libs_actions(
         name,
         static_link_type,
         cc_toolchain,
-        link_artifact_name_suffix,
         use_pic_for_binaries,
         use_pic_for_dynamic_libs,
         link_action_kwargs):
@@ -595,7 +583,6 @@ def _create_no_pic_and_pic_static_libs_actions(
             name,
             static_link_type,
             False,  # use_pic
-            link_artifact_name_suffix,
             cc_toolchain,
             link_action_kwargs,
         )
@@ -615,7 +602,6 @@ def _create_no_pic_and_pic_static_libs_actions(
             name,
             link_target_type_used_for_naming,
             True,  # use_pic
-            link_artifact_name_suffix,
             cc_toolchain,
             link_action_kwargs,
         )
@@ -627,10 +613,9 @@ def _create_action_for_static_library(
         name,
         link_target_type_used_for_naming,
         use_pic,
-        link_artifact_name_suffix,
         cc_toolchain,
         link_action_kwargs):
-    linked_artifact, library_identifier = _get_linked_artifact(actions, name, link_target_type_used_for_naming, cc_toolchain, link_artifact_name_suffix)
+    linked_artifact, library_identifier = _get_linked_artifact(actions, name, link_target_type_used_for_naming, cc_toolchain)
 
     output_library, _ = link_action(
         mnemonic = "CppArchive",

@@ -84,7 +84,6 @@ def _link(
         whole_archive = _UNBOUND,
         additional_linkstamp_defines = _UNBOUND,
         always_link = _UNBOUND,
-        link_artifact_name_suffix = _UNBOUND,
         main_output = _UNBOUND,
         use_shareable_artifact_factory = _UNBOUND,
         build_config = _UNBOUND,
@@ -92,9 +91,6 @@ def _link(
     if output_type == "archive":
         _cc_internal.check_private_api(allowlist = _PRIVATE_STARLARKIFICATION_ALLOWLIST)
 
-    # TODO(b/205690414): Keep linkedArtifactNameSuffixObject protected. Use cases that are
-    #  passing the suffix should be migrated to using mainOutput instead where the suffix is
-    #  taken into account. Then this parameter should be removed.
     if use_test_only_flags != _UNBOUND or \
        never_link != _UNBOUND or \
        test_only_target != _UNBOUND or \
@@ -102,7 +98,6 @@ def _link(
        whole_archive != _UNBOUND or \
        additional_linkstamp_defines != _UNBOUND or \
        always_link != _UNBOUND or \
-       link_artifact_name_suffix != _UNBOUND or \
        main_output != _UNBOUND or \
        use_shareable_artifact_factory != _UNBOUND or \
        build_config != _UNBOUND or \
@@ -123,8 +118,6 @@ def _link(
         additional_linkstamp_defines = []
     if always_link == _UNBOUND:
         always_link = False
-    if link_artifact_name_suffix == _UNBOUND:
-        link_artifact_name_suffix = ""
     if main_output == _UNBOUND:
         main_output = None
     if use_shareable_artifact_factory == _UNBOUND:
@@ -156,7 +149,6 @@ def _link(
         whole_archive = whole_archive,
         additional_linkstamp_defines = additional_linkstamp_defines,
         always_link = always_link,
-        link_artifact_name_suffix = link_artifact_name_suffix,
         main_output = main_output,
         use_shareable_artifact_factory = use_shareable_artifact_factory,
         build_config = build_config,
