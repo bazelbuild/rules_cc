@@ -31,6 +31,7 @@ test_targets_bazel_6: &test_targets_bazel_6
   - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
   - "-//tests/system_library:system_library_test" # Should be skipped on Windows and MacOS
   - "-//tests/cc/common:test_runtime_dynamic_libraries_copy_behavior" # known bug, see https://github.com/bazelbuild/rules_cc/pull/623
+  - "-//tests/strip_include_prefix:test_include_textual"  # Not supported in bazel <9.
 
 common_coverage_flags: &common_coverage_flags
   # Starting in Bazel 9 coverage collection causes some tests to fail.
