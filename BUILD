@@ -44,3 +44,12 @@ filegroup(
     ],
     visibility = ["//:__subpackages__"],
 )
+
+filegroup(
+    name = "all_files_for_testing",
+    srcs = [
+        "BUILD",
+        "MODULE.bazel",
+        "//cc:all_files_for_testing",
+    ],
+)

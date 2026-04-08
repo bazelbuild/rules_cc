@@ -24,8 +24,11 @@ licenses(["notice"])  # Apache 2.0
 filegroup(
     name = "all_files_for_testing",
     srcs = glob(["**"]) + [
-        "//cc/private/rules_impl:srcs",
+        "//cc/common:srcs",
+        "//cc/private:srcs",
         "//cc/private/toolchain:srcs",
+        "//cc/proto:srcs",
+        "//cc/toolchains:srcs",
     ],
 )
 
