@@ -220,32 +220,40 @@ cc_action_type_set(
 )
 
 cc_action_type_set(
-    name = "cpp_compile_actions",
+    name = "cpp_compile_without_header_parsing",
     actions = [
         ":linkstamp_compile",
         ":cpp_compile",
-        ":cpp_header_parsing",
         ":cpp_module_compile",
         ":cpp_module_codegen",
-        ":lto_backend",
         ":clif_match",
         ":objcpp_compile",
     ],
 )
 
-# This should match `compile_actions` with `lto_backend` omitted, because `lto_backend` actions
-# do not instantiate the full set of build variables.
+cc_action_type_set(
+    name = "cpp_compile_actions",
+    actions = [
+        ":cpp_compile_without_header_parsing",
+        ":cpp_header_parsing",
+        ":lto_backend",
+    ],
+)
+
+# This matches `compile_actions` with `lto_backend` omitted, because
+# `lto_backend` actions do not instantiate the full set of build variables.
 cc_action_type_set(
     name = "source_compile_actions",
     actions = [
-        ":linkstamp_compile",
-        ":cpp_compile",
+        ":compile_actions_without_header_parsing",
         ":cpp_header_parsing",
-        ":cpp_module_compile",
-        ":cpp_module_codegen",
-        ":clif_match",
-        ":objcpp_compile",
-        ":preprocess_assemble",
+    ],
+)
+
+cc_action_type_set(
+    name = "compile_actions_without_header_parsing",
+    actions = [
+        ":cpp_compile_without_header_parsing",
         ":c_compile_actions",
         ":assembly_actions",
         ":objc_compile",
@@ -255,10 +263,8 @@ cc_action_type_set(
 cc_action_type_set(
     name = "compile_actions",
     actions = [
-        ":cpp_compile_actions",
-        ":c_compile_actions",
-        ":assembly_actions",
-        ":objc_compile",
+        ":source_compile_actions",
+        ":lto_backend",
     ],
 )
 
