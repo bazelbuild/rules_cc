@@ -10,6 +10,7 @@ def _link_action_subject_new(actual, meta):
         inputs = lambda: subjects.collection([f.short_path for f in actual.inputs.to_list()], meta = meta.derive("inputs")),
         outputs = lambda: subjects.collection([f.short_path for f in actual.outputs.to_list()], meta = meta.derive("outputs")),
         argv = lambda: subjects.collection(actual.argv, meta = meta.derive("argv")),
+        env = lambda: subjects.dict(actual.env, meta = meta.derive("env")),
     )
 
 def _link_action_subject_from_target(env, target):
