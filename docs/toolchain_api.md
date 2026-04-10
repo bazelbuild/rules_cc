@@ -785,9 +785,9 @@ cc_tool_map(
 <pre>
 load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_toolchain")
 
-cc_toolchain(*, <a href="#cc_toolchain-name">name</a>, <a href="#cc_toolchain-tool_map">tool_map</a>, <a href="#cc_toolchain-args">args</a>, <a href="#cc_toolchain-artifact_name_patterns">artifact_name_patterns</a>, <a href="#cc_toolchain-make_variables">make_variables</a>, <a href="#cc_toolchain-known_features">known_features</a>,
-             <a href="#cc_toolchain-enabled_features">enabled_features</a>, <a href="#cc_toolchain-libc_top">libc_top</a>, <a href="#cc_toolchain-module_map">module_map</a>, <a href="#cc_toolchain-dynamic_runtime_lib">dynamic_runtime_lib</a>, <a href="#cc_toolchain-static_runtime_lib">static_runtime_lib</a>,
-             <a href="#cc_toolchain-supports_header_parsing">supports_header_parsing</a>, <a href="#cc_toolchain-supports_param_files">supports_param_files</a>, <a href="#cc_toolchain-compiler">compiler</a>, <a href="#cc_toolchain-kwargs">**kwargs</a>)
+cc_toolchain(*, <a href="#cc_toolchain-name">name</a>, <a href="#cc_toolchain-tool_map">tool_map</a>, <a href="#cc_toolchain-args">args</a>, <a href="#cc_toolchain-artifact_name_patterns">artifact_name_patterns</a>, <a href="#cc_toolchain-make_variables">make_variables</a>, <a href="#cc_toolchain-legacy_tools">legacy_tools</a>,
+             <a href="#cc_toolchain-known_features">known_features</a>, <a href="#cc_toolchain-enabled_features">enabled_features</a>, <a href="#cc_toolchain-libc_top">libc_top</a>, <a href="#cc_toolchain-module_map">module_map</a>, <a href="#cc_toolchain-dynamic_runtime_lib">dynamic_runtime_lib</a>,
+             <a href="#cc_toolchain-static_runtime_lib">static_runtime_lib</a>, <a href="#cc_toolchain-supports_header_parsing">supports_header_parsing</a>, <a href="#cc_toolchain-supports_param_files">supports_param_files</a>, <a href="#cc_toolchain-compiler">compiler</a>, <a href="#cc_toolchain-kwargs">**kwargs</a>)
 </pre>
 
 A C/C++ toolchain configuration.
@@ -840,6 +840,7 @@ Generated rules:
 | <a id="cc_toolchain-args"></a>args |  (List[Label]) A list of [`cc_args`](#cc_args) and `cc_arg_list` to apply across this toolchain.   |  `[]` |
 | <a id="cc_toolchain-artifact_name_patterns"></a>artifact_name_patterns |  (List[Label]) A list of `cc_artifact_name_pattern` defining patterns for names of artifacts created by this toolchain.   |  `[]` |
 | <a id="cc_toolchain-make_variables"></a>make_variables |  (List[Label]) A list of `cc_make_variable` defining variable substitutions.   |  `[]` |
+| <a id="cc_toolchain-legacy_tools"></a>legacy_tools |  (List[Label]) A list of `cc_legacy_tool` rules that specify tools by filesystem path. These are used to populate the legacy `tool_paths` parameter of the toolchain configuration, which is required by some Bazel features (e.g. coverage).   |  `[]` |
 | <a id="cc_toolchain-known_features"></a>known_features |  (List[Label]) A list of [`cc_feature`](#cc_feature) rules that this toolchain supports. Whether or not these [features](https://bazel.build/docs/cc-toolchain-config-reference#features) are enabled may change over the course of a build. See the documentation for [`cc_feature`](#cc_feature) for more information.   |  `[]` |
 | <a id="cc_toolchain-enabled_features"></a>enabled_features |  (List[Label]) A list of [`cc_feature`](#cc_feature) rules whose initial state should be `enabled`. Note that it is still possible for these [features](https://bazel.build/docs/cc-toolchain-config-reference#features) to be disabled over the course of a build through other mechanisms. See the documentation for [`cc_feature`](#cc_feature) for more information.   |  `[]` |
 | <a id="cc_toolchain-libc_top"></a>libc_top |  (Label) A collection of artifacts for libc passed as inputs to compile/linking actions. See [`cc_toolchain.libc_top`](https://bazel.build/reference/be/c-cpp#cc_toolchain.libc_top) for more information.   |  `None` |

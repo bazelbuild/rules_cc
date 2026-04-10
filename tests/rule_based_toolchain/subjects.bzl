@@ -238,6 +238,7 @@ _ToolchainConfigFactory = generate_factory(
         allowlist_absolute_include_directories = ProviderDepset(_subjects.str),
         artifact_name_patterns = [],
         make_variables = [],
+        legacy_tools = _subjects.collection,
     ),
 )
 
