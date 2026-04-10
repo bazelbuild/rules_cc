@@ -47,8 +47,11 @@ def _cc_args_impl(ctx):
     formatted_env, used_format_vars = format_dict_values(
         env = ctx.attr.env,
         must_use = [],  # checking for unused variables in done when formatting `args`.
-        format = {k: v for v, k in ctx.attr.format.items()},
+        format = {k: struct(__raw_string = v) for k, v in ctx.var.items()} | {k: v for v, k in ctx.attr.format.items()},
     )
+
+    # Filter out variables from ctx.var which don't have to be used
+    used_format_vars = [v for v in used_format_vars if v in ctx.attr.format.values()]
 
     for path in ctx.attr.allowlist_absolute_include_directories:
         if not is_path_absolute(path):
