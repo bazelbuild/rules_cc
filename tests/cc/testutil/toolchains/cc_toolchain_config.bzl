@@ -58,6 +58,7 @@ _define_with_space = feature(
         flag_set(
             actions = [
                 ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
                 ACTION_NAMES.linkstamp_compile,
                 ACTION_NAMES.cpp_header_parsing,
                 ACTION_NAMES.cpp_module_compile,
@@ -81,6 +82,7 @@ _pic_feature = feature(
                 ACTION_NAMES.linkstamp_compile,
                 ACTION_NAMES.c_compile,
                 ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
                 ACTION_NAMES.cpp_module_codegen,
                 ACTION_NAMES.cpp_module_compile,
             ],
@@ -115,6 +117,7 @@ _layering_check_feature = feature(
             actions = [
                 ACTION_NAMES.c_compile,
                 ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
                 ACTION_NAMES.cpp_header_parsing,
                 ACTION_NAMES.cpp_module_compile,
             ],
@@ -134,7 +137,10 @@ _simple_layering_check_feature = feature(
     name = FEATURE_NAMES.layering_check,
     flag_sets = [
         flag_set(
-            actions = [ACTION_NAMES.cpp_compile],
+            actions = [
+                ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
+            ],
             flag_groups = [flag_group(flags = ["<flag>"])],
         ),
     ],
@@ -194,6 +200,7 @@ _module_maps_feature = feature(
             actions = [
                 ACTION_NAMES.c_compile,
                 ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
                 ACTION_NAMES.cpp_header_parsing,
                 ACTION_NAMES.cpp_module_compile,
             ],
@@ -216,6 +223,7 @@ _use_header_modules_feature = feature(
             actions = [
                 ACTION_NAMES.c_compile,
                 ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
                 ACTION_NAMES.cpp_header_parsing,
                 ACTION_NAMES.cpp_module_compile,
             ],
@@ -245,6 +253,7 @@ _module_map_home_cwd_feature = feature(
             actions = [
                 ACTION_NAMES.c_compile,
                 ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
                 ACTION_NAMES.cpp_header_parsing,
                 ACTION_NAMES.cpp_module_compile,
                 ACTION_NAMES.cpp_header_parsing,
@@ -271,6 +280,7 @@ _static_env_feature = feature(
             actions = [
                 ACTION_NAMES.c_compile,
                 ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
                 ACTION_NAMES.cpp_header_parsing,
                 ACTION_NAMES.cpp_module_compile,
                 ACTION_NAMES.lto_backend,
@@ -293,6 +303,7 @@ _module_maps_env_var_feature = feature(
             actions = [
                 ACTION_NAMES.c_compile,
                 ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
                 ACTION_NAMES.cpp_header_parsing,
                 ACTION_NAMES.cpp_module_compile,
             ],
@@ -313,6 +324,7 @@ _simple_module_maps_feature = feature(
         flag_set(
             actions = [
                 ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
             ],
             flag_groups = [
                 flag_group(
@@ -338,7 +350,11 @@ _host_feature = feature(
     name = FEATURE_NAMES.host,
     flag_sets = [
         flag_set(
-            actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+            actions = [
+                ACTION_NAMES.c_compile,
+                ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
+            ],
             flag_groups = [flag_group(flags = ["-host"])],
         ),
     ],
@@ -348,7 +364,11 @@ _nonhost_feature = feature(
     name = FEATURE_NAMES.nonhost,
     flag_sets = [
         flag_set(
-            actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+            actions = [
+                ACTION_NAMES.c_compile,
+                ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
+            ],
             flag_groups = [flag_group(flags = ["-nonhost"])],
         ),
     ],
@@ -370,6 +390,7 @@ _user_compile_flags_feature = feature(
                 ACTION_NAMES.linkstamp_compile,
                 ACTION_NAMES.c_compile,
                 ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
                 ACTION_NAMES.cpp_header_parsing,
                 ACTION_NAMES.cpp_module_compile,
                 ACTION_NAMES.cpp_module_codegen,
@@ -412,7 +433,11 @@ _thin_lto_feature = feature(
             ],
         ),
         flag_set(
-            actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+            actions = [
+                ACTION_NAMES.c_compile,
+                ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
+            ],
             flag_groups = [
                 flag_group(flags = ["-flto=thin"]),
                 flag_group(
@@ -473,7 +498,10 @@ _simple_thin_lto_feature = feature(
     name = FEATURE_NAMES.thin_lto,
     flag_sets = [
         flag_set(
-            actions = [ACTION_NAMES.cpp_compile],
+            actions = [
+                ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
+            ],
             flag_groups = [
                 flag_group(
                     flags = ["<thin_lto>"],
@@ -523,6 +551,7 @@ _memprof_optimize_feature = feature(
             actions = [
                 ACTION_NAMES.c_compile,
                 ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
                 ACTION_NAMES.cpp_module_codegen,
             ],
             flag_groups = [
@@ -564,6 +593,7 @@ _split_functions_feature = feature(
             actions = [
                 ACTION_NAMES.c_compile,
                 ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
                 ACTION_NAMES.cpp_module_codegen,
                 ACTION_NAMES.lto_backend,
             ],
@@ -603,6 +633,7 @@ _fsafdo_feature = feature(
             actions = [
                 ACTION_NAMES.c_compile,
                 ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
                 ACTION_NAMES.cpp_module_codegen,
                 ACTION_NAMES.lto_backend,
             ],
@@ -654,6 +685,7 @@ _autofdo_feature = feature(
             actions = [
                 ACTION_NAMES.c_compile,
                 ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
                 ACTION_NAMES.lto_backend,
             ],
             flag_groups = [
@@ -679,6 +711,7 @@ _xbinaryfdo_feature = feature(
             actions = [
                 ACTION_NAMES.c_compile,
                 ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
                 ACTION_NAMES.lto_backend,
             ],
             flag_groups = [
@@ -701,7 +734,11 @@ _fdo_optimize_feature = feature(
     name = FEATURE_NAMES.fdo_optimize,
     flag_sets = [
         flag_set(
-            actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+            actions = [
+                ACTION_NAMES.c_compile,
+                ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
+            ],
             flag_groups = [
                 flag_group(
                     flags = [
@@ -726,6 +763,7 @@ _fdo_instrument_feature = feature(
             actions = [
                 ACTION_NAMES.c_compile,
                 ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
                 ACTION_NAMES.cpp_link_dynamic_library,
                 ACTION_NAMES.cpp_link_nodeps_dynamic_library,
                 ACTION_NAMES.cpp_link_executable,
@@ -748,6 +786,7 @@ _per_object_debug_info_feature = feature(
             actions = [
                 ACTION_NAMES.c_compile,
                 ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
                 ACTION_NAMES.assemble,
                 ACTION_NAMES.preprocess_assemble,
                 ACTION_NAMES.cpp_module_codegen,
@@ -812,7 +851,10 @@ _simple_compile_feature = feature(
     name = FEATURE_NAMES.simple_compile_feature,
     flag_sets = [
         flag_set(
-            actions = [ACTION_NAMES.cpp_compile],
+            actions = [
+                ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
+            ],
             flag_groups = [
                 flag_group(flags = ["<flag>"]),
             ],
@@ -911,7 +953,10 @@ _dbg_compilation_feature = feature(
     name = FEATURE_NAMES.dbg,
     flag_sets = [
         flag_set(
-            actions = [ACTION_NAMES.cpp_compile],
+            actions = [
+                ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
+            ],
             flag_groups = [
                 flag_group(flags = ["-dbg"]),
             ],
@@ -923,7 +968,10 @@ _fastbuild_compilation_feature = feature(
     name = FEATURE_NAMES.fastbuild,
     flag_sets = [
         flag_set(
-            actions = [ACTION_NAMES.cpp_compile],
+            actions = [
+                ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
+            ],
             flag_groups = [
                 flag_group(flags = ["-fastbuild"]),
             ],
@@ -935,7 +983,7 @@ _opt_compilation_feature = feature(
     name = FEATURE_NAMES.opt,
     flag_sets = [
         flag_set(
-            actions = [ACTION_NAMES.cpp_compile],
+            actions = [ACTION_NAMES.cpp_compile, ACTION_NAMES.cuda_compile],
             flag_groups = [
                 flag_group(flags = ["-opt"]),
             ],
@@ -980,7 +1028,10 @@ _min_os_version_flag_feature = feature(
     name = FEATURE_NAMES.min_os_version_flag,
     flag_sets = [
         flag_set(
-            actions = [ACTION_NAMES.cpp_compile],
+            actions = [
+                ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
+            ],
             flag_groups = [
                 flag_group(
                     expand_if_available = "min_os_version_flag",
@@ -996,7 +1047,10 @@ _include_directories_feature = feature(
     enabled = True,
     flag_sets = [
         flag_set(
-            actions = [ACTION_NAMES.cpp_compile],
+            actions = [
+                ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
+            ],
             flag_groups = [
                 flag_group(
                     flags = [
@@ -1016,7 +1070,10 @@ _external_include_paths_feature = feature(
     name = FEATURE_NAMES.external_include_paths,
     flag_sets = [
         flag_set(
-            actions = [ACTION_NAMES.cpp_compile],
+            actions = [
+                ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
+            ],
             flag_groups = [
                 flag_group(
                     flags = [
@@ -1045,7 +1102,10 @@ _absolute_path_directories_feature = feature(
     enabled = True,
     flag_sets = [
         flag_set(
-            actions = [ACTION_NAMES.cpp_compile],
+            actions = [
+                ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
+            ],
             flag_groups = [
                 flag_group(
                     flags = [
@@ -1101,7 +1161,10 @@ _check_additional_variables_feature = feature(
     name = FEATURE_NAMES.check_additional_variables,
     flag_sets = [
         flag_set(
-            actions = [ACTION_NAMES.cpp_compile],
+            actions = [
+                ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.cuda_compile,
+            ],
             flag_groups = [
                 flag_group(
                     expand_if_available = "string_variable",
@@ -1239,7 +1302,10 @@ _layering_check_module_maps_header_modules_simple_features = [
         name = FEATURE_NAMES.module_maps,
         flag_sets = [
             flag_set(
-                actions = [ACTION_NAMES.cpp_compile],
+                actions = [
+                    ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cuda_compile,
+                ],
                 flag_groups = [
                     flag_group(flags = ["<maps>"]),
                 ],
@@ -1250,7 +1316,10 @@ _layering_check_module_maps_header_modules_simple_features = [
         name = FEATURE_NAMES.layering_check,
         flag_sets = [
             flag_set(
-                actions = [ACTION_NAMES.cpp_compile],
+                actions = [
+                    ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cuda_compile,
+                ],
                 flag_groups = [
                     flag_group(flags = ["<layering>"]),
                 ],
@@ -1261,7 +1330,10 @@ _layering_check_module_maps_header_modules_simple_features = [
         name = FEATURE_NAMES.header_modules,
         flag_sets = [
             flag_set(
-                actions = [ACTION_NAMES.cpp_compile],
+                actions = [
+                    ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cuda_compile,
+                ],
                 flag_groups = [
                     flag_group(flags = ["<modules>"]),
                 ],
@@ -1473,6 +1545,7 @@ def _impl(ctx):
                 actions = [
                     ACTION_NAMES.linkstamp_compile,
                     ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cuda_compile,
                     ACTION_NAMES.cpp_header_parsing,
                     ACTION_NAMES.cpp_module_compile,
                     ACTION_NAMES.cpp_module_codegen,

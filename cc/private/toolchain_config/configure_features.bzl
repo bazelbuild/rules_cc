@@ -19,6 +19,7 @@ load("//cc/common:semantics.bzl", cc_semantics = "semantics")
 ALL_COMPILE_ACTIONS = [
     ACTION_NAMES.c_compile,
     ACTION_NAMES.cpp_compile,
+    ACTION_NAMES.cuda_compile,
     ACTION_NAMES.cpp_header_parsing,
     ACTION_NAMES.cpp_module_compile,
     ACTION_NAMES.cpp_module_codegen,

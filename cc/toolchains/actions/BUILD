@@ -29,6 +29,11 @@ cc_action_type(
 )
 
 cc_action_type(
+    name = "cuda_compile",
+    action_name = ACTION_NAMES.cuda_compile,
+)
+
+cc_action_type(
     name = "linkstamp_compile",
     action_name = ACTION_NAMES.linkstamp_compile,
 )
@@ -224,6 +229,7 @@ cc_action_type_set(
     actions = [
         ":linkstamp_compile",
         ":cpp_compile",
+        ":cuda_compile",
         ":cpp_header_parsing",
         ":cpp_module_compile",
         ":cpp_module_codegen",
@@ -240,6 +246,7 @@ cc_action_type_set(
     actions = [
         ":linkstamp_compile",
         ":cpp_compile",
+        ":cuda_compile",
         ":cpp_header_parsing",
         ":cpp_module_compile",
         ":cpp_module_codegen",
@@ -312,6 +319,7 @@ cc_action_type_set(
     actions = [
         ":c_compile",
         ":cpp_compile",
+        ":cuda_compile",
         ":linkstamp_compile",
         ":cc_flags_make_variable",
         ":cpp_module_codegen",
