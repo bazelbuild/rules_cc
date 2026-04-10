@@ -1,0 +1,10 @@
+assemble
+c++-compile
+c++-module-codegen
+c++-module-compile
+c-compile
+clif-match
+linkstamp-compile
+objc++-compile
+objc-compile
+preprocess-assemble
