@@ -1149,7 +1149,7 @@ def _create_cc_compile_actions(
 
     if _should_provide_header_modules(feature_configuration, private_headers, public_headers):
         cpp_module_map = cc_compilation_context._module_map
-        module_map_label = Label(cpp_module_map.name)
+        module_map_label = Label(cpp_module_map.identifier)
         modules = _create_module_action(
             action_construction_context = action_construction_context,
             cc_compilation_context = cc_compilation_context,
@@ -2106,7 +2106,7 @@ def _create_module_action(
         additional_compilation_inputs,
         additional_include_scanning_roots,
         outputs):
-    module_map_label = Label(cpp_module_map.name)
+    module_map_label = Label(cpp_module_map.identifier)
     return _create_pic_nopic_compile_source_actions(
         action_construction_context = action_construction_context,
         cc_compilation_context = cc_compilation_context,
