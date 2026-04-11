@@ -187,7 +187,37 @@ def _cc_import_impl(ctx):
         cc_infos.append(dep[CcInfo])
     merged_cc_info = cc_common.merge_cc_infos(direct_cc_infos = [this_cc_info], cc_infos = cc_infos)
 
-    return [merged_cc_info]
+    runfiles_list = []
+    for data_dep in ctx.attr.data:
+        if data_dep[DefaultInfo].data_runfiles.files:
+            runfiles_list.append(data_dep[DefaultInfo].data_runfiles)
+        else:
+            # This branch ensures interop with custom Starlark rules following
+            # https://bazel.build/extending/rules#runfiles_features_to_avoid
+            runfiles_list.append(ctx.runfiles(transitive_files = data_dep[DefaultInfo].files))
+            runfiles_list.append(data_dep[DefaultInfo].default_runfiles)
+
+    for dep in ctx.attr.deps:
+        runfiles_list.append(dep[DefaultInfo].default_runfiles)
+
+    runfiles = ctx.runfiles().merge_all(runfiles_list)
+
+    if linking_context:
+        default_runfiles = ctx.runfiles(files = cc_helper.get_dynamic_libraries_for_runtime(linking_context, True))
+        default_runfiles = runfiles.merge(default_runfiles)
+        data_runfiles = ctx.runfiles(files = cc_helper.get_dynamic_libraries_for_runtime(linking_context, False))
+        data_runfiles = runfiles.merge(data_runfiles)
+    else:
+        default_runfiles = runfiles
+        data_runfiles = runfiles
+
+    return [
+        merged_cc_info,
+        DefaultInfo(
+            default_runfiles = default_runfiles,
+            data_runfiles = data_runfiles,
+        ),
+    ]
 
 cc_import = rule(
     implementation = _cc_import_impl,
@@ -443,6 +473,11 @@ most build rules</a>."""),
         "data": attr.label_list(
             allow_files = True,
             flags = ["SKIP_CONSTRAINTS_OVERRIDE"],
+            doc = """
+The list of files needed by this library at runtime.
+See general comments about <code>data</code>
+at <a href="${link common-definitions#typical-attributes}">Typical attributes defined by
+most build rules</a>.""",
         ),
         "defines": attr.string_list(doc = """
 List of defines to add to the compile line of this and all dependent targets.
