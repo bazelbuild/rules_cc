@@ -479,7 +479,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     conly_opts = split_escaped(get_env_var(
         repository_ctx,
         "BAZEL_CONLYOPTS",
-        "",
+        "-std=c17",
         False,
     ), ":")
 
