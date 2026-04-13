@@ -1,5 +1,6 @@
 """Tests for cc_binary."""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@rules_testing//lib:analysis_test.bzl", "analysis_test", "test_suite")
 load("@rules_testing//lib:truth.bzl", "matching")
 load("@rules_testing//lib:util.bzl", "TestingAspectInfo", "util")
@@ -396,20 +397,27 @@ def _test_link_resource_set_negative_memory_impl(env, target):
     )
 
 def cc_binary_configured_target_tests(name):
-    test_suite(
-        name = name,
-        tests = [
-            _test_files_to_build,
-            _test_headers_not_passed_to_linking_action,
-            _test_no_duplicate_linkopts,
-            _test_action_graph,
-            _test_runtime_dynamic_libraries_copy_behavior,
-            _test_pic,
-            _test_missing_action_config_for_strip_is_a_rule_error,
+    tests = [
+        _test_files_to_build,
+        _test_headers_not_passed_to_linking_action,
+        _test_no_duplicate_linkopts,
+        _test_action_graph,
+        _test_runtime_dynamic_libraries_copy_behavior,
+        _test_pic,
+        _test_missing_action_config_for_strip_is_a_rule_error,
+    ]
+
+    # link_resource_set attr only exists in the Starlark cc_binary (Bazel 9+).
+    if bazel_features.cc.cc_common_is_in_rules_cc:
+        tests.extend([
             _test_link_resource_set_accepted,
             _test_link_resource_set_memory_only,
             _test_link_resource_set_default,
             _test_link_resource_set_invalid_key,
             _test_link_resource_set_negative_memory,
-        ],
+        ])
+
+    test_suite(
+        name = name,
+        tests = tests,
     )
