@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_features//private:util.bzl", _bazel_version_ge = "ge")
+load("@bazel_features//:features.bzl", "bazel_features")
 load("//cc:cc_library.bzl", "cc_library")
 load("//cc:cc_test.bzl", "cc_test")
 load("//cc/common:semantics.bzl", "STRIP_INCLUDE_PREFIX_APPLIES_TO_TEXTUAL_HEADERS")
 
 licenses(["notice"])
 
-_SUPPORTED = _bazel_version_ge("9.0.0-pre.20250911") and STRIP_INCLUDE_PREFIX_APPLIES_TO_TEXTUAL_HEADERS
+_SUPPORTED = bazel_features.cc.cc_common_is_in_rules_cc and STRIP_INCLUDE_PREFIX_APPLIES_TO_TEXTUAL_HEADERS
 
 cc_library(
     name = "lib",
