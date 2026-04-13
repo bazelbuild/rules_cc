@@ -59,6 +59,7 @@ def link(
         additional_linkstamp_defines = [],
         always_link = False,
         main_output = None,
+        link_resource_set = None,
         use_shareable_artifact_factory = False,
         build_config = None,
         emit_interface_shared_library = False):
@@ -124,6 +125,7 @@ def link(
             For output_type=executable, this is the final executable filename.
             For output_type=dynamic_library, this is the shared library filename.
             If not specified, then one will be computed based on `name` and `output_type`.
+        link_resource_set: (None|callable) A resource_set callback for actions.run(). If None, the default heuristic is used.
         use_shareable_artifact_factory: (bool) undocumented.
         build_config: (None|BuildConfiguration) undocumented.
         emit_interface_shared_library: (bool) When 'output_type' is 'dynamic_library' and this
@@ -188,6 +190,7 @@ def link(
         # TODO(b/331164666): remove alwayslink, the information is in static_link_type already
         always_link,
         main_output,  # linker_output_artifact
+        link_resource_set = link_resource_set,
         emit_interface_shared_libraries = dynamic_link_type == LINK_TARGET_TYPE.DYNAMIC_LIBRARY and
                                           (emit_interface_shared_library or
                                            feature_configuration.is_enabled("targets_windows")),

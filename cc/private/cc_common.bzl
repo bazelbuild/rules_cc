@@ -85,6 +85,7 @@ def _link(
         additional_linkstamp_defines = _UNBOUND,
         always_link = _UNBOUND,
         main_output = None,
+        link_resource_set = None,
         use_shareable_artifact_factory = _UNBOUND,
         build_config = _UNBOUND,
         emit_interface_shared_library = _UNBOUND):
@@ -149,6 +150,7 @@ def _link(
         main_output = main_output,
         use_shareable_artifact_factory = use_shareable_artifact_factory,
         build_config = build_config,
+        link_resource_set = link_resource_set,
         emit_interface_shared_library = emit_interface_shared_library,
     )
 
@@ -359,6 +361,7 @@ def _create_linking_context_from_compilation_outputs(
         alwayslink = False,
         additional_inputs = [],
         variables_extension = {},
+        link_resource_set = None,
         stamp = _UNBOUND,
         linked_dll_name_suffix = _UNBOUND,
         test_only_target = _UNBOUND):
@@ -388,6 +391,7 @@ def _create_linking_context_from_compilation_outputs(
         alwayslink = alwayslink,
         additional_inputs = additional_inputs,
         variables_extension = variables_extension,
+        link_resource_set = link_resource_set,
         stamp = stamp,
         linked_dll_name_suffix = linked_dll_name_suffix,
         test_only_target = test_only_target,

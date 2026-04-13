@@ -22,6 +22,7 @@ load("//cc/common:cc_info.bzl", "CcInfo")
 load("//cc/common:cc_shared_library_info.bzl", "CcSharedLibraryInfo")
 load("//cc/common:semantics.bzl", "semantics")
 load("//cc/private:graph_node_info.bzl", "GraphNodeInfo")
+load("//cc/private/link:resource_sets.bzl", "make_link_resource_set")
 load(":function_providing_rule.bzl", "wrap_starlark_function")
 
 # TODO(#5200): Add export_define to library_to_link and cc_library
@@ -715,6 +716,7 @@ def _cc_shared_library_impl(ctx):
         main_output = main_output,
         variables_extension = link_variables,
         additional_outputs = additional_outputs,
+        link_resource_set = make_link_resource_set(getattr(ctx.attr, "link_resource_set", {})),
     )
 
     runfiles_files = []

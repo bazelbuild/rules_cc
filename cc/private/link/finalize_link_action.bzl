@@ -55,7 +55,9 @@ def finalize_link_action(
         additional_linkstamp_defines,
         # LTO:
         lto_mapping,
-        allow_lto_indexing):
+        allow_lto_indexing,
+        # Resource scheduling:
+        link_resource_set = None):
     """Creates C++ linking or LTO indexing, and linkstamp compile actions.
 
     Runs all the libraries through `libraries_to_link_collector`.
@@ -94,6 +96,7 @@ def finalize_link_action(
         additional_linkstamp_defines: (list[str]) undocumented.
         lto_mapping: (dict[File, File]) Map from bitcode files to object files. Used to replace all linker inputs.
         allow_lto_indexing: (bool) Was LTO indexing done.
+        link_resource_set: (None|callable) A resource_set callback for actions.run(). If None, the default heuristic is used.
 
     Returns:
       None
@@ -294,6 +297,7 @@ def finalize_link_action(
         progress_message,
         link_type,
         interface_output,
+        link_resource_set,
     )
 
 def _create_action(
@@ -308,7 +312,8 @@ def _create_action(
         outputs,
         progress_message,
         link_type,
-        interface_output):
+        interface_output,
+        link_resource_set = None):
     """
     Creates C++ linking or LTO indexing action.
 
@@ -325,6 +330,7 @@ def _create_action(
       progress_message: (str) progress message
       link_type: (LINK_TARGET_TYPE) link type, used to determine parameter file type
       interface_output: (File) Interface output file, if any.
+      link_resource_set: (None|callable) A resource_set callback for actions.run(). If None, the default heuristic is used.
     """
 
     parameter_file_type = None
@@ -385,7 +391,7 @@ def _create_action(
         inputs = inputs,
         outputs = outputs,
         progress_message = progress_message,
-        resource_set = _resource_set,
+        resource_set = link_resource_set if link_resource_set else _resource_set,
         env = env,
         use_default_shell_env = True,
         execution_requirements = execution_info,

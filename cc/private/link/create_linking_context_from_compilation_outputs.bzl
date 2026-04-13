@@ -40,6 +40,7 @@ def create_linking_context_from_compilation_outputs(
         alwayslink = False,
         additional_inputs = [],
         variables_extension = {},
+        link_resource_set = None,
         # Private:
         stamp = 0,
         linked_dll_name_suffix = "",
@@ -84,6 +85,7 @@ def create_linking_context_from_compilation_outputs(
             e.g.: linking scripts.
         variables_extension: (dict[str, str|list[str]|depset[str]]) Additional variables to pass to
             the toolchain configuration when creating link command line.
+        link_resource_set: (None|callable) A resource_set callback for actions.run(). If None, the default heuristic is used.
         stamp: (bool) undocumented.
         linked_dll_name_suffix: (str) undocumented.
         test_only_target: (bool) undocumented.
@@ -119,6 +121,7 @@ def create_linking_context_from_compilation_outputs(
         alwayslink = alwayslink,
         test_only_target = test_only_target,
         linked_dll_name_suffix = linked_dll_name_suffix,
+        link_resource_set = link_resource_set,
     )
 
     linker_input = create_linker_input(

@@ -230,6 +230,15 @@ It can be used to <a href="https://msdn.microsoft.com/en-us/library/d91k01sh.asp
 export symbols</a> during linking a shared library.</p>
 """,
     ),
+    "link_resource_set": attr.string_dict(
+        doc = """
+Override the resource estimation for link actions used by Bazel's local execution
+scheduler. Accepts a dict with optional <code>"memory"</code> (in MB) and
+<code>"cpu"</code> keys. An empty dict (the default) uses the built-in heuristic.
+<p>Example: <code>link_resource_set = {"memory": "8192", "cpu": "2"}</code></p>
+<p>Use <code>select()</code> for platform-specific values.</p>
+""",
+    ),
 } | semantics.allowlist_attrs  # buildifier: disable=unsorted-dict-items
 
 linkstatic_doc = """
