@@ -18,7 +18,7 @@ cc_feature(
         ":llvm_link_flags",
     ],
     feature_name = "_llvm_feature",
-    requires_any_of = ["//cc/toolchains/features:llvm_coverage_map_format"],
+    requires_any_of = ["//cc/toolchains/capabilities:llvm_coverage_map_format"],
 )
 
 cc_args(
@@ -45,7 +45,7 @@ cc_feature(
         ":gcc_link_flags",
     ],
     feature_name = "_gcc_feature",
-    requires_any_of = ["//cc/toolchains/features:gcc_coverage_map_format"],
+    requires_any_of = ["//cc/toolchains/capabilities:gcc_coverage_map_format"],
 )
 
 cc_args(
