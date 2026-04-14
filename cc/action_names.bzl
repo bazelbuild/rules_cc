@@ -21,6 +21,9 @@ C_COMPILE_ACTION_NAME = "c-compile"
 # Name of the C++ compilation action.
 CPP_COMPILE_ACTION_NAME = "c++-compile"
 
+# Name of the Cuda compilation action.
+CUDA_COMPILE_ACTION_NAME = "cuda-compile"
+
 # Name of the linkstamp-compile action.
 LINKSTAMP_COMPILE_ACTION_NAME = "linkstamp-compile"
 
@@ -115,6 +118,7 @@ DWP = "dwp"
 ACTION_NAMES = struct(
     c_compile = C_COMPILE_ACTION_NAME,
     cpp_compile = CPP_COMPILE_ACTION_NAME,
+    cuda_compile = CUDA_COMPILE_ACTION_NAME,
     linkstamp_compile = LINKSTAMP_COMPILE_ACTION_NAME,
     cc_flags_make_variable = CC_FLAGS_MAKE_VARIABLE_ACTION_NAME,
     cpp_module_codegen = CPP_MODULE_CODEGEN_ACTION_NAME,
@@ -152,6 +156,7 @@ ACTION_NAMES = struct(
 ALL_CPP_COMPILE_ACTION_NAMES = [
     ACTION_NAMES.linkstamp_compile,
     ACTION_NAMES.cpp_compile,
+    ACTION_NAMES.cuda_compile,
     ACTION_NAMES.cpp_header_parsing,
     ACTION_NAMES.cpp_module_compile,
     ACTION_NAMES.cpp_module_codegen,
