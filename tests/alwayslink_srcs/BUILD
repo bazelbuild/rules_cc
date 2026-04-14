@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_features//private:util.bzl", _bazel_version_ge = "ge")  # buildifier: disable=bzl-visibility
 load("//cc:cc_library.bzl", "cc_library")
 load("//cc:cc_test.bzl", "cc_test")
-load("//third_party/bazel_rules/bazel_features_mock/private:util.bzl", _bazel_version_ge = "ge")  # buildifier: disable=bzl-visibility
 
 licenses(["notice"])
 
