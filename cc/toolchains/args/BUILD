@@ -55,3 +55,8 @@ cc_feature(
     ],
     visibility = ["//visibility:private"],
 )
+
+filegroup(
+    name = "srcs",
+    srcs = glob(["**"]),
+)

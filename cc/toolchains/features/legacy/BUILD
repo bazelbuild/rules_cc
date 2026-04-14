@@ -292,3 +292,9 @@ cc_feature_set(
     ],
     visibility = ["//cc/toolchains/features:__pkg__"],
 )
+
+filegroup(
+    name = "srcs",
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
+)

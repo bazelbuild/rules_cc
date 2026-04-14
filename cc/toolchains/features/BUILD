@@ -61,3 +61,9 @@ cc_feature_set(
         "//cc/toolchains/features/legacy:all_legacy_builtin_features",
     ],
 )
+
+filegroup(
+    name = "srcs",
+    srcs = glob(["**"]) + ["//cc/toolchains/features/legacy:srcs"],
+    visibility = ["//visibility:public"],
+)

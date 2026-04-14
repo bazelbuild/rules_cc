@@ -345,3 +345,8 @@ cc_action_type_set(
         ":validate_static_library",
     ],
 )
+
+filegroup(
+    name = "srcs",
+    srcs = glob(["**"]),
+)

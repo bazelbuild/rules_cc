@@ -135,3 +135,9 @@ cc_artifact_category(
     name = "static_library",
     visibility = ["//visibility:public"],
 )
+
+filegroup(
+    name = "srcs",
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
+)

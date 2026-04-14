@@ -1,13 +1,13 @@
-load("@rules_cc//cc/toolchains:actions.bzl", "cc_action_type_set")
-load("@rules_cc//cc/toolchains:args.bzl", "cc_args")
-load("@rules_cc//cc/toolchains:feature.bzl", "cc_feature")
+load("//cc/toolchains:actions.bzl", "cc_action_type_set")
+load("//cc/toolchains:args.bzl", "cc_args")
+load("//cc/toolchains:feature.bzl", "cc_feature")
 
 cc_action_type_set(
     name = "lto_index_actions",
     actions = [
-        "@rules_cc//cc/toolchains/actions:lto_index_for_executable",
-        "@rules_cc//cc/toolchains/actions:lto_index_for_dynamic_library",
-        "@rules_cc//cc/toolchains/actions:lto_index_for_nodeps_dynamic_library",
+        "//cc/toolchains/actions:lto_index_for_executable",
+        "//cc/toolchains/actions:lto_index_for_dynamic_library",
+        "//cc/toolchains/actions:lto_index_for_nodeps_dynamic_library",
     ],
 )
 
@@ -15,9 +15,9 @@ cc_args(
     name = "lto_flag",
     actions = [
         ":lto_index_actions",
-        "@rules_cc//cc/toolchains/actions:c_compile",
-        "@rules_cc//cc/toolchains/actions:cpp_compile",
-        "@rules_cc//cc/toolchains/actions:link_actions",
+        "//cc/toolchains/actions:c_compile",
+        "//cc/toolchains/actions:cpp_compile",
+        "//cc/toolchains/actions:link_actions",
     ],
     args = [
         "-flto=thin",
@@ -27,16 +27,16 @@ cc_args(
 cc_args(
     name = "indexing_bitcode_file_flags",
     actions = [
-        "@rules_cc//cc/toolchains/actions:compile_actions",
+        "//cc/toolchains/actions:compile_actions",
     ],
     args = [
         "-Xclang",
         "-fthin-link-bitcode={lto_indexing_bitcode_file}",
     ],
     format = {
-        "lto_indexing_bitcode_file": "@rules_cc//cc/toolchains/variables:lto_indexing_bitcode_file",
+        "lto_indexing_bitcode_file": "//cc/toolchains/variables:lto_indexing_bitcode_file",
     },
-    requires_not_none = "@rules_cc//cc/toolchains/variables:lto_indexing_bitcode_file",
+    requires_not_none = "//cc/toolchains/variables:lto_indexing_bitcode_file",
 )
 
 cc_args(
@@ -48,9 +48,9 @@ cc_args(
         "-Wl,-plugin-opt,thinlto-index-only={thinlto_indexing_param_file}",
     ],
     format = {
-        "thinlto_indexing_param_file": "@rules_cc//cc/toolchains/variables:thinlto_indexing_param_file",
+        "thinlto_indexing_param_file": "//cc/toolchains/variables:thinlto_indexing_param_file",
     },
-    requires_not_none = "@rules_cc//cc/toolchains/variables:thinlto_indexing_param_file",
+    requires_not_none = "//cc/toolchains/variables:thinlto_indexing_param_file",
 )
 
 cc_args(
@@ -72,9 +72,9 @@ cc_args(
         "-Wl,-plugin-opt,thinlto-prefix-replace={thinlto_prefix_replace}",
     ],
     format = {
-        "thinlto_prefix_replace": "@rules_cc//cc/toolchains/variables:thinlto_prefix_replace",
+        "thinlto_prefix_replace": "//cc/toolchains/variables:thinlto_prefix_replace",
     },
-    requires_not_none = "@rules_cc//cc/toolchains/variables:thinlto_prefix_replace",
+    requires_not_none = "//cc/toolchains/variables:thinlto_prefix_replace",
 )
 
 cc_args(
@@ -86,9 +86,9 @@ cc_args(
         "-Wl,-plugin-opt,thinlto-object-suffix-replace={thinlto_object_suffix_replace}",
     ],
     format = {
-        "thinlto_object_suffix_replace": "@rules_cc//cc/toolchains/variables:thinlto_object_suffix_replace",
+        "thinlto_object_suffix_replace": "//cc/toolchains/variables:thinlto_object_suffix_replace",
     },
-    requires_not_none = "@rules_cc//cc/toolchains/variables:thinlto_object_suffix_replace",
+    requires_not_none = "//cc/toolchains/variables:thinlto_object_suffix_replace",
 )
 
 cc_args(
@@ -100,45 +100,45 @@ cc_args(
         "-Wl,-plugin-opt,obj-path={thinlto_merged_object_file}",
     ],
     format = {
-        "thinlto_merged_object_file": "@rules_cc//cc/toolchains/variables:thinlto_merged_object_file",
+        "thinlto_merged_object_file": "//cc/toolchains/variables:thinlto_merged_object_file",
     },
-    requires_not_none = "@rules_cc//cc/toolchains/variables:thinlto_merged_object_file",
+    requires_not_none = "//cc/toolchains/variables:thinlto_merged_object_file",
 )
 
 cc_args(
     name = "index_flags",
     actions = [
-        "@rules_cc//cc/toolchains/actions:lto_backend",
+        "//cc/toolchains/actions:lto_backend",
     ],
     args = [
         "-c",
         "-fthinlto-index={thinlto_index}",
     ],
     format = {
-        "thinlto_index": "@rules_cc//cc/toolchains/variables:thinlto_index",
+        "thinlto_index": "//cc/toolchains/variables:thinlto_index",
     },
-    requires_not_none = "@rules_cc//cc/toolchains/variables:thinlto_index",
+    requires_not_none = "//cc/toolchains/variables:thinlto_index",
 )
 
 cc_args(
     name = "output_object_file_flags",
     actions = [
-        "@rules_cc//cc/toolchains/actions:lto_backend",
+        "//cc/toolchains/actions:lto_backend",
     ],
     args = [
         "-o",
         "{thinlto_output_object_file}",
     ],
     format = {
-        "thinlto_output_object_file": "@rules_cc//cc/toolchains/variables:thinlto_output_object_file",
+        "thinlto_output_object_file": "//cc/toolchains/variables:thinlto_output_object_file",
     },
-    requires_not_none = "@rules_cc//cc/toolchains/variables:thinlto_output_object_file",
+    requires_not_none = "//cc/toolchains/variables:thinlto_output_object_file",
 )
 
 cc_args(
     name = "input_bitcode_file_flags",
     actions = [
-        "@rules_cc//cc/toolchains/actions:lto_backend",
+        "//cc/toolchains/actions:lto_backend",
     ],
     args = [
         "-x",
@@ -146,9 +146,9 @@ cc_args(
         "{thinlto_input_bitcode_file}",
     ],
     format = {
-        "thinlto_input_bitcode_file": "@rules_cc//cc/toolchains/variables:thinlto_input_bitcode_file",
+        "thinlto_input_bitcode_file": "//cc/toolchains/variables:thinlto_input_bitcode_file",
     },
-    requires_not_none = "@rules_cc//cc/toolchains/variables:thinlto_input_bitcode_file",
+    requires_not_none = "//cc/toolchains/variables:thinlto_input_bitcode_file",
 )
 
 cc_feature(
