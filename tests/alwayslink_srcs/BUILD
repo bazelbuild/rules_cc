@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_features//private:util.bzl", _bazel_version_ge = "ge")  # buildifier: disable=bzl-visibility
+load("@bazel_features//:features.bzl", "bazel_features")
 load("//cc:cc_library.bzl", "cc_library")
 load("//cc:cc_test.bzl", "cc_test")
 
 licenses(["notice"])
 
-VERSION_GATE = [] if _bazel_version_ge("9.0.0-pre.20250911") else ["@platforms//:incompatible"]
+VERSION_GATE = [] if bazel_features.cc.cc_common_is_in_rules_cc else ["@platforms//:incompatible"]
 
 # Library that provides the registration state (was_registered/set_registered).
 cc_library(
