@@ -18,6 +18,7 @@ Only use those within C++ implementation. The others need to go through cc_commo
 """
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("//cc/common:visibility.bzl", "PRIVATE_RULES_ALLOWLIST")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private:paths.bzl", "is_path_absolute")
 
@@ -86,7 +87,7 @@ PRIVATE_STARLARKIFICATION_ALLOWLIST = [
     # Various
     ("", "research/colab"),
     ("", "javatests/com/google/devtools/grok/kythe"),
-] + CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES
+] + CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES + PRIVATE_RULES_ALLOWLIST
 
 # LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/cc_helper_internal.bzl:forked_exports)
 

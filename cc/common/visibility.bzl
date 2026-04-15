@@ -1,3 +1,9 @@
 """Bzl load visibility package specs"""
 
 INTERNAL_VISIBILITY = ["public"]
+
+PRIVATE_RULES_VISIBILITY_FOR_BZL = []
+
+PRIVATE_RULES_VISIBILITY_FOR_BUILD = []
+
+PRIVATE_RULES_ALLOWLIST = []
