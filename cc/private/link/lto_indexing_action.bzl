@@ -187,6 +187,8 @@ def _lto_indexing_action(
             # Duplicated static libraries are linked just once and don't error out.
             # TODO(b/413333884): Clean up violations and error out
             continue
+        if shared_non_lto_backends == None:
+            shared_non_lto_backends = {}
         static_library_artifacts.add(library_artifact)
         for a in objects:
             # If this link includes object files from another library, that library must be
