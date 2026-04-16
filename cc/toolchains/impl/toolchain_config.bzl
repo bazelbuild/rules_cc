@@ -20,6 +20,7 @@ load(
     "ArgsListInfo",
     "ArtifactNamePatternInfo",
     "FeatureSetInfo",
+    "LegacyToolInfo",
     "MakeVariableInfo",
     "ToolConfigInfo",
     "ToolchainConfigInfo",
@@ -62,6 +63,7 @@ def _cc_toolchain_config_impl(ctx):
         args = ctx.attr.args,
         artifact_name_patterns = ctx.attr.artifact_name_patterns,
         make_variables = ctx.attr.make_variables,
+        legacy_tools = ctx.attr.legacy_tools,
     )
 
     legacy = convert_toolchain(toolchain_config)
@@ -75,6 +77,7 @@ def _cc_toolchain_config_impl(ctx):
             make_variables = legacy.make_variables,
             features = legacy.features,
             cxx_builtin_include_directories = legacy.cxx_builtin_include_directories,
+            tool_paths = legacy.tool_paths,
             # toolchain_identifier is deprecated, but setting it to None results
             # in an error that it expected a string, and for safety's sake, I'd
             # prefer to provide something unique.
@@ -111,6 +114,7 @@ cc_toolchain_config = rule(
         "enabled_features": attr.label_list(providers = [FeatureSetInfo]),
         "artifact_name_patterns": attr.label_list(providers = [ArtifactNamePatternInfo]),
         "make_variables": attr.label_list(providers = [MakeVariableInfo]),
+        "legacy_tools": attr.label_list(providers = [LegacyToolInfo]),
         "_builtin_features": attr.label(default = "//cc/toolchains/features:all_builtin_features"),
     },
     provides = [ToolchainConfigInfo],
