@@ -84,9 +84,9 @@ def _cc_toolchain_config_impl(ctx):
             # compiler
             compiler = ctx.attr.compiler,
             target_cpu = ctx.attr.cpu,
+            target_libc = ctx.attr.target_libc,  # Used by legacy features to determine if we're building for Apple platfroms or not
             # These fields are only relevant for legacy toolchain resolution.
             target_system_name = "",
-            target_libc = "",
             abi_version = "",
             abi_libc_version = "",
         ),
@@ -105,6 +105,7 @@ cc_toolchain_config = rule(
         # Attributes new to this rule.
         "compiler": attr.string(default = ""),
         "cpu": attr.string(default = ""),
+        "target_libc": attr.string(default = ""),
         "tool_map": attr.label(providers = [ToolConfigInfo], mandatory = True),
         "args": attr.label_list(providers = [ArgsListInfo]),
         "known_features": attr.label_list(providers = [FeatureSetInfo]),
