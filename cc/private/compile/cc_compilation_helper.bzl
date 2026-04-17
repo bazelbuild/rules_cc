@@ -213,10 +213,17 @@ _ModuleMapInfo = provider(
     ],
 )
 
+def _stringify_module_map_identifier(label_or_string):
+    unambiguous_canonical_label_string = str(label_or_string)
+    # buildifier: disable=canonical-repository
+    if unambiguous_canonical_label_string.startswith("@@"):
+        return unambiguous_canonical_label_string[2:]
+    return unambiguous_canonical_label_string
+
 def _module_map_struct_to_module_map_content(parameters, tree_expander):
     lines = []
     module_map = parameters.module_map
-    lines.append("module \"%s\" {" % module_map.name)
+    lines.append("module \"%s\" {" % _stringify_module_map_identifier(module_map.identifier))
     lines.append("  export *")
 
     def expanded(artifacts):
@@ -288,10 +295,10 @@ def _module_map_struct_to_module_map_content(parameters, tree_expander):
 
     dependency_module_maps = parameters.dependency_module_maps.to_list()
     for dep in dependency_module_maps:
-        lines.append("  use \"" + dep.name + "\"")
+        lines.append("  use \"" + _stringify_module_map_identifier(dep.identifier) + "\"")
 
     if parameters.separate_module_headers:
-        separate_name = module_map.name + ".sep"
+        separate_name = _stringify_module_map_identifier(module_map.identifier) + ".sep"
         lines.append("  use \"" + separate_name + "\"")
         lines.append("}")
         lines.append("module \"" + separate_name + "\" {")
@@ -305,14 +312,14 @@ def _module_map_struct_to_module_map_content(parameters, tree_expander):
             added_paths.add(header.path)
 
         for dep in dependency_module_maps:
-            lines.append("  use \"" + dep.name + "\"")
+            lines.append("  use \"" + _stringify_module_map_identifier(dep.identifier) + "\"")
 
     lines.append("}")
 
     if parameters.extern_dependencies:
         for dep in dependency_module_maps:
             lines.append(
-                "extern module \"" + dep.name + "\" \"" +
+                "extern module \"" + _stringify_module_map_identifier(dep.identifier) + "\" \"" +
                 parameters.leading_periods + dep.file.path + "\"",
             )
 
@@ -518,7 +525,7 @@ def _init_cc_compilation_context(
         if not module_map:
             module_map = create_module_map(
                 file = actions.declare_file(label.name + ".cppmap"),
-                name = label.workspace_name + "//" + label.package + ":" + label.name,
+                identifier = label,
             )
 
         # There are different modes for module compilation:
