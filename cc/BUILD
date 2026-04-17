@@ -71,11 +71,15 @@ filegroup(
 
 filegroup(
     name = "srcs",
+    testonly = 1,
     srcs = glob([
         "**/*.bzl",
         "**/BUILD",
     ]) + [
+        "//cc/common:srcs",
         "//cc/private:srcs",
+        "//cc/toolchains:srcs",
+        "@bazel_skylib//:test_deps",
     ],
     visibility = ["//visibility:public"],
 )
@@ -194,6 +198,7 @@ bzl_library(
     deps = [
         ":build_settings_bzl",
         ":cc_postmark_bzl",
+        "//cc/toolchains:toolchain_rules",
         "@cc_compatibility_proxy//:proxy_bzl",
     ],
 )

@@ -13,6 +13,7 @@
 # limitations under the License.
 """Implementation of cc_tool_map."""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load(
     "//cc/toolchains/impl:collect.bzl",
     "collect_provider",
@@ -56,7 +57,7 @@ See //cc/toolchains/actions:BUILD for valid options.
         ),
         "tools": attr.label_list(
             mandatory = True,
-            cfg = "exec",
+            cfg = "target" if bazel_features.cc.supports_starlarkified_toolchains else "exec",
             allow_files = True,
             doc = """The tool to use for the specified actions.
 
