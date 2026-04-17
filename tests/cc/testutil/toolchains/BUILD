@@ -283,7 +283,6 @@ cc_toolchain_config(
     target_libc = "local",
     target_system_name = "local",
     tool_paths = {},
-    toolchain_identifier = "mock-toolchain-k8",
 )
 
 cc_toolchain(

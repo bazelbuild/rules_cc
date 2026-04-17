@@ -13,16 +13,21 @@
 # limitations under the License.
 """A fake C++ toolchain configuration rule"""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
+
+def _create_cc_toolchain_config_info(**kwargs):
+    if not bazel_features.cc.cc_common_is_in_rules_cc:
+        kwargs["toolchain_identifier"] = kwargs["ctx"].label.name
+    return cc_common.create_cc_toolchain_config_info(**kwargs)
 
 def _impl(ctx):
     out = ctx.actions.declare_file(ctx.label.name)
     ctx.actions.write(out, "Fake executable")
     return [
-        cc_common.create_cc_toolchain_config_info(
+        _create_cc_toolchain_config_info(
             ctx = ctx,
-            toolchain_identifier = "local_linux",
             host_system_name = "local",
             target_system_name = "local",
             target_cpu = "local",
