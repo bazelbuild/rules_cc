@@ -335,6 +335,9 @@ def _cc_library_impl(ctx):
     merged_output_groups = cc_helper.merge_output_groups(
         [current_output_groups, output_group_builder],
     )
+    su_files = list(compilation_outputs._su_files) + list(compilation_outputs._pic_su_files)
+    if su_files:
+        merged_output_groups["stack_usage"] = depset(su_files)
 
     providers.append(cc_info)
     providers.append(OutputGroupInfo(**merged_output_groups))
