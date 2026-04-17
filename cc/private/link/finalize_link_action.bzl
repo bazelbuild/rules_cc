@@ -230,8 +230,7 @@ def finalize_link_action(
             action_name = link_type.action_name,
         )
 
-    if cc_toolchain._cpp_configuration.incompatible_use_specific_tool_files() and \
-       link_type.linker_or_archiver == USE_ARCHIVER:
+    if link_type.linker_or_archiver == USE_ARCHIVER:
         linker_files = cc_toolchain._ar_files
     else:
         linker_files = cc_toolchain._linker_files
