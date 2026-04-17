@@ -13,7 +13,7 @@
 # limitations under the License.
 """Analysis test for validate_static_library environment propagation."""
 
-load("@bazel_features//private:util.bzl", _bazel_version_ge = "ge")
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@rules_testing//lib:analysis_test.bzl", "analysis_test")
 load("@rules_testing//lib:util.bzl", "util")
 load("//cc:cc_static_library.bzl", "cc_static_library")
@@ -42,7 +42,7 @@ def maybe_define_validate_static_library_env_targets():
     # cc_static_library is implemented in rules_cc only for Bazel 9+.
     # For older Bazel versions, the native rule is used and does not wire
     # env vars from rules_cc toolchains for ValidateStaticLibrary.
-    if not _bazel_version_ge("9.0.0-pre.20250911"):
+    if not bazel_features.cc.cc_common_is_in_rules_cc:
         return
 
     util.helper_target(
