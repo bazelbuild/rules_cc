@@ -71,7 +71,7 @@ def _get_known_features(features, capability_features, fail):
                 ))
         feature_names[ft.name] = ft
 
-    return {_feature_key(feature): None for feature in features}
+    return {_feature_key(feature): None for feature in capability_features + features}
 
 def _can_theoretically_be_enabled(requirement, known_features):
     return all([
