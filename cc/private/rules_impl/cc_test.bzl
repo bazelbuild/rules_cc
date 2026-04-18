@@ -109,6 +109,7 @@ attributes common to all test rules (*_test)</a>.</p>
     },
     fragments = ["cpp", "coverage"] + semantics.additional_fragments(),
     exec_groups = {
+        "cpp_compile": exec_group(toolchains = use_cc_toolchain()),
         "cpp_link": exec_group(toolchains = use_cc_toolchain()),
         # testing.ExecutionInfo defaults to an exec_group of "test".
         "test": exec_group(toolchains = [config_common.toolchain_type(_CC_TEST_TOOLCHAIN_TYPE, mandatory = False)]),
