@@ -31,7 +31,11 @@ cc_args_list(
     args = [
         ":create_static_archive",
         ":output_execpath",
+        ":objc_fully_link_archive_path",
         ":libraries_to_link",
+        ":objc_fully_link_objc_library_exec_paths",
+        ":objc_fully_link_cc_library_exec_paths",
+        ":objc_fully_link_imported_library_exec_paths",
     ],
     visibility = ["//visibility:public"],
 )
@@ -47,12 +51,11 @@ cc_args(
         ],
         "//conditions:default": ["rcsD"],
     }),
-    requires_not_none = "//cc/toolchains/variables:output_execpath",
 )
 
 cc_args(
     name = "output_execpath",
-    actions = ["//cc/toolchains/actions:ar_actions"],
+    actions = ["//cc/toolchains/actions:cpp_link_static_library"],
     args = select({
         ":use_libtool_on_macos_setting": ["-o"],
         "//conditions:default": [],
@@ -63,7 +66,7 @@ cc_args(
 
 cc_args(
     name = "libraries_to_link",
-    actions = ["//cc/toolchains/actions:ar_actions"],
+    actions = ["//cc/toolchains/actions:cpp_link_static_library"],
     nested = ["libraries_to_link_expansion"],
     requires_not_none = "//cc/toolchains/variables:libraries_to_link",
 )
@@ -93,3 +96,30 @@ cc_nested_args(
     requires_equal = "//cc/toolchains/variables:libraries_to_link.type",
     requires_equal_value = "object_file_group",
 )
+
+cc_args(
+    name = "objc_fully_link_archive_path",
+    actions = ["//cc/toolchains/actions:objc_fully_link"],
+    args = select({
+        ":use_libtool_on_macos_setting": ["-o"],
+        "//conditions:default": [],
+    }) + ["{fully_linked_archive_path}"],
+    format = {"fully_linked_archive_path": "//cc/toolchains/variables:fully_linked_archive_path"},
+    requires_not_none = "//cc/toolchains/variables:fully_linked_archive_path",
+)
+
+[
+    cc_args(
+        name = "objc_fully_link_" + variable,
+        actions = ["@rules_cc//cc/toolchains/actions:objc_fully_link"],
+        args = ["{var}"],
+        format = {"var": "@rules_cc//cc/toolchains/variables:" + variable},
+        iterate_over = "@rules_cc//cc/toolchains/variables:" + variable,
+        requires_not_none = "@rules_cc//cc/toolchains/variables:" + variable,
+    )
+    for variable in [
+        "objc_library_exec_paths",
+        "cc_library_exec_paths",
+        "imported_library_exec_paths",
+    ]
+]
