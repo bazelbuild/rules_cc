@@ -6,7 +6,6 @@
 # ],
 # known_features = [
 #     "@rules_cc//cc/toolchains/args/layering_check:layering_check",
-#     "@rules_cc//cc/toolchains/args/layering_check:use_module_maps",
 # ],
 #
 # And make sure you have 'module_map' set to a module map file that contains
@@ -26,23 +25,14 @@ cc_feature(
 )
 
 cc_feature(
-    name = "use_module_maps",
-    args = [
-        ":dependent_module_map_files_args",
-    ],
-    feature_name = "use_module_maps",
-    requires_any_of = [":module_maps"],
-)
-
-cc_feature(
     name = "layering_check",
     args = [
         ":layering_check_args",
         ":module_map_file_args",
         ":module_name_args",
+        ":dependent_module_map_files_args",
     ],
     feature_name = "layering_check",
-    implies = [":use_module_maps"],
 )
 
 cc_args(
