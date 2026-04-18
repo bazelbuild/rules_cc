@@ -62,6 +62,7 @@ def _create_compilation_attributes(ctx):
         cxxopts = cc_common.objc_expand_and_tokenize(ctx = ctx, attr = "cxxopts", flags = getattr(ctx.attr, "cxxopts", [])),
         additional_linker_inputs = getattr(ctx.files, "additional_linker_inputs", []),
         defines = cc_common.objc_expand_and_tokenize(ctx = ctx, attr = "defines", flags = getattr(ctx.attr, "defines", [])),
+        local_defines = cc_common.objc_expand_and_tokenize(ctx = ctx, attr = "local_defines", flags = getattr(ctx.attr, "local_defines", [])),
         enable_modules = getattr(ctx.attr, "enable_modules", False),
     )
 
@@ -197,6 +198,7 @@ def _compile(
         private_hdrs = private_hdrs,
         textual_hdrs = textual_hdrs,
         defines = objc_compilation_context.defines,
+        local_defines = common_variables.compilation_attributes.local_defines,
         includes = objc_compilation_context.includes,
         system_includes = objc_compilation_context.system_includes,
         quote_includes = objc_compilation_context.quote_includes,
