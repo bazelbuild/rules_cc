@@ -8,7 +8,7 @@ cc_feature(
         "//conditions:default": [],
     }),
     feature_name = "_soname_flags",  # Doesn't override legacy feature, but shouldn't be disabled
-    visibility = ["//cc/toolchains/args:__pkg__"],
+    visibility = ["//visibility:public"],
 )
 
 cc_args(
