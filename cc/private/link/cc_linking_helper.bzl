@@ -287,7 +287,7 @@ def _create_dynamic_link_actions(
         so_interface, _ = _get_linked_artifact(actions, name, LINK_TARGET_TYPE.INTERFACE_DYNAMIC_LIBRARY, cc_toolchain)
 
         # TODO(b/28946988): Remove this hard-coded flag.
-        if not feature_configuration.is_enabled("targets_windows"):
+        if not feature_configuration.is_enabled("targets_windows") and not feature_configuration.is_enabled("set_soname"):
             link_action_kwargs["linkopts"].append("-Wl,-soname=" + _cc_internal.dynamic_library_soname(
                 actions,
                 linker_output.short_path,
