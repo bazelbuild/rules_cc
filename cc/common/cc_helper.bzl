@@ -13,6 +13,7 @@
 # limitations under the License.
 """Utility functions for C++ rules."""
 
+load("//cc:action_names.bzl", "ACTION_NAMES")
 load("//cc:find_cc_toolchain.bzl", "CC_TOOLCHAIN_TYPE")
 load("//cc/private:paths.bzl", "is_path_absolute")
 load("//cc/private/rules_impl:objc_common.bzl", "objc_common")
@@ -463,8 +464,22 @@ def _get_compilation_contexts_from_deps(deps):
             compilation_contexts.append(dep[CcInfo].compilation_context)
     return compilation_contexts
 
-def _tool_path(cc_toolchain, tool):
-    return cc_toolchain._tool_paths.get(tool, None)
+def _tool_path(cc_toolchain, tool, feature_configuration = None, action_name = None):
+    tool = cc_toolchain._tool_paths.get(tool, None)
+    if tool:
+        return tool
+    if feature_configuration != None and action_name != None:
+        if not cc_common.action_is_enabled(
+            feature_configuration = feature_configuration,
+            action_name = action_name,
+        ):
+            return None
+
+        return cc_common.get_tool_for_action(
+            feature_configuration = feature_configuration,
+            action_name = action_name,
+        )
+    return None
 
 def _get_toolchain_global_make_variables(cc_toolchain):
     result = {
@@ -1010,15 +1025,15 @@ def _linkopts(ctx, additional_make_variable_substitutions, cc_toolchain):
         fail("in linkopts attribute of cc_library rule {}: Apple builds do not support statically linked binaries".format(ctx.label))
     return tokens
 
-def _get_coverage_environment(ctx, cc_config, cc_toolchain):
+def _get_coverage_environment(ctx, cc_config, cc_toolchain, feature_configuration):
     if not ctx.configuration.coverage_enabled:
         return {}
 
     # buildifier: disable=unsorted-dict-items
     env = {
-        "COVERAGE_GCOV_PATH": _tool_path(cc_toolchain, "gcov"),
-        "LLVM_COV": _tool_path(cc_toolchain, "llvm-cov"),
-        "LLVM_PROFDATA": _tool_path(cc_toolchain, "llvm-profdata"),
+        "COVERAGE_GCOV_PATH": _tool_path(cc_toolchain, "gcov", feature_configuration, ACTION_NAMES.gcov),
+        "LLVM_COV": _tool_path(cc_toolchain, "llvm-cov", feature_configuration, ACTION_NAMES.llvm_cov),
+        "LLVM_PROFDATA": _tool_path(cc_toolchain, "llvm-profdata", feature_configuration, ACTION_NAMES.llvm_profdata),
         "GENERATE_LLVM_LCOV": "1" if cc_config.generate_llvm_lcov() else "0",
     }
     for k in list(env.keys()):
@@ -1028,7 +1043,7 @@ def _get_coverage_environment(ctx, cc_config, cc_toolchain):
         env["FDO_DIR"] = cc_config.fdo_instrument()
     return env
 
-def _create_cc_instrumented_files_info(ctx, cc_config, cc_toolchain, metadata_files, virtual_to_original_headers = None):
+def _create_cc_instrumented_files_info(ctx, cc_config, cc_toolchain, feature_configuration, metadata_files, virtual_to_original_headers = None):
     source_extensions = extensions.CC_SOURCE + \
                         extensions.C_SOURCE + \
                         extensions.CC_HEADER + \
@@ -1036,7 +1051,7 @@ def _create_cc_instrumented_files_info(ctx, cc_config, cc_toolchain, metadata_fi
                         extensions.ASSEMBLER
     coverage_environment = {}
     if ctx.configuration.coverage_enabled:
-        coverage_environment = _get_coverage_environment(ctx, cc_config, cc_toolchain)
+        coverage_environment = _get_coverage_environment(ctx, cc_config, cc_toolchain, feature_configuration)
     coverage_support_files = cc_toolchain._coverage_files if ctx.configuration.coverage_enabled else depset([])
     info = coverage_common.instrumented_files_info(
         ctx = ctx,

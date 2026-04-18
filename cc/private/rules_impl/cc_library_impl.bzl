@@ -274,6 +274,7 @@ def _cc_library_impl(ctx):
         ctx = ctx,
         cc_config = ctx.fragments.cpp,
         cc_toolchain = cc_toolchain,
+        feature_configuration = feature_configuration,
         metadata_files = gcno_files + pic_gcno_files,
     )
 
