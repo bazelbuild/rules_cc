@@ -269,6 +269,7 @@ cc_variable(
     name = "linker_param_file",
     actions = [
         "//cc/toolchains/actions:cpp_link_static_library",
+        "//cc/toolchains/actions:objc_fully_link",
         "//cc/toolchains/actions:link_actions",
     ],
     type = types.option(types.file),
