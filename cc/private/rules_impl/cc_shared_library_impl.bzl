@@ -715,6 +715,7 @@ def _cc_shared_library_impl(ctx):
         main_output = main_output,
         variables_extension = link_variables,
         additional_outputs = additional_outputs,
+        emit_interface_shared_library = True,
     )
 
     runfiles_files = []
