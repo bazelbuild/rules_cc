@@ -14,6 +14,7 @@
 """FDO context describes how C++ FDO compilation should be done."""
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("//cc:action_names.bzl", "ACTION_NAMES")
 load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/private/rules_impl/fdo:fdo_prefetch_hints.bzl", "FdoPrefetchHintsInfo")
 load("//cc/private/rules_impl/fdo:fdo_profile.bzl", "FdoProfileInfo")
@@ -28,6 +29,7 @@ def _create_fdo_context(
         zipper,
         cc_toolchain_config_info,
         coverage_enabled,
+        feature_configuration,
         _fdo_prefetch_hints,
         _propeller_optimize,
         _memprof_profile,
@@ -48,6 +50,7 @@ def _create_fdo_context(
       zipper: (File) zip tool, used to unpact the profiles
       cc_toolchain_config_info: (CcToolchainConfigInfo) Used to check CPU value, should be removed
       coverage_enabled: (bool) Is code coverage enabled
+      feature_configuration: (FeatureConfiguration) Used for llvm-profdata action
       _fdo_prefetch_hints: (Target) Pointed to by --fdo_prefetch_hints
       _propeller_optimize: (Target) Pointed to by --propeller_optimize
       _memprof_profile: (Target) Pointed to by --memprof_profile
@@ -69,6 +72,21 @@ def _create_fdo_context(
     cpp_config = ctx.fragments.cpp
     if cpp_config.compilation_mode() != "opt":
         return struct()
+
+    llvm_profdata_env = {}
+    if cc_common.action_is_enabled(
+        feature_configuration = feature_configuration,
+        action_name = ACTION_NAMES.llvm_profdata,
+    ):
+        llvm_profdata = cc_common.get_tool_for_action(
+            feature_configuration = feature_configuration,
+            action_name = ACTION_NAMES.llvm_profdata,
+        )
+        llvm_profdata_env = cc_common.get_environment_variables(
+            feature_configuration = feature_configuration,
+            action_name = ACTION_NAMES.llvm_profdata,
+            variables = cc_common.empty_variables(),
+        )
 
     # Propeller optimize cc and ld profiles
     cc_profile = _symlink_to(
@@ -186,6 +204,7 @@ def _create_fdo_context(
                 all_files,
                 zipper,
                 cc_toolchain_config_info,
+                llvm_profdata_env,
             )
         elif branch_fdo_mode in ["auto_fdo", "xbinary_fdo"]:
             profile_artifact = _symlink_input(
@@ -203,6 +222,7 @@ def _create_fdo_context(
                 all_files,
                 zipper,
                 cc_toolchain_config_info,
+                llvm_profdata_env,
             )
             cs_profile_artifact = _convert_llvm_raw_profile_to_indexed(
                 ctx,
@@ -212,6 +232,7 @@ def _create_fdo_context(
                 all_files,
                 zipper,
                 cc_toolchain_config_info,
+                llvm_profdata_env,
             )
             profile_artifact = _merge_llvm_profiles(
                 ctx,
@@ -221,6 +242,7 @@ def _create_fdo_context(
                 non_cs_profile_artifact,
                 cs_profile_artifact,
                 "MergedCS.profdata",
+                llvm_profdata_env,
             )
 
         branch_fdo_profile = struct(
@@ -254,7 +276,8 @@ def _convert_llvm_raw_profile_to_indexed(
         llvm_profdata,
         all_files,
         zipper,
-        cc_toolchain_config_info):
+        cc_toolchain_config_info,
+        env):
     """This function checks the input profile format and converts it to the indexed format (.profdata) if necessary."""
     basename = _basename(fdo_inputs)
     if basename.endswith(".profdata"):
@@ -310,6 +333,7 @@ def _convert_llvm_raw_profile_to_indexed(
         arguments = [ctx.actions.args().add("merge").add("-o").add(profile_artifact).add(raw_profile_artifact)],
         inputs = [raw_profile_artifact],
         outputs = [profile_artifact],
+        env = env,
         use_default_shell_env = True,
         progress_message = "LLVMProfDataAction: Generating %{output}",
     )
@@ -323,7 +347,8 @@ def _merge_llvm_profiles(
         all_files,
         profile1,
         profile2,
-        merged_output_name):
+        merged_output_name,
+        env):
     """This function merges profile1 and profile2 and generates merged_output."""
     profile_artifact = ctx.actions.declare_file(name_prefix + "/" + ctx.label.name + "/" + merged_output_name)
 
@@ -335,6 +360,7 @@ def _merge_llvm_profiles(
         arguments = [ctx.actions.args().add("merge").add("-o").add(profile_artifact).add(profile1).add(profile2)],
         inputs = [profile1, profile2],
         outputs = [profile_artifact],
+        env = env,
         use_default_shell_env = True,
         progress_message = "LLVMProfDataAction: Generating %{output}",
     )

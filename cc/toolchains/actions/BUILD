@@ -89,6 +89,11 @@ cc_action_type(
 )
 
 cc_action_type(
+    name = "llvm_profdata",
+    action_name = ACTION_NAMES.llvm_profdata,
+)
+
+cc_action_type(
     name = "lto_indexing",
     action_name = ACTION_NAMES.lto_indexing,
 )
@@ -324,6 +329,7 @@ cc_action_type_set(
         ":assemble",
         ":preprocess_assemble",
         ":llvm_cov",
+        ":llvm_profdata",
         ":lto_indexing",
         ":lto_backend",
         ":lto_index_for_executable",
