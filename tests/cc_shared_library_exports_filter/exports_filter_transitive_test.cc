@@ -12,6 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "uses_exported_transitive.h"
+int uses_exported_transitive();
 
 int main() { return uses_exported_transitive() == 7 ? 0 : 1; }
