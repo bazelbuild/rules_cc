@@ -12,14 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifdef _WIN32
-#if defined(USES_EXPORTED_TRANSITIVE_EXPORTS)
-#define USES_EXPORTED_TRANSITIVE_API __declspec(dllexport)
-#else
-#define USES_EXPORTED_TRANSITIVE_API __declspec(dllimport)
-#endif
-#else
-#define USES_EXPORTED_TRANSITIVE_API
-#endif
-
-USES_EXPORTED_TRANSITIVE_API int uses_exported_transitive();
+int uses_exported_transitive();
