@@ -473,6 +473,18 @@ def _impl(ctx):
                 with_features = [with_feature_set(features = ["opt"])],
             ),
         ],
+        env_sets = [
+            env_set(
+                actions = all_link_actions + lto_index_actions + [ACTION_NAMES.cpp_link_static_library],
+                env_entries = ([
+                    env_entry(
+                        # Required for hermetic links on macOS
+                        key = "ZERO_AR_DATE",
+                        value = "1",
+                    ),
+                ]),
+            ),
+        ],
     )
 
     fastbuild_feature = feature(name = "fastbuild")
@@ -1741,7 +1753,7 @@ def _impl(ctx):
 
     macos_reproducible_feature = feature(
         name = "macos_reproducible",
-        enabled = True,
+        enabled = "macos_reproducible" in ctx.features,
         flag_sets = [
             flag_set(
                 actions = all_compile_actions,
@@ -1750,18 +1762,6 @@ def _impl(ctx):
             flag_set(
                 actions = all_link_actions,
                 flag_groups = [flag_group(flags = ["-Wl,-oso_prefix,."])],
-            ),
-        ],
-        env_sets = [
-            env_set(
-                actions = all_link_actions + lto_index_actions + [ACTION_NAMES.cpp_link_static_library],
-                env_entries = ([
-                    env_entry(
-                        # Required for hermetic links on macOS
-                        key = "ZERO_AR_DATE",
-                        value = "1",
-                    ),
-                ]),
             ),
         ],
     )

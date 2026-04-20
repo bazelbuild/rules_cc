@@ -163,6 +163,9 @@ def _is_linker_option_supported(repository_ctx, cc, force_linker_flags, option, 
     ])
     return result.stderr.find(pattern) == -1
 
+def _is_oso_prefix_supported(repository_ctx, ld):
+    return repository_ctx.execute([ld, "-v", "-oso_prefix", "."]).return_code == 0
+
 def _find_linker_path(repository_ctx, cc, linker, is_clang):
     """Checks if a given linker is supported by the C compiler.
 
@@ -416,6 +419,10 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     auto_configure_warning_maybe(repository_ctx, "CC used: " + str(cc))
     tool_paths = _get_tool_paths(repository_ctx, overridden_tools)
     tool_paths["cpp-module-deps-scanner"] = "deps_scanner_wrapper.sh"
+
+    toolchain_features = []
+    if darwin and _is_oso_prefix_supported(repository_ctx, tool_paths["ld"]):
+        toolchain_features.append("macos_reproducible")
 
     # The parse_header tool needs to be a wrapper around the compiler as it has
     # to touch the output file.
@@ -760,6 +767,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
                 "-Wl,--start-lib",
                 "--start-lib",
             ) else "False",
+            "%{toolchain_features}": get_starlark_list(toolchain_features),
             "%{target_cpu}": escape_string(get_env_var(
                 repository_ctx,
                 "BAZEL_TARGET_CPU",
