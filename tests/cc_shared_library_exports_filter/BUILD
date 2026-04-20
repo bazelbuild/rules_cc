@@ -63,6 +63,7 @@ cc_shared_library(
 cc_test(
     name = "exports_filter_transitive_test",
     srcs = ["exports_filter_transitive_test.cc"],
+    deps = [":uses_exported_transitive"],
     dynamic_deps = [":uses_exported_transitive_so"],
     target_compatible_with = VERSION_GATE,
 )
