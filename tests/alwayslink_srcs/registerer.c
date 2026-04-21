@@ -15,6 +15,13 @@
 #include "registered.h"
 
 // Static constructor that registers on load.
+#if defined(_MSC_VER)
+static void registerer_init(void) { set_registered(); }
+#pragma section(".CRT$XCU", read)
+__declspec(allocate(".CRT$XCU")) static void (*registerer_init_)(void) =
+    registerer_init;
+#else
 __attribute__((constructor)) static void registerer_init(void) {
   set_registered();
 }
+#endif
