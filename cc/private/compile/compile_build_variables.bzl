@@ -592,7 +592,6 @@ def get_linkstamp_compile_variables(
         label_replacement = label_replacement,
         output_replacement = output_replacement,
         additional_linkstamp_defines = additional_linkstamp_defines,
-        cc_toolchain = cc_toolchain,
         fdo_build_stamp = fdo_build_stamp,
         code_coverage_enabled = code_coverage_enabled,
     )
@@ -612,12 +611,10 @@ def _compute_all_linkstamp_defines(
         label_replacement,
         output_replacement,
         additional_linkstamp_defines,
-        cc_toolchain,
         fdo_build_stamp,
         code_coverage_enabled):
     """Computes defines for linkstamp compilation."""
     defines = [
-        'GPLATFORM="' + cc_toolchain.toolchain_id + '"',
         "BUILD_COVERAGE_ENABLED=" + ("1" if code_coverage_enabled else "0"),
         # G3_TARGET_NAME is a C string literal that normally contain the label of the target
         # being linked.  However, they are set differently when using shared native deps. In
