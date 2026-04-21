@@ -679,7 +679,9 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
             cc_toolchain,
             binary,
             output_binary_for_linking,
+            feature_configuration = feature_configuration,
             additional_stamp_infos = additional_stamp_infos,
+            additional_linkstamp_defines = [],
         )
 
     cc_linking_outputs_binary_library = cc_linking_outputs_binary.library_to_link

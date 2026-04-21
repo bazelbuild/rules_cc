@@ -44,6 +44,87 @@ CPP_SOURCE_TYPE_HEADER = "HEADER"
 CPP_SOURCE_TYPE_SOURCE = "SOURCE"
 CPP_SOURCE_TYPE_CLIF_INPUT_PROTO = "CLIF_INPUT_PROTO"
 
+def get_fdo_build_stamp(cpp_configuration, fdo_context, feature_configuration):
+    """Returns the FDO build stamp.
+
+    Args:
+      cpp_configuration: The C++ configuration.
+      fdo_context: The FDO context.
+      feature_configuration: The feature configuration.
+
+    Returns:
+      The FDO build stamp string, or None if FDO is not enabled.
+    """
+    branch_fdo_profile = getattr(fdo_context, "branch_fdo_profile", None)
+    if branch_fdo_profile:
+        branch_fdo_mode = branch_fdo_profile.branch_fdo_mode
+        if branch_fdo_mode == "auto_fdo":
+            return "AFDO" if feature_configuration.is_enabled("autofdo") else None
+        if branch_fdo_mode == "xbinary_fdo":
+            return "XFDO" if feature_configuration.is_enabled("xbinaryfdo") else None
+        if branch_fdo_mode == "llvm_cs_fdo" or cpp_configuration.cs_fdo_instrument():
+            return "CSFDO"
+    if branch_fdo_profile or cpp_configuration.fdo_instrument():
+        return "FDO"
+    return None
+
+def get_linkstamp_stamps(
+        cc_toolchain,
+        feature_configuration,
+        label_replacement,
+        output_replacement,
+        additional_linkstamp_defines):
+    """Returns a dict of stamps for linkstamp compilation/PostMark.
+
+    Args:
+      cc_toolchain: The C++ toolchain provider.
+      feature_configuration: The feature configuration.
+      label_replacement: String to replace ${LABEL} in linkstamp defines.
+      output_replacement: String to replace ${OUTPUT_PATH} in linkstamp defines.
+      additional_linkstamp_defines: A list of additional defines for linkstamp compilation.
+
+    Returns:
+      A dictionary of linkstamp defines.
+    """
+    fdo_build_stamp = get_fdo_build_stamp(
+        cc_toolchain._cpp_configuration,
+        cc_toolchain._fdo_context,
+        feature_configuration,
+    )
+    stamps = {
+        "GPLATFORM": cc_toolchain.toolchain_id,
+        "BUILD_COVERAGE_ENABLED": "1" if feature_configuration.is_enabled("coverage") else "0",
+        # G3_TARGET_NAME is a C string literal that normally contain the label of the target
+        # being linked.  However, they are set differently when using shared native deps. In
+        # that case, a single .so file is shared by multiple targets, and its contents cannot
+        # depend on which target(s) were specified on the command line.  So in that case we
+        # have to use the (obscure) name of the .so file instead, or more precisely the path of
+        # the .so file relative to the workspace root.
+        "G3_TARGET_NAME": label_replacement,
+        # G3_BUILD_TARGET is a C string literal containing the output of this
+        # link.  (An undocumented and untested invariant is that G3_BUILD_TARGET is the
+        # location of the executable, either absolutely, or relative to the directory part of
+        # BUILD_INFO.)
+        "G3_BUILD_TARGET": output_replacement,
+    }
+    if fdo_build_stamp:
+        stamps["BUILD_FDO_TYPE"] = fdo_build_stamp
+
+    if feature_configuration.is_enabled("thin_lto"):
+        stamps["BUILD_LTO_TYPE"] = "thin"
+
+    if additional_linkstamp_defines:
+        for d in additional_linkstamp_defines:
+            # TODO: b/503100490 - This replacement looks redundant, but we should remove this in a separate CL.
+            d = d.replace("${LABEL}", label_replacement).replace("${OUTPUT_PATH}", output_replacement)
+            if "=" in d:
+                k, v = d.split("=", 1)
+                stamps[k] = v
+            else:
+                stamps[d] = "1"
+
+    return stamps
+
 # LINT.IfChange(forked_exports)
 
 CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES = [("", "devtools/rust/cc_interop"), ("", "third_party/crubit"), ("", "tools/build_defs/clif")]
