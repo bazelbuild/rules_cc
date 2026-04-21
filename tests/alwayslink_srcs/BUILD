@@ -35,7 +35,6 @@ cc_library(
 )
 
 # Copy the static archive produced by registerer_lib, simulates having a prebuilt archive.
-# Split per-OS because genrule outs is not configurable with select().
 genrule(
     name = "copy_registerer_archive_unix",
     srcs = [":registerer_lib"],
