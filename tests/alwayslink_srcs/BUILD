@@ -34,20 +34,36 @@ cc_library(
     deps = [":registered"],
 )
 
-# Copy the .a file produced by registerer_lib, simulates having a prebuilt .a file.
+# Copy the static archive produced by registerer_lib, simulates having a prebuilt archive.
+# Split per-OS because genrule outs is not configurable with select().
 genrule(
-    name = "copy_registerer_archive",
+    name = "copy_registerer_archive_unix",
     srcs = [":registerer_lib"],
     outs = ["libregisterer_copied.a"],
-    cmd = "for f in $(locations :registerer_lib); do if [[ $$f == *.a ]]; then cp $$f $@; fi; done",
+    cmd = "for f in $(locations :registerer_lib); do case \"$$f\" in *.a) cp \"$$f\" $@;; esac; done",
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
 )
 
-# Library that uses the copied .a file in srcs with alwayslink=True.
+genrule(
+    name = "copy_registerer_archive_windows",
+    srcs = [":registerer_lib"],
+    outs = ["registerer_copied.lib"],
+    cmd = "for f in $(locations :registerer_lib); do case \"$$f\" in *.lib) cp \"$$f\" $@;; esac; done",
+    target_compatible_with = ["@platforms//os:windows"],
+)
+
+# Library that uses the copied archive in srcs with alwayslink=True.
 # Without alwayslink, the registerer would be dropped since nothing
 # directly references its symbols.
 cc_library(
     name = "registerer_alwayslink",
-    srcs = [":copy_registerer_archive"],
+    srcs = select({
+        "@platforms//os:windows": [":copy_registerer_archive_windows"],
+        "//conditions:default": [":copy_registerer_archive_unix"],
+    }),
     target_compatible_with = VERSION_GATE,
     deps = [":registered"],
     alwayslink = True,
