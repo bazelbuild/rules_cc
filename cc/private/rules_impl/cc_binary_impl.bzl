@@ -23,6 +23,7 @@ load("//cc/common:cc_info.bzl", "CcInfo")
 load("//cc/common:debug_package_info.bzl", "DebugPackageInfo")
 load("//cc/common:semantics.bzl", "semantics")
 load("//cc/private:graph_node_info.bzl", "GraphNodeInfo")
+load("//cc/private/link:resource_sets.bzl", "make_link_resource_set")
 load(":cc_shared_library_impl.bzl", "add_unused_dynamic_deps", "build_exports_map_from_only_dynamic_deps", "build_link_once_static_libs_map", "merge_cc_shared_library_infos", "separate_static_and_dynamic_link_libraries", "sort_linker_inputs", "throw_linked_but_not_exported_errors")
 load(":function_providing_rule.bzl", "wrap_starlark_function")
 
@@ -401,6 +402,7 @@ def _create_transitive_linking_actions(
         never_link = True,
         variables_extension = link_variables,
         additional_outputs = additional_outputs,
+        link_resource_set = make_link_resource_set(getattr(ctx.attr, "link_resource_set", {})),
     )
     cc_launcher_info = _CcLauncherInfo(cc_info = cc_info_without_extra_link_time_libraries, compilation_outputs = cc_compilation_outputs_with_only_objects)
     return (cc_linking_outputs, cc_launcher_info, cc_linking_context)

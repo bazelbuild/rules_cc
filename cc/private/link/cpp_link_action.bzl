@@ -63,7 +63,9 @@ def link_action(
         # LTO:
         thinlto_param_file,
         all_lto_artifacts = [],
-        allow_lto_indexing = False):
+        allow_lto_indexing = False,
+        # Resource scheduling:
+        link_resource_set = None):
     """Creates a C++ linking action.
 
     The function collects all object files, maps them with LTO mapping when present.
@@ -106,6 +108,7 @@ def link_action(
         thinlto_param_file: (None|File) The input file created by LTO indexing action.
         all_lto_artifacts: (list[LtoBackendArtifacts]) LTO artifacts.
         allow_lto_indexing: (bool) Was LTO indexing done.
+        link_resource_set: (None|callable) A resource_set callback for actions.run(). If None, the default heuristic is used.
 
     Returns:
       (LegacyLinkerInput, LegacyLinkerInput) output library and interface output
@@ -237,6 +240,8 @@ def link_action(
         # LTO:
         lto_mapping,
         allow_lto_indexing,
+        # Resource scheduling:
+        link_resource_set = link_resource_set,
     )
 
     return output_library, interface_output_library

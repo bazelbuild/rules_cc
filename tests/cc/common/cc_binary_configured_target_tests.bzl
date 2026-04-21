@@ -1,5 +1,6 @@
 """Tests for cc_binary."""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@rules_testing//lib:analysis_test.bzl", "analysis_test", "test_suite")
 load("@rules_testing//lib:truth.bzl", "matching")
 load("@rules_testing//lib:util.bzl", "TestingAspectInfo", "util")
@@ -300,16 +301,123 @@ def _test_missing_action_config_for_strip_is_a_rule_error_impl(env, target):
         matching.contains("Expected action_config for 'strip' to be configured."),
     )
 
+def _test_link_resource_set_accepted(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/hello",
+        srcs = ["hello.cc"],
+        link_resource_set = {"memory": "8192", "cpu": "2"},
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_link_resource_set_accepted_impl,
+        target = name + "/hello",
+        **kwargs
+    )
+
+def _test_link_resource_set_accepted_impl(env, target):
+    executable = target[DefaultInfo].files_to_run.executable
+    env.expect.that_target(target).action_generating(executable.short_path)
+
+def _test_link_resource_set_memory_only(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/hello",
+        srcs = ["hello.cc"],
+        link_resource_set = {"memory": "4096"},
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_link_resource_set_memory_only_impl,
+        target = name + "/hello",
+        **kwargs
+    )
+
+def _test_link_resource_set_memory_only_impl(env, target):
+    executable = target[DefaultInfo].files_to_run.executable
+    env.expect.that_target(target).action_generating(executable.short_path)
+
+def _test_link_resource_set_default(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/hello",
+        srcs = ["hello.cc"],
+        link_resource_set = {},
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_link_resource_set_default_impl,
+        target = name + "/hello",
+        **kwargs
+    )
+
+def _test_link_resource_set_default_impl(env, target):
+    executable = target[DefaultInfo].files_to_run.executable
+    link_action = env.expect.that_target(target).action_generating(executable.short_path)
+    env.expect.that_collection(link_action.actual.outputs.to_list()).contains_exactly([executable])
+
+def _test_link_resource_set_invalid_key(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/hello",
+        srcs = ["hello.cc"],
+        link_resource_set = {"bogus": "123"},
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_link_resource_set_invalid_key_impl,
+        target = name + "/hello",
+        expect_failure = True,
+        **kwargs
+    )
+
+def _test_link_resource_set_invalid_key_impl(env, target):
+    env.expect.that_target(target).failures().contains_predicate(
+        matching.contains("Invalid link_resource_set key"),
+    )
+
+def _test_link_resource_set_negative_memory(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/hello",
+        srcs = ["hello.cc"],
+        link_resource_set = {"memory": "-1"},
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_link_resource_set_negative_memory_impl,
+        target = name + "/hello",
+        expect_failure = True,
+        **kwargs
+    )
+
+def _test_link_resource_set_negative_memory_impl(env, target):
+    env.expect.that_target(target).failures().contains_predicate(
+        matching.contains("link_resource_set memory must be positive"),
+    )
+
 def cc_binary_configured_target_tests(name):
+    tests = [
+        _test_files_to_build,
+        _test_headers_not_passed_to_linking_action,
+        _test_no_duplicate_linkopts,
+        _test_action_graph,
+        _test_runtime_dynamic_libraries_copy_behavior,
+        _test_pic,
+        _test_missing_action_config_for_strip_is_a_rule_error,
+    ]
+
+    # link_resource_set attr only exists in the Starlark cc_binary (Bazel 9+).
+    if bazel_features.cc.cc_common_is_in_rules_cc:
+        tests.extend([
+            _test_link_resource_set_accepted,
+            _test_link_resource_set_memory_only,
+            _test_link_resource_set_default,
+            _test_link_resource_set_invalid_key,
+            _test_link_resource_set_negative_memory,
+        ])
+
     test_suite(
         name = name,
-        tests = [
-            _test_files_to_build,
-            _test_headers_not_passed_to_linking_action,
-            _test_no_duplicate_linkopts,
-            _test_action_graph,
-            _test_runtime_dynamic_libraries_copy_behavior,
-            _test_pic,
-            _test_missing_action_config_for_strip_is_a_rule_error,
-        ],
+        tests = tests,
     )

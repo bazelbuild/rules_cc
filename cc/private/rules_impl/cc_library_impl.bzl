@@ -19,6 +19,7 @@ load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/common:cc_helper.bzl", "cc_helper")
 load("//cc/common:cc_info.bzl", "CcInfo")
 load("//cc/common:semantics.bzl", "semantics")
+load("//cc/private/link:resource_sets.bzl", "make_link_resource_set")
 load(":function_providing_rule.bzl", "wrap_starlark_function")
 
 def _cc_library_impl(ctx):
@@ -162,6 +163,7 @@ def _cc_library_impl(ctx):
             disallow_dynamic_library = not create_dynamic_library,
             linked_dll_name_suffix = dll_name_suffix,
             variables_extension = link_variables,
+            link_resource_set = make_link_resource_set(getattr(ctx.attr, "link_resource_set", {})),
         )
     elif semantics.should_create_empty_archive():
         precompiled_files_count = 0
