@@ -13,6 +13,7 @@
 # limitations under the License.
 """Utility functions for C++ rules."""
 
+load("//cc:action_names.bzl", "ACTION_NAMES")
 load("//cc:find_cc_toolchain.bzl", "CC_TOOLCHAIN_TYPE")
 load("//cc/private:paths.bzl", "is_path_absolute")
 load("//cc/private/rules_impl:objc_common.bzl", "objc_common")
@@ -466,21 +467,35 @@ def _get_compilation_contexts_from_deps(deps):
 def _tool_path(cc_toolchain, tool):
     return cc_toolchain._tool_paths.get(tool, None)
 
-def _get_toolchain_global_make_variables(cc_toolchain):
+def _tool_path_for_action(cc_toolchain, tool, feature_configuration, action_name):
+    path = cc_toolchain._tool_paths.get(tool, None)
+    if path:
+        return path
+    if action_name != None and cc_common.action_is_enabled(
+        feature_configuration = feature_configuration,
+        action_name = action_name,
+    ):
+        return cc_common.get_tool_for_action(
+            feature_configuration = feature_configuration,
+            action_name = action_name,
+        ) or ""
+    return ""
+
+def _get_toolchain_global_make_variables(cc_toolchain, feature_configuration):
     result = {
-        "CC": _tool_path(cc_toolchain, "gcc"),
-        "AR": _tool_path(cc_toolchain, "ar"),
-        "NM": _tool_path(cc_toolchain, "nm"),
-        "LD": _tool_path(cc_toolchain, "ld"),
-        "STRIP": _tool_path(cc_toolchain, "strip"),
+        "CC": _tool_path_for_action(cc_toolchain, "gcc", feature_configuration, ACTION_NAMES.c_compile),
+        "AR": _tool_path_for_action(cc_toolchain, "ar", feature_configuration, ACTION_NAMES.cpp_link_static_library),
+        "NM": _tool_path_for_action(cc_toolchain, "nm", feature_configuration, None),
+        "LD": _tool_path_for_action(cc_toolchain, "ld", feature_configuration, ACTION_NAMES.cpp_link_executable),
+        "STRIP": _tool_path_for_action(cc_toolchain, "strip", feature_configuration, ACTION_NAMES.strip),
         "C_COMPILER": cc_toolchain.compiler,
     }  # buildifier: disable=unsorted-dict-items
 
-    obj_copy_tool = _tool_path(cc_toolchain, "objcopy")
+    obj_copy_tool = _tool_path_for_action(cc_toolchain, "objcopy", feature_configuration, ACTION_NAMES.objcopy_embed_data)
     if obj_copy_tool != None:
         # objcopy is optional in Crostool.
         result["OBJCOPY"] = obj_copy_tool
-    gcov_tool = _tool_path(cc_toolchain, "gcov-tool")
+    gcov_tool = _tool_path_for_action(cc_toolchain, "gcov-tool", feature_configuration, None)
     if gcov_tool != None:
         # gcovtool is optional in Crostool.
         result["GCOVTOOL"] = gcov_tool
