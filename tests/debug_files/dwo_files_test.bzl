@@ -49,6 +49,7 @@ def _test_provider_contents():
         name = "impl_lib",
         hdrs = ["impl_lib.h"],
         srcs = ["impl_lib.cc"],
+        target_compatible_with = ["@platforms//os:linux"],
     )
 
     cc_library(
@@ -56,12 +57,14 @@ def _test_provider_contents():
         hdrs = ["lib.h"],
         srcs = ["lib.cc"],
         implementation_deps = [":impl_lib"],
+        target_compatible_with = ["@platforms//os:linux"],
     )
 
     cc_binary(
         name = "main",
         srcs = ["main.cc"],
         deps = ["lib"],
+        target_compatible_with = ["@platforms//os:linux"],
     )
 
     dwo_files_contents_test(
