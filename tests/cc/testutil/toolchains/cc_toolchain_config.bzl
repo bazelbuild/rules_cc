@@ -1495,7 +1495,34 @@ def _impl(ctx):
         ],
     )
 
-    hard_coded_default_features = [default_compile_flags_feature, default_link_flags_feature]
+    sanitize_pwd_feature = feature(
+        name = "sanitize_pwd",
+        enabled = True,
+        env_sets = [env_set(
+            actions = [
+                ACTION_NAMES.cpp_link_executable,
+                ACTION_NAMES.cpp_link_dynamic_library,
+                ACTION_NAMES.cpp_link_nodeps_dynamic_library,
+                ACTION_NAMES.cpp_link_static_library,
+                ACTION_NAMES.lto_index_for_executable,
+                ACTION_NAMES.lto_index_for_dynamic_library,
+                ACTION_NAMES.lto_index_for_nodeps_dynamic_library,
+                ACTION_NAMES.objc_executable,
+                ACTION_NAMES.objc_fully_link,
+                ACTION_NAMES.objcpp_executable,
+            ],
+            env_entries = [env_entry(
+                key = "PWD",
+                value = "/proc/self/cwd",
+            )],
+        )] if ctx.attr.target_libc != "macosx" else [],
+    )
+
+    hard_coded_default_features = [
+        default_compile_flags_feature,
+        default_link_flags_feature,
+        sanitize_pwd_feature,
+    ]
     cmdline_registered_features = [
         _feature_name_to_feature[f]
         for f in ctx.attr._with_features[BuildSettingInfo].value

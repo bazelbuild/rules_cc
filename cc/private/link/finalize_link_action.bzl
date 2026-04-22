@@ -359,9 +359,11 @@ def _create_action(
         action_name = action_name,
         variables = build_variables,
     )
-    if "requires_darwin" not in execution_info:
-        # This prevents gcc from writing the unpredictable (and often irrelevant)
-        # value of getcwd() into the debug info.
+    if not feature_configuration.is_enabled("sanitize_pwd") and "requires_darwin" not in execution_info:
+        # Legacy behavior: prevents gcc from writing the unpredictable (and often
+        # irrelevant) value of getcwd() into the debug info.
+        # New toolchains should use the sanitize_pwd feature instead.
+        # This is mostly solved with -fdebug-prefix-map, and similar flags now.
         env = env | {"PWD": "/proc/self/cwd"}
     exec_group = None
     toolchain = None

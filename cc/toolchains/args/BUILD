@@ -16,6 +16,7 @@ cc_feature_set(
     name = "experimental_replace_legacy_action_config_features",
     all_of = [
         ":backfill_legacy_args",
+        "//cc/toolchains/args/sanitize_pwd:feature",
         "//cc/toolchains/args/archiver_flags:feature",
         "//cc/toolchains/args/pic_flags:feature",
         "//cc/toolchains/args/libraries_to_link:feature",
