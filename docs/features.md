@@ -28,23 +28,23 @@ compiler flags for your situation.
 Depending on how bazel / `rules_cc` read the features, you might need to
 define them differently.
 
-In some cases `rules_cc` checks if a feature is *supported*. In this case
-that means a feature with that name is defined in the toolchain. For
-example:
+In some cases `rules_cc` checks if a feature is *supported*, or it
+automatically enables it when it's relevant. In this case that means a
+feature with that name is defined in the toolchain. For example:
 
 ```bzl
 return [
     cc_common.create_cc_toolchain_config_info(
         features = [
-            feature(name = "dbg"), # Supported by off by default
+            feature(name = "dbg"), # Supported but off by default
         ],
         ...
     ),
 ]
+```
 
 This is separate from if a feature is *enabled*, which either means a
-feature is defined in the toolchain and automatically enabled, for
-example:
+feature is defined in the toolchain and automatically enabled:
 
 ```bzl
 feature(
@@ -53,17 +53,18 @@ feature(
 ),
 ```
 
-A feature can also be enabled by a user passing
-`--features=archive_param`, or through `implies` in the toolchain
-itself. This distinction is important when adding marker features that
-otherwise don't have any associated command line arguments, but
-`rules_cc` checks if they are enabled. If `rules_cc` checks for a
-feature being enabled, it not existing in the toolchain will be treated
-will be treated the same as it being disabled. This means you can omit
+Or the feature is enabled by a user passing
+`--features=archive_param_file`, or through `implies` in the toolchain
+itself (not covered here). This distinction is important for when
+`rules_cc` checks if a feature is enabled, without automatically
+enabling it. This is common for "marker" features. If `rules_cc` checks
+for a feature being enabled, it not existing in the toolchain will be
+treated the same as it being disabled. This means you can omit
 features that you do not want to support the behavior of.
 
 In some cases `rules_cc` bases behavior on the presence of a feature,
-but doesn't require it to be enabled. This is rare but noted below.
+but doesn't require it to be enabled. This is rare but for the relevant
+features below.
 
 NOTE: Feature names aren't really considered public API, and are subject
 to change more frequently than the rest of the API (even though their
@@ -86,7 +87,7 @@ the feature names, which can be confusing.
 
 For example the `pic` feature (discussed below) is a special _feature_
 name that also reads the `pic` variable, which is a special _variable_
-name decided on by `rules_cc`. The fact that the same string is used is
+name decided on by `rules_cc`. The fact that the same name is used is
 not a requirement but is a common pattern to be aware of.
 
 ## Toolchain actions
@@ -148,8 +149,8 @@ features dependent on `coverage` being enabled.
 `fully_static_link` is not used by `rules_cc` directly but is
 recommended in the `cc_binary` documentation for producing fully
 statically linked binaries. If you want to support this it should be
-implemented in your toolchain. For example one implementation might be
-you pass `-static` to the linker when this feature is enabled.
+implemented in your toolchain. For example the default implementation is
+to pass `-static` to the linker when this feature is enabled.
 
 This feature is off by default.
 
@@ -175,7 +176,9 @@ flag.
 See also [`prefer_pic_for_opt_binaries`](#prefer_pic_for_opt_binaries)
 
 `pic`, `supports_pic`, and the optional `force_pic` feature, should all
-be enabled by default if PIC is supported.
+be enabled by default if PIC is supported. The implementation of these
+features should be contingent on the relevant variables being set. See
+the default toolchains for an example.
 
 #### Profile guided optimization features
 
@@ -186,7 +189,7 @@ these fit together it's best to look at the code. The combination of all
 of these features likely isn't well tested today.
 
 The current list of features (not all of these are provided by the
-legacy feature) is:
+legacy features) is:
 
 - `autofdo`
 - `cs_fdo_instrument`
@@ -206,7 +209,7 @@ legacy feature) is:
 - `xbinary_fdo`
 - `xbinaryfdo` (yes both of these exist)
 
-All of these features are off by default
+All of these features are off by default.
 
 ## Other features
 
@@ -262,7 +265,8 @@ These features are requested based on
 [`--compilation_mode`](https://bazel.build/reference/command-line-reference#flag--compilation_mode)
 and primarily useful for customizing other features in the toolchain.
 
-These features are mutually exclusive and one is always enabled.
+These features are mutually exclusive and one is always enabled. By
+default they are all disabled in a toolchain definition.
 
 #### `dead_strip`
 
@@ -309,14 +313,14 @@ This feature should be off by default.
 Deprecated marker features to disable linking shared libraries with
 `--whole-archive` by default.
 
-This feature should be off by default.
+These features should be off by default.
 
 #### `gcc_quoting_for_param_files` / `windows_quoting_for_param_files`
 
 Marker features to configure the quoting style of arguments in `@params`
 files. If neither are enabled, no quoting is applied.
 
-These features should be enabled by default if desired.
+These features must be enabled if desired.
 
 #### `generate_submodules`
 
@@ -330,9 +334,9 @@ This feature should be off by default.
 A marker feature indicating that when creating an interface shared
 library, the toolchain calls the default configured linker. In this case
 it's up to the default linker and toolchain to correctly emit both the
-standard library, and the interface library. If this is not set
+normal shared library, and the interface library. If this is not set
 `rules_cc` uses the `@bazel_tools//tools/cpp:link_dynamic_library`
-helper instead.
+helper instead (which might not work with all toolchain configurations).
 
 This feature should be enabled if desired.
 
@@ -438,8 +442,8 @@ This feature should be off by default.
 Disable `rules_cc` automatically adding the legacy features to the
 toolchain (discussed  above).
 
-This feature should be added if possible (its enabled state does no
-matter).
+This feature should be added if possible, but its enabled state does no
+matter.
 
 #### `no_stripping`
 
@@ -496,8 +500,9 @@ This can be used by users to make sure special characters that are
 expected in `defines` / `copts` are not processed. This is required in
 some cases when you have quoted arguments.
 
-This feature is consulted even if the toolchain doesn't define it. It
-should be disabled by default if added to a toolchain.
+This feature takes effect even if the toolchain doesn't define it. There
+is no purpose in adding it to your toolchain unless you want to enable
+it everywhere.
 
 #### `sanitize_pwd`
 
@@ -506,14 +511,14 @@ the outputs. Otherwise `rules_cc` will set `PWD=/proc/self/cwd` (unless
 on macOS) when linking a binary. This is commonly used when
 `-fdebug-prefix-map` is supported by the compiler.
 
-This feature should be enabled by default if supported.
+This feature must be enabled by default if supported.
 
 #### `set_soname`
 
 A marker feature that causes interface libraries to respect the `soname`
 they have. Otherwise `-soname` is passed when creating interface libraries.
 
-This feature should be enabled by default if supported.
+This feature must be enabled by default if supported.
 
 #### `serialized_diagnostics_file`
 
@@ -530,7 +535,7 @@ A marker feature that causes virtual include paths generated by
 `strip_include_prefix` and friends to use a shorter path. This is useful
 on Windows to avoid long path issues.
 
-This feature should be enabled by default if desired.
+This feature must be enabled by default if desired.
 
 #### `static_link_cpp_runtimes`
 
@@ -552,7 +557,7 @@ A marker feature that indicates 2 things:
 2. Whether a `cc_binary` prefers linking static over shared libraries
    when both are available for a target.
 
-This feature should be enabled if supported. Otherwise it should be
+This feature must be enabled if supported. Otherwise it should be
 omitted from the toolchain.
 
 #### `supports_interface_shared_libraries`
@@ -561,14 +566,14 @@ A marker feature indicating that the toolchain supports creating
 interface libraries for a shared libraries. This can be used to reduce
 input tree size of downstream linking actions.
 
-This feature should be enabled if supported.
+This feature must be enabled if supported.
 
 #### `supports_start_end_lib`
 
 Whether the toolchain supports using the `--start-lib` / `--end-lib`
 linker flags. This is required for use with `LTO`.
 
-This feature should be enabled if supported.
+This feature must be enabled if supported.
 
 #### `symbol_check`
 
@@ -587,8 +592,9 @@ This is still up to the toolchain to configure correctly, but this
 affects the toolchain variables the include paths are passed through.
 This is expected to be set by users when necessary (hopefully rarely).
 
-This feature doesn't need to be defined in the toolchain. If it is it
-should be off by default.
+This feature takes effect even if the toolchain doesn't define it. There
+is no purpose in adding it to your toolchain unless you want to enable
+it everywhere.
 
 #### `targets_windows`
 
@@ -596,7 +602,7 @@ This is used by `rules_cc` to change the behavior in various places only
 when building for Windows. If your toolchain targets Windows this should
 be enabled.
 
-This feature should be enabled if targeting Windows.
+This feature must be enabled if targeting Windows.
 
 #### `treat_warnings_as_errors`
 
@@ -613,7 +619,7 @@ attribute of targets.
 
 See also [`layering_check`](#layering_check)
 
-This feature should be enabled if desired.
+This feature must be enabled if desired.
 
 #### `windows_export_all_symbols` / `no_windows_export_all_symbols`
 
