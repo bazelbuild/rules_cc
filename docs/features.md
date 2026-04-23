@@ -491,7 +491,7 @@ This feature should be enabled by default if supported.
 A marker feature to automatically enable position independent code when
 using `--compilation_mode=opt`.
 
-This feature should be off by default.
+This feature must be enabled if desired.
 
 #### `no_copts_tokenization`
 
