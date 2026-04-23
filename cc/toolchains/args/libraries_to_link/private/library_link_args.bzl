@@ -77,7 +77,7 @@ def library_link_args(name, library_type, from_variable, iterate_over_variable =
     native.alias(
         name = name,
         actual = select({
-            "//cc/toolchains/platforms:apple": ":apple_{}".format(name),
+            "//cc/settings:apple_constraint": ":apple_{}".format(name),
             "//conditions:default": ":generic_{}".format(name),
         }),
     )

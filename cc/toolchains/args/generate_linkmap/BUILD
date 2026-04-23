@@ -13,7 +13,7 @@ cc_args(
     name = "generate_linkmap",
     actions = ["//cc/toolchains/actions:link_actions"],
     args = select({
-        "//cc/toolchains/platforms:apple": ["-Wl,-map,{output_execpath}.map"],
+        "//cc/settings:apple_constraint": ["-Wl,-map,{output_execpath}.map"],
         "//conditions:default": ["-Wl,-Map={output_execpath}.map"],
     }),
     format = {"output_execpath": "//cc/toolchains/variables:output_execpath"},

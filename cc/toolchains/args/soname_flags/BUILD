@@ -4,7 +4,7 @@ load("//cc/toolchains:feature.bzl", "cc_feature")
 cc_feature(
     name = "feature",
     args = select({
-        "//cc/toolchains/platforms:apple": [":apple_set_install_name"],
+        "//cc/settings:apple_constraint": [":apple_set_install_name"],
         "//conditions:default": [],
     }),
     feature_name = "_soname_flags",  # Doesn't override legacy feature, but shouldn't be disabled
@@ -17,7 +17,7 @@ cc_args(
     args = ["-Wl,-install_name,@rpath/{runtime_solib_name}"],
     format = {"runtime_solib_name": "//cc/toolchains/variables:runtime_solib_name"},
     requires_not_none = "//cc/toolchains/variables:runtime_solib_name",
-    target_compatible_with = ["//cc/toolchains/platforms:apple"],
+    target_compatible_with = ["//cc/settings:apple_constraint"],
 )
 
 cc_args(

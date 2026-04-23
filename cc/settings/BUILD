@@ -1,7 +1,7 @@
 load("@bazel_skylib//lib:selects.bzl", "selects")
 
 selects.config_setting_group(
-    name = "default_apple",
+    name = "default_apple_constraint",
     match_any = [
         "@platforms//os:ios",
         "@platforms//os:macos",
@@ -13,7 +13,7 @@ selects.config_setting_group(
 )
 
 label_flag(
-    name = "apple",
-    build_setting_default = ":default_apple",
+    name = "apple_constraint",
+    build_setting_default = ":default_apple_constraint",
     visibility = ["//visibility:public"],
 )
