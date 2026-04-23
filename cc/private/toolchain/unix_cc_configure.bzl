@@ -753,7 +753,13 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
                     "-gc-sections",
                 ),
             ),
-            "%{supports_start_end_lib}": "True" if gold_or_lld_linker_path else "False",
+            "%{supports_start_end_lib}": "True" if _is_linker_option_supported(
+                repository_ctx,
+                cc,
+                force_linker_flags,
+                "-Wl,--start-lib",
+                "--start-lib",
+            ) else "False",
             "%{target_cpu}": escape_string(get_env_var(
                 repository_ctx,
                 "BAZEL_TARGET_CPU",
