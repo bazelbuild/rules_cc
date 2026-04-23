@@ -36,7 +36,7 @@ cc_args(
     name = "force_pic_flags",
     actions = ["//cc/toolchains/actions:link_executable_actions"],
     args = select({
-        "//cc/toolchains/platforms:apple": ["-Wl,-pie"],
+        "//cc/settings:apple_constraint": ["-Wl,-pie"],
         "//conditions:default": ["-pie"],
     }),
     requires_not_none = "//cc/toolchains/variables:force_pic",

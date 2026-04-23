@@ -21,7 +21,7 @@ config_setting(
 selects.config_setting_group(
     name = "use_libtool_on_apple_setting",
     match_all = [
-        "//cc/toolchains/platforms:apple",
+        "//cc/settings:apple_constraint",
         ":use_libtool_setting",
     ],
     visibility = ["//visibility:public"],

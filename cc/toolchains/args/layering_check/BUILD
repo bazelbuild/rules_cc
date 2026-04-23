@@ -58,7 +58,7 @@ cc_args(
     name = "module_name_args",
     actions = ["@rules_cc//cc/toolchains/actions:compile_actions"],
     args = select({
-        "//cc/toolchains/platforms:apple": ["-Xclang"],
+        "//cc/settings:apple_constraint": ["-Xclang"],
         "//conditions:default": [],
     }) + ["-fmodule-name={module_name}"],
     format = {
@@ -71,7 +71,7 @@ cc_args(
     name = "module_map_file_args",
     actions = ["@rules_cc//cc/toolchains/actions:compile_actions"],
     args = select({
-        "//cc/toolchains/platforms:apple": ["-Xclang"],
+        "//cc/settings:apple_constraint": ["-Xclang"],
         "//conditions:default": [],
     }) + ["-fmodule-map-file={module_map_file}"],
     format = {
@@ -84,7 +84,7 @@ cc_args(
     name = "dependent_module_map_files_args",
     actions = ["@rules_cc//cc/toolchains/actions:compile_actions"],
     args = select({
-        "//cc/toolchains/platforms:apple": ["-Xclang"],
+        "//cc/settings:apple_constraint": ["-Xclang"],
         "//conditions:default": [],
     }) + [
         "-fmodule-map-file={dependent_module_map_files}",

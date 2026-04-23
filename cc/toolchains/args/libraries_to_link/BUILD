@@ -76,7 +76,7 @@ cc_nested_args(
 cc_nested_args(
     name = "single_library_args",
     nested = select({
-        "//cc/toolchains/platforms:apple": [],
+        "//cc/settings:apple_constraint": [],
         "//conditions:default": [":optional_whole_archive_start"],
     }) + [
         ":optional_object_file_group",
@@ -86,10 +86,10 @@ cc_nested_args(
         ":optional_dynamic_library",
     ] + select({
         # Apple platforms have a minor nuance where they use the path to the library instead of `-l:{library_name}`.
-        "//cc/toolchains/platforms:apple": [":apple_optional_versioned_dynamic_library"],
+        "//cc/settings:apple_constraint": [":apple_optional_versioned_dynamic_library"],
         "//conditions:default": [":generic_optional_versioned_dynamic_library"],
     }) + select({
-        "//cc/toolchains/platforms:apple": [],
+        "//cc/settings:apple_constraint": [],
         "//conditions:default": [":optional_whole_archive_end"],
     }),
 )
