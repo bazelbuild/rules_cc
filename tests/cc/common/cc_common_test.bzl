@@ -109,22 +109,7 @@ def _test_isolated_includes_impl(env, target):
     else:
         subject.compilation_context().system_include_dirs().contains_at_least(expected_includes)
 
-def _test_strip_include_prefix_no_virtual_includes(name):
-    """Tests that strip_include_prefix without include_prefix avoids _virtual_includes."""
-    util.helper_target(
-        cc_library,
-        name = name + "/lib",
-        hdrs = ["v1/foo.h"],
-        strip_include_prefix = "v1",
-    )
-
-    cc_analysis_test(
-        name = name,
-        impl = _test_strip_include_prefix_no_virtual_includes_impl,
-        target = name + "/lib",
-    )
-
-def _test_strip_include_prefix_no_virtual_includes_impl(env, target):
+def _no_virtual_includes_impl(env, target):
     subject = cc_info_subject.from_target(env, target)
 
     # The include dir should be the direct stripped path, not a _virtual_includes path.
@@ -144,6 +129,66 @@ def _test_strip_include_prefix_no_virtual_includes_impl(env, target):
                 "expected no _virtual_includes in header path",
                 "actual: {}".format(header.path),
             )
+
+def _uses_virtual_includes_impl(env, target):
+    subject = cc_info_subject.from_target(env, target)
+
+    include_dirs = subject.compilation_context().include_dirs()
+    include_dirs.contains_at_least_predicates(
+        [matching.custom(
+            "contains '_virtual_includes'",
+            lambda s: "_virtual_includes" in s,
+        )],
+    )
+
+def _test_strip_include_prefix_uses_virtual_includes_by_default(name):
+    """Tests that strip_include_prefix alone still uses _virtual_includes when skip_virtual_includes is not active."""
+    util.helper_target(
+        cc_library,
+        name = name + "/lib",
+        hdrs = ["v1/foo.h"],
+        strip_include_prefix = "v1",
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _uses_virtual_includes_impl,
+        target = name + "/lib",
+    )
+
+def _test_strip_include_prefix_no_virtual_includes_with_layering_check(name):
+    """Tests that layering_check auto-enables the skip_virtual_includes optimization."""
+    util.helper_target(
+        cc_library,
+        name = name + "/lib",
+        hdrs = ["v1/foo.h"],
+        strip_include_prefix = "v1",
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _no_virtual_includes_impl,
+        target = name + "/lib",
+        with_features = ["layering_check", "skip_virtual_includes"],
+        test_features = ["layering_check"],
+    )
+
+def _test_skip_virtual_includes_can_be_disabled(name):
+    """Tests that --features=-skip_virtual_includes overrides the default even when layering_check is on."""
+    util.helper_target(
+        cc_library,
+        name = name + "/lib",
+        hdrs = ["v1/foo.h"],
+        strip_include_prefix = "v1",
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _uses_virtual_includes_impl,
+        target = name + "/lib",
+        with_features = ["layering_check", "skip_virtual_includes"],
+        test_features = ["layering_check", "-skip_virtual_includes"],
+    )
 
 def _test_strip_include_prefix_with_include_prefix_uses_virtual_includes(name):
     """Tests that strip_include_prefix with include_prefix still uses _virtual_includes."""
@@ -187,6 +232,8 @@ def _test_strip_include_prefix_error_not_under_prefix(name):
         impl = _test_strip_include_prefix_error_not_under_prefix_impl,
         target = name + "/lib",
         expect_failure = True,
+        with_features = ["layering_check", "skip_virtual_includes"],
+        test_features = ["layering_check"],
     )
 
 def _test_strip_include_prefix_error_not_under_prefix_impl(env, target):
@@ -205,7 +252,9 @@ def cc_common_tests(name):
     ]
     if bazel_features.cc.cc_common_is_in_rules_cc:
         tests.extend([
-            _test_strip_include_prefix_no_virtual_includes,
+            _test_strip_include_prefix_uses_virtual_includes_by_default,
+            _test_strip_include_prefix_no_virtual_includes_with_layering_check,
+            _test_skip_virtual_includes_can_be_disabled,
             _test_strip_include_prefix_with_include_prefix_uses_virtual_includes,
             _test_strip_include_prefix_error_not_under_prefix,
         ])

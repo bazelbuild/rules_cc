@@ -60,6 +60,7 @@ def _compute_public_headers(
         non_module_map_headers,
         is_sibling_repository_layout,
         shorten_virtual_includes,
+        skip_virtual_includes,
         *,
         must_use_strip_prefix = True):
     if include_prefix:
@@ -122,7 +123,7 @@ def _compute_public_headers(
         )
 
     # When only stripping, we don't need to use _virtual_include path
-    if strip_prefix and not include_prefix:
+    if skip_virtual_includes and strip_prefix and not include_prefix:
         module_map_headers = []
         virtual_to_original_headers_list = []
         include_paths = {}
@@ -454,6 +455,7 @@ def _init_cc_compilation_context(
     quote_include_dirs_for_context = [repo_path, gen_include_dir, bin_include_dir] + quote_include_dirs
     external = repo_name != "" and _enabled(feature_configuration, "external_include_paths")
     shorten_virtual_includes = _enabled(feature_configuration, "shorten_virtual_includes")
+    skip_virtual_includes = _enabled(feature_configuration, "skip_virtual_includes")
     external_include_dirs = []
     declared_include_srcs = []
 
@@ -486,6 +488,7 @@ def _init_cc_compilation_context(
         non_module_map_headers,
         sibling_repo_layout,
         shorten_virtual_includes,
+        skip_virtual_includes,
     )
     if public_headers.virtual_include_path:
         if external:
@@ -504,6 +507,7 @@ def _init_cc_compilation_context(
         non_module_map_headers,
         sibling_repo_layout,
         shorten_virtual_includes,
+        skip_virtual_includes,
         must_use_strip_prefix = False,
     )
     if textual_headers.virtual_include_path:
@@ -543,6 +547,7 @@ def _init_cc_compilation_context(
         non_module_map_headers,
         sibling_repo_layout,
         shorten_virtual_includes,
+        skip_virtual_includes,
     )
 
     separate_module = None
