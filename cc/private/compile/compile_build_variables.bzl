@@ -230,9 +230,13 @@ def _setup_common_compile_build_variables_internal(
 
     if feature_configuration.is_enabled("use_header_modules"):
         result[_VARS.MODULE_FILES] = []
-    result[_VARS.INCLUDE_PATHS] = depset(transitive = [include_dirs, local_includes])
+    if feature_configuration.is_requested("system_include_paths"):
+        result[_VARS.INCLUDE_PATHS] = include_dirs
+        result[_VARS.SYSTEM_INCLUDE_PATHS] = depset(transitive = [system_include_dirs, local_includes])
+    else:
+        result[_VARS.INCLUDE_PATHS] = depset(transitive = [include_dirs, local_includes])
+        result[_VARS.SYSTEM_INCLUDE_PATHS] = system_include_dirs
     result[_VARS.QUOTE_INCLUDE_PATHS] = quote_include_dirs
-    result[_VARS.SYSTEM_INCLUDE_PATHS] = system_include_dirs
     if includes:
         result[_VARS.INCLUDES] = _cc_internal.intern_string_sequence_variable_value(includes)
     result[_VARS.FRAMEWORK_PATHS] = framework_include_dirs

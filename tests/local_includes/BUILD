@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//cc:cc_binary.bzl", "cc_binary")
 load("//cc:cc_library.bzl", "cc_library")
+load("//cc:cc_test.bzl", "cc_test")
 
 licenses(["notice"])
 
@@ -33,7 +33,7 @@ cc_library(
     ],
 )
 
-cc_binary(
+cc_test(
     name = "bin",
     srcs = [
         "binary.c",
