@@ -60,6 +60,7 @@ def _compute_public_headers(
         non_module_map_headers,
         is_sibling_repository_layout,
         shorten_virtual_includes,
+        skip_virtual_includes,
         *,
         must_use_strip_prefix = True):
     if include_prefix:
@@ -103,7 +104,7 @@ def _compute_public_headers(
     if include_prefix and include_prefix.startswith("/"):
         include_prefix = include_prefix[1:]
 
-    if strip_prefix == None and not include_prefix:
+    if (strip_prefix == None and not include_prefix) or not public_headers_artifacts:
         # If CppOptions.experimentalStarlarkCompiling is enabled, then
         # strip_include_prefix and include_prefix are not None.
         # If the option is disabled, their default values (from CcCompilationHelper) are None.
@@ -120,6 +121,41 @@ def _compute_public_headers(
             virtual_include_path = None,
             virtual_to_original_headers = [],
         )
+
+    # When only stripping, we don't need to use _virtual_include path
+    if skip_virtual_includes and strip_prefix and not include_prefix:
+        module_map_headers = []
+        virtual_to_original_headers_list = []
+        include_paths = {}
+        for original_header in public_headers_artifacts:
+            repo_relative_path = _repo_relative_path(original_header)
+            if not repo_relative_path.startswith(strip_prefix):
+                if not must_use_strip_prefix:
+                    module_map_headers.append(original_header)
+                    continue
+
+                fail("header '{}' is not under the specified strip prefix '{}'".format(repo_relative_path, strip_prefix))
+            include_path = original_header.root.path
+            workspace_root = original_header.owner.workspace_root
+            if not include_path:  # this is a source/non-generated file
+                include_path = workspace_root
+            elif workspace_root.startswith("external/"):
+                # in non-sibling repo layout, we need to add workspace root as well
+                include_path = include_path + "/" + workspace_root
+            include_path = get_relative_path(include_path, strip_prefix)
+            include_paths[include_path] = True
+            module_map_headers.append(original_header)
+
+        virtual_headers = module_map_headers + non_module_map_headers
+
+        # We can only handle 1 include path. In case there are more, fallback to _virtual_imports.
+        if len(include_paths.keys()) == 1:
+            return struct(
+                headers = virtual_headers,
+                module_map_headers = module_map_headers,
+                virtual_include_path = include_paths.keys()[0],
+                virtual_to_original_headers = virtual_to_original_headers_list,
+            )
 
     module_map_headers = []
     virtual_to_original_headers_list = []
@@ -419,6 +455,7 @@ def _init_cc_compilation_context(
     quote_include_dirs_for_context = [repo_path, gen_include_dir, bin_include_dir] + quote_include_dirs
     external = repo_name != "" and _enabled(feature_configuration, "external_include_paths")
     shorten_virtual_includes = _enabled(feature_configuration, "shorten_virtual_includes")
+    skip_virtual_includes = _enabled(feature_configuration, "skip_virtual_includes")
     external_include_dirs = []
     declared_include_srcs = []
 
@@ -451,6 +488,7 @@ def _init_cc_compilation_context(
         non_module_map_headers,
         sibling_repo_layout,
         shorten_virtual_includes,
+        skip_virtual_includes,
     )
     if public_headers.virtual_include_path:
         if external:
@@ -469,6 +507,7 @@ def _init_cc_compilation_context(
         non_module_map_headers,
         sibling_repo_layout,
         shorten_virtual_includes,
+        skip_virtual_includes,
         must_use_strip_prefix = False,
     )
     if textual_headers.virtual_include_path:
@@ -508,6 +547,7 @@ def _init_cc_compilation_context(
         non_module_map_headers,
         sibling_repo_layout,
         shorten_virtual_includes,
+        skip_virtual_includes,
     )
 
     separate_module = None

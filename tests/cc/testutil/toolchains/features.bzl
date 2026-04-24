@@ -94,4 +94,5 @@ FEATURE_NAMES = struct(
     no_copts_tokenization = "no_copts_tokenization",
     generate_linkmap = "generate_linkmap",
     shorten_virtual_includes = "shorten_virtual_includes",
+    skip_virtual_includes = "skip_virtual_includes",
 )
