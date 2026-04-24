@@ -286,7 +286,7 @@ cc_toolchain_config(
     name = "k8-compiler_config",
     abi_libc_version = "local",
     abi_version = "local",
-    action_configs = ["objc-compile"],
+    action_configs = [],
     artifact_name_patterns = {},
     builtin_sysroot = "/usr/grte/v1",
     cc_target_os = "",
