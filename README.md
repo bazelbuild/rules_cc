@@ -2,76 +2,67 @@
 
 * Postsubmit [![Build status](https://badge.buildkite.com/f03592ae2d7d25a2abc2a2ba776e704823fa17fd3e061f5103.svg?branch=main)](https://buildkite.com/bazel/rules-cc)
 
-This repository contains a Starlark implementation of C++ rules in Bazel.
+This repository contains C, C++, and Objective-C language support for the [Bazel
+build system](https://bazel.build/).
 
-The rules are being incrementally converted from their native implementations in the [Bazel source tree](https://source.bazel.build/bazel/+/master:src/main/java/com/google/devtools/build/lib/rules/cpp/).
-
-For the list of C++ rules, see the Bazel
+For this module's main API reference, see the Bazel
 [documentation](https://docs.bazel.build/versions/main/be/overview.html).
 
-# Getting Started
+# Get Started
 
-Add the following to your `WORKSPACE` file:
+## Install Bazel
 
-```starlark
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+Follow the official instructions to [Install
+Bazel](https://bazel.build/install).
 
-http_archive(
-    name = "rules_cc",
-    urls = ["https://github.com/bazelbuild/rules_cc/archive/refs/tags/<VERSION>.tar.gz"],
-    sha256 = "...",
+## Add rules_cc to your MODULE.bazel
+
+Add the [latest release](https://registry.bazel.build/modules/rules_cc) to your [MODULE.bazel project file](https://bazel.build/external/overview).
+
+## Declare a build target
+
+In a `BUILD.bazel` file, import and use the rules:
+
+```python
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+
+cc_binary(
+    name = "hello_world",
+    srcs = ["hello_world.cc"],
 )
 ```
 
-Then, in your `BUILD` files, import and use the rules:
+## Build and run your project
 
-```starlark
-load("@rules_cc//cc:defs.bzl", "cc_library")
+Build and run your C/C++ binary with one command:
 
-cc_library(
-    ...
-)
+```console
+$ bazel run hello_world
 ```
 
-# Using the rules_cc toolchain
+To build the project without running the binary, use Bazel's `build` subcommand:
 
-This repo contains an auto-detecting toolchain that expects to find tools installed on your host machine.
-This is non-hermetic, and may have varying behaviors depending on the versions of tools found.
+```console
+$ bazel build hello_world
+```
 
-There are third-party contributed hermetic toolchains you may want to investigate:
+## (optional) Set up a hermetic toolchain
 
-- LLVM: <https://github.com/bazel-contrib/toolchains_llvm>
+Configuring a [hermetic](https://bazel.build/basics/hermeticity) toolchain makes
+your build more deterministic. rules_cc itself does not yet offer a hermetic
+toolchain distribution. Other community owned and maintained projects offer
+hermetic C/C++ toolchains:
+
 - GCC (Linux only): <https://github.com/f0rmiga/gcc-toolchain>
+- Hermetic LLVM: <https://github.com/hermeticbuild/hermetic-llvm>
+- LLVM: <https://github.com/bazel-contrib/toolchains_llvm>
 - zig cc: <https://github.com/uber/hermetic_cc_toolchain>
 
-If you'd like to use the cc toolchain defined in this repo, add this to
-your `WORKSPACE` after you include rules_cc:
-
-```bzl
-load("@rules_cc//cc:repositories.bzl", "rules_cc_dependencies", "rules_cc_toolchains")
-
-rules_cc_dependencies()
-
-rules_cc_toolchains()
+If you elect to use one of the above toolchains, you may want to disable the
+non-hermetic autoconfigured C/C++ toolchain by adding the following Bazel flag
+to your project's [`.bazelrc` file](https://bazel.build/run/bazelrc):
 ```
-
-# Migration Tools
-
-This repository also contains migration tools that can be used to migrate your
-project for Bazel incompatible changes.
-
-## Legacy fields migrator
-
-Script that migrates legacy crosstool fields into features
-([incompatible flag](https://github.com/bazelbuild/bazel/issues/6861), 
-[tracking issue](https://github.com/bazelbuild/bazel/issues/5883)).
-
-TLDR:
-
-```
-bazel run @rules_cc//tools/migration:legacy_fields_migrator -- \
-  --input=my_toolchain/CROSSTOOL \
-  --inline
+--repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
 ```
 
 # Contributing
