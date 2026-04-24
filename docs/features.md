@@ -10,12 +10,12 @@ arbitrary strings for enabling or disabling behavior in the toolchain.
 
 Semantically there are 3 types of features:
 
-1. Features whose names are arbitrary, and are just used to carry
+1. Features whose names are arbitrary, and are only used to carry
    command line flags.
-2. Features which are just markers to bazel / `rules_cc` that some
-   behavior should be enabled or is supported by the toolchain
-3. Features which whose name is special, but also is expected to pass
-   the various compiler / linker flags to enable the behavior.
+2. Features with special names which are markers to bazel / `rules_cc`
+   that some behavior should be enabled or is supported by the toolchain
+3. Features with special names, that are also expected to pass the
+   various compiler / linker flags to enable some behavior.
 
 With all features, even though the feature name may have special meaning
 to `rules_cc`, it is still up to your toolchain to provide the correct
@@ -25,14 +25,14 @@ Depending on how bazel / `rules_cc` read the features, you might need to
 define them differently.
 
 In some cases `rules_cc` checks if a feature is *supported*, or it
-automatically enables it when it's relevant. In this case that means a
+automatically _enables_ it when it's relevant. In this case that means a
 feature with that name is defined in the toolchain. For example:
 
 ```bzl
 return [
     cc_common.create_cc_toolchain_config_info(
         features = [
-            feature(name = "dbg"), # Supported but off by default
+            feature(name = "dbg"), # Supported by the toolchain but off by default
         ],
         ...
     ),
@@ -40,27 +40,28 @@ return [
 ```
 
 This is separate from if a feature is *enabled*, which either means a
-feature is defined in the toolchain and automatically enabled:
+feature is defined in the toolchain _and_ automatically enabled:
 
 ```bzl
 feature(
     name = "archive_param_file",
-    enabled = True, # Enabled by default when defined
+    enabled = True,  # Enabled by default when defined
 ),
 ```
 
 Or the feature is enabled by a user passing
-`--features=archive_param_file`, or through `implies` in the toolchain
-itself (not covered here). This distinction is important for when
+`--features=archive_param_file`, setting `features =
+["archive_param_file"]` or through other mechanisms in the toolchain
+definition (not covered here). This distinction is important for when
 `rules_cc` checks if a feature is enabled, without automatically
 enabling it. This is common for "marker" features. If `rules_cc` checks
 for a feature being enabled, it not existing in the toolchain will be
-treated the same as it being disabled. This means a toolchain that does
-not want to support a feature can just omit it.
+treated the same as it being disabled. This means a toolchain that
+does not want to support a feature can omit it.
 
 In some cases `rules_cc` bases behavior on the presence of a feature,
-but doesn't require it to be enabled. This is rare but for the relevant
-features below.
+but doesn't require it to be enabled. This is rare but mentioned for the
+relevant features below.
 
 NOTE: Feature names aren't really considered public API, and are subject
 to change more frequently than the rest of the API (even though their
@@ -74,7 +75,7 @@ change its behavior based on them.
 
 By default, unless you add the
 [`no_legacy_features`](#no_legacy_features) feature to your toolchain,
-you will automatically inherit features and action configurations
+you will automatically inherit the features (and action configurations)
 defined in
 [`legacy_features.bzl`](../cc/private/toolchain_config/legacy_features.bzl).
 It is recommended that you override all features to avoid this
@@ -86,10 +87,7 @@ with the same name as a legacy feature will override the default
 behavior, but any that you omit will be added to your toolchain
 implicitly.
 
-NOTE: Not all of these features work in the default toolchain, so some
-might only be relevant if you are writing your own toolchain.
-
-## All Features
+## All features
 
 Below are all of the features names that currently have special meaning
 for bazel / `rules_cc`, or are commonly used directly by users.
