@@ -2,6 +2,7 @@ load("@rules_testing//lib:util.bzl", "util")
 load("//cc/toolchains:args.bzl", "cc_args")
 load("//cc/toolchains:feature.bzl", "cc_feature")
 load("//cc/toolchains:feature_set.bzl", "cc_feature_set")
+load("//cc/toolchains:legacy_tool.bzl", "cc_legacy_tool")
 load("//cc/toolchains:tool.bzl", "cc_tool")
 load("//cc/toolchains:tool_map.bzl", "cc_tool_map")
 load("//cc/toolchains/args:sysroot.bzl", "cc_sysroot")
@@ -219,6 +220,21 @@ util.helper_target(
     name = "tool_env_toolchain_config",
     args = [":c_compile_env_args"],
     tool_map = ":tool_env_tool_map",
+)
+
+cc_legacy_tool(
+    name = "legacy_gcov",
+    path = "/usr/bin/gcov",
+    tool_name = "gcov",
+)
+
+util.helper_target(
+    cc_toolchain_config,
+    name = "toolchain_config_with_legacy_tools",
+    legacy_tools = [
+        ":legacy_gcov",
+    ],
+    tool_map = ":empty_tool_map",
 )
 
 analysis_test_suite(
