@@ -59,7 +59,8 @@ hermetic C/C++ toolchains:
 - zig cc: <https://github.com/uber/hermetic_cc_toolchain>
 
 If you elect to use one of the above toolchains, you may want to disable the
-non-hermetic autoconfigured C/C++ toolchain with the following Bazel flag:
+non-hermetic autoconfigured C/C++ toolchain by adding the following Bazel flag
+to your project's [`.bazelrc` file](https://bazel.build/run/bazelrc):
 ```
 --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
 ```
