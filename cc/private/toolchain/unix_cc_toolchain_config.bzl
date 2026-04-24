@@ -1820,6 +1820,15 @@ def _impl(ctx):
 
     no_dotd_file_feature = feature(name = "no_dotd_file")
 
+    skip_virtual_includes_requires = [feature_set(features = ["dependency_file"])]
+    if ctx.attr.compiler == "clang":
+        skip_virtual_includes_requires.append(feature_set(features = ["layering_check"]))
+    skip_virtual_includes_feature = feature(
+        name = "skip_virtual_includes",
+        enabled = True,
+        requires = skip_virtual_includes_requires,
+    )
+
     # TODO(#8303): Mac crosstool should also declare every feature.
     if is_linux:
         # Linux artifact name patterns are the default.
@@ -1897,6 +1906,7 @@ def _impl(ctx):
             archive_param_file_feature,
             set_install_name_feature,
             no_dotd_file_feature,
+            skip_virtual_includes_feature,
         ] + layering_check_features(ctx.attr.compiler, ctx.attr.extra_flags_per_feature, is_macos = False)
     else:
         # macOS artifact name patterns differ from the defaults only for dynamic
@@ -1949,6 +1959,7 @@ def _impl(ctx):
             archive_param_file_feature,
             generate_linkmap_feature,
             no_dotd_file_feature,
+            skip_virtual_includes_feature,
         ] + layering_check_features(ctx.attr.compiler, ctx.attr.extra_flags_per_feature, is_macos = True)
 
     parse_headers_action_configs, parse_headers_features = parse_headers_support(
