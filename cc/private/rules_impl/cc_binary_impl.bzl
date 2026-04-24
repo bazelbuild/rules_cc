@@ -107,6 +107,7 @@ def _add_transitive_info_providers(ctx, cc_toolchain, cpp_config, feature_config
         ctx = ctx,
         cc_config = cpp_config,
         cc_toolchain = cc_toolchain,
+        feature_configuration = feature_configuration,
         metadata_files = additional_meta_data + gcno_files + pic_gcno_files,
         virtual_to_original_headers =
             compilation_context.virtual_to_original_headers() if hasattr(compilation_context, "virtual_to_original_headers") else compilation_context._virtual_to_original_headers,

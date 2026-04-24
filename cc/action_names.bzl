@@ -52,6 +52,12 @@ PREPROCESS_ASSEMBLE_ACTION_NAME = "preprocess-assemble"
 # Name of the coverage action.
 LLVM_COV = "llvm-cov"
 
+# Name of the profile data merging action.
+LLVM_PROFDATA = "llvm-profdata"
+
+# Name of the coverage action when using gcov.
+GCOV = "gcov"
+
 # Name of the action producing ThinLto index.
 LTO_INDEXING_ACTION_NAME = "lto-indexing"
 
@@ -126,6 +132,8 @@ ACTION_NAMES = struct(
     assemble = ASSEMBLE_ACTION_NAME,
     preprocess_assemble = PREPROCESS_ASSEMBLE_ACTION_NAME,
     llvm_cov = LLVM_COV,
+    llvm_profdata = LLVM_PROFDATA,
+    gcov = GCOV,
     lto_indexing = LTO_INDEXING_ACTION_NAME,
     lto_backend = LTO_BACKEND_ACTION_NAME,
     cpp_header_analysis = CPP_HEADER_ANALYSIS_ACTION_NAME,
