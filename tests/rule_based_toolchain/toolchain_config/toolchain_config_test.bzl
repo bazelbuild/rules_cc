@@ -203,6 +203,33 @@ def _toolchain_collects_files_test(env, targets):
             )],
         ),
         legacy_feature(
+            name = "external_include_paths",
+            enabled = False,
+            flag_sets = [legacy_flag_set(
+                actions = [
+                    "assemble",
+                    "c++-compile",
+                    "c++-header-parsing",
+                    "c++-module-codegen",
+                    "c++-module-compile",
+                    "c-compile",
+                    "clif-match",
+                    "linkstamp-compile",
+                    "lto-backend",
+                    "objc++-compile",
+                    "objc-compile",
+                    "preprocess-assemble",
+                ],
+                flag_groups = [
+                    legacy_flag_group(
+                        expand_if_available = "external_include_paths",
+                        flags = ["-isystem", "%{external_include_paths}"],
+                        iterate_over = "external_include_paths",
+                    ),
+                ],
+            )],
+        ),
+        legacy_feature(
             name = "supports_pic",
             enabled = False,
         ),
