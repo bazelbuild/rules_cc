@@ -115,103 +115,10 @@ implicitly.
 NOTE: Not all of these features work in the default toolchain, so some
 might only be relevant if you are writing your own toolchain.
 
-### Legacy features with special names
+## All Features
 
-Most legacy features are just strings with no special meaning. For
-example the legacy features define an `includes` feature which carries
-the default include path configuration. In this case the name `includes`
-isn't inherently meaningful. Technically anyone could go into a project
-and pass `--features=-includes` and potentially disable this feature,
-but for many features this would just mean that nothing worked (or
-depending on how it's configured, the toolchain might produce an error).
-
-There are a few legacy features names that are meaningful to bazel or
-`rules_cc`:
-
-#### `coverage` / `gcc_coverage_map_format` / `llvm_coverage_map_format`
-
-Bazel / `rules_cc` automatically enables the `coverage` feature when
-using `bazel coverage` or `bazel build --collect_code_coverage`. It then
-either enables `gcc_coverage_map_format` (default) or
-`llvm_coverage_map_format` (if `--experimental_use_llvm_covmap` is set).
-At this point it is up to the toolchain to pass the correct compiler /
-linker flags to produce the instrumented binaries.
-
-These features are all off by default. Toolchains should make the format
-features dependent on `coverage` being enabled.
-
-#### `fully_static_link`
-
-`fully_static_link` is not used by `rules_cc` directly but is
-recommended in the `cc_binary` documentation for producing fully
-statically linked binaries. If you want to support this it should be
-implemented in your toolchain. For example the default implementation is
-to pass `-static` to the linker when this feature is enabled.
-
-This feature is off by default.
-
-#### `per_object_debug_info`
-
-This feature name, alongside the value of
-[`--fission`](https://bazel.build/reference/command-line-reference#flag--fission)
-is used to determine if debug info should be produced in a separate file
-from the object file.
-
-This feature is off by default.
-
-#### `pic` / `supports_pic`
-
-Bazel / `rules_cc` checks if your toolchain has an enabled feature named
-`supports_pic` to determine if position independent code is supported at
-all. If so it also expects an enabled feature named `pic` which actually
-adds the relevant compiler flags in the correct cases (only when the
-`pic` variable is enabled). You should also add another feature that
-respects the `force_pic` variable, which reacts to the `--force_pic`
-flag.
-
-See also [`prefer_pic_for_opt_binaries`](#prefer_pic_for_opt_binaries)
-
-`pic`, `supports_pic`, and the optional `force_pic` feature, should all
-be enabled by default if PIC is supported. The implementation of these
-features should be contingent on the relevant variables being set. See
-the default toolchains for an example.
-
-#### Profile guided optimization features
-
-`rules_cc` has quite a few PGO/FDO features, which are all automatically
-enabled based on various [`--fdo_*`](https://bazel.build/reference/command-line-reference#flag--fdo_instrument)
-flags it supports. To get the most up to date information on how all of
-these fit together it's best to look at the code. The combination of all
-of these features likely isn't well tested today.
-
-The current list of features (not all of these are provided by the
-legacy features) is:
-
-- `autofdo`
-- `cs_fdo_instrument`
-- `cs_fdo_optimize`
-- `enable_afdo_thinlto`
-- `enable_autofdo_memprof_optimize`
-- `enable_fdo_memprof_optimize`
-- `enable_fdo_split_functions`
-- `enable_fdo_thinlto`
-- `enable_fsafdo`
-- `enable_xbinaryfdo_thinlto`
-- `fdo_instrument`
-- `fdo_optimize`
-- `fdo_prefetch_hints`
-- `propeller_optimize_thinlto_compile_actions`
-- `propeller_optimize`
-- `xbinary_fdo`
-- `xbinaryfdo` (yes both of these exist)
-
-All of these features are off by default.
-
-## Other features
-
-These features are not part of the legacy features, but might be part of
-the default cc toolchains, and can potentially be enabled / disabled via
-`--features` / `--host_features`.
+Below are all of the features names that currently have special meaning
+for bazel / `rules_cc`, or are commonly used directly by users.
 
 #### `archive_param_file`
 
@@ -247,6 +154,18 @@ the output directory of a `cc_binary` when linking against them. This is
 commonly used on Windows.
 
 This feature must be enabled if desired.
+
+#### `coverage` / `gcc_coverage_map_format` / `llvm_coverage_map_format`
+
+Bazel / `rules_cc` automatically enables the `coverage` feature when
+using `bazel coverage` or `bazel build --collect_code_coverage`. It then
+either enables `gcc_coverage_map_format` (default) or
+`llvm_coverage_map_format` (if `--experimental_use_llvm_covmap` is set).
+At this point it is up to the toolchain to pass the correct compiler /
+linker flags to produce the instrumented binaries.
+
+These features are all off by default. Toolchains should make the format
+features dependent on `coverage` being enabled.
 
 #### `cpp_modules`
 
@@ -310,6 +229,16 @@ Deprecated marker features to disable linking shared libraries with
 `--whole-archive` by default.
 
 These features should be off by default.
+
+#### `fully_static_link`
+
+`fully_static_link` is not used by `rules_cc` directly but is
+recommended in the `cc_binary` documentation for producing fully
+statically linked binaries. If you want to support this it should be
+implemented in your toolchain. For example the default implementation is
+to pass `-static` to the linker when this feature is enabled.
+
+This feature is off by default.
 
 #### `gcc_quoting_for_param_files` / `windows_quoting_for_param_files`
 
@@ -482,12 +411,70 @@ and
 
 This feature should be enabled by default if supported.
 
+#### `per_object_debug_info`
+
+This feature name, alongside the value of
+[`--fission`](https://bazel.build/reference/command-line-reference#flag--fission)
+is used to determine if debug info should be produced in a separate file
+from the object file.
+
+This feature is off by default.
+
+#### `pic` / `supports_pic`
+
+Bazel / `rules_cc` checks if your toolchain has an enabled feature named
+`supports_pic` to determine if position independent code is supported at
+all. If so it also expects an enabled feature named `pic` which actually
+adds the relevant compiler flags in the correct cases (only when the
+`pic` variable is enabled). You should also add another feature that
+respects the `force_pic` variable, which reacts to the `--force_pic`
+flag.
+
+See also [`prefer_pic_for_opt_binaries`](#prefer_pic_for_opt_binaries)
+
+`pic`, `supports_pic`, and the optional `force_pic` feature, should all
+be enabled by default if PIC is supported. The implementation of these
+features should be contingent on the relevant variables being set. See
+the default toolchains for an example.
+
 #### `prefer_pic_for_opt_binaries`
 
 A marker feature to automatically enable position independent code when
 using `--compilation_mode=opt`.
 
 This feature must be enabled if desired.
+
+#### Profile guided optimization features
+
+`rules_cc` has quite a few PGO/FDO features, which are all automatically
+enabled based on various [`--fdo_*`](https://bazel.build/reference/command-line-reference#flag--fdo_instrument)
+flags it supports. To get the most up to date information on how all of
+these fit together it's best to look at the code. The combination of all
+of these features likely isn't well tested today.
+
+The current list of features (not all of these are provided by the
+legacy features) is:
+
+- `autofdo`
+- `cs_fdo_instrument`
+- `cs_fdo_optimize`
+- `enable_afdo_thinlto`
+- `enable_autofdo_memprof_optimize`
+- `enable_fdo_memprof_optimize`
+- `enable_fdo_split_functions`
+- `enable_fdo_thinlto`
+- `enable_fsafdo`
+- `enable_xbinaryfdo_thinlto`
+- `fdo_instrument`
+- `fdo_optimize`
+- `fdo_prefetch_hints`
+- `propeller_optimize_thinlto_compile_actions`
+- `propeller_optimize`
+- `xbinary_fdo`
+- `xbinaryfdo` (yes both of these exist)
+
+All of these features are off by default.
+
 
 #### `no_copts_tokenization`
 
