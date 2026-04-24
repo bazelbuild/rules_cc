@@ -4,6 +4,7 @@ load("//cc/toolchains/impl:variables.bzl", "cc_variable", "types")
 load("//tests/rule_based_toolchain:analysis_test_suite.bzl", "analysis_test_suite")
 load("//tests/rule_based_toolchain:testing_rules.bzl", "expect_failure_test")
 load(":args_test.bzl", "TARGETS", "TESTS")
+load(":make_var_provider.bzl", "make_var_provider")
 
 cc_variable(
     name = "some_variable",
@@ -156,6 +157,34 @@ util.helper_target(
     args = ["-resource-dir={resource_dir}"],
     data = ["//tests/rule_based_toolchain/testdata:directory"],
     format = {"resource_dir": "//tests/rule_based_toolchain/testdata:directory"},
+)
+
+make_var_provider(
+    name = "make_vars",
+    variables = {
+        "MY_PATH": "/usr/local",
+        "MY_FLAG": "-DFOO",
+    },
+)
+
+util.helper_target(
+    cc_args,
+    name = "with_make_vars",
+    actions = ["//tests/rule_based_toolchain/actions:all_compile"],
+    args = [
+        "--path={MY_PATH}",
+        "{MY_FLAG}",
+    ],
+    toolchains = [":make_vars"],
+)
+
+util.helper_target(
+    cc_args,
+    name = "with_make_vars_env",
+    actions = ["//tests/rule_based_toolchain/actions:all_compile"],
+    args = ["--foo"],
+    env = {"MY_ENV": "{MY_PATH}/bin"},
+    toolchains = [":make_vars"],
 )
 
 analysis_test_suite(
