@@ -14,6 +14,7 @@
 
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 load("@bazel_skylib//rules:expand_template.bzl", "expand_template")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load("@stardoc//stardoc:stardoc.bzl", "stardoc")
 load("//cc/toolchains/impl:documented_api.bzl", "DOCUMENTED_TOOLCHAIN_RULES")
 load("//cc/toolchains/impl:markdown_helpers.bzl", "xref_substitutions")
@@ -132,4 +133,22 @@ diff_test(
     name = "toolchain_api_diff_test",
     file1 = ":generated_toolchain_api.md",
     file2 = ":toolchain_api.md",
+)
+
+_UPDATE_FILES = {
+    ":toolchain_api_md": "docs/toolchain_api.md",
+}
+
+sh_binary(
+    name = "update",
+    srcs = ["update.sh"],
+    args = [
+        arg
+        for src, dst in _UPDATE_FILES.items()
+        for arg in (
+            "$(rootpath {})".format(src),
+            dst,
+        )
+    ],
+    data = _UPDATE_FILES.keys(),
 )
