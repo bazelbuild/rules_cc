@@ -1821,14 +1821,7 @@ def _impl(ctx):
 
     no_dotd_file_feature = feature(name = "no_dotd_file")
 
-    skip_virtual_includes_requires = [feature_set(features = ["dependency_file"])]
-    if ctx.attr.compiler == "clang":
-        skip_virtual_includes_requires.append(feature_set(features = ["layering_check"]))
-    skip_virtual_includes_feature = feature(
-        name = "skip_virtual_includes",
-        enabled = True,
-        requires = skip_virtual_includes_requires,
-    )
+    skip_virtual_includes_feature = feature(name = "skip_virtual_includes")
 
     # TODO(#8303): Mac crosstool should also declare every feature.
     if is_linux:

@@ -21,7 +21,6 @@ load(
     "env_entry",
     "env_set",
     "feature",
-    "feature_set",
     "flag_group",
     "flag_set",
     "get_profile_correction_flags",
@@ -1004,11 +1003,7 @@ def _impl(ctx):
             enabled = ctx.attr.shorten_virtual_includes,
         )
 
-        skip_virtual_includes_feature = feature(
-            name = "skip_virtual_includes",
-            enabled = True,
-            requires = [feature_set(features = ["parse_showincludes"])],
-        )
+        skip_virtual_includes_feature = feature(name = "skip_virtual_includes")
 
         treat_warnings_as_errors_feature = feature(
             name = "treat_warnings_as_errors",
