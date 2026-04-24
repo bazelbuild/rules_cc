@@ -48,8 +48,6 @@ _shorten_virtual_includes_feature = feature(
 
 _skip_virtual_includes_feature = feature(
     name = FEATURE_NAMES.skip_virtual_includes,
-    enabled = True,
-    requires = [feature_set(features = [FEATURE_NAMES.layering_check])],
 )
 
 _supports_interface_shared_libraries_feature = feature(
