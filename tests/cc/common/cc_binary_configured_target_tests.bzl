@@ -364,6 +364,102 @@ def _test_sanitize_pwd_macos_no_pwd_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
     link_action.env().keys().not_contains("PWD")
 
+def _system_include_paths_from_argv(argv):
+    system_include_paths = []
+    for i in range(len(argv) - 1):
+        if argv[i] == "-isystem":
+            system_include_paths.append(argv[i + 1])
+    return system_include_paths
+
+def _test_system_include_paths_reclassifies_local_includes_without_propagation(name, **kwargs):
+    util.helper_target(
+        cc_library,
+        name = name + "/dep",
+        srcs = ["dep.cc", "dep_local.h"],
+        hdrs = ["dep_public.h"],
+        local_includes = ["dep_private"],
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/hello",
+        srcs = ["hello.cc", "hello_local.h"],
+        deps = [name + "/dep"],
+        local_includes = ["hello_private"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_system_include_paths_reclassifies_local_includes_without_propagation_impl,
+        target = name + "/hello",
+        config_settings = {
+            "//command_line_option:features": ["system_include_paths"],
+        },
+        **kwargs
+    )
+
+def _test_system_include_paths_reclassifies_local_includes_without_propagation_impl(env, target):
+    executable = target[DefaultInfo].files_to_run.executable
+    link_action = env.expect.that_target(target).action_generating(executable.short_path)
+    hello_obj_files = [
+        f
+        for f in link_action.actual.inputs.to_list()
+        if f.basename.startswith("hello.") and f.extension in ["o", "obj"]
+    ]
+
+    env.expect.that_collection(hello_obj_files).has_size(1)
+    compile_action = env.expect.that_target(target).action_generating(hello_obj_files[0].short_path)
+    system_include_paths = _system_include_paths_from_argv(compile_action.actual.argv)
+
+    env.expect.that_collection(system_include_paths).contains_predicate(
+        matching.str_endswith("/hello_private"),
+    )
+    env.expect.that_collection(system_include_paths).transform(
+        filter = matching.str_endswith("/dep_private"),
+    ).contains_exactly([])
+
+def _test_system_include_paths_reclassifies_local_includes_after_includes(name, **kwargs):
+    util.helper_target(
+        cc_library,
+        name = name + "/dep",
+        srcs = ["dep.cc", "dep_local.h"],
+        hdrs = ["dep_public.h"],
+        includes = ["dep_includes"],
+        local_includes = ["dep_private"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_system_include_paths_reclassifies_local_includes_after_includes_impl,
+        target = name + "/dep",
+        config_settings = {
+            "//command_line_option:features": ["system_include_paths"],
+        },
+        **kwargs
+    )
+
+def _test_system_include_paths_reclassifies_local_includes_after_includes_impl(env, target):
+    dep_compile_actions = []
+    for action in target[TestingAspectInfo].actions:
+        if action.mnemonic != "CppCompile":
+            continue
+        for output in action.outputs.to_list():
+            if output.basename.startswith("dep.") and output.extension in ["o", "obj"]:
+                dep_compile_actions.append(action)
+                break
+
+    env.expect.that_collection(dep_compile_actions).has_size(1)
+    dep_system_include_paths = _system_include_paths_from_argv(dep_compile_actions[0].argv)
+
+    dep_system_include_kinds = []
+    for path in dep_system_include_paths:
+        if path.endswith("/dep_includes"):
+            dep_system_include_kinds.append("dep_includes")
+        elif path.endswith("/dep_private"):
+            dep_system_include_kinds.append("dep_private")
+
+    env.expect.that_collection(dep_system_include_kinds).contains_at_least([
+        "dep_includes",
+        "dep_private",
+    ]).in_order()
+
 def cc_binary_configured_target_tests(name):
     tests = [
         _test_files_to_build,
@@ -381,6 +477,8 @@ def cc_binary_configured_target_tests(name):
             _test_sanitize_pwd_feature_enabled,
             _test_sanitize_pwd_feature_disabled,
             _test_sanitize_pwd_macos_no_pwd,
+            _test_system_include_paths_reclassifies_local_includes_after_includes,
+            _test_system_include_paths_reclassifies_local_includes_without_propagation,
         ])
 
     test_suite(

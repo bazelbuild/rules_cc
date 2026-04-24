@@ -7,5 +7,9 @@
 
 
 int main() {
-  return foo() + helper();
+  if (foo() + helper() == 42) {
+    return 0;
+  } else {
+    return 1;
+  }
 }
