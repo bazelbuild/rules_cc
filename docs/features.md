@@ -70,32 +70,6 @@ NOTE: While this document attempts to cover `rules_cc` behavior, it is
 possible for any custom rule to read the features of the toolchain and
 change its behavior based on them.
 
-## Toolchain variables
-
-In order to read this document, or a CC toolchain, you should be
-familiar with the concept of toolchain variables which are separate from
-features. One of the ways that `rules_cc` controls toolchain behavior is
-by passing values through "variables". These are read by the toolchain
-through the configuration such as `expand_if_available` (to see if a a
-variable is set) and `iterate_over` (to loop over an array of strings,
-such as include paths). These variables often use the same strings as
-the feature names, which can be confusing.
-
-For example the `pic` feature (discussed below) is a special _feature_
-name that also reads the `pic` variable, which is a special _variable_
-name decided on by `rules_cc`. The fact that the same name is used is
-not a requirement but is a common pattern to be aware of.
-
-## Toolchain actions
-
-This document doesn't cover `action_config`s, but the legacy behavior
-(described below) applies to them as well, and the names of the action
-configurations are also special.
-
-For example the `strip` action configuration is checked for by name to
-determine if `strip` can be run to produce `cc_binary`'s implicit
-`binary.stripped` output.
-
 ## Legacy features
 
 By default, unless you add the
