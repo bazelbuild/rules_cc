@@ -181,6 +181,10 @@ def cc_toolchain(
         enabled_features = enabled_features,
         compiler = compiler,
         cpu = _CPU,
+        target_libc = select({
+            Label("//cc/settings:apple_constraint"): "macosx",
+            "//conditions:default": "",
+        }),
         visibility = ["//visibility:private"],
         **kwargs
     )
