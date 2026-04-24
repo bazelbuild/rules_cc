@@ -1,9 +1,5 @@
 # CC Toolchain Features
 
-This document covers the special strings used by bazel / `rules_cc` to
-configure cc toolchains behavior. This is useful for flipping specific
-behavior on or off for your project, or for writing your own toolchain.
-
 NOTE: It's possible this document has drifted, please file issues or
 submit PRs for any inaccuracies you find
 
@@ -59,8 +55,8 @@ itself (not covered here). This distinction is important for when
 `rules_cc` checks if a feature is enabled, without automatically
 enabling it. This is common for "marker" features. If `rules_cc` checks
 for a feature being enabled, it not existing in the toolchain will be
-treated the same as it being disabled. This means you can omit
-features that you do not want to support the behavior of.
+treated the same as it being disabled. This means a toolchain that does
+not want to support a feature can just omit it.
 
 In some cases `rules_cc` bases behavior on the presence of a feature,
 but doesn't require it to be enabled. This is rare but for the relevant
@@ -540,9 +536,9 @@ This feature must be enabled by default if desired.
 #### `static_link_cpp_runtimes`
 
 A marker feature used by `rules_cc` to determine if the toolchain
-supports statically
+should statically link the C++ runtime libraries.
 
-This feature should be off by default.
+This feature must be enabled if desired.
 
 #### `supports_dynamic_linker`
 
