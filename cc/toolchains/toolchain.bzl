@@ -50,6 +50,7 @@ def cc_toolchain(
         supports_header_parsing = False,
         supports_param_files = False,
         compiler = "",
+        cpu = "",
         **kwargs):
     """A C/C++ toolchain configuration.
 
@@ -135,6 +136,10 @@ def cc_toolchain(
             See
             [`cc_toolchain.supports_param_files`](https://bazel.build/reference/be/c-cpp#cc_toolchain.supports_param_files)
             for more information.
+        cpu: (str) DEPRECATED: CPU string (ex: "darwin_arm64", "k8") exposed
+            through the `target_cpu` attribute of the toolchain configuration. We
+            should not add new readers of this value, but there are many existing
+            ones in the wild.
         compiler: (str) The type of compiler used by this toolchain (e.g. "gcc", "clang"). The current
             toolchain's compiler is exposed to `@rules_cc//cc/private/toolchain:compiler
             (compiler_flag)` as a flag value.
@@ -154,7 +159,7 @@ def cc_toolchain(
             known_features = known_features,
             enabled_features = enabled_features,
             compiler = compiler,
-            cpu = _CPU,
+            cpu = cpu or _CPU,
             dynamic_runtime_lib = dynamic_runtime_lib,
             libc_top = libc_top,
             module_map = module_map,
@@ -180,7 +185,7 @@ def cc_toolchain(
         known_features = known_features,
         enabled_features = enabled_features,
         compiler = compiler,
-        cpu = _CPU,
+        cpu = cpu or _CPU,
         visibility = ["//visibility:private"],
         **kwargs
     )
