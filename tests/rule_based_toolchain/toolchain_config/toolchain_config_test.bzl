@@ -173,6 +173,26 @@ def _args_missing_requirements_invalid_test(env, targets):
         "It is impossible to enable %s" % targets.requires_all_simple_args.label,
     )
 
+def _args_requiring_capability_valid_test(env, targets):
+    # A cc_args with requires_any_of pointing at a capability should be valid
+    # when the tool_map contains a tool that provides that capability.
+    _expect_that_toolchain(
+        env,
+        args = [targets.requires_supports_pic_args],
+        tool_map = targets.compile_tool_map,
+        expr = "capability_from_tool",
+    ).ok()
+
+    # Without a tool providing the capability, it should fail.
+    _expect_that_toolchain(
+        env,
+        args = [targets.requires_supports_pic_args],
+        tool_map = targets.empty_tool_map,
+        expr = "capability_missing",
+    ).err().contains(
+        "It is impossible to enable %s" % targets.requires_supports_pic_args.label,
+    )
+
 def _toolchain_collects_files_test(env, targets):
     tc = env.expect.that_target(
         targets.collects_files_toolchain_config,
@@ -298,6 +318,7 @@ TARGETS = [
     ":requires_any_simple_feature",
     ":requires_all_simple_feature",
     ":requires_all_simple_args",
+    ":requires_supports_pic_args",
     ":simple_feature",
     ":simple_feature2",
     ":same_feature_name",
@@ -311,6 +332,7 @@ TESTS = {
     "feature_config_implies_missing_feature_invalid_test": _feature_config_implies_missing_feature_invalid_test,
     "feature_missing_requirements_invalid_test": _feature_missing_requirements_invalid_test,
     "args_missing_requirements_invalid_test": _args_missing_requirements_invalid_test,
+    "args_requiring_capability_valid_test": _args_requiring_capability_valid_test,
     "toolchain_collects_files_test": _toolchain_collects_files_test,
     "tool_env_wires_into_toolchain_test": _tool_env_wires_into_toolchain_test,
 }
