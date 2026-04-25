@@ -11,6 +11,12 @@ For the list of C++ rules, see the Bazel
 
 # Getting Started
 
+## Starter repo
+
+The fastest way to try this in an empty project is to click the green "Use this template" button on https://github.com/bazel-starters/cpp.
+
+## In your project
+
 Add the following to your `WORKSPACE` file:
 
 ```starlark
