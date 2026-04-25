@@ -1368,6 +1368,7 @@ _feature_name_to_feature = {
     FEATURE_NAMES.generate_pdb_file: _generate_pdb_file_feature,
     FEATURE_NAMES.generate_linkmap: _generate_linkmap_feature,
     FEATURE_NAMES.shorten_virtual_includes: _shorten_virtual_includes_feature,
+    FEATURE_NAMES.has_configured_linker_path: feature(name = FEATURE_NAMES.has_configured_linker_path),
     "header_modules_feature_configuration": _header_modules_feature_configuration,
     "env_var_feature_configuration": _env_var_feature_configuration,
     "host_and_nonhost_configuration": _host_and_nonhost_configuration,
