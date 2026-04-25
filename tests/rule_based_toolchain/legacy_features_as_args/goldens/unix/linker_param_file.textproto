@@ -8,6 +8,7 @@ flag_sets {
   actions: "lto-index-for-executable"
   actions: "lto-index-for-nodeps-dynamic-library"
   actions: "objc-executable"
+  actions: "objc-fully-link"
   flag_groups {
     expand_if_available: "linker_param_file"
     flags: "@%{linker_param_file}"
