@@ -23,7 +23,9 @@ visibility([
     "//tests/rule_based_toolchain/...",
 ])
 
-REQUIRES_MUTUALLY_EXCLUSIVE_ERR = "requires_none, requires_not_none, requires_true, requires_false, and requires_equal are mutually exclusive"
+REQUIRES_MUTUALLY_EXCLUSIVE_ERR = "requires_none and requires_not_none are mutually exclusive with requires_true, requires_false, and requires_equal"
+REQUIRES_BOOLEAN_MUTUALLY_EXCLUSIVE_ERR = "requires_true, requires_false, and requires_equal are mutually exclusive"
+REQUIRES_NONE_SAME_VARIABLE_ERR = "requires_none and requires_not_none cannot reference the same variable"
 REQUIRES_NOT_NONE_ERR = "requires_not_none only works on options"
 REQUIRES_NONE_ERR = "requires_none only works on options"
 REQUIRES_TRUE_ERR = "requires_true only works on bools"
@@ -198,18 +200,20 @@ def nested_args_provider(
     transitive_files = [ea.files for ea in nested]
     transitive_files.append(files)
 
-    has_value = [attr for attr in [
-        requires_not_none,
-        requires_none,
+    # We may want to reconsider this down the line, but it's easier to open up
+    # an API than to lock down an API.
+    optional_checks = any([requires_not_none, requires_none])
+    boolean_checks = [attr for attr in [
         requires_true,
         requires_false,
         requires_equal,
     ] if attr != None]
-
-    # We may want to reconsider this down the line, but it's easier to open up
-    # an API than to lock down an API.
-    if len(has_value) > 1:
+    if optional_checks and boolean_checks:
         fail(REQUIRES_MUTUALLY_EXCLUSIVE_ERR)
+    if len(boolean_checks) > 1:
+        fail(REQUIRES_BOOLEAN_MUTUALLY_EXCLUSIVE_ERR)
+    if requires_not_none and requires_none and requires_not_none == requires_none:
+        fail(REQUIRES_NONE_SAME_VARIABLE_ERR)
 
     kwargs = {}
 
@@ -233,14 +237,14 @@ def nested_args_provider(
             after_option_unwrap = False,
         ))
         unwrap_options.append(requires_not_none)
-    elif requires_none:
+    if requires_none:
         kwargs["expand_if_not_available"] = requires_none
         requires_types.setdefault(requires_none, []).append(struct(
             msg = REQUIRES_NONE_ERR,
             valid_types = ["option"],
             after_option_unwrap = False,
         ))
-    elif requires_true:
+    if requires_true:
         kwargs["expand_if_true"] = requires_true
         requires_types.setdefault(requires_true, []).append(struct(
             msg = REQUIRES_TRUE_ERR,
@@ -248,7 +252,7 @@ def nested_args_provider(
             after_option_unwrap = True,
         ))
         unwrap_options.append(requires_true)
-    elif requires_false:
+    if requires_false:
         kwargs["expand_if_false"] = requires_false
         requires_types.setdefault(requires_false, []).append(struct(
             msg = REQUIRES_FALSE_ERR,
@@ -256,7 +260,7 @@ def nested_args_provider(
             after_option_unwrap = True,
         ))
         unwrap_options.append(requires_false)
-    elif requires_equal:
+    if requires_equal:
         if not requires_equal_value:
             fail(REQUIRES_EQUAL_VALUE_ERR)
         kwargs["expand_if_equal"] = variable_with_value(
