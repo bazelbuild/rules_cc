@@ -1571,6 +1571,20 @@ def _impl(ctx):
         ],
     )
 
+    generate_stack_usage_feature = feature(
+        name = "generate_stack_usage",
+        flag_sets = [
+            flag_set(
+                actions = all_compile_actions,
+                flag_groups = [
+                    flag_group(
+                        flags = ["-fstack-usage"],
+                    ),
+                ],
+            ),
+        ],
+    )
+
     output_execpath_flags_feature = feature(
         name = "output_execpath_flags",
         flag_sets = [
@@ -1855,6 +1869,7 @@ def _impl(ctx):
             build_interface_libraries_feature,
             dynamic_library_linker_tool_feature,
             generate_linkmap_feature,
+            generate_stack_usage_feature,
             shared_flag_feature,
             linkstamps_feature,
             output_execpath_flags_feature,
@@ -1949,6 +1964,7 @@ def _impl(ctx):
             treat_warnings_as_errors_feature,
             archive_param_file_feature,
             generate_linkmap_feature,
+            generate_stack_usage_feature,
             no_dotd_file_feature,
         ] + layering_check_features(ctx.attr.compiler, ctx.attr.extra_flags_per_feature, is_macos = True)
 
