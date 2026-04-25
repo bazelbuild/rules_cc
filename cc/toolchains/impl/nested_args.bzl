@@ -294,14 +294,22 @@ def _escape(s):
 def _format_target(target, fail = fail):
     if VariableInfo in target:
         return "%%{%s}" % target[VariableInfo].name
-    elif DirectoryInfo in target:
-        return _escape(target[DirectoryInfo].path)
 
-    files = target[DefaultInfo].files.to_list()
-    if len(files) == 1:
-        return _escape(files[0].path)
-
-    fail("%s should be either a variable, a directory, or a single file." % target.label)
+    path = None
+    if DirectoryInfo in target:
+        path = target[DirectoryInfo].path
+    else:
+        files = target[DefaultInfo].files.to_list()
+        if len(files) == 1:
+            path = files[0].path
+    if path == None:
+        fail("%s should be either a variable, a directory, or a single file." % target.label)
+    if "}" in path:
+        fail("The path %r of target %s used with 'format' cannot contain } because it would interfere with the formatting." % (
+            path,
+            target.label,
+        ))
+    return "%%{path:%s}" % path
 
 def _format_string(arg, format, used_vars, fail = fail):
     upto = 0
