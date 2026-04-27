@@ -17,6 +17,7 @@
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 _POSSIBLY_NATIVE_FLAGS = {
+    "incompatible_builtin_objc_strip_action": (lambda ctx: ctx.fragments.objc.builtin_objc_strip_action, "native"),
     "incompatible_disallow_sdk_frameworks_attributes": (lambda ctx: ctx.fragments.objc.disallow_sdk_frameworks_attributes, "native"),
     "incompatible_objc_alwayslink_by_default": (lambda ctx: ctx.fragments.objc.alwayslink_by_default, "native"),
     "incompatible_strip_executable_safely": (lambda ctx: ctx.fragments.objc.strip_executable_safely, "native"),

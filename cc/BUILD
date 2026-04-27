@@ -182,6 +182,13 @@ bool_flag(
     visibility = ["//visibility:public"],
 )
 
+bool_flag(
+    name = "incompatible_builtin_objc_strip_action",
+    build_setting_default = True,
+    scope = "universal",
+    visibility = ["//visibility:public"],
+)
+
 bzl_library(
     name = "core_rules",
     srcs = [
