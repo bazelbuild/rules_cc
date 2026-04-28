@@ -5,8 +5,8 @@
 This repository contains C, C++, and Objective-C language support for the [Bazel
 build system](https://bazel.build/).
 
-For this module's main API reference, see the Bazel
-[documentation](https://docs.bazel.build/versions/main/be/overview.html).
+For this module's main reference, see the Bazel
+[documentation](https://bazel.build/reference/be/c-cpp).
 
 # Get Started
 
@@ -46,7 +46,21 @@ To build the project without running the binary, use Bazel's `build` subcommand:
 $ bazel build hello_world
 ```
 
-## (optional) Set up a hermetic toolchain
+# Toolchains
+
+## Default autoconfigured toolchain
+
+rules_cc includes an auto-configured toolchain that uses the local compiler
+installed on the host machine.
+
+You can disable the autoconfigured C/C++ toolchain by adding the following Bazel
+flag to your project's [`.bazelrc` file](https://bazel.build/run/bazelrc):
+
+```
+--repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
+```
+
+## Hermetic toolchains
 
 Configuring a [hermetic](https://bazel.build/basics/hermeticity) toolchain makes
 your build more deterministic. rules_cc itself does not yet offer a hermetic
@@ -57,13 +71,6 @@ hermetic C/C++ toolchains:
 - Hermetic LLVM: <https://github.com/hermeticbuild/hermetic-llvm>
 - LLVM: <https://github.com/bazel-contrib/toolchains_llvm>
 - zig cc: <https://github.com/uber/hermetic_cc_toolchain>
-
-If you elect to use one of the above toolchains, you may want to disable the
-non-hermetic autoconfigured C/C++ toolchain by adding the following Bazel flag
-to your project's [`.bazelrc` file](https://bazel.build/run/bazelrc):
-```
---repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
-```
 
 # Contributing
 
