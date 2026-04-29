@@ -51,6 +51,7 @@ _SIMPLE_FILES = [
 ]
 _TOOL_DIRECTORY = "tests/rule_based_toolchain/testdata"
 _OVERRIDDEN_MIN_OS = "-mmacosx-version-min=13.0"
+_MIN_OS_FLAG = Label("//tests/rule_based_toolchain/args:macos_min_os_flag")
 
 _CONVERTED_ARGS = subjects.struct(
     flag_sets = subjects.collection,
@@ -208,7 +209,7 @@ def _build_setting_format_test(env, targets):
     )])
 
 def _build_setting_format_override_test(env, targets):
-    build_setting = env.expect.that_target(targets.build_setting_format_override).provider(ArgsInfo)
+    build_setting = env.expect.that_target(targets.build_setting_format).provider(ArgsInfo)
     build_setting.actions().contains_exactly([
         targets.c_compile.label,
         targets.cpp_compile.label,
@@ -216,7 +217,7 @@ def _build_setting_format_override_test(env, targets):
     build_setting.env().entries().contains_exactly({"APPLE_MIN_OS": _OVERRIDDEN_MIN_OS})
 
     converted = env.expect.that_value(
-        convert_args(targets.build_setting_format_override[ArgsInfo]),
+        convert_args(targets.build_setting_format[ArgsInfo]),
         factory = _CONVERTED_ARGS,
     )
     converted.env_sets().contains_exactly([env_set(
@@ -234,7 +235,6 @@ TARGETS = [
     ":env_only",
     ":env_only_requires",
     ":build_setting_format",
-    ":build_setting_format_override",
     ":with_dir",
     ":with_dir_and_data",
     ":iterate_over_optional",
@@ -439,7 +439,10 @@ TESTS = {
     "genrule_data_with_env_format_test": _genrule_data_with_env_format_test,
     "directory_format_in_args_test": _directory_format_in_args_test,
     "build_setting_format_test": _build_setting_format_test,
-    "build_setting_format_override_test": _build_setting_format_override_test,
+    "build_setting_format_override_test": struct(
+        impl = _build_setting_format_override_test,
+        config_settings = {str(_MIN_OS_FLAG): _OVERRIDDEN_MIN_OS},
+    ),
     "good_env_format_test": _good_env_format_test,
     "good_env_format_optional_test": _good_env_format_optional_test,
 }
