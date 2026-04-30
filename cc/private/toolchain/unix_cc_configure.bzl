@@ -319,26 +319,6 @@ def _find_generic(repository_ctx, name, env_name, overridden_tools, warn = False
             auto_configure_fail(msg)
     return result
 
-def find_cc(repository_ctx, overridden_tools):
-    """Find the C compiler (gcc or clang) for the repository, considering overridden tools.
-
-    Args:
-      repository_ctx: The repository context.
-      overridden_tools: A dictionary of overridden tools.
-
-    Returns:
-      The path to the C compiler.
-    """
-    cc = _find_generic(repository_ctx, "gcc", "CC", overridden_tools)
-    if _is_clang(repository_ctx, cc):
-        # If clang is run through a symlink with -no-canonical-prefixes, it does
-        # not find its own include directory, which includes the headers for
-        # libc++. Resolving the potential symlink here prevents this.
-        result = repository_ctx.execute(["readlink", "-f", cc])
-        if result.return_code == 0:
-            return result.stdout.strip()
-    return cc
-
 def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     """Configure C++ toolchain on Unix platforms.
 
@@ -373,7 +353,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     darwin = cpu_value.startswith("darwin")
     bsd = cpu_value == "freebsd" or cpu_value == "openbsd"
 
-    cc = find_cc(repository_ctx, overridden_tools)
+    cc = _find_generic(repository_ctx, "gcc", "CC", overridden_tools)
     is_clang = _is_clang(repository_ctx, cc)
     overridden_tools = dict(overridden_tools)
     overridden_tools["gcc"] = cc
