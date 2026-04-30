@@ -41,6 +41,7 @@ def cc_toolchain(
         args = [],
         artifact_name_patterns = [],
         make_variables = [],
+        legacy_tools = [],
         known_features = [],
         enabled_features = [],
         libc_top = None,
@@ -99,6 +100,9 @@ def cc_toolchain(
         artifact_name_patterns: (List[Label]) A list of `cc_artifact_name_pattern` defining patterns
             for names of artifacts created by this toolchain.
         make_variables: (List[Label]) A list of `cc_make_variable` defining variable substitutions.
+        legacy_tools: (List[Label]) A list of `cc_legacy_tool` rules that specify tools by filesystem
+            path. These are used to populate the legacy `tool_paths` parameter of the toolchain
+            configuration, which is required by some Bazel features (e.g. coverage).
         known_features: (List[Label]) A list of `cc_feature` rules that this toolchain supports.
             Whether or not these
             [features](https://bazel.build/docs/cc-toolchain-config-reference#features)
@@ -193,6 +197,7 @@ def cc_toolchain(
         args = args,
         artifact_name_patterns = artifact_name_patterns,
         make_variables = make_variables,
+        legacy_tools = legacy_tools,
         known_features = known_features,
         enabled_features = enabled_features,
         compiler = compiler,
