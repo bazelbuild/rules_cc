@@ -3,8 +3,10 @@ load("//cc/toolchains:args.bzl", "cc_args")
 load("//cc/toolchains:feature.bzl", "cc_feature")
 load("//cc/toolchains:feature_set.bzl", "cc_feature_set")
 load("//cc/toolchains:legacy_tool.bzl", "cc_legacy_tool")
+load("//cc/toolchains:make_variable.bzl", "cc_make_variable")
 load("//cc/toolchains:tool.bzl", "cc_tool")
 load("//cc/toolchains:tool_map.bzl", "cc_tool_map")
+load("//cc/toolchains:toolchain.bzl", "cc_toolchain")
 load("//cc/toolchains/args:sysroot.bzl", "cc_sysroot")
 load("//cc/toolchains/impl:external_feature.bzl", "cc_external_feature")
 load("//cc/toolchains/impl:toolchain_config.bzl", "cc_legacy_file_group", "cc_toolchain_config")
@@ -228,6 +230,12 @@ cc_legacy_tool(
     tool_name = "gcov",
 )
 
+cc_make_variable(
+    name = "rules_based_make_variable",
+    value = "rules-based-value",
+    variable_name = "RULES_BASED_VAR",
+)
+
 util.helper_target(
     cc_toolchain_config,
     name = "toolchain_config_with_legacy_tools",
@@ -235,6 +243,24 @@ util.helper_target(
         ":legacy_gcov",
     ],
     tool_map = ":empty_tool_map",
+)
+
+cc_toolchain(
+    name = "rules_based_cc_toolchain",
+    compiler = "rules-based-compiler",
+    legacy_tools = [
+        ":legacy_gcov",
+    ],
+    make_variables = [":rules_based_make_variable"],
+    tags = ["manual"],
+    target_system_name = "rules-based-system",
+    tool_map = ":empty_tool_map",
+)
+
+alias(
+    name = "rules_based_cc_toolchain_generated_config",
+    actual = ":_rules_based_cc_toolchain_config",
+    tags = ["manual"],
 )
 
 analysis_test_suite(
