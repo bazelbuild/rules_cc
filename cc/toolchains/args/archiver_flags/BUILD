@@ -109,7 +109,7 @@ cc_args(
     name = "objc_fully_link_archive_path",
     actions = ["//cc/toolchains/actions:objc_fully_link"],
     args = select({
-        ":use_libtool_on_macos_setting": ["-o"],
+        ":use_libtool_on_apple_setting": ["-o"],
         "//conditions:default": [],
     }) + ["{fully_linked_archive_path}"],
     format = {"fully_linked_archive_path": "//cc/toolchains/variables:fully_linked_archive_path"},
