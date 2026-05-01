@@ -153,6 +153,10 @@ def cc_toolchain(
 
     cc_toolchain_visibility = kwargs.pop("visibility", default = None)
 
+    for group in LEGACY_FILE_GROUPS:
+        if group in kwargs:
+            fail("Don't use legacy file groups such as %s. Instead, associate files with `cc_tool` or `cc_args` rules." % group)
+
     target_system_name = target_system_name or select({
         Label("//cc/toolchains/impl:darwin_aarch64"): "aarch64-apple-darwin",
         Label("//cc/toolchains/impl:darwin_x86_64"): "x86_64-apple-darwin",
@@ -170,6 +174,7 @@ def cc_toolchain(
             args = args,
             artifact_name_patterns = artifact_name_patterns,
             make_variables = make_variables,
+            legacy_tools = legacy_tools,
             known_features = known_features,
             enabled_features = enabled_features,
             compiler = compiler,
@@ -185,10 +190,6 @@ def cc_toolchain(
             **kwargs
         )
         return
-
-    for group in LEGACY_FILE_GROUPS:
-        if group in kwargs:
-            fail("Don't use legacy file groups such as %s. Instead, associate files with `cc_tool` or `cc_args` rules." % group)
 
     config_name = "_{}_config".format(name)
     cc_toolchain_config(
