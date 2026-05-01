@@ -44,7 +44,7 @@ load("//cc/private/toolchain_config:configure_features.bzl", "configure_features
 _UnboundValueProviderDoNotUse = provider("This provider is used as an unique symbol to distinguish between bound and unbound Starlark values, to avoid using kwargs.", fields = [])
 _UNBOUND = _UnboundValueProviderDoNotUse()
 
-_OLD_STARLARK_API_ALLOWLISTED_PACKAGES = [("", "tools/build_defs/cc"), ("_builtins", "")]
+_OLD_STARLARK_API_ALLOWLISTED_PACKAGES = [("", "tools/build_defs/cc"), ("_builtins", ""), ("", "third_party/gloop/tools/build_defs/cc")]
 
 def _check_all_sources_contain_tuples_or_none_of_them(files):
     no_tuple = False
