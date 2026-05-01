@@ -163,6 +163,7 @@ PRIVATE_STARLARKIFICATION_ALLOWLIST = [
     # Rust rules
     ("", "third_party/bazel_rules/rules_rust/rust/private"),
     ("rules_rust", "rust/private"),
+    ("rules_rs", "rust/private"),
     # Python rules
     ("", "third_party/bazel_rules/rules_python"),
     # Various
