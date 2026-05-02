@@ -1718,6 +1718,17 @@ def _impl(ctx):
         ],
     )
 
+    lsan_feature = _sanitizer_feature(
+        name = "lsan",
+        specific_compile_flags = [
+            "-fsanitize=leak",
+            "-fno-common",
+        ],
+        specific_link_flags = [
+            "-fsanitize=leak",
+        ],
+    )
+
     tsan_feature = _sanitizer_feature(
         name = "tsan",
         specific_compile_flags = [
@@ -1869,6 +1880,7 @@ def _impl(ctx):
             supports_pic_feature,
             prefer_pic_for_opt_binaries_feature,
             asan_feature,
+            lsan_feature,
             tsan_feature,
             ubsan_feature,
             gcc_quoting_for_param_files_feature,
@@ -1921,6 +1933,7 @@ def _impl(ctx):
             libtool_feature,
             archiver_flags_feature,
             asan_feature,
+            lsan_feature,
             tsan_feature,
             ubsan_feature,
             gcc_quoting_for_param_files_feature,
