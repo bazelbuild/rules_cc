@@ -6,6 +6,7 @@ FEATURE_NAMES = struct(
     no_legacy_features = "no_legacy_features",
     do_not_split_linking_cmdline = "do_not_split_linking_cmdline",
     supports_dynamic_linker = "supports_dynamic_linker",
+    supports_dynamic_library_deps = "supports_dynamic_library_deps",
     supports_interface_shared_libraries = "supports_interface_shared_libraries",
     pic = "pic",
     define_with_space = "define_with_space",
