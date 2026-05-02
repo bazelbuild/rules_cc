@@ -1347,22 +1347,6 @@ def _impl(ctx):
         ],
     )
 
-    linkstamps_feature = feature(
-        name = "linkstamps",
-        flag_sets = [
-            flag_set(
-                actions = all_link_actions + lto_index_actions,
-                flag_groups = [
-                    flag_group(
-                        flags = ["%{linkstamp_paths}"],
-                        iterate_over = "linkstamp_paths",
-                        expand_if_available = "linkstamp_paths",
-                    ),
-                ],
-            ),
-        ],
-    )
-
     libtool_feature = feature(
         name = "libtool",
         enabled = not is_linux,
@@ -1856,7 +1840,6 @@ def _impl(ctx):
             dynamic_library_linker_tool_feature,
             generate_linkmap_feature,
             shared_flag_feature,
-            linkstamps_feature,
             output_execpath_flags_feature,
             runtime_library_search_directories_feature,
             library_search_directories_feature,
