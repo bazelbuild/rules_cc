@@ -36,6 +36,7 @@ cc_feature_set(
         "//cc/toolchains/args/linkstamp_flags:feature",
         "//cc/toolchains/args/library_search_directories:feature",
         "//cc/toolchains/args/dependency_file:feature",
+        "//cc/toolchains/args/coverage:feature",
 
         # NOTE: This should come below default flags so user flags can override them
         "//cc/toolchains/args/compile_flags:feature",
