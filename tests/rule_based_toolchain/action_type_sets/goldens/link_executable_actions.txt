@@ -1,0 +1,3 @@
+c++-link-executable
+lto-index-for-executable
+objc-executable
