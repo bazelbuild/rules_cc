@@ -24,23 +24,6 @@ load(":cc_toolchain_info.bzl", "CcToolchainInfo")
 
 visibility("private")
 
-_TOOL_PATH_ONLY_TOOLS = [
-    "gcov-tool",
-    "gcov",
-    "llvm-profdata",
-    "llvm-cov",
-]
-
-_REQUIRED_TOOLS = [
-    "ar",
-    "cpp",
-    "gcc",
-    "ld",
-    "nm",
-    "objdump",
-    "strip",
-]
-
 _SYSROOT_START = "%sysroot%/"
 _WORKSPACE_START = "%workspace%/"
 _CROSSTOOL_START = "%crosstool_top%/"
@@ -82,22 +65,6 @@ def _compute_tool_paths(toolchain_config_info, crosstool_top_path):
             fail("The include path '" + path_str + "' is not normalized.")
         tool_paths_collector[tool.name] = get_relative_path(crosstool_top_path, path_str)
 
-    # These tools can only be declared using tool paths, so action-only toolchains should still
-    # be allowed to declared them while still being treated as an action-only toolchain. If a tool
-    # that can be specified with actions is declared using paths, the toolchain will be treated as
-    # a tool-path toolchain to enforce users to migrate their toolchain fully.
-    contains_all = True
-    for key in tool_paths_collector.keys():
-        if key not in _TOOL_PATH_ONLY_TOOLS:
-            contains_all = False
-            break
-    if contains_all:
-        for tool in _REQUIRED_TOOLS:
-            tool_paths_collector[tool] = get_relative_path(crosstool_top_path, tool)
-    else:
-        for tool in _REQUIRED_TOOLS:
-            if tool not in tool_paths_collector.keys():
-                fail("Tool path for '" + tool + "' is missing")
     return tool_paths_collector
 
 def _resolve_include_dir(target_label, s, sysroot, crosstool_path):
