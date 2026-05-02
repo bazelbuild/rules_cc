@@ -95,4 +95,5 @@ FEATURE_NAMES = struct(
     generate_linkmap = "generate_linkmap",
     shorten_virtual_includes = "shorten_virtual_includes",
     preprocessor_defines = "preprocessor_defines",
+    has_configured_linker_path = "has_configured_linker_path",
 )
