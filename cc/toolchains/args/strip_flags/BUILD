@@ -42,7 +42,7 @@ cc_args(
     name = "preserve_dates",
     actions = ["//cc/toolchains/actions:strip"],
     args = select({
-        "@platforms//os:macos": [],
+        "//cc/settings:apple_constraint": [],
         "@platforms//os:windows": [],
         "//conditions:default": ["-p"],
     }),
