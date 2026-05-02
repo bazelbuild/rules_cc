@@ -50,6 +50,7 @@ def cc_toolchain(
         static_runtime_lib = None,
         supports_header_parsing = False,
         supports_param_files = False,
+        interface_library_builder = None,
         compiler = "",
         target_system_name = None,
         **kwargs):
@@ -140,6 +141,7 @@ def cc_toolchain(
             See
             [`cc_toolchain.supports_param_files`](https://bazel.build/reference/be/c-cpp#cc_toolchain.supports_param_files)
             for more information.
+        interface_library_builder: (Label) A single file used for producing interface libraries when enabled.
         compiler: (str) The type of compiler used by this toolchain (e.g. "gcc", "clang"). The current
             toolchain's compiler is exposed to `@rules_cc//cc/private/toolchain:compiler
             (compiler_flag)` as a flag value.
@@ -219,6 +221,10 @@ def cc_toolchain(
             **kwargs
         )
         legacy_file_groups[group] = group_name
+
+    # TODO: Inline when we drop bazel 8.x support
+    if interface_library_builder:
+        kwargs["interface_library_builder"] = interface_library_builder
 
     _cc_toolchain(
         name = name,
