@@ -13,6 +13,7 @@
 # limitations under the License.
 """Helper functions for working with args."""
 
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@bazel_skylib//rules/directory:providers.bzl", "DirectoryInfo")
 load("//cc:cc_toolchain_config_lib.bzl", "flag_group", "variable_with_value")
 load("//cc/toolchains:cc_toolchain_info.bzl", "NestedArgsInfo", "VariableInfo")
@@ -291,9 +292,23 @@ def nested_args_provider(
 def _escape(s):
     return s.replace("%", "%%")
 
+_SUPPORTED_BUILD_SETTING_TYPES = ["string", "bool", "int", "Label"]
+
+def _format_build_setting(value, label, fail = fail):
+    if type(value) in _SUPPORTED_BUILD_SETTING_TYPES:
+        return _escape(str(value))
+
+    fail("%s had an unsupported build setting type %s. Only string, bool, int, or Label values may be formatted." % (label, type(value)))
+
 def _format_target(target, fail = fail):
     if VariableInfo in target:
         return "%%{%s}" % target[VariableInfo].name
+    elif BuildSettingInfo in target:
+        return _format_build_setting(
+            target[BuildSettingInfo].value,
+            target.label,
+            fail = fail,
+        )
     elif DirectoryInfo in target:
         return _escape(target[DirectoryInfo].path)
 
@@ -301,7 +316,7 @@ def _format_target(target, fail = fail):
     if len(files) == 1:
         return _escape(files[0].path)
 
-    fail("%s should be either a variable, a directory, or a single file." % target.label)
+    fail("%s should be either a variable, a build setting, a directory, or a single file." % target.label)
 
 def _format_string(arg, format, used_vars, fail = fail):
     upto = 0
