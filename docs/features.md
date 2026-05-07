@@ -42,22 +42,30 @@ return [
 This is separate from if a feature is *enabled*, which either means a
 feature is defined in the toolchain _and_ automatically enabled:
 
-```bzl
-feature(
-    name = "archive_param_file",
-    enabled = True,  # Enabled by default when defined
-),
-```
+This is separate from when a feature is *enabled*, which means one of
+the following:
 
-Or the feature is enabled by a user passing
-`--features=archive_param_file`, setting `features =
-["archive_param_file"]` or through other mechanisms in the toolchain
-definition (not covered here). This distinction is important for when
-`rules_cc` checks if a feature is enabled, without automatically
-enabling it. This is common for "marker" features. If `rules_cc` checks
-for a feature being enabled, it not existing in the toolchain will be
-treated the same as it being disabled. This means a toolchain that
-does not want to support a feature can omit it.
+- The feature is defined in the toolchain _and_ enabled by default in
+  its definition:
+
+   ```bzl
+   feature(
+      name = "archive_param_file",
+      enabled = True,  # Enabled by default when defined
+   ),
+   ```
+
+- the feature is enabled by a user passing
+  `--features=archive_param_file`, setting `features =
+  ["archive_param_file"]` or through other mechanisms in the toolchain
+  definition (not covered here).
+
+This distinction is important for when `rules_cc` checks if a feature is
+enabled, without automatically enabling it. This is common for "marker"
+features. If `rules_cc` checks for a feature being enabled, it not
+existing in the toolchain will be treated the same as it being disabled.
+This means a toolchain that does not want to support a feature can omit
+it.
 
 In some cases `rules_cc` bases behavior on the presence of a feature,
 but doesn't require it to be enabled. This is rare but mentioned for the
