@@ -190,6 +190,7 @@ def _cc_toolchain_impl(ctx):
         cc_provider_in_toolchain = True,
     )
     providers.append(cc_toolchain)
+    providers.append(attributes.cc_toolchain_config_info)
     providers.append(toolchain)
     providers.append(template_variable_info)
     providers.append(DefaultInfo(files = cc_toolchain._all_files_including_libc))
