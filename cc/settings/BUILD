@@ -1,4 +1,11 @@
 load("@bazel_skylib//lib:selects.bzl", "selects")
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
+
+bool_flag(
+    name = "incompatible_use_native_collect_cc_coverage",
+    build_setting_default = False,
+    visibility = ["//visibility:public"],
+)
 
 selects.config_setting_group(
     name = "default_apple_constraint",
