@@ -389,7 +389,7 @@ def _impl(ctx):
             enabled = True,
             flag_sets = [
                 flag_set(
-                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                    actions = all_link_actions + [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
                     flag_groups = [
                         flag_group(
                             flags = [
