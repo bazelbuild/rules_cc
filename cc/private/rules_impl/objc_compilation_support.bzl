@@ -98,7 +98,6 @@ def _build_common_variables(
         compilation_artifacts = compilation_artifacts,
         deps = deps,
         implementation_deps = implementation_deps,
-        intermediate_artifacts = intermediate_artifacts,
         attr_linkopts = attr_linkopts,
         direct_cc_compilation_contexts = direct_cc_compilation_contexts,
         includes = cc_helper.include_dirs(ctx, {}) if hasattr(ctx.attr, "includes") else [],

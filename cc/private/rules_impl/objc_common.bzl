@@ -57,7 +57,6 @@ def _create_context_and_provider(
         ctx,
         compilation_attributes,
         compilation_artifacts,
-        intermediate_artifacts,
         deps,
         implementation_deps,
         attr_linkopts,
