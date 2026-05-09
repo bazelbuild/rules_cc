@@ -17,3 +17,15 @@ cc_tool_capability(
 cc_tool_capability(
     name = "supports_pic",
 )
+
+cc_tool_capability(
+    name = "coverage",
+)
+
+cc_tool_capability(
+    name = "llvm_coverage_map_format",
+)
+
+cc_tool_capability(
+    name = "gcc_coverage_map_format",
+)
