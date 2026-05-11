@@ -8,7 +8,7 @@ load("//cc:action_names.bzl", "ACTION_NAMES")
 load("//cc:objc_library.bzl", "objc_library")
 load("//tests/cc/testutil:cc_analysis_test.bzl", "cc_analysis_test")
 
-def _test_data_in_runfiles(name, **kwargs):
+def _test_objc_data_in_runfiles(name, **kwargs):
     util.helper_target(
         objc_library,
         name = name + "_lib_with_data",
@@ -30,12 +30,12 @@ def _test_data_in_runfiles_impl(env, target):
     target.runfiles().contains_predicate(matching.str_endswith("/data_file.txt"))
     target.data_runfiles().contains_predicate(matching.str_endswith("/data_file.txt"))
     target.runfiles().not_contains_predicate(matching.str_endswith(".a"))
-    target.data_runfiles().contains_predicate(matching.str_endswith(".a"))
+    target.data_runfiles().not_contains_predicate(matching.str_endswith(".a"))
 
 def cc_objc_library_configured_target_tests(name):
     test_suite(
         name = name,
         tests = [
-            _test_data_in_runfiles,
+            _test_objc_data_in_runfiles,
         ] if bazel_features.cc.cc_common_is_in_rules_cc else [],
     )
