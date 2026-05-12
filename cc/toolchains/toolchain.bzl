@@ -213,7 +213,7 @@ def cc_toolchain(
         known_features = known_features,
         enabled_features = enabled_features,
         compiler = compiler,
-        cpu = _CPU,
+        cpu = cpu or _CPU,
         target_libc = target_libc,
         target_system_name = target_system_name,
         visibility = ["//visibility:private"],
