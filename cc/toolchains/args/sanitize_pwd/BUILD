@@ -18,7 +18,7 @@ cc_args(
         "//cc/toolchains/actions:objc_fully_link",
     ],
     env = select({
-        "@platforms//os:macos": {},
+        "//cc/settings:apple_constraint": {},
         "//conditions:default": {"PWD": "/proc/self/cwd"},
     }),
 )

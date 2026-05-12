@@ -18,9 +18,12 @@ load("//cc:cc_toolchain_config_lib.bzl", "flag_group", "variable_with_value")
 load(
     "//cc/toolchains/impl:nested_args.bzl",
     "FORMAT_ARGS_ERR",
+    "REQUIRES_BOOLEAN_MUTUALLY_EXCLUSIVE_ERR",
     "REQUIRES_EQUAL_ERR",
     "REQUIRES_MUTUALLY_EXCLUSIVE_ERR",
     "REQUIRES_NONE_ERR",
+    "REQUIRES_NONE_SAME_VARIABLE_ERR",
+    "REQUIRES_NOT_NONE_ERR",
     "format_list",
     "nested_args_provider",
 )
@@ -164,13 +167,54 @@ def _iterate_over_test(env, targets):
     nested.requires_types().contains_exactly({})
 
 def _requires_types_test(env, targets):
-    _expect_that_nested(
+    combined = _expect_that_nested(
         env,
         requires_not_none = "abc",
         requires_none = "def",
         args = ["--foo"],
+        expr = "requires_not_none_and_requires_none",
+    ).ok()
+    combined.legacy_flag_group().equals(flag_group(
+        expand_if_available = "abc",
+        expand_if_not_available = "def",
+        flags = ["--foo"],
+    ))
+    combined.requires_types().contains_exactly({
+        "abc": [struct(
+            msg = REQUIRES_NOT_NONE_ERR,
+            valid_types = ["option"],
+            after_option_unwrap = False,
+        )],
+        "def": [struct(
+            msg = REQUIRES_NONE_ERR,
+            valid_types = ["option"],
+            after_option_unwrap = False,
+        )],
+    })
+
+    _expect_that_nested(
+        env,
+        requires_not_none = "abc",
+        requires_none = "abc",
+        args = ["--foo"],
+        expr = "requires_none_same_variable",
+    ).err().equals(REQUIRES_NONE_SAME_VARIABLE_ERR)
+
+    _expect_that_nested(
+        env,
+        requires_not_none = "abc",
+        requires_true = "def",
+        args = ["--foo"],
         expr = "mutually_exclusive",
     ).err().equals(REQUIRES_MUTUALLY_EXCLUSIVE_ERR)
+
+    _expect_that_nested(
+        env,
+        requires_true = "abc",
+        requires_false = "def",
+        args = ["--foo"],
+        expr = "boolean_checks_mutually_exclusive",
+    ).err().equals(REQUIRES_BOOLEAN_MUTUALLY_EXCLUSIVE_ERR)
 
     _expect_that_nested(
         env,

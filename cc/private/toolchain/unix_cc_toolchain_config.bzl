@@ -1751,6 +1751,21 @@ def _impl(ctx):
         ],
     )
 
+    macos_reproducible_feature = feature(
+        name = "macos_reproducible",
+        enabled = "macos_reproducible" in ctx.features,
+        flag_sets = [
+            flag_set(
+                actions = all_compile_actions,
+                flag_groups = [flag_group(flags = ["-ffile-compilation-dir=."])],
+            ),
+            flag_set(
+                actions = all_link_actions,
+                flag_groups = [flag_group(flags = ["-Wl,-oso_prefix,."])],
+            ),
+        ],
+    )
+
     # Kept for backwards compatibility with the crosstool that moved. Without
     # linking the objc runtime binaries don't link CoreFoundation for free,
     # which breaks abseil.
@@ -1914,6 +1929,7 @@ def _impl(ctx):
             cpp_module_modmap_file_feature,
             cpp20_module_compile_flags_feature,
             macos_minimum_os_feature,
+            macos_reproducible_feature,
             macos_default_link_flags_feature,
             dependency_file_feature,
             runtime_library_search_directories_feature,

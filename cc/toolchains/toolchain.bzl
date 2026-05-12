@@ -51,6 +51,7 @@ def cc_toolchain(
         supports_header_parsing = False,
         supports_param_files = False,
         compiler = "",
+        cpu = "",
         target_system_name = None,
         **kwargs):
     """A C/C++ toolchain configuration.
@@ -143,6 +144,10 @@ def cc_toolchain(
         compiler: (str) The type of compiler used by this toolchain (e.g. "gcc", "clang"). The current
             toolchain's compiler is exposed to `@rules_cc//cc/private/toolchain:compiler
             (compiler_flag)` as a flag value.
+        cpu: (str) DEPRECATED: CPU string (ex: "darwin_arm64", "k8") exposed
+            through the `target_cpu` attribute of the toolchain configuration. We
+            should not add new readers of this value, but there are many existing
+            ones in the wild.
         target_system_name: (str) The target system name for this toolchain. Bazel doesn't use this
             but starlark rules can read this value through `toolchain_info.target_gnu_system_name`.
             This string is commonly the target triple you would pass to `clang -target` (e.g. "x86_64-unknown-linux-gnu").
@@ -152,6 +157,10 @@ def cc_toolchain(
     """
 
     cc_toolchain_visibility = kwargs.pop("visibility", default = None)
+
+    for group in LEGACY_FILE_GROUPS:
+        if group in kwargs:
+            fail("Don't use legacy file groups such as %s. Instead, associate files with `cc_tool` or `cc_args` rules." % group)
 
     target_system_name = target_system_name or select({
         Label("//cc/toolchains/impl:darwin_aarch64"): "aarch64-apple-darwin",
@@ -175,11 +184,12 @@ def cc_toolchain(
             args = args,
             artifact_name_patterns = artifact_name_patterns,
             make_variables = make_variables,
+            legacy_tools = legacy_tools,
             known_features = known_features,
             enabled_features = enabled_features,
             compiler = compiler,
-            cpu = _CPU,
             target_libc = target_libc,
+            cpu = cpu or _CPU,
             target_system_name = target_system_name,
             dynamic_runtime_lib = dynamic_runtime_lib,
             libc_top = libc_top,
@@ -191,10 +201,6 @@ def cc_toolchain(
             **kwargs
         )
         return
-
-    for group in LEGACY_FILE_GROUPS:
-        if group in kwargs:
-            fail("Don't use legacy file groups such as %s. Instead, associate files with `cc_tool` or `cc_args` rules." % group)
 
     config_name = "_{}_config".format(name)
     cc_toolchain_config(
