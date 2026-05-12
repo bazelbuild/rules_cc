@@ -257,6 +257,8 @@ def get_cpu_value(repository_ctx):
         return "arm"
     if arch in ["aarch64"]:
         return "aarch64"
+    if arch in ["loongarch64"]:
+        return "loongarch64"
     return "k8" if arch in ["amd64", "x86_64", "x64"] else "piii"
 
 def is_cc_configure_debug(repository_ctx):
