@@ -1003,6 +1003,8 @@ def _impl(ctx):
             enabled = ctx.attr.shorten_virtual_includes,
         )
 
+        skip_virtual_includes_feature = feature(name = "skip_virtual_includes")
+
         treat_warnings_as_errors_feature = feature(
             name = "treat_warnings_as_errors",
             flag_sets = [
@@ -1342,6 +1344,7 @@ def _impl(ctx):
             parse_showincludes_feature,
             no_dotd_file_feature,
             shorten_virtual_includes_feature,
+            skip_virtual_includes_feature,
             generate_pdb_file_feature,
             generate_linkmap_feature,
             shared_flag_feature,
