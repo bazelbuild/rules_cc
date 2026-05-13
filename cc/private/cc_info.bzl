@@ -148,22 +148,22 @@ _ModuleMapInfo = provider(
     "ModuleMapInfo",
     fields = {
         "file": "The module map file.",
-        "identifier": "The identifier of the module, either a label or a string.",
+        "name": "The name of the module.",
     },
 )
 
-def create_module_map(*, file, identifier):
+def create_module_map(*, file, name):
     """
     Creates a module map struct.
 
     Args:
         file: The module map file.
-        identifier: The identifier of the module.
+        name: The name of the module.
     Returns:
         A module map struct.
     """
     check_private_api()
-    return _ModuleMapInfo(file = file, identifier = identifier)
+    return _ModuleMapInfo(file = file, name = name)
 
 def create_separate_module_map(module_map):
     """
@@ -174,11 +174,7 @@ def create_separate_module_map(module_map):
     Returns:
         A module map struct.
     """
-    if type(module_map.identifier) == type(""):
-        identifier = module_map.identifier + ".sep"
-    else:
-        identifier = module_map.identifier.same_package_label(module_map.identifier.name + ".sep")
-    return _ModuleMapInfo(file = module_map.file, identifier = identifier)
+    return _ModuleMapInfo(file = module_map.file, name = module_map.name + ".sep")
 
 def create_linking_context(
         *,
