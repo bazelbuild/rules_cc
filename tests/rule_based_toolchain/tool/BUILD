@@ -1,6 +1,7 @@
 load("//cc/toolchains:directory_tool.bzl", "cc_directory_tool")
 load("//cc/toolchains:tool.bzl", "cc_tool")
 load("//tests/rule_based_toolchain:analysis_test_suite.bzl", "analysis_test_suite")
+load(":execution_requirements.bzl", "test_execution_requirements")
 load(":tool_test.bzl", "TARGETS", "TESTS")
 
 cc_tool(
@@ -41,6 +42,22 @@ cc_tool(
         "tool_env": "//tests/rule_based_toolchain/testdata:file1",
         "tool_env_again": "//tests/rule_based_toolchain/testdata:file1",
     },
+    visibility = ["//tests/rule_based_toolchain:__subpackages__"],
+)
+
+test_execution_requirements(
+    name = "execution_requirements",
+    requirements = [
+        "example-requires-network",
+        "example-requires-darwin",
+    ],
+)
+
+cc_tool(
+    name = "tool_with_execution_requirements",
+    src = "//tests/rule_based_toolchain/testdata:bin_wrapper.sh",
+    execution_requirements = [":execution_requirements"],
+    tags = ["example-hardcoded-tag"],
     visibility = ["//tests/rule_based_toolchain:__subpackages__"],
 )
 
