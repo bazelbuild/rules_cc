@@ -18,6 +18,7 @@ All build variables we create for various `CppCompileAction`s
 load("//cc/common:cc_helper_internal.bzl", "extensions", "get_fdo_build_stamp", "get_linkstamp_stamps", _PRIVATE_STARLARKIFICATION_ALLOWLIST = "PRIVATE_STARLARKIFICATION_ALLOWLIST")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private/rules_impl:native_cc_common.bzl", _cc_common_internal = "native_cc_common")
+load(":cc_compilation_helper.bzl", "stringify_module_map_identifier")
 
 # deliberately short name for less clutter while using in this file, we can have
 # a different symbol with a more descriptive name if we ever export this
@@ -310,7 +311,7 @@ def get_specific_compile_build_variables(
     result = {}
 
     if feature_configuration.is_enabled("module_maps") and cpp_module_map:
-        result[_VARS.MODULE_NAME] = cpp_module_map.name
+        result[_VARS.MODULE_NAME] = stringify_module_map_identifier(cpp_module_map.identifier)
         result[_VARS.MODULE_MAP_FILE] = cpp_module_map.file
         result[_VARS.DEPENDENT_MODULE_MAP_FILES] = direct_module_maps
 
