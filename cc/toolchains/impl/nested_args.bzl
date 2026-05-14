@@ -14,6 +14,7 @@
 """Helper functions for working with args."""
 
 load("@bazel_features//:features.bzl", "bazel_features")
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@bazel_skylib//rules/directory:providers.bzl", "DirectoryInfo")
 load("//cc:cc_toolchain_config_lib.bzl", "flag_group", "variable_with_value")
 load("//cc/toolchains:cc_toolchain_info.bzl", "NestedArgsInfo", "VariableInfo")
@@ -24,7 +25,9 @@ visibility([
     "//tests/rule_based_toolchain/...",
 ])
 
-REQUIRES_MUTUALLY_EXCLUSIVE_ERR = "requires_none, requires_not_none, requires_true, requires_false, and requires_equal are mutually exclusive"
+REQUIRES_MUTUALLY_EXCLUSIVE_ERR = "requires_none and requires_not_none are mutually exclusive with requires_true, requires_false, and requires_equal"
+REQUIRES_BOOLEAN_MUTUALLY_EXCLUSIVE_ERR = "requires_true, requires_false, and requires_equal are mutually exclusive"
+REQUIRES_NONE_SAME_VARIABLE_ERR = "requires_none and requires_not_none cannot reference the same variable"
 REQUIRES_NOT_NONE_ERR = "requires_not_none only works on options"
 REQUIRES_NONE_ERR = "requires_none only works on options"
 REQUIRES_TRUE_ERR = "requires_true only works on bools"
@@ -98,6 +101,7 @@ def nested_args_provider_from_ctx(ctx, maybe_used_vars = []):
     return nested_args_provider(
         label = ctx.label,
         args = ctx.attr.args,
+        make_variables = ctx.var,
         format = ctx.attr.format,
         nested = collect_provider(ctx.attr.nested, NestedArgsInfo),
         files = collect_files(ctx.attr.data),
@@ -126,6 +130,7 @@ def nested_args_provider(
         requires_equal = None,
         requires_equal_value = "",
         maybe_used_vars = [],
+        make_variables = {},
         fail = fail):
     """Creates a validated NestedArgsInfo.
 
@@ -154,6 +159,8 @@ def nested_args_provider(
         requires_equal_value: (str) The value to compare the requires_equal
           variable with
         maybe_used_vars: (List[str]) A list of format variables that are not needed during args formatting.
+        make_variables: (dict[str, str]) Make variable substitutions from
+          ctx.var. {KEY} references in args are replaced with values.
         fail: A fail function. Use only for testing.
     Returns:
         NestedArgsInfo
@@ -178,6 +185,8 @@ def nested_args_provider(
             ))
         replacements[name] = target
 
+    make_replacements = {k: struct(__raw_string = v) for k, v in make_variables.items()}
+
     # Intentionally ensure that we do not have to use the variable provided by
     # iterate_over in the format string.
     # For example, a valid use case is:
@@ -191,7 +200,7 @@ def nested_args_provider(
     # )
     formatted_args, _ = format_list(
         args,
-        replacements,
+        make_replacements | replacements,
         must_use = [var for var in format.values() if var not in maybe_used_vars],
         fail = fail,
     )
@@ -199,18 +208,20 @@ def nested_args_provider(
     transitive_files = [ea.files for ea in nested]
     transitive_files.append(files)
 
-    has_value = [attr for attr in [
-        requires_not_none,
-        requires_none,
+    # We may want to reconsider this down the line, but it's easier to open up
+    # an API than to lock down an API.
+    optional_checks = any([requires_not_none, requires_none])
+    boolean_checks = [attr for attr in [
         requires_true,
         requires_false,
         requires_equal,
     ] if attr != None]
-
-    # We may want to reconsider this down the line, but it's easier to open up
-    # an API than to lock down an API.
-    if len(has_value) > 1:
+    if optional_checks and boolean_checks:
         fail(REQUIRES_MUTUALLY_EXCLUSIVE_ERR)
+    if len(boolean_checks) > 1:
+        fail(REQUIRES_BOOLEAN_MUTUALLY_EXCLUSIVE_ERR)
+    if requires_not_none and requires_none and requires_not_none == requires_none:
+        fail(REQUIRES_NONE_SAME_VARIABLE_ERR)
 
     kwargs = {}
 
@@ -234,14 +245,14 @@ def nested_args_provider(
             after_option_unwrap = False,
         ))
         unwrap_options.append(requires_not_none)
-    elif requires_none:
+    if requires_none:
         kwargs["expand_if_not_available"] = requires_none
         requires_types.setdefault(requires_none, []).append(struct(
             msg = REQUIRES_NONE_ERR,
             valid_types = ["option"],
             after_option_unwrap = False,
         ))
-    elif requires_true:
+    if requires_true:
         kwargs["expand_if_true"] = requires_true
         requires_types.setdefault(requires_true, []).append(struct(
             msg = REQUIRES_TRUE_ERR,
@@ -249,7 +260,7 @@ def nested_args_provider(
             after_option_unwrap = True,
         ))
         unwrap_options.append(requires_true)
-    elif requires_false:
+    if requires_false:
         kwargs["expand_if_false"] = requires_false
         requires_types.setdefault(requires_false, []).append(struct(
             msg = REQUIRES_FALSE_ERR,
@@ -257,7 +268,7 @@ def nested_args_provider(
             after_option_unwrap = True,
         ))
         unwrap_options.append(requires_false)
-    elif requires_equal:
+    if requires_equal:
         if not requires_equal_value:
             fail(REQUIRES_EQUAL_VALUE_ERR)
         kwargs["expand_if_equal"] = variable_with_value(
@@ -292,10 +303,28 @@ def nested_args_provider(
 def _escape(s):
     return s.replace("%", "%%")
 
-def _format_target(target, fail = fail):
-    if VariableInfo in target:
-        return "%%{%s}" % target[VariableInfo].name
+_SUPPORTED_BUILD_SETTING_TYPES = ["string", "bool", "int", "Label"]
 
+def _format_build_setting(value, label, fail = fail):
+    if type(value) in _SUPPORTED_BUILD_SETTING_TYPES:
+        return _escape(str(value))
+
+    fail("%s had an unsupported build setting type %s. Only string, bool, int, or Label values may be formatted." % (label, type(value)))
+
+def _format_target(target, fail = fail):
+    # NOTE: This is for use with ctx.var where we don't have a variable, but we
+    # also don't want to allow arbitrary strings. See args.bzl for usage.
+    if hasattr(target, "__raw_string"):
+        return _escape(target.__raw_string)
+    elif VariableInfo in target:
+        return "%%{%s}" % target[VariableInfo].name
+    elif BuildSettingInfo in target:
+        return _format_build_setting(
+            target[BuildSettingInfo].value,
+            target.label,
+            fail = fail,
+        )
+    
     path = None
     if DirectoryInfo in target:
         path = target[DirectoryInfo].path

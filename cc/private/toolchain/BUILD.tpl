@@ -101,7 +101,7 @@ cc_toolchain(
     strip_files = ":empty",
     supports_header_parsing = 1,
     supports_param_files = 1,
-    toolchain_config = ":%{cc_toolchain_identifier}",    
+    toolchain_config = ":%{cc_toolchain_identifier}",
     toolchain_identifier = "%{cc_toolchain_identifier}",
 )
 
@@ -132,6 +132,7 @@ cc_toolchain_config(
     coverage_link_flags = [%{coverage_link_flags}],
     supports_start_end_lib = %{supports_start_end_lib},
     extra_flags_per_feature = %{extra_flags_per_feature},
+    features = [%{toolchain_features}],
 )
 
 # Android tooling requires a default toolchain for the armeabi-v7a cpu.

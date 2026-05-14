@@ -449,6 +449,7 @@ def _compile(
         textual_hdrs = [],
         additional_exported_hdrs = _UNBOUND,  # TODO(ilist@): remove, there are no uses
         includes = [],
+        local_includes = [],
         quote_includes = [],
         system_includes = [],
         framework_includes = [],
@@ -534,6 +535,7 @@ def _compile(
         textual_hdrs = textual_hdrs,
         additional_exported_hdrs = additional_exported_hdrs,
         includes = includes,
+        local_includes = local_includes,
         quote_includes = quote_includes,
         system_includes = system_includes,
         framework_includes = framework_includes,

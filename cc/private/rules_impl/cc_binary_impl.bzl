@@ -517,7 +517,7 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
 
     runtimes_copts = semantics.get_cc_runtimes_copts(ctx)
 
-    additional_make_variable_substitutions = cc_helper.get_toolchain_global_make_variables(cc_toolchain)
+    additional_make_variable_substitutions = cc_helper.get_toolchain_global_make_variables(cc_toolchain, feature_configuration)
     additional_make_variable_substitutions.update(cc_helper.get_cc_flags_make_variable(ctx, feature_configuration, cc_toolchain))
 
     (compilation_context, compilation_outputs) = cc_common.compile(
@@ -531,6 +531,7 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
         defines = cc_helper.defines(ctx, additional_make_variable_substitutions),
         local_defines = cc_helper.local_defines(ctx, additional_make_variable_substitutions) + cc_helper.get_local_defines_for_runfiles_lookup(ctx, ctx.attr.deps),
         includes = cc_helper.include_dirs(ctx, additional_make_variable_substitutions),
+        local_includes = cc_helper.include_dirs(ctx, additional_make_variable_substitutions, attr = "local_includes"),
         private_hdrs = cc_helper.get_private_hdrs(ctx),
         public_hdrs = cc_helper.get_public_hdrs(ctx),
         copts_filter = cc_helper.copts_filter(ctx, additional_make_variable_substitutions),
