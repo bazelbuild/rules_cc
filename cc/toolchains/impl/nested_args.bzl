@@ -100,6 +100,7 @@ def nested_args_provider_from_ctx(ctx, maybe_used_vars = []):
     return nested_args_provider(
         label = ctx.label,
         args = ctx.attr.args,
+        make_variables = ctx.var,
         format = ctx.attr.format,
         nested = collect_provider(ctx.attr.nested, NestedArgsInfo),
         files = collect_files(ctx.attr.data),
@@ -128,6 +129,7 @@ def nested_args_provider(
         requires_equal = None,
         requires_equal_value = "",
         maybe_used_vars = [],
+        make_variables = {},
         fail = fail):
     """Creates a validated NestedArgsInfo.
 
@@ -156,6 +158,8 @@ def nested_args_provider(
         requires_equal_value: (str) The value to compare the requires_equal
           variable with
         maybe_used_vars: (List[str]) A list of format variables that are not needed during args formatting.
+        make_variables: (dict[str, str]) Make variable substitutions from
+          ctx.var. {KEY} references in args are replaced with values.
         fail: A fail function. Use only for testing.
     Returns:
         NestedArgsInfo
@@ -180,6 +184,8 @@ def nested_args_provider(
             ))
         replacements[name] = target
 
+    make_replacements = {k: struct(__raw_string = v) for k, v in make_variables.items()}
+
     # Intentionally ensure that we do not have to use the variable provided by
     # iterate_over in the format string.
     # For example, a valid use case is:
@@ -193,7 +199,7 @@ def nested_args_provider(
     # )
     formatted_args, _ = format_list(
         args,
-        replacements,
+        make_replacements | replacements,
         must_use = [var for var in format.values() if var not in maybe_used_vars],
         fail = fail,
     )
@@ -305,7 +311,11 @@ def _format_build_setting(value, label, fail = fail):
     fail("%s had an unsupported build setting type %s. Only string, bool, int, or Label values may be formatted." % (label, type(value)))
 
 def _format_target(target, fail = fail):
-    if VariableInfo in target:
+    # NOTE: This is for use with ctx.var where we don't have a variable, but we
+    # also don't want to allow arbitrary strings. See args.bzl for usage.
+    if hasattr(target, "__raw_string"):
+        return _escape(target.__raw_string)
+    elif VariableInfo in target:
         return "%%{%s}" % target[VariableInfo].name
     elif BuildSettingInfo in target:
         return _format_build_setting(

@@ -48,7 +48,7 @@ def _cc_args_impl(ctx):
     formatted_env, used_format_vars = format_dict_values(
         env = ctx.attr.env,
         must_use = [],  # checking for unused variables in done when formatting `args`.
-        format = format_targets,
+        format = {k: struct(__raw_string = v) for k, v in ctx.var.items()} | format_targets,
     )
     used_env_variables = [
         var
@@ -57,6 +57,7 @@ def _cc_args_impl(ctx):
     ]
 
     # Ignore file / directory replacements for validation
+    # Filter out variables from ctx.var which don't have to be used
     used_format_vars = [
         v
         for v in used_format_vars
