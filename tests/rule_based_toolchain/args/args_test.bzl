@@ -237,6 +237,8 @@ TARGETS = [
     ":build_setting_format",
     ":with_dir",
     ":with_dir_and_data",
+    ":with_make_vars",
+    ":with_make_vars_env",
     ":iterate_over_optional",
     ":good_env_format",
     ":good_env_format_optional",
@@ -397,6 +399,20 @@ def _good_env_format_test(env, targets):
         )],
     )])
 
+def _with_make_vars_test(env, targets):
+    converted = env.expect.that_value(
+        convert_args(targets.with_make_vars[ArgsInfo]),
+        factory = _CONVERTED_ARGS,
+    )
+    converted.flag_sets().contains_exactly([flag_set(
+        actions = ["c_compile", "cpp_compile"],
+        flag_groups = [flag_group(flags = ["--path=/usr/local", "-DFOO"])],
+    )])
+
+def _with_make_vars_env_test(env, targets):
+    make_vars_env = env.expect.that_target(targets.with_make_vars_env).provider(ArgsInfo)
+    make_vars_env.env().entries().contains_exactly({"MY_ENV": "/usr/local/bin"})
+
 def _good_env_format_optional_test(env, targets):
     """Test that env formatting works with optional types."""
     good_env_optional = env.expect.that_target(targets.good_env_format_optional).provider(ArgsInfo)
@@ -445,4 +461,6 @@ TESTS = {
     ),
     "good_env_format_test": _good_env_format_test,
     "good_env_format_optional_test": _good_env_format_optional_test,
+    "with_make_vars_test": _with_make_vars_test,
+    "with_make_vars_env_test": _with_make_vars_env_test,
 }

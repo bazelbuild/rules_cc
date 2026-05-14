@@ -130,8 +130,7 @@ def _objc_library_impl(ctx):
     return [
         DefaultInfo(
             files = depset(files),
-            default_runfiles = runfiles,
-            data_runfiles = ctx.runfiles(files = files).merge(runfiles),
+            runfiles = runfiles,
         ),
         CcInfo(
             compilation_context = compilation_context,

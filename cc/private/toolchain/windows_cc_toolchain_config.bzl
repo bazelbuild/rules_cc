@@ -547,7 +547,7 @@ def _impl(ctx):
             flag_sets = [
                 flag_set(
                     actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
-                    flag_groups = [flag_group(flags = ["/Od", "/Z7"])],
+                    flag_groups = [flag_group(flags = ["/Od"])],
                 ),
                 flag_set(
                     actions = all_link_actions,
@@ -1003,6 +1003,8 @@ def _impl(ctx):
             enabled = ctx.attr.shorten_virtual_includes,
         )
 
+        skip_virtual_includes_feature = feature(name = "skip_virtual_includes")
+
         treat_warnings_as_errors_feature = feature(
             name = "treat_warnings_as_errors",
             flag_sets = [
@@ -1342,6 +1344,7 @@ def _impl(ctx):
             parse_showincludes_feature,
             no_dotd_file_feature,
             shorten_virtual_includes_feature,
+            skip_virtual_includes_feature,
             generate_pdb_file_feature,
             generate_linkmap_feature,
             shared_flag_feature,
