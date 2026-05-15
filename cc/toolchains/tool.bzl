@@ -19,6 +19,7 @@ load("//cc/toolchains/impl:label_utils.bzl", "deduplicate_label_list")
 load("//cc/toolchains/impl:nested_args.bzl", "format_dict_values")
 load(
     ":cc_toolchain_info.bzl",
+    "ExecutionRequirementsInfo",
     "ToolCapabilityInfo",
     "ToolInfo",
 )
@@ -40,13 +41,16 @@ def _cc_tool_impl(ctx):
         format = format_targets,
         must_use = format_targets.keys(),
     )
+    execution_requirements = []
+    for info in collect_provider(ctx.attr.execution_requirements, ExecutionRequirementsInfo):
+        execution_requirements.extend(info.requirements)
 
     runfiles = collect_data(ctx, ctx.attr.data + [ctx.attr.src])
     tool = ToolInfo(
         label = ctx.label,
         exe = exe,
         runfiles = runfiles,
-        execution_requirements = tuple(ctx.attr.tags),
+        execution_requirements = tuple(ctx.attr.tags + execution_requirements),
         env = env,
         allowlist_include_directories = depset(
             direct = [d[DirectoryInfo] for d in ctx.attr.allowlist_include_directories],
@@ -118,6 +122,13 @@ This can help work around errors like:
 Format expansion is performed on values using the format attribute.
 """,
         ),
+        "execution_requirements": attr.label_list(
+            providers = [ExecutionRequirementsInfo],
+            doc = """Additional execution requirements for actions that run this tool.
+
+Each label must provide `ExecutionRequirementsInfo`. For fixed execution requirements, use `tags`.
+""",
+        ),
         "format_keys": attr.string_list(
             doc = """Format strings used in substitutions for env values.
 
@@ -181,6 +192,7 @@ def cc_tool(
         data = None,
         allowlist_include_directories = None,
         env = None,
+        execution_requirements = None,
         format = {},
         capabilities = None,
         **kwargs):
@@ -235,6 +247,9 @@ def cc_tool(
             (if these are builtin files, make sure these paths are in your toolchain)`.
         env: (Dict[str, str]) Environment variables to apply when running this tool.
             Format expansion is performed on values using `format`.
+        execution_requirements: (List[Label]) Additional execution requirements for actions that
+            run this tool. Each label must provide `ExecutionRequirementsInfo`. For fixed
+            execution requirements, use `tags`.
         format: (Dict[str, Label]) A mapping of format strings to the label of a corresponding
             target. This target can be a `directory`, `subdirectory`, or a single file that the
             value should be pulled from. All instances of `{variable_name}` in the `env` dictionary
@@ -255,6 +270,7 @@ def cc_tool(
         data = data,
         allowlist_include_directories = allowlist_include_directories,
         env = env,
+        execution_requirements = execution_requirements,
         format_keys = format_keys,
         format_values = format_values.labels,
         format_value_indexes = format_values.indexes,

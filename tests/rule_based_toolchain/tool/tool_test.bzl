@@ -73,6 +73,21 @@ def _tool_env_expansion_test(env, targets):
         "TOOL_ENV_AGAIN": "tests/rule_based_toolchain/testdata/file1",
     })
 
+def _tool_execution_requirements_test(env, targets):
+    tool = env.expect.that_target(targets.tool_with_execution_requirements).provider(ToolInfo)
+    tool.execution_requirements().contains_exactly([
+        "example-hardcoded-tag",
+        "example-requires-darwin",
+        "example-requires-network",
+    ])
+
+    legacy = convert_tool(tool.actual)
+    env.expect.that_collection(legacy.execution_requirements).contains_exactly([
+        "example-hardcoded-tag",
+        "example-requires-darwin",
+        "example-requires-network",
+    ])
+
 def _collect_tools_collects_tools_test(env, targets):
     env.expect.that_value(
         value = collect_tools(env.ctx, [targets.tool, targets.wrapped_tool]),
@@ -117,6 +132,7 @@ TARGETS = [
     "//tests/rule_based_toolchain/tool:directory_tool",
     "//tests/rule_based_toolchain/tool:tool_with_allowlist_include_directories",
     "//tests/rule_based_toolchain/tool:tool_with_env",
+    "//tests/rule_based_toolchain/tool:tool_with_execution_requirements",
     "//tests/rule_based_toolchain/testdata:bin_wrapper",
     "//tests/rule_based_toolchain/testdata:multiple",
     "//tests/rule_based_toolchain/testdata:bin_filegroup",
@@ -134,4 +150,5 @@ TESTS = {
     "collect_tools_fails_on_non_binary_test": _collect_tools_fails_on_non_binary_test,
     "tool_with_allowlist_include_directories_test": _tool_with_allowlist_include_directories_test,
     "tool_env_expansion_test": _tool_env_expansion_test,
+    "tool_execution_requirements_test": _tool_execution_requirements_test,
 }
