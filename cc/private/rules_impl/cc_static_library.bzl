@@ -11,11 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""This is an experimental implementation of cc_static_library.
-
-We may change the implementation at any moment or even delete this file. Do not
-rely on this.
-"""
+"""The implementation of cc_static_library."""
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("//cc:action_names.bzl", "ACTION_NAMES")
