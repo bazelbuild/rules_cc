@@ -191,7 +191,17 @@ function main() {
   # format by LcovMerger.
   # TODO(#5881): Convert profdata reports to lcov.
   if uses_llvm; then
+    if [[ -z "${LLVM_PROFDATA:-}" ]]; then
+        echo "LLVM_PROFDATA is not set. The toolchain must provide llvm-profdata" \
+             "in tool_paths to support coverage with clang." >&2
+        exit 1
+    fi
     if [[ "${GENERATE_LLVM_LCOV}" == "1" ]]; then
+        if [[ -z "${LLVM_COV:-}" ]]; then
+            echo "LLVM_COV is not set. The toolchain must provide llvm-cov" \
+                 "in tool_paths to support lcov coverage with clang." >&2
+            exit 1
+        fi
         BAZEL_CC_COVERAGE_TOOL="LLVM_LCOV"
     else
         BAZEL_CC_COVERAGE_TOOL="PROFDATA"
