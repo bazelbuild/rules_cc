@@ -4,16 +4,7 @@ module(
     compatibility_level = 1,
 )
 
-# Required commit 9f66dfd "Add feature for cc.compile_is_starlark"
-# TODO: pzembrod - Change to a released version again when the commit is in a release.
-bazel_dep(name = "bazel_features", version = "1.43.0")
-archive_override(
-    module_name = "bazel_features",
-    integrity = "sha256-Q+hJsju3CWDN1K9InhbErlZNk093AewwEPnI3BodltQ=",
-    strip_prefix = "bazel_features-9f66dfd288cec395f373950b7c8eaaf11c2624fc",
-    urls = ["https://github.com/bazel-contrib/bazel_features/archive/9f66dfd288cec395f373950b7c8eaaf11c2624fc.tar.gz"],
-)
-
+bazel_dep(name = "bazel_features", version = "1.47.0")
 bazel_dep(name = "bazel_skylib", version = "1.8.0")
 bazel_dep(name = "platforms", version = "0.0.10")
 bazel_dep(name = "protobuf", version = "27.0", repo_name = "com_google_protobuf")
