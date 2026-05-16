@@ -58,7 +58,7 @@ def _latebound_libc(ctx, attr_name, implicit_attr_name):
 
 def _full_inputs_for_link(ctx, linker_files, libc):
     return depset(
-        [ctx.file._interface_library_builder, ctx.file._link_dynamic_library_tool],
+        [ctx.file.interface_library_builder, ctx.file._link_dynamic_library_tool],
         transitive = [linker_files, libc],
     )
 
@@ -162,7 +162,7 @@ def _attributes(ctx):
         compiler_files_without_includes = _files(ctx, "compiler_files_without_includes"),
         libc = _files(ctx, latebound_libc),
         libc_top_label = _label(ctx, latebound_libc),
-        if_so_builder = ctx.file._interface_library_builder,
+        if_so_builder = ctx.file.interface_library_builder,
         allowlist_for_layering_check = _package_specification_provider(ctx, "disabling_parse_headers_and_layering_check_allowed"),
         build_info_files = _provider(ctx.attr._build_info_translator, OutputGroupInfo),
         **legacy_file_groups
@@ -355,15 +355,15 @@ Set to True when cc_toolchain supports header parsing actions.""",
             doc = """
 The label of the rule providing <code>cc_toolchain_config_info</code>.""",
         ),
-        "_libc_top": attr.label(
-            default = configuration_field(fragment = "cpp", name = "libc_top"),
-        ),
-        "_grep_includes": semantics.get_grep_includes(),
-        "_interface_library_builder": attr.label(
+        "interface_library_builder": attr.label(
             default = "@bazel_tools//tools/cpp:interface_library_builder",
             allow_single_file = True,
             cfg = "exec",
         ),
+        "_libc_top": attr.label(
+            default = configuration_field(fragment = "cpp", name = "libc_top"),
+        ),
+        "_grep_includes": semantics.get_grep_includes(),
         "_link_dynamic_library_tool": attr.label(
             default = "@bazel_tools//tools/cpp:link_dynamic_library",
             allow_single_file = True,
