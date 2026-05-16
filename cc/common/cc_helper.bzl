@@ -847,10 +847,6 @@ def _include_dirs(ctx, additional_make_variable_substitutions, attr = "includes"
         if not sibling_repository_layout and path_contains_up_level_references(includes_path):
             fail("Path references a path above the execution root.", attr = "includes")
 
-        if includes_path == ".":
-            fail("'" + includes_attr + "' resolves to the workspace root, which would allow this rule and all of its " +
-                 "transitive dependents to include any file in your workspace. Please include only" +
-                 " what you need", attr = "includes")
         result.append(includes_path)
 
         # We don't need to perform the above checks against out_includes_path again since any errors
