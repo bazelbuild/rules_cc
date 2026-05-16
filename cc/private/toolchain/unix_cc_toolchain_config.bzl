@@ -925,6 +925,7 @@ def _impl(ctx):
         set_install_name_feature = feature(
             name = "set_install_name",
             enabled = getattr(ctx.fragments.cpp, "do_not_use_macos_set_install_name", True),
+            implies = ["set_soname"],
             flag_sets = [
                 flag_set(
                     actions = [
@@ -1539,7 +1540,7 @@ def _impl(ctx):
                 ],
                 flag_groups = [
                     flag_group(
-                        flags = [" + cppLinkDynamicLibraryToolPath + "],
+                        flags = [cc],
                         expand_if_available = "generate_interface_library",
                     ),
                 ],
@@ -1846,6 +1847,8 @@ def _impl(ctx):
     )
 
     no_dotd_file_feature = feature(name = "no_dotd_file")
+    supports_interface_shared_libraries_feature = feature(name = "supports_interface_shared_libraries")
+    has_configured_linker_path_feature = feature(name = "has_configured_linker_path")
 
     skip_virtual_includes_feature = feature(name = "skip_virtual_includes")
 
@@ -1928,6 +1931,8 @@ def _impl(ctx):
             set_install_name_feature,
             no_dotd_file_feature,
             skip_virtual_includes_feature,
+            supports_interface_shared_libraries_feature,
+            has_configured_linker_path_feature,
         ] + layering_check_features(ctx.attr.compiler, ctx.attr.extra_flags_per_feature, is_macos = False)
     else:
         # macOS artifact name patterns differ from the defaults only for dynamic
@@ -1937,6 +1942,11 @@ def _impl(ctx):
                 category_name = "dynamic_library",
                 prefix = "lib",
                 extension = ".dylib",
+            ),
+            artifact_name_pattern(
+                category_name = "interface_library",
+                prefix = "lib",
+                extension = ".tbd",
             ),
         ]
         features = [
@@ -1949,6 +1959,7 @@ def _impl(ctx):
             dependency_file_feature,
             runtime_library_search_directories_feature,
             set_install_name_feature,
+            feature(name = "set_soname"),  # Special feature name
             libtool_feature,
             archiver_flags_feature,
             asan_feature,
@@ -1983,6 +1994,8 @@ def _impl(ctx):
             generate_linkmap_feature,
             no_dotd_file_feature,
             skip_virtual_includes_feature,
+            supports_interface_shared_libraries_feature,
+            has_configured_linker_path_feature,
         ] + layering_check_features(ctx.attr.compiler, ctx.attr.extra_flags_per_feature, is_macos = True)
 
     parse_headers_action_configs, parse_headers_features = parse_headers_support(
