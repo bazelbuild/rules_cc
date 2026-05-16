@@ -19,6 +19,7 @@ load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/common:cc_helper.bzl", "cc_helper")
 load("//cc/common:cc_helper_internal.bzl", "get_relative_path")
 load("//cc/common:cc_info.bzl", "CcInfo")
+load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private/rules_impl/fdo:fdo_context.bzl", "create_fdo_context")
 load(":cc_toolchain_info.bzl", "CcToolchainInfo")
 
@@ -151,12 +152,20 @@ def get_cc_toolchain_provider(ctx, attributes):
     )
     tool_paths = _compute_tool_paths(toolchain_config_info, tools_directory)
     toolchain_features = cc_common.cc_toolchain_features(toolchain_config_info = toolchain_config_info, tools_directory = tools_directory)
+    env = cc_common.get_environment_variables(
+        feature_configuration = toolchain_features.configure_features(
+            requested_features = ["fdo_optimize"],
+        ),
+        action_name = "c++-compile",
+        variables = _cc_internal.cc_toolchain_variables(vars = {}),
+    )
     fdo_context = create_fdo_context(
         llvm_profdata = tool_paths.get("llvm-profdata"),
         all_files = attributes.all_files,
         zipper = attributes.zipper,
         cc_toolchain_config_info = toolchain_config_info,
         coverage_enabled = ctx.configuration.coverage_enabled,
+        env = env,
     )
     if fdo_context == None:
         return None
