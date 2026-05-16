@@ -433,6 +433,7 @@ See <a href="${link cc_binary.linkshared}"><code>cc_binary.linkshared</code></a>
     fragments = ["cpp"] + semantics.additional_fragments(),
     provides = [CcInfo],
     exec_groups = {
+        "cpp_compile": exec_group(toolchains = use_cc_toolchain()),
         "cpp_link": exec_group(toolchains = use_cc_toolchain()),
     },
 )
