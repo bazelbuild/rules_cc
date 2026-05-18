@@ -74,6 +74,7 @@ cc_library(
 cc_test(
     name = "alwayslink_test",
     srcs = ["alwayslink_test.c"],
+    target_compatible_with = VERSION_GATE,
     deps = [
         ":registered",
         ":registerer_alwayslink",

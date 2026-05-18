@@ -13,9 +13,6 @@ test_targets: &test_targets
   - "-//tests/system_library:system_library_test" # Only intended to work in WORKSPACE files
   - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
 
-flags_bazel_less_than_9: &flags_bazel_less_than_9
-  - "--deleted_packages=//tests/local_includes"
-
 build_targets_bazel_6: &build_targets_bazel_6
   - "//:all"
   - "//cc:all"
@@ -48,7 +45,6 @@ coverage_flags_bazel_less_than_9: &coverage_flags_bazel_less_than_9
   # See above
   - "--test_env=IGNORE_COVERAGE_COLLECTION_FAILURES=1"
   - "--test_output=errors"
-  - "--deleted_packages=//tests/local_includes"
 
 buildifier:
   version: latest
@@ -135,8 +131,6 @@ tasks:
     platform: ubuntu2004
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
-    build_flags: *flags_bazel_less_than_9
-    test_flags: *flags_bazel_less_than_9
     coverage_flags: *coverage_flags_bazel_less_than_9
     coverage_targets: *test_targets_bazel_6
   macos_intel_bazel_7:
@@ -145,8 +139,6 @@ tasks:
     platform: macos
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
-    build_flags: *flags_bazel_less_than_9
-    test_flags: *flags_bazel_less_than_9
     coverage_flags: *coverage_flags_bazel_less_than_9
     coverage_targets: *test_targets_bazel_6
   macos_bazel_7:
@@ -155,8 +147,6 @@ tasks:
     platform: macos_arm64
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
-    build_flags: *flags_bazel_less_than_9
-    test_flags: *flags_bazel_less_than_9
     coverage_flags: *coverage_flags_bazel_less_than_9
     coverage_targets: *test_targets_bazel_6
   windows_bazel_7:
@@ -165,8 +155,6 @@ tasks:
     platform: windows
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
-    build_flags: *flags_bazel_less_than_9
-    test_flags: *flags_bazel_less_than_9
 
 # Bazel 8
   ubuntu2004_bazel_8:
@@ -175,8 +163,6 @@ tasks:
     platform: ubuntu2004
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
-    build_flags: *flags_bazel_less_than_9
-    test_flags: *flags_bazel_less_than_9
     coverage_flags: *coverage_flags_bazel_less_than_9
     coverage_targets: *test_targets_bazel_6
   macos_intel_bazel_8:
@@ -185,8 +171,6 @@ tasks:
     platform: macos
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
-    build_flags: *flags_bazel_less_than_9
-    test_flags: *flags_bazel_less_than_9
     coverage_flags: *coverage_flags_bazel_less_than_9
     coverage_targets: *test_targets_bazel_6
   macos_bazel_8:
@@ -195,8 +179,6 @@ tasks:
     platform: macos_arm64
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
-    build_flags: *flags_bazel_less_than_9
-    test_flags: *flags_bazel_less_than_9
     coverage_flags: *coverage_flags_bazel_less_than_9
     coverage_targets: *test_targets_bazel_6
   windows_bazel_8:
@@ -205,8 +187,6 @@ tasks:
     platform: windows
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
-    build_flags: *flags_bazel_less_than_9
-    test_flags: *flags_bazel_less_than_9
 
 # Bazel 9
   ubuntu2004:
