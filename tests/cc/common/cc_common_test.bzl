@@ -214,11 +214,129 @@ def _test_strip_include_prefix_error_not_under_prefix_impl(env, target):
         ),
     )
 
+def _test_empty_library(name):
+    util.helper_target(
+        cc_library,
+        name = name + "/emptylib",
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_empty_library_impl,
+        target = name + "/emptylib",
+    )
+
+def _test_empty_library_impl(env, target):
+    # We create .a for empty libraries, for simplicity (in Blaze).
+    # But we avoid creating .so files for empty libraries,
+    # because those have a potentially significant run-time startup cost.
+    # TODO(b/308434150): Adapt above comment and the verifiation below now that
+    # b/308434150 is fixes - IIUC.
+    linker_inputs = target[CcInfo].linking_context.linker_inputs.to_list()
+    for input in linker_inputs:
+        for lib in input.libraries:
+            if lib.dynamic_library != None:
+                env.expect.meta.add_failure(
+                    "expected no dynamic library for empty library at runtime",
+                    "actual: {}".format(lib.dynamic_library.short_path),
+                )
+
+def _test_copts(name):
+    util.helper_target(
+        cc_library,
+        name = name + "/c_lib",
+        srcs = ["foo.cc"],
+        copts = [
+            "-Wmy-warning",
+            "-frun-faster",
+        ],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_copts_impl,
+        target = name + "/c_lib",
+    )
+
+def _test_copts_impl(env, target):
+    files_to_compile = target[OutputGroupInfo].compilation_outputs.to_list()
+    env.expect.that_collection(files_to_compile).has_size(1)
+    compile_action = env.expect.that_target(target).action_generating(files_to_compile[0].short_path)
+    env.expect.that_collection(compile_action.actual.argv).contains_at_least([
+        "-Wmy-warning",
+        "-frun-faster",
+    ])
+
+def _test_isolated_defines(name):
+    util.helper_target(
+        cc_library,
+        name = name + "/defineslib",
+        srcs = ["defines.cc"],
+        defines = ["FOO", "BAR"],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_isolated_defines_impl,
+        target = name + "/defineslib",
+    )
+
+def _test_isolated_defines_impl(env, target):
+    env.expect.that_collection(target[CcInfo].compilation_context.defines.to_list()).contains_exactly([
+        "FOO",
+        "BAR",
+    ]).in_order()
+
+def _test_library_in_hdrs(name):
+    util.helper_target(
+        cc_library,
+        name = name + "/b",
+        srcs = ["b.cc"],
+    )
+    util.helper_target(
+        cc_library,
+        name = name + "/a",
+        srcs = ["a.cc"],
+        hdrs = [name + "/b"],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_library_in_hdrs_impl,
+        target = name + "/a",
+    )
+
+def _test_library_in_hdrs_impl(env, target):
+    env.expect.that_target(target).failures().contains_exactly([])
+
+def _test_alwayslink_yields_lo(name):
+    util.helper_target(
+        cc_library,
+        name = name + "/always_link",
+        alwayslink = True,
+        srcs = ["always_link.cc"],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_alwayslink_yields_lo_impl,
+        target = name + "/always_link",
+    )
+
+def _test_alwayslink_yields_lo_impl(env, target):
+    files = [f.basename for f in target[DefaultInfo].files.to_list()]
+    env.expect.that_collection(files).contains("libalways_link.lo")
+
 def cc_common_tests(name):
     tests = [
         _test_same_cc_file_twice,
         _test_same_header_file_twice,
         _test_isolated_includes,
+        _test_empty_library,
+        _test_copts,
+        _test_isolated_defines,
+        _test_library_in_hdrs,
+        _test_alwayslink_yields_lo,
     ]
     if bazel_features.cc.cc_common_is_in_rules_cc:
         tests.extend([
