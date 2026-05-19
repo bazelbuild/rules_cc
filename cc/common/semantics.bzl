@@ -25,9 +25,6 @@ STRIP_INCLUDE_PREFIX_APPLIES_TO_TEXTUAL_HEADERS = True
 def _get_proto_aspects():
     return []
 
-def _should_create_empty_archive():
-    return False
-
 def _validate_attributes(_ctx):
     pass
 
@@ -193,7 +190,6 @@ semantics = struct(
     get_licenses_attr = _get_licenses_attr,
     get_def_parser = _get_def_parser,
     get_stl = _get_stl,
-    should_create_empty_archive = _should_create_empty_archive,
     get_grep_includes = _get_grep_includes,
     get_implementation_deps_allowed_attr = _get_implementation_deps_allowed_attr,
     check_can_use_implementation_deps = _check_can_use_implementation_deps,

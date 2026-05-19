@@ -164,26 +164,6 @@ def _cc_library_impl(ctx):
             linked_dll_name_suffix = dll_name_suffix,
             variables_extension = link_variables,
         )
-    elif semantics.should_create_empty_archive():
-        precompiled_files_count = 0
-        for precompiled_files_entry in precompiled_files:
-            precompiled_files_count += len(precompiled_files_entry)
-
-        (
-            linking_context,
-            linking_outputs,
-        ) = cc_common.create_linking_context_from_compilation_outputs(
-            actions = ctx.actions,
-            name = ctx.label.name,
-            cc_toolchain = cc_toolchain,
-            compilation_outputs = cc_common.create_compilation_outputs(),
-            feature_configuration = feature_configuration,
-            disallow_dynamic_library = True,
-            alwayslink = ctx.attr.alwayslink,
-        )
-
-        if precompiled_files_count == 0:
-            empty_archive_linking_context = linking_context
     else:
         linking_outputs = struct(library_to_link = None)
 
@@ -214,13 +194,12 @@ def _cc_library_impl(ctx):
         user_link_flags = cc_helper.linkopts(ctx, additional_make_variable_substitutions, cc_toolchain)
         linker_scripts = _filter_linker_scripts(ctx.files.deps)
         additional_linker_inputs = ctx.files.additional_linker_inputs
-        if len(user_link_flags) > 0 or len(linker_scripts) > 0 or len(additional_linker_inputs) > 0 or not semantics.should_create_empty_archive():
-            linker_input = cc_common.create_linker_input(
-                owner = ctx.label,
-                user_link_flags = user_link_flags,
-                additional_inputs = depset(linker_scripts + additional_linker_inputs),
-            )
-            contexts_to_merge.append(cc_common.create_linking_context(linker_inputs = depset([linker_input])))
+        linker_input = cc_common.create_linker_input(
+            owner = ctx.label,
+            user_link_flags = user_link_flags,
+            additional_inputs = depset(linker_scripts + additional_linker_inputs),
+        )
+        contexts_to_merge.append(cc_common.create_linking_context(linker_inputs = depset([linker_input])))
 
         contexts_to_merge.extend(linking_contexts)
 

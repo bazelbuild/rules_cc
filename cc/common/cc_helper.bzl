@@ -375,7 +375,7 @@ def _check_file_extensions(attr_values, allowed_extensions, attr_name, label, ru
                         label,
                         str(attr_value.label),
                     ))
-            else:
+            elif len(files) > 0:
                 at_least_one_good = False
                 for file in files:
                     if _check_file_extension(file, allowed_extensions, allow_versioned_shared_libraries) or file.is_directory:
