@@ -172,6 +172,11 @@ def cc_toolchain(
         "//conditions:default": "",
     })
 
+    target_libc = select({
+        Label("//cc/settings:apple_constraint"): "macosx",
+        "//conditions:default": "",
+    })
+
     if bazel_features.cc.supports_starlarkified_toolchains:
         _cc_toolchain(
             name = name,
@@ -183,6 +188,7 @@ def cc_toolchain(
             known_features = known_features,
             enabled_features = enabled_features,
             compiler = compiler,
+            target_libc = target_libc,
             cpu = cpu or _CPU,
             target_system_name = target_system_name,
             dynamic_runtime_lib = dynamic_runtime_lib,
@@ -208,6 +214,7 @@ def cc_toolchain(
         enabled_features = enabled_features,
         compiler = compiler,
         cpu = cpu or _CPU,
+        target_libc = target_libc,
         target_system_name = target_system_name,
         visibility = ["//visibility:private"],
         **kwargs
