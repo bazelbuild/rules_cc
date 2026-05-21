@@ -97,3 +97,12 @@ use_repo(
     "build_bazel_bazel_9_x",
     "build_bazel_bazel_last_green",
 )
+
+local_bazel = use_extension("//:extensions.bzl", "local_bazel_extension")
+use_repo(local_bazel, "local_bazel")
+
+remote_bazel_fetcher = use_extension("//:extensions.bzl", "remote_bazel_extension")
+remote_bazel_fetcher.download(bazel_version = "bazel_7")
+remote_bazel_fetcher.download(bazel_version = "bazel_8")
+remote_bazel_fetcher.download(bazel_version = "bazel_9")
+use_repo(remote_bazel_fetcher, "bazel_7", "bazel_8", "bazel_9")

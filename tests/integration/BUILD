@@ -30,25 +30,33 @@ sh_library(
     srcs = ["test_utils.sh"],
 )
 
+sh_library(
+    name = "platform_utils",
+    srcs = ["platform_utils.sh"],
+)
+
 gen_workspace(
-    "simple_compile",
+    "simple_compile_workspace",
     workspace_files = glob(["simple_compile/**"]),
 )
 
 rules_cc_integration_test(
     name = "simple_compile_test",
     test_script = "simple_compile_test.sh",
-    workspace = "simple_compile",
+    workspace = "simple_compile_workspace",
+    workspace_name = "simple_compile",
 )
 
 rules_cc_integration_test(
     name = "stripped_compile_test",
     test_script = "stripped_compile_test.sh",
-    workspace = "simple_compile",
+    workspace = "simple_compile_workspace",
+    workspace_name = "simple_compile",
 )
 
 rules_cc_integration_test(
     name = "no_recompile_on_shutdown_test",
     test_script = "no_recompile_on_shutdown_test.sh",
-    workspace = "simple_compile",
+    workspace = "simple_compile_workspace",
+    workspace_name = "simple_compile",
 )
