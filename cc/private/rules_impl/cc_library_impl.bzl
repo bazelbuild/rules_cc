@@ -65,7 +65,6 @@ def _cc_library_impl(ctx):
         local_defines = cc_helper.local_defines(ctx, additional_make_variable_substitutions) + cc_helper.get_local_defines_for_runfiles_lookup(ctx, ctx.attr.deps + ctx.attr.implementation_deps),
         includes = cc_helper.include_dirs(ctx, additional_make_variable_substitutions),
         local_includes = cc_helper.include_dirs(ctx, additional_make_variable_substitutions, attr = "local_includes"),
-        copts_filter = cc_helper.copts_filter(ctx, additional_make_variable_substitutions),
         purpose = "cc_library-compile",
         srcs = cc_helper.get_srcs(ctx),
         module_interfaces = cc_helper.get_cpp_module_interfaces(ctx),

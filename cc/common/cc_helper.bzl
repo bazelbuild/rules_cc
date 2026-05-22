@@ -32,7 +32,6 @@ load(
     _should_stamp = "should_stamp",
 )
 load(":cc_info.bzl", "CcInfo")
-load(":semantics.bzl", "semantics")
 load(":visibility.bzl", "INTERNAL_VISIBILITY")
 
 visibility(INTERNAL_VISIBILITY)
@@ -940,22 +939,6 @@ def _defines(ctx, additional_make_variable_substitutions):
 def _local_defines(ctx, additional_make_variable_substitutions):
     return _defines_attribute(ctx, additional_make_variable_substitutions, "local_defines", getattr(ctx.attr, "additional_compiler_inputs", []))
 
-def _copts_filter(ctx, additional_make_variable_substitutions):
-    nocopts = getattr(ctx.attr, "nocopts", None)
-
-    if nocopts == None or len(nocopts) == 0:
-        return nocopts
-
-    if semantics.is_allowed_nocopts(nocopts):
-        return nocopts
-
-    # Check if nocopts is disabled.
-    if ctx.fragments.cpp.disable_nocopts():
-        fail("This attribute was removed. See https://github.com/bazelbuild/bazel/issues/8706 for details.", attr = "nocopts")
-
-    # Expand nocopts and create CoptsFilter.
-    return _expand(ctx, nocopts, additional_make_variable_substitutions)
-
 def _map_to_list(m):
     result = []
     for k, v in m.items():
@@ -1134,7 +1117,6 @@ cc_helper = struct(
     get_copts = _get_copts,
     defines = _defines,
     local_defines = _local_defines,
-    copts_filter = _copts_filter,
     get_srcs = _get_srcs,
     get_cpp_module_interfaces = _get_cpp_module_interfaces,
     get_private_hdrs = _get_private_hdrs,

@@ -475,7 +475,6 @@ def _compile(
         variables_extension = {},
         language = None,
         purpose = _UNBOUND,
-        copts_filter = _UNBOUND,
         separate_module_headers = _UNBOUND,
         module_interfaces = _UNBOUND,
         non_compilation_additional_inputs = _UNBOUND):
@@ -488,7 +487,6 @@ def _compile(
        purpose != _UNBOUND or \
        hdrs_checking_mode != _UNBOUND or \
        implementation_compilation_contexts != _UNBOUND or \
-       copts_filter != _UNBOUND or \
        separate_module_headers != _UNBOUND or \
        module_interfaces != _UNBOUND or \
        non_compilation_additional_inputs != _UNBOUND:
@@ -510,8 +508,6 @@ def _compile(
         hdrs_checking_mode = None
     if implementation_compilation_contexts == _UNBOUND:
         implementation_compilation_contexts = []
-    if copts_filter == _UNBOUND:
-        copts_filter = None
     if separate_module_headers == _UNBOUND:
         separate_module_headers = []
     if module_interfaces == _UNBOUND:
@@ -560,7 +556,6 @@ def _compile(
         variables_extension = variables_extension,
         language = language,
         purpose = purpose,
-        copts_filter = copts_filter,
         separate_module_headers = separate_module_headers,
         non_compilation_additional_inputs = non_compilation_additional_inputs,
     )
