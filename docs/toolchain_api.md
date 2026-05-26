@@ -80,7 +80,7 @@ cc_action_type_set(
 | <a id="cc_action_type_set-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="cc_action_type_set-actions"></a>actions |  A list of cc_action_type or cc_action_type_set   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
 | <a id="cc_action_type_set-allow_empty"></a>allow_empty |  -   | Boolean | optional |  `False`  |
-| <a id="cc_action_type_set-excludes"></a>excludes |  A list of cc_action_type or cc_action_type_set to exclude from the action set. Applied after accumulating all actions.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="cc_action_type_set-excludes"></a>excludes |  A list of cc_action_type to exclude from the action set. Applied after accumulating all actions.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 
 
 <a id="cc_args_list"></a>
