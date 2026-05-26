@@ -1,6 +1,0 @@
-c++-compile
-c++-module-codegen
-c++-module-compile
-clif-match
-linkstamp-compile
-objc++-compile

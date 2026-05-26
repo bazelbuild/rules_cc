@@ -233,23 +233,16 @@ cc_action_type_set(
 )
 
 cc_action_type_set(
-    name = "cpp_compile_without_header_parsing",
-    actions = [
-        ":linkstamp_compile",
-        ":cpp_compile",
-        ":cpp_module_compile",
-        ":cpp_module_codegen",
-        ":clif_match",
-        ":objcpp_compile",
-    ],
-)
-
-cc_action_type_set(
     name = "cpp_compile_actions",
     actions = [
-        ":cpp_compile_without_header_parsing",
+        ":clif_match",
+        ":cpp_compile",
         ":cpp_header_parsing",
+        ":cpp_module_codegen",
+        ":cpp_module_compile",
+        ":linkstamp_compile",
         ":lto_backend",
+        ":objcpp_compile",
     ],
 )
 
