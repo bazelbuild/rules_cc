@@ -277,6 +277,50 @@ def _test_pic_impl(env, target):
     env.expect.that_collection(hello_obj_files).has_size(1)
     env.expect.that_file(hello_obj_files[0]).basename().equals("hello.pic.o")
 
+def _test_duplicate_linkopts(name, **kwargs):
+    util.helper_target(
+        cc_library,
+        name = name + "/lib",
+        srcs = ["lib.cc"],
+        linkopts = [
+            "-z bar",
+            "-z baz",
+        ],
+    )
+
+    util.helper_target(
+        cc_binary,
+        name = name + "/app",
+        srcs = ["app.cc"],
+        linkopts = [
+            "-z foo",
+            "-z bar",
+        ],
+        deps = [name + "/lib"],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_duplicate_linkopts_impl,
+        target = name + "/app",
+        **kwargs
+    )
+
+def _test_duplicate_linkopts_impl(env, target):
+    executable = target[DefaultInfo].files_to_run.executable
+    link_action = env.expect.that_target(target).action_generating(executable.short_path)
+    argv = link_action.actual.argv
+    env.expect.that_collection(argv).contains_at_least([
+        "-z",
+        "foo",
+        "-z",
+        "bar",
+        "-z",
+        "bar",
+        "-z",
+        "baz",
+    ]).in_order()
+
 def _test_unsupported_src_file(name, **kwargs):
     util.helper_target(
         cc_binary,
@@ -492,6 +536,7 @@ def cc_binary_configured_target_tests(name):
         _test_action_graph,
         _test_runtime_dynamic_libraries_copy_behavior,
         _test_pic,
+        _test_duplicate_linkopts,
         _test_unsupported_src_file,
         _test_missing_action_config_for_strip_is_a_rule_error,
     ]
