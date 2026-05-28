@@ -685,7 +685,8 @@ use this rule.
 <pre>
 load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_tool")
 
-cc_tool(*, <a href="#cc_tool-name">name</a>, <a href="#cc_tool-src">src</a>, <a href="#cc_tool-data">data</a>, <a href="#cc_tool-allowlist_include_directories">allowlist_include_directories</a>, <a href="#cc_tool-env">env</a>, <a href="#cc_tool-format">format</a>, <a href="#cc_tool-capabilities">capabilities</a>, <a href="#cc_tool-kwargs">**kwargs</a>)
+cc_tool(*, <a href="#cc_tool-name">name</a>, <a href="#cc_tool-src">src</a>, <a href="#cc_tool-data">data</a>, <a href="#cc_tool-allowlist_include_directories">allowlist_include_directories</a>, <a href="#cc_tool-env">env</a>, <a href="#cc_tool-execution_requirements">execution_requirements</a>, <a href="#cc_tool-format">format</a>,
+        <a href="#cc_tool-capabilities">capabilities</a>, <a href="#cc_tool-kwargs">**kwargs</a>)
 </pre>
 
 Declares a tool for use by toolchain actions.
@@ -724,6 +725,7 @@ cc_tool(
 | <a id="cc_tool-data"></a>data |  (List[Label]) Additional files that are required for this tool to run. Frequently, clang and gcc require additional files to execute as they often shell out to other binaries (e.g. `cc1`).   |  `None` |
 | <a id="cc_tool-allowlist_include_directories"></a>allowlist_include_directories |  (List[Label]) Include paths implied by using this tool. Compilers may include a set of built-in headers that are implicitly available unless flags like `-nostdinc` are provided. Bazel checks that all included headers are properly provided by a dependency or allowlisted through this mechanism.<br><br>As a rule of thumb, only use this if Bazel is complaining about absolute paths in your toolchain and you've ensured that the toolchain is compiling with the `-no-canonical-prefixes` and/or `-fno-canonical-system-headers` arguments.<br><br>These files are not automatically passed to each action. If they need to be, add them to 'data' as well.<br><br>This can help work around errors like: `the source file 'main.c' includes the following non-builtin files with absolute paths (if these are builtin files, make sure these paths are in your toolchain)`.   |  `None` |
 | <a id="cc_tool-env"></a>env |  (Dict[str, str]) Environment variables to apply when running this tool. Format expansion is performed on values using `format`.   |  `None` |
+| <a id="cc_tool-execution_requirements"></a>execution_requirements |  (List[Label]) Additional execution requirements for actions that run this tool. Each label must provide `ExecutionRequirementsInfo`. For fixed execution requirements, use `tags`.   |  `None` |
 | <a id="cc_tool-format"></a>format |  (Dict[str, Label]) A mapping of format strings to the label of a corresponding target. This target can be a `directory`, `subdirectory`, or a single file that the value should be pulled from. All instances of `{variable_name}` in the `env` dictionary values will be replaced with the expanded value in this dictionary.   |  `{}` |
 | <a id="cc_tool-capabilities"></a>capabilities |  (List[Label]) Declares that a tool is capable of doing something. For example, `@rules_cc//cc/toolchains/capabilities:supports_pic`.   |  `None` |
 | <a id="cc_tool-kwargs"></a>kwargs |  [common attributes](https://bazel.build/reference/be/common-definitions#common-attributes) that should be applied to this rule.   |  none |

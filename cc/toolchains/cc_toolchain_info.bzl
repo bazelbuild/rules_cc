@@ -182,6 +182,15 @@ MakeVariableInfo = provider(
     },
 )
 
+ExecutionRequirementsInfo = provider(
+    doc = "Provider for execution requirements attached to tool actions.",
+    # @unsorted-dict-items
+    fields = {
+        "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
+        "requirements": "(Sequence[str]) The execution requirements to apply.",
+    },
+)
+
 MutuallyExclusiveCategoryInfo = provider(
     doc = "Multiple features with the category will be mutally exclusive",
     # @unsorted-dict-items
