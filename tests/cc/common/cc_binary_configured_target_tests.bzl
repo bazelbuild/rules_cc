@@ -277,6 +277,29 @@ def _test_pic_impl(env, target):
     env.expect.that_collection(hello_obj_files).has_size(1)
     env.expect.that_file(hello_obj_files[0]).basename().equals("hello.pic.o")
 
+def _test_unsupported_src_file(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/bad",
+        srcs = ["bad.unknown"],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_unsupported_src_file_impl,
+        target = name + "/bad",
+        expect_failure = True,
+        **kwargs
+    )
+
+def _test_unsupported_src_file_impl(env, target):
+    env.expect.that_target(target).failures().contains_predicate(
+        matching.contains("is misplaced here"),
+    )
+    env.expect.that_target(target).failures().contains_predicate(
+        matching.contains("bad.unknown"),
+    )
+
 def _test_missing_action_config_for_strip_is_a_rule_error(name, **kwargs):
     util.helper_target(
         cc_binary,
@@ -469,6 +492,7 @@ def cc_binary_configured_target_tests(name):
         _test_action_graph,
         _test_runtime_dynamic_libraries_copy_behavior,
         _test_pic,
+        _test_unsupported_src_file,
         _test_missing_action_config_for_strip_is_a_rule_error,
     ]
 
