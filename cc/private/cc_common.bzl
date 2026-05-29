@@ -460,6 +460,7 @@ def _compile(
         user_compile_flags = [],
         conly_flags = [],
         cxx_flags = [],
+        progress_message_prefix = None,
         compilation_contexts = [],
         implementation_compilation_contexts = _UNBOUND,
         disallow_pic_outputs = False,
@@ -558,6 +559,7 @@ def _compile(
         purpose = purpose,
         separate_module_headers = separate_module_headers,
         non_compilation_additional_inputs = non_compilation_additional_inputs,
+        progress_message_prefix = progress_message_prefix,
     )
 
 def _create_lto_backend_artifacts(
