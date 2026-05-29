@@ -14,10 +14,10 @@
 
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 load("@bazel_skylib//rules:expand_template.bzl", "expand_template")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load("@stardoc//stardoc:stardoc.bzl", "stardoc")
 load("//cc/toolchains/impl:documented_api.bzl", "DOCUMENTED_TOOLCHAIN_RULES")
 load("//cc/toolchains/impl:markdown_helpers.bzl", "xref_substitutions")
-load("//third_party/bazel_rules/rules_shell/shell:sh_binary.bzl", "sh_binary")
 
 filegroup(
     name = "srcs",
