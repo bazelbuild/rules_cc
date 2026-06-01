@@ -22,12 +22,6 @@ action_type_set_diff_test(
 )
 
 action_type_set_diff_test(
-    name = "cpp_compile_without_header_parsing_test",
-    action_type_set = "//cc/toolchains/actions:cpp_compile_without_header_parsing",
-    expected = "//tests/rule_based_toolchain/action_type_sets:goldens/cpp_compile_without_header_parsing.txt",
-)
-
-action_type_set_diff_test(
     name = "cpp_compile_actions_test",
     action_type_set = "//cc/toolchains/actions:cpp_compile_actions",
     expected = "//tests/rule_based_toolchain/action_type_sets:goldens/cpp_compile_actions.txt",
