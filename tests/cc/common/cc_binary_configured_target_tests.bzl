@@ -428,12 +428,15 @@ def _test_sanitize_pwd_macos_no_pwd_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
     link_action.env().keys().not_contains("PWD")
 
-def _system_include_paths_from_argv(argv):
-    system_include_paths = []
+def _include_paths_from_argv(argv, flag):
+    include_paths = []
     for i in range(len(argv) - 1):
-        if argv[i] == "-isystem":
-            system_include_paths.append(argv[i + 1])
-    return system_include_paths
+        if argv[i] == flag:
+            include_paths.append(argv[i + 1])
+    return include_paths
+
+def _system_include_paths_from_argv(argv):
+    return _include_paths_from_argv(argv, "-isystem")
 
 def _test_system_include_paths_reclassifies_local_includes_without_propagation(name, **kwargs):
     util.helper_target(
@@ -1165,6 +1168,44 @@ def _setup_cc_runtimes_mock():
         tags = ["manual", "notap"],
     )
 
+def _test_external_include_paths_reclassifies_external_quote_includes(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/hello",
+        srcs = ["hello.cc"],
+        deps = ["@googletest//:gtest"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_external_include_paths_reclassifies_external_quote_includes_impl,
+        target = name + "/hello",
+        test_features = [FEATURE_NAMES.external_include_paths],
+        **kwargs
+    )
+
+def _test_external_include_paths_reclassifies_external_quote_includes_impl(env, target):
+    executable = target[DefaultInfo].files_to_run.executable
+    link_action = env.expect.that_target(target).action_generating(executable.short_path)
+    hello_obj_files = [
+        f
+        for f in link_action.actual.inputs.to_list()
+        if f.basename.startswith("hello.") and f.extension in ["o", "obj"]
+    ]
+
+    env.expect.that_collection(hello_obj_files).has_size(1)
+    compile_action = env.expect.that_target(target).action_generating(hello_obj_files[0].short_path)
+    quote_include_paths = _include_paths_from_argv(compile_action.actual.argv, "-iquote")
+    system_include_paths = _system_include_paths_from_argv(compile_action.actual.argv)
+
+    if not quote_include_paths:
+        fail("expected the compile action to still have non-external -iquote paths")
+    env.expect.that_collection(system_include_paths).contains_predicate(
+        matching.contains("googletest"),
+    )
+    env.expect.that_collection(quote_include_paths).transform(
+        filter = matching.contains("googletest"),
+    ).contains_exactly([])
+
 def cc_binary_configured_target_tests(name):
     """Creates the test suite for cc_binary tests.
 
@@ -1203,6 +1244,7 @@ def cc_binary_configured_target_tests(name):
             _test_sanitize_pwd_feature_enabled,
             _test_sanitize_pwd_feature_disabled,
             _test_sanitize_pwd_macos_no_pwd,
+            _test_external_include_paths_reclassifies_external_quote_includes,
             _test_system_include_paths_reclassifies_local_includes_after_includes,
             _test_system_include_paths_reclassifies_local_includes_without_propagation,
             # _test_cc_runtimes_added_to_libraries,  # copybara-comment-this-out-please
