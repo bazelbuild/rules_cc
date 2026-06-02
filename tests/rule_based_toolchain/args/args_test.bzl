@@ -152,6 +152,31 @@ def _env_only_requires_test(env, targets):
 
     converted.flag_sets().contains_exactly([])
 
+    void_env_only = env.expect.that_target(targets.env_only_requires_void).provider(ArgsInfo)
+    void_env_only.actions().contains_exactly([
+        Label("//cc/toolchains/actions:cpp_link_executable"),
+    ])
+    void_env_only.env().entries().contains_exactly(
+        {"STRIP_DEBUG_SYMBOLS": "1"},
+    )
+    void_env_only.env().requires_not_none().some().equals("strip_debug_symbols")
+
+    converted_void = env.expect.that_value(
+        convert_args(targets.env_only_requires_void[ArgsInfo]),
+        factory = _CONVERTED_ARGS,
+    )
+
+    converted_void.env_sets().contains_exactly([env_set(
+        actions = ["c++-link-executable"],
+        env_entries = [env_entry(
+            key = "STRIP_DEBUG_SYMBOLS",
+            value = "1",
+            expand_if_available = "strip_debug_symbols",
+        )],
+    )])
+
+    converted_void.flag_sets().contains_exactly([])
+
 def _with_dir_test(env, targets):
     with_dir = env.expect.that_target(targets.with_dir).provider(ArgsInfo)
     with_dir.allowlist_include_directories().contains_exactly([_TOOL_DIRECTORY])
@@ -235,6 +260,7 @@ TARGETS = [
     ":some_variable",
     ":env_only",
     ":env_only_requires",
+    ":env_only_requires_void",
     ":build_setting_format",
     ":with_dir",
     ":with_dir_and_data",
