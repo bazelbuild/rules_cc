@@ -158,6 +158,7 @@ def _compile(
 
     user_compile_flags = []
     user_compile_flags.extend(_get_compile_rule_copts(common_variables))
+    user_compile_flags.extend(common_variables.objc_config.copts_for_current_compilation_mode)
     user_compile_flags.extend(extra_compile_args)
     user_compile_flags.extend(
         _paths_to_include_args(objc_compilation_context.strict_dependency_includes),
