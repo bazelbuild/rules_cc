@@ -1,4 +1,4 @@
-# Copyright 2023 The Bazel Authors. All rights reserved.
+# Copyright 2026 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,19 +12,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_shell//shell:sh_test.bzl", "sh_test")
+case "$(uname -s | tr [:upper:] [:lower:])" in
+linux*)
+  declare -r PLATFORM=linux
+  ;;
+darwin*)
+  declare -r PLATFORM=darwin
+  ;;
+msys*|mingw*|cygwin*)
+  declare -r PLATFORM=windows
+  ;;
+*)
+  declare -r PLATFORM=unknown
+  ;;
+esac
 
-sh_test(
-    name = "system_library_test",
-    size = "small",
-    srcs = ["system_library_test.sh"],
-    data = [
-        "//cc:system_library.bzl",
-        "//tests:unittest_bash",
-        "@bazel_tools//tools/bash/runfiles",
-    ],
-    env_inherit = ["PATH"],
-    target_compatible_with = [
-        "@platforms//os:linux",
-    ],
-)
+function is_linux() {
+  [[ "$PLATFORM" == "linux" ]]
+}
+
+function is_darwin() {
+  [[ "$PLATFORM" == "darwin" ]]
+}
+
+function is_windows() {
+  [[ "$PLATFORM" == "windows" ]]
+}
