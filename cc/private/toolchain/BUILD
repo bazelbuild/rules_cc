@@ -75,7 +75,9 @@ filegroup(
 
 filegroup(
     name = "srcs",
-    srcs = glob(["**"]),
+    srcs = glob(["**"]) + [
+        "//cc/private/toolchain/test:srcs",
+    ],
 )
 
 filegroup(
