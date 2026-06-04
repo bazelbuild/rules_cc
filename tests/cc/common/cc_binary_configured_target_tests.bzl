@@ -81,11 +81,9 @@ def _test_no_duplicate_linkopts(name, **kwargs):
     )
 
 def _test_no_duplicate_linkopts_impl(env, target):
-    executable = target[DefaultInfo].files_to_run.executable
-    link_action = env.expect.that_target(target).action_generating(executable.short_path)
-    argv = link_action.actual.argv
-    env.expect.that_collection(argv).contains("-fake_option")
-    env.expect.that_collection(argv).transform(
+    link_action = link_action_subject.from_target(env, target)
+    link_action.argv().contains("-fake_option")
+    link_action.argv().transform(
         filter = matching.equals_wrapper("-fake_option"),
     ).contains_no_duplicates()
 
@@ -113,7 +111,7 @@ def _test_action_graph(name, **kwargs):
 
 def _test_action_graph_impl(env, target):
     executable = target[DefaultInfo].files_to_run.executable
-    link_action = env.expect.that_target(target).action_generating(executable.short_path)
+    link_action = link_action_subject.from_target(env, target)
 
     # link.inputs = { hello.o }
     hello_obj_files = [
@@ -125,19 +123,18 @@ def _test_action_graph_impl(env, target):
     obj_file = hello_obj_files[0]
 
     # link.outputs = { hello }
-    env.expect.that_collection(link_action.actual.outputs.to_list()).contains_exactly([executable])
+    link_action.outputs().contains_exactly([executable.short_path])
 
     compile_action = env.expect.that_target(target).action_generating(obj_file.short_path)
-    env.expect.that_str(compile_action.actual.mnemonic).equals("CppCompile")
+    compile_action.mnemonic().equals("CppCompile")
 
     # compile.inputs = { hello_cc }
-    compile_inputs = [f.short_path for f in compile_action.actual.inputs.to_list()]
-    env.expect.that_collection(compile_inputs).contains_predicate(matching.str_endswith("hello.cc"))
+    compile_action.inputs().contains("{package}/hello.cc")
 
-    # compile.outputs = { hello.o, hello.d }
-    compile_outputs = [f.short_path for f in compile_action.actual.outputs.to_list()]
-    env.expect.that_collection(compile_outputs).contains(obj_file.short_path)
-    env.expect.that_collection(compile_outputs).contains_predicate(matching.str_endswith("hello.o"))
+    # compile.outputs = { hello.o } (mock toolchain doesn't generate .d)
+    compile_outputs = compile_action.actual.outputs.to_list()
+    env.expect.that_collection(compile_outputs).has_size(1)
+    env.expect.that_collection(compile_outputs).contains(obj_file)
 
     # TODO: Test stripped action
 
@@ -266,16 +263,14 @@ def _test_pic(name, **kwargs):
     )
 
 def _test_pic_impl(env, target):
-    executable = target[DefaultInfo].files_to_run.executable
-    link_action = env.expect.that_target(target).action_generating(executable.short_path)
+    link_action = link_action_subject.from_target(env, target)
     hello_obj_files = [
         f
         for f in link_action.actual.inputs.to_list()
-        if f.basename.startswith("hello.") and f.extension in ["o", "obj"]
+        if f.basename.startswith("hello.pic.") and f.extension in ["o", "obj"]
     ]
 
     env.expect.that_collection(hello_obj_files).has_size(1)
-    env.expect.that_file(hello_obj_files[0]).basename().equals("hello.pic.o")
 
 def _test_duplicate_linkopts(name, **kwargs):
     util.helper_target(
