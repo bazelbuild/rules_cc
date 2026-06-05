@@ -9,6 +9,7 @@ load(":goldens/unix/libraries_to_link.bzl", _UNIX_LIBRARIES_TO_LINK = "GOLDEN")
 load(":goldens/unix/linker_param_file.bzl", _UNIX_LINKER_PARAM_FILE = "GOLDEN")
 load(":goldens/unix/runtime_library_search_directories.bzl", _UNIX_RUNTIME_LIBRARY_SEARCH_DIRECTORIES = "GOLDEN")
 load(":goldens/unix/shared_flag.bzl", _UNIX_SHARED_FLAG = "GOLDEN")
+load(":goldens/windows/def_file_gnu.bzl", _WINDOWS_DEF_FILE_GNU = "GOLDEN")
 
 # These tests validate that the produced legacy feature implementations
 # properly reflect the implementations housed in the Java source of truth at
@@ -31,6 +32,14 @@ platform(
     name = "macos",
     constraint_values = [
         "@platforms//os:macos",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+platform(
+    name = "windows",
+    constraint_values = [
+        "@platforms//os:windows",
         "@platforms//cpu:x86_64",
     ],
 )
@@ -89,6 +98,13 @@ compare_feature_implementation(
     expected = _UNIX_LINKER_PARAM_FILE,
     feature_name = "linker_param_file_test",
     platform = ":linux",
+)
+
+compare_feature_implementation(
+    name = "def_file_test",
+    actual_implementation = "//cc/toolchains/args/def_file:def_file_args",
+    expected = _WINDOWS_DEF_FILE_GNU,
+    platform = ":windows",
 )
 
 compare_feature_implementation(
