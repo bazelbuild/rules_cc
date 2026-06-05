@@ -59,6 +59,7 @@ be <code>main</code>.
     },
     fragments = ["cpp"] + semantics.additional_fragments(),
     exec_groups = {
+        "cpp_compile": exec_group(toolchains = use_cc_toolchain()),
         "cpp_link": exec_group(toolchains = use_cc_toolchain()),
     } | semantics.extra_exec_groups,
     toolchains = use_cc_toolchain() +
