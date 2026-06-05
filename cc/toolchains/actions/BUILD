@@ -159,6 +159,11 @@ cc_action_type(
 )
 
 cc_action_type(
+    name = "generate_def_file",
+    action_name = ACTION_NAMES.generate_def_file,
+)
+
+cc_action_type(
     name = "validate_static_library",
     action_name = ACTION_NAMES.validate_static_library,
 )
@@ -359,6 +364,7 @@ cc_action_type_set(
         ":objcpp_compile",
         ":objcpp_executable",
         ":clif_match",
+        ":generate_def_file",
         ":validate_static_library",
     ],
 )

@@ -15,6 +15,7 @@ c-compile
 cc-flags-make-variable
 clif-match
 gcov
+generate-def-file
 ld_embed_data
 linkstamp-compile
 llvm-cov

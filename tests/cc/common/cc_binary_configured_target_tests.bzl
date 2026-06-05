@@ -272,6 +272,61 @@ def _test_pic_impl(env, target):
 
     env.expect.that_collection(hello_obj_files).has_size(1)
 
+def _generated_def_file_test(name, impl, with_action_configs = None, **kwargs):
+    if with_action_configs == None:
+        with_action_configs = []
+
+    util.helper_target(
+        cc_binary,
+        name = name + "/hello",
+        srcs = ["hello.cc"],
+        linkshared = True,
+    )
+    cc_analysis_test(
+        name = name,
+        impl = impl,
+        target = name + "/hello",
+        test_features = [
+            FEATURE_NAMES.copy_dynamic_libraries_to_binary,
+            FEATURE_NAMES.targets_windows,
+            FEATURE_NAMES.windows_export_all_symbols,
+        ],
+        with_action_configs = with_action_configs,
+        **kwargs
+    )
+
+def _generated_def_file_action(env, target):
+    action = cc_binary_target_subject.from_target(env, target).action_generating(
+        "{package}/{name}.gen.def",
+    )
+    action.mnemonic().equals("DefParser")
+    return action
+
+def _test_generated_def_file_uses_default_tool(name, **kwargs):
+    _generated_def_file_test(
+        name,
+        _test_generated_def_file_uses_default_tool_impl,
+        **kwargs
+    )
+
+def _test_generated_def_file_uses_default_tool_impl(env, target):
+    _generated_def_file_action(env, target).argv().contains_predicate(
+        matching.contains("tools/def_parser"),
+    )
+
+def _test_generated_def_file_uses_toolchain_action(name, **kwargs):
+    _generated_def_file_test(
+        name,
+        _test_generated_def_file_uses_toolchain_action_impl,
+        with_action_configs = [ACTION_NAMES.generate_def_file],
+        **kwargs
+    )
+
+def _test_generated_def_file_uses_toolchain_action_impl(env, target):
+    _generated_def_file_action(env, target).argv().contains_predicate(
+        matching.contains("def_parser_tool"),
+    )
+
 def _test_duplicate_linkopts(name, **kwargs):
     util.helper_target(
         cc_library,
@@ -544,6 +599,8 @@ def cc_binary_configured_target_tests(name):
             _test_sanitize_pwd_macos_no_pwd,
             _test_system_include_paths_reclassifies_local_includes_after_includes,
             _test_system_include_paths_reclassifies_local_includes_without_propagation,
+            _test_generated_def_file_uses_toolchain_action,
+            _test_generated_def_file_uses_default_tool,
         ])
 
     test_suite(
