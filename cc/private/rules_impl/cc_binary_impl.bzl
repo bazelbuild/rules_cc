@@ -717,6 +717,7 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
         linking_mode = linking_mode,
         use_pic = use_pic,
         lto_artifacts = cc_linking_outputs_binary.all_lto_artifacts(),
+        dwp_exec_group = "cpp_dwp",
     )
     explicit_dwp_file = dwp_file
     if not cc_helper.should_create_per_object_debug_info(feature_configuration, cpp_config):
