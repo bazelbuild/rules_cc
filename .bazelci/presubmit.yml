@@ -12,6 +12,14 @@ test_targets: &test_targets
   - "//tests/..."
   - "-//tests/system_library:system_library_test" # Only intended to work in WORKSPACE files
   - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
+coverage_targets: &coverage_targets
+  - "//:all"
+  - "//cc/..."
+  - "//examples/..."
+  - "//tests/..."
+  - "-//tests/integration/..."
+  - "-//tests/system_library:system_library_test" # Only intended to work in WORKSPACE files
+  - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
 
 build_targets_bazel_6: &build_targets_bazel_6
   - "//:all"
@@ -32,6 +40,19 @@ test_targets_bazel_6: &test_targets_bazel_6
   - "-//tests/system_library:system_library_test" # Should be skipped on Windows and MacOS
   - "-//tests/cc/common:test_runtime_dynamic_libraries_copy_behavior" # known bug, see https://github.com/bazelbuild/rules_cc/pull/623
   - "-//tests/strip_include_prefix:test_include_textual"  # Not supported in bazel <9.
+coverage_targets_bazel_6: &coverage_targets_bazel_6
+  - "//:all"
+  - "//cc:all"
+  - "//examples/..."
+  - "//tests/..."
+  - "-//tests/integration/..."
+  - "-//tests/rule_based_toolchain/..." # proto.encode_text doesn't support None
+  - "-//cc:optional_current_cc_toolchain" # Not supported in Bazel 6
+  - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
+  - "-//tests/system_library:system_library_test" # Should be skipped on Windows and MacOS
+  - "-//tests/cc/common:test_runtime_dynamic_libraries_copy_behavior" # known bug, see https://github.com/bazelbuild/rules_cc/pull/623
+  - "-//tests/strip_include_prefix:test_include_textual"  # Not supported in bazel <9.
+
 
 common_coverage_flags: &common_coverage_flags
   # Starting in Bazel 9 coverage collection causes some tests to fail.
@@ -45,6 +66,13 @@ coverage_flags_bazel_less_than_9: &coverage_flags_bazel_less_than_9
   # See above
   - "--test_env=IGNORE_COVERAGE_COLLECTION_FAILURES=1"
   - "--test_output=errors"
+
+windows_test_flags: &windows_test_flags
+  - "--test_tag_filters=-no_windows"
+
+macos_test_flags: &macos_test_flags
+  - "--test_tag_filters=-no_macos"
+
 
 buildifier:
   version: latest
@@ -76,18 +104,21 @@ tasks:
     platform: macos
     build_targets: *build_targets
     test_targets: *test_targets
+    test_flags: *macos_test_flags
   macos_head:
     name: MacOS (Bazel HEAD)
     bazel: last_green
     platform: macos_arm64
     build_targets: *build_targets
     test_targets: *test_targets
+    test_flags: *macos_test_flags
   windows_head:
     name: Windows (Bazel HEAD)
     bazel: last_green
     platform: windows
     build_targets: *build_targets
     test_targets: *test_targets
+    test_flags: *windows_test_flags
 
   # Bazel@rolling
   ubuntu2004_rolling:
@@ -107,22 +138,25 @@ tasks:
     platform: macos
     build_targets: *build_targets
     test_targets: *test_targets
+    test_flags: *macos_test_flags
     coverage_flags: *common_coverage_flags
-    coverage_targets: *test_targets
+    coverage_targets: *coverage_targets
   macos_rolling:
     name: MacOS (Bazel rolling)
     bazel: rolling
     platform: macos_arm64
     build_targets: *build_targets
     test_targets: *test_targets
+    test_flags: *macos_test_flags
     coverage_flags: *common_coverage_flags
-    coverage_targets: *test_targets
+    coverage_targets: *coverage_targets
   windows_rolling:
     name: Windows (Bazel rolling)
     bazel: rolling
     platform: windows
     build_targets: *build_targets
     test_targets: *test_targets
+    test_flags: *windows_test_flags
 
 # Bazel 7
   ubuntu2004_bazel_7:
@@ -132,29 +166,32 @@ tasks:
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
     coverage_flags: *coverage_flags_bazel_less_than_9
-    coverage_targets: *test_targets_bazel_6
+    coverage_targets: *coverage_targets_bazel_6
   macos_intel_bazel_7:
     name: MacOS Intel (Bazel 7)
     bazel: 7.x
     platform: macos
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
+    test_flags: *macos_test_flags
     coverage_flags: *coverage_flags_bazel_less_than_9
-    coverage_targets: *test_targets_bazel_6
+    coverage_targets: *coverage_targets_bazel_6
   macos_bazel_7:
     name: MacOS (Bazel 7)
     bazel: 7.x
     platform: macos_arm64
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
+    test_flags: *macos_test_flags
     coverage_flags: *coverage_flags_bazel_less_than_9
-    coverage_targets: *test_targets_bazel_6
+    coverage_targets: *coverage_targets_bazel_6
   windows_bazel_7:
     name: Windows (Bazel 7)
     bazel: 7.x
     platform: windows
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
+    test_flags: *windows_test_flags
 
 # Bazel 8
   ubuntu2004_bazel_8:
@@ -164,29 +201,32 @@ tasks:
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
     coverage_flags: *coverage_flags_bazel_less_than_9
-    coverage_targets: *test_targets_bazel_6
+    coverage_targets: *coverage_targets_bazel_6
   macos_intel_bazel_8:
     name: MacOS Intel (Bazel 8)
     bazel: 8.x
     platform: macos
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
+    test_flags: *macos_test_flags
     coverage_flags: *coverage_flags_bazel_less_than_9
-    coverage_targets: *test_targets_bazel_6
+    coverage_targets: *coverage_targets_bazel_6
   macos_bazel_8:
     name: MacOS (Bazel 8)
     bazel: 8.x
     platform: macos_arm64
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
+    test_flags: *macos_test_flags
     coverage_flags: *coverage_flags_bazel_less_than_9
-    coverage_targets: *test_targets_bazel_6
+    coverage_targets: *coverage_targets_bazel_6
   windows_bazel_8:
     name: Windows (Bazel 8)
     bazel: 8.x
     platform: windows
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
+    test_flags: *windows_test_flags
 
 # Bazel 9
   ubuntu2004:
@@ -196,28 +236,31 @@ tasks:
     build_targets: *build_targets
     test_targets: *test_targets
     coverage_flags: *common_coverage_flags
-    coverage_targets: *test_targets
+    coverage_targets: *coverage_targets
   macos_intel:
     name: MacOS Intel (Bazel 9)
     bazel: 9.x
     platform: macos
     build_targets: *build_targets
     test_targets: *test_targets
+    test_flags: *macos_test_flags
     coverage_flags: *common_coverage_flags
-    coverage_targets: *test_targets
+    coverage_targets: *coverage_targets
   macos:
     name: MacOS (Bazel 9)
     bazel: 9.x
     platform: macos_arm64
     build_targets: *build_targets
     test_targets: *test_targets
+    test_flags: *macos_test_flags
     coverage_flags: *common_coverage_flags
-    coverage_targets: *test_targets
+    coverage_targets: *coverage_targets
   windows:
     name: Windows (Bazel 9)
     bazel: 9.x
     build_targets: *build_targets
     test_targets: *test_targets
+    test_flags: *windows_test_flags
   ubuntu_bzlmod:
     name: Ubuntu 20.04 (Bazel 9, bzlmod)
     bazel: 9.x

@@ -38,3 +38,11 @@ function is_darwin() {
 function is_windows() {
   [[ "$PLATFORM" == "windows" ]]
 }
+
+function is_bazel() {
+    [ $TEST_WORKSPACE == "_main" ]
+}
+
+function add_to_bazelrc() {
+    echo "$@" >> .bazelrc
+}
