@@ -20,8 +20,8 @@ else
 fi
 # --- end runfiles.bash initialization ---
 
-source "$(rlocation rules_cc/tests/system_library/unittest.bash)" \
-  || { echo "Could not rules_cc/source tests/system_library/unittest.bash" >&2; exit 1; }
+source "$(rlocation rules_cc/tests/unittest.bash)" \
+  || { echo "Could not source rules_cc/tests/unittest.bash" >&2; exit 1; }
 
 
 function setup_system_library() {

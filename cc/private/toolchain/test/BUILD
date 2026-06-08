@@ -11,3 +11,9 @@ compat_toolchain(
     toolchain_type = "@bazel_tools//tools/cpp:test_runner_toolchain_type",
     use_target_platform_constraints = True,
 )
+
+filegroup(
+    name = "srcs",
+    srcs = glob(["**"]),
+    visibility = ["//cc/private/toolchain:__pkg__"],
+)

@@ -32,7 +32,6 @@ load(
     _should_stamp = "should_stamp",
 )
 load(":cc_info.bzl", "CcInfo")
-load(":semantics.bzl", "semantics")
 load(":visibility.bzl", "INTERNAL_VISIBILITY")
 
 visibility(INTERNAL_VISIBILITY)
@@ -69,7 +68,8 @@ def _is_valid_shared_library_name(shared_library_name):
         shared_library_name.endswith(".dll") or
         shared_library_name.endswith(".dylib") or
         shared_library_name.endswith(".pyd") or
-        shared_library_name.endswith(".wasm")):
+        shared_library_name.endswith(".wasm") or
+        shared_library_name.endswith(".xll")):
         return True
 
     return is_versioned_shared_library_extension_valid(shared_library_name)
@@ -375,7 +375,7 @@ def _check_file_extensions(attr_values, allowed_extensions, attr_name, label, ru
                         label,
                         str(attr_value.label),
                     ))
-            else:
+            elif len(files) > 0:
                 at_least_one_good = False
                 for file in files:
                     if _check_file_extension(file, allowed_extensions, allow_versioned_shared_libraries) or file.is_directory:
@@ -532,7 +532,7 @@ def _get_toolchain_global_make_variables(cc_toolchain, feature_configuration):
     result["CROSSTOOLTOP"] = cc_toolchain._crosstool_top_path
     return result
 
-_SHARED_LIBRARY_EXTENSIONS = ["so", "dll", "dylib", "pyd", "wasm"]
+_SHARED_LIBRARY_EXTENSIONS = ["so", "dll", "dylib", "pyd", "wasm", "xll"]
 
 def _is_valid_shared_library_artifact(shared_library):
     if (shared_library.extension in _SHARED_LIBRARY_EXTENSIONS):
@@ -940,22 +940,6 @@ def _defines(ctx, additional_make_variable_substitutions):
 def _local_defines(ctx, additional_make_variable_substitutions):
     return _defines_attribute(ctx, additional_make_variable_substitutions, "local_defines", getattr(ctx.attr, "additional_compiler_inputs", []))
 
-def _copts_filter(ctx, additional_make_variable_substitutions):
-    nocopts = getattr(ctx.attr, "nocopts", None)
-
-    if nocopts == None or len(nocopts) == 0:
-        return nocopts
-
-    if semantics.is_allowed_nocopts(nocopts):
-        return nocopts
-
-    # Check if nocopts is disabled.
-    if ctx.fragments.cpp.disable_nocopts():
-        fail("This attribute was removed. See https://github.com/bazelbuild/bazel/issues/8706 for details.", attr = "nocopts")
-
-    # Expand nocopts and create CoptsFilter.
-    return _expand(ctx, nocopts, additional_make_variable_substitutions)
-
 def _map_to_list(m):
     result = []
     for k, v in m.items():
@@ -1134,7 +1118,6 @@ cc_helper = struct(
     get_copts = _get_copts,
     defines = _defines,
     local_defines = _local_defines,
-    copts_filter = _copts_filter,
     get_srcs = _get_srcs,
     get_cpp_module_interfaces = _get_cpp_module_interfaces,
     get_private_hdrs = _get_private_hdrs,

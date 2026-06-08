@@ -358,16 +358,7 @@ linking the binary target.
 </p>
 """),
     "nocopts": attr.string(doc = """
-Remove matching options from the C++ compilation command.
-Subject to <a href="${link make-variables}">"Make" variable</a> substitution.
-The value of this attribute is interpreted as a regular expression.
-Any preexisting <code>COPTS</code> that match this regular expression
-(including values explicitly specified in the rule's <a
-href="#cc_binary.copts">copts</a> attribute)
-will be removed from <code>COPTS</code> for purposes of compiling this rule.
-This attribute should not be needed or used
-outside of <code>third_party</code>.  The values are not preprocessed
-in any way other than the "Make" variable substitution.
+Deprecated, no-op.
     """),
     "linkstatic": attr.bool(
         default = True,

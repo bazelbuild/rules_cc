@@ -25,9 +25,6 @@ STRIP_INCLUDE_PREFIX_APPLIES_TO_TEXTUAL_HEADERS = True
 def _get_proto_aspects():
     return []
 
-def _should_create_empty_archive():
-    return False
-
 def _validate_attributes(_ctx):
     pass
 
@@ -129,10 +126,6 @@ def _get_cc_link_memlimit(_compilation_mode, exec_info):
 def _get_nocopts_attr():
     return {}
 
-def _is_allowed_nocopts(
-        nocopts):  # @unused
-    return False
-
 def _get_experimental_link_static_libraries_once(ctx):
     return ctx.fragments.cpp.experimental_link_static_libraries_once()
 
@@ -193,7 +186,6 @@ semantics = struct(
     get_licenses_attr = _get_licenses_attr,
     get_def_parser = _get_def_parser,
     get_stl = _get_stl,
-    should_create_empty_archive = _should_create_empty_archive,
     get_grep_includes = _get_grep_includes,
     get_implementation_deps_allowed_attr = _get_implementation_deps_allowed_attr,
     check_can_use_implementation_deps = _check_can_use_implementation_deps,
@@ -207,7 +199,6 @@ semantics = struct(
     get_coverage_env = _get_coverage_env,
     get_proto_aspects = _get_proto_aspects,
     get_nocopts_attr = _get_nocopts_attr,
-    is_allowed_nocopts = _is_allowed_nocopts,
     get_experimental_link_static_libraries_once = _get_experimental_link_static_libraries_once,
     cpp_modules_tools = _cpp_modules_tools,
     check_cc_shared_library_tags = _check_cc_shared_library_tags,

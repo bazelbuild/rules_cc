@@ -53,13 +53,11 @@ http_archive(
     url = "https://github.com/google/googletest/releases/download/v1.15.2/googletest-1.15.2.tar.gz",
 )
 
-# Required commit 9f66dfd "Add feature for cc.compile_is_starlark"
-# TODO: pzembrod - Change to a released version again when the commit is in a release.
 http_archive(
     name = "bazel_features",
-    sha256 = "sha256-Q+hJsju3CWDN1K9InhbErlZNk093AewwEPnI3BodltQ=",
-    strip_prefix = "bazel_features-9f66dfd288cec395f373950b7c8eaaf11c2624fc",
-    url = "https://github.com/bazel-contrib/bazel_features/archive/9f66dfd288cec395f373950b7c8eaaf11c2624fc.tar.gz",
+    sha256 = "5f7f87f50584df12bbfe5e461d358b16a8e15d245a7e596011bf39aaee5f58a9",
+    strip_prefix = "bazel_features-1.47.0",
+    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.47.0/bazel_features-v1.47.0.tar.gz",
 )
 
 load("@bazel_features//:deps.bzl", "bazel_features_deps")

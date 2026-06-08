@@ -133,10 +133,10 @@ def compile(
         variables_extension = None,
         language = None,
         purpose = None,
-        copts_filter = None,
         separate_module_headers = [],
         module_interfaces = [],
-        non_compilation_additional_inputs = []):
+        non_compilation_additional_inputs = [],
+        progress_message_prefix = None):
     """Should be used for C++ compilation.
 
     Args:
@@ -202,11 +202,11 @@ def compile(
         variables_extension: undocumented
         language: undocumented
         purpose: undocumented
-        copts_filter: undocumented
         separate_module_headers: undocumented
         module_interfaces: The list of module interfaces source files to be compiled. Note: this is an
             experimental feature, only enabled with --experimental_cpp_modules
         non_compilation_additional_inputs: undocumented
+        progress_message_prefix: A prefix to be added to logged progress messages.
 
     Returns:
         a tuple of  (<code>CompilationContext</code>, <code>CcCompilationOutputs</code>).
@@ -354,6 +354,7 @@ def compile(
         "cpp_modules_info_file": None,
         "pic_cpp_modules_info_file": None,
     }
+
     _create_cc_compile_actions(
         actions = actions,
         action_construction_context = ctx,
@@ -366,7 +367,6 @@ def compile(
         configuration = ctx.configuration,
         conlyopts = conly_flags,
         copts = user_compile_flags,
-        copts_filter = copts_filter,
         cpp_configuration = cpp_configuration,
         cxxopts = cxx_flags,
         fdo_context = fdo_context,
@@ -384,6 +384,7 @@ def compile(
         common_compile_build_variables = common_compile_build_variables,
         auxiliary_fdo_inputs = auxiliary_fdo_inputs,
         fdo_build_variables = fdo_build_variables,
+        progress_message_prefix = progress_message_prefix,
     )
 
     compilation_outputs_dict["lto_compilation_context"] = create_lto_compilation_context(
@@ -514,7 +515,6 @@ def _create_scan_deps_action(
         configuration,
         conlyopts,
         copts,
-        copts_filter,
         cpp_configuration,  # Note: this is from the cc_toolchain, and is NOT the same as ctx.fragments.cpp
         cxxopts,
         feature_configuration,
@@ -525,7 +525,8 @@ def _create_scan_deps_action(
         source_label,
         use_pic,
         ddi_file,
-        ddi_output_name):
+        ddi_output_name,
+        progress_message_prefix):
     dotd_file = None
     if (
         dotd_files_enabled(language, cpp_configuration, feature_configuration) and
@@ -565,12 +566,11 @@ def _create_scan_deps_action(
         common_toolchain_variables,
         specific_compile_build_variables,
     )
-    _cc_internal.create_cc_compile_action(
+    _create_compile_action(
         action_construction_context = action_construction_context,
         cc_compilation_context = cc_compilation_context,
         cc_toolchain = cc_toolchain,
         configuration = configuration,
-        copts_filter = copts_filter,
         feature_configuration = feature_configuration,
         source = source_artifact,
         additional_compilation_inputs = additional_compilation_inputs,
@@ -579,6 +579,7 @@ def _create_scan_deps_action(
         compile_build_variables = compile_variables,
         action_name = ACTION_NAMES.cpp_module_deps_scanning,
         toolchain_type = _starlark_cc_semantics.toolchain,
+        progress_message_prefix = progress_message_prefix,
     )
 
 def _create_aggregate_ddi_action(
@@ -650,7 +651,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
         configuration,
         conlyopts,
         copts,
-        copts_filter,
         cpp_configuration,
         cxxopts,
         fdo_context,
@@ -667,7 +667,8 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
         fdo_build_variables,
         use_pic,
         enable_dotd_files,
-        output_name_map):
+        output_name_map,
+        progress_message_prefix):
     direct_module_files = []
     source_to_module_file_map = {}
     source_to_ddi_file_map = {}
@@ -736,7 +737,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
             configuration = configuration,
             conlyopts = conlyopts,
             copts = copts,
-            copts_filter = copts_filter,
             cpp_configuration = cpp_configuration,
             cxxopts = cxxopts,
             feature_configuration = feature_configuration,
@@ -748,6 +748,7 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
             use_pic = use_pic,
             ddi_file = ddi_file,
             ddi_output_name = ddi_output_name,
+            progress_message_prefix = progress_message_prefix,
         )
         source_to_ddi_file_map[source_artifact] = ddi_file
 
@@ -830,7 +831,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
             conlyopts = conlyopts,
             copts = copts,
             cxxopts = cxxopts,
-            copts_filter = copts_filter,
             common_compile_variables = common_compile_build_variables,
             fdo_build_variables = fdo_build_variables,
             output_category = artifact_category.CLIF_OUTPUT_PROTO if cpp_source.type == CPP_SOURCE_TYPE_CLIF_INPUT_PROTO else artifact_category.OBJECT_FILE,
@@ -854,6 +854,7 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
             module_files = all_other_module_files,
             modmap_file = modmap_file,
             modmap_input_file = modmap_input_file,
+            progress_message_prefix = progress_message_prefix,
         )
 
     all_module_files = depset(direct_module_files, transitive = [transitive_module_files])
@@ -919,7 +920,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
                 configuration = configuration,
                 conlyopts = conlyopts,
                 copts = copts,
-                copts_filter = copts_filter,
                 cpp_configuration = cpp_configuration,
                 cxxopts = cxxopts,
                 feature_configuration = feature_configuration,
@@ -931,6 +931,7 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
                 use_pic = use_pic,
                 ddi_file = ddi_file,
                 ddi_output_name = ddi_output_name,
+                progress_message_prefix = progress_message_prefix,
             )
             modmap_file = _get_compile_output_file(
                 action_construction_context,
@@ -978,7 +979,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
             conlyopts = conlyopts,
             copts = copts,
             cxxopts = cxxopts,
-            copts_filter = copts_filter,
             common_compile_variables = common_compile_build_variables,
             fdo_build_variables = fdo_build_variables,
             output_category = artifact_category.CLIF_OUTPUT_PROTO if cpp_source.type == CPP_SOURCE_TYPE_CLIF_INPUT_PROTO else artifact_category.OBJECT_FILE,
@@ -997,6 +997,7 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
             module_files = all_module_files,
             modmap_file = modmap_file,
             modmap_input_file = modmap_input_file,
+            progress_message_prefix = progress_message_prefix,
         )
 
 def _create_cc_compile_actions_with_cpp20_module(
@@ -1012,7 +1013,6 @@ def _create_cc_compile_actions_with_cpp20_module(
         configuration,
         conlyopts,
         copts,
-        copts_filter,
         cpp_configuration,
         cxxopts,
         fdo_context,
@@ -1029,7 +1029,8 @@ def _create_cc_compile_actions_with_cpp20_module(
         common_compile_build_variables,
         auxiliary_fdo_inputs,
         fdo_build_variables,
-        enable_dotd_files):
+        enable_dotd_files,
+        progress_message_prefix):
     """Constructs the C++ compiler actions with C++20 modules support.
     """
     output_name_prefix_dir = _cc_internal.compute_output_name_prefix_dir(configuration = configuration, purpose = purpose)
@@ -1052,7 +1053,6 @@ def _create_cc_compile_actions_with_cpp20_module(
             configuration = configuration,
             conlyopts = conlyopts,
             copts = copts,
-            copts_filter = copts_filter,
             cpp_configuration = cpp_configuration,
             cxxopts = cxxopts,
             fdo_context = fdo_context,
@@ -1070,6 +1070,7 @@ def _create_cc_compile_actions_with_cpp20_module(
             use_pic = use_pic,
             enable_dotd_files = enable_dotd_files,
             output_name_map = output_name_map,
+            progress_message_prefix = progress_message_prefix,
         )
 
 def _create_cc_compile_actions(
@@ -1085,7 +1086,6 @@ def _create_cc_compile_actions(
         configuration,
         conlyopts,
         copts,
-        copts_filter,
         cpp_configuration,  # Note: this is from the cc_toolchain, and is NOT the same as ctx.fragments.cpp
         cxxopts,
         fdo_context,
@@ -1102,7 +1102,8 @@ def _create_cc_compile_actions(
         outputs,
         common_compile_build_variables,
         auxiliary_fdo_inputs,
-        fdo_build_variables):
+        fdo_build_variables,
+        progress_message_prefix):
     """Constructs the C++ compiler actions.
 
     It generally creates one action for every specified source
@@ -1129,7 +1130,6 @@ def _create_cc_compile_actions(
             configuration = configuration,
             conlyopts = conlyopts,
             copts = copts,
-            copts_filter = copts_filter,
             cpp_configuration = cpp_configuration,
             cxxopts = cxxopts,
             fdo_context = fdo_context,
@@ -1147,6 +1147,7 @@ def _create_cc_compile_actions(
             auxiliary_fdo_inputs = auxiliary_fdo_inputs,
             fdo_build_variables = fdo_build_variables,
             enable_dotd_files = enable_dotd_files,
+            progress_message_prefix = progress_message_prefix,
         )
         return
 
@@ -1162,7 +1163,6 @@ def _create_cc_compile_actions(
             copts = copts,
             cpp_configuration = cpp_configuration,
             cxxopts = cxxopts,
-            copts_filter = copts_filter,
             fdo_context = fdo_context,
             auxiliary_fdo_inputs = auxiliary_fdo_inputs,
             feature_configuration = feature_configuration,
@@ -1176,6 +1176,7 @@ def _create_cc_compile_actions(
             language = language,
             additional_compilation_inputs = [],
             additional_include_scanning_roots = [],
+            progress_message_prefix = progress_message_prefix,
         )
         if separate_module_headers:
             separate_cpp_module_map = create_separate_module_map(cpp_module_map)
@@ -1188,7 +1189,6 @@ def _create_cc_compile_actions(
                 copts = copts,
                 cpp_configuration = cpp_configuration,
                 cxxopts = cxxopts,
-                copts_filter = copts_filter,
                 fdo_context = fdo_context,
                 auxiliary_fdo_inputs = auxiliary_fdo_inputs,
                 feature_configuration = feature_configuration,
@@ -1202,6 +1202,7 @@ def _create_cc_compile_actions(
                 language = language,
                 additional_compilation_inputs = [],
                 additional_include_scanning_roots = [],
+                progress_message_prefix = progress_message_prefix,
             )
             modules = modules + separate_modules
         if feature_configuration.is_enabled("header_module_codegen"):
@@ -1213,7 +1214,6 @@ def _create_cc_compile_actions(
                     configuration = configuration,
                     conlyopts = conlyopts,
                     copts = copts,
-                    copts_filter = copts_filter,
                     cpp_configuration = cpp_configuration,
                     cxxopts = cxxopts,
                     fdo_context = fdo_context,
@@ -1227,6 +1227,7 @@ def _create_cc_compile_actions(
                     outputs = outputs,
                     source_label = module_map_label,
                     module = module,
+                    progress_message_prefix = progress_message_prefix,
                 )
 
     output_name_prefix_dir = _cc_internal.compute_output_name_prefix_dir(configuration = configuration, purpose = purpose)
@@ -1260,7 +1261,6 @@ def _create_cc_compile_actions(
                 language = language,
                 conlyopts = conlyopts,
                 cxxopts = cxxopts,
-                copts_filter = copts_filter,
                 copts = copts,
                 common_compile_variables = common_compile_build_variables,
                 fdo_build_variables = fdo_build_variables,
@@ -1277,6 +1277,7 @@ def _create_cc_compile_actions(
                 generate_pic_action = generate_pic_action,
                 generate_no_pic_action = generate_no_pic_action,
                 enable_dotd_files = enable_dotd_files,
+                progress_message_prefix = progress_message_prefix,
             )
         else:  # Tree artifact
             create_compile_action_templates(
@@ -1295,7 +1296,6 @@ def _create_cc_compile_actions(
                 copts = copts,
                 conlyopts = conlyopts,
                 cxxopts = cxxopts,
-                copts_filter = copts_filter,
                 generate_pic_action = generate_pic_action,
                 generate_no_pic_action = generate_no_pic_action,
                 additional_compilation_inputs = additional_compilation_inputs,
@@ -1377,12 +1377,11 @@ def _create_cc_compile_actions(
 
         # This creates the action to parse a header file.
         # If we generate pic actions, we prefer the header actions to use the pic artifacts.
-        _cc_internal.create_cc_compile_action(
+        _create_compile_action(
             action_construction_context = action_construction_context,
             cc_compilation_context = cc_compilation_context,
             cc_toolchain = cc_toolchain,
             configuration = configuration,
-            copts_filter = copts_filter,
             feature_configuration = feature_configuration,
             source = source_file,
             additional_compilation_inputs = additional_compilation_inputs,
@@ -1395,6 +1394,7 @@ def _create_cc_compile_actions(
             action_name = ACTION_NAMES.cpp_header_parsing,
             needs_include_validation = _starlark_cc_semantics.needs_include_validation(language),
             toolchain_type = _starlark_cc_semantics.toolchain,
+            progress_message_prefix = progress_message_prefix,
         )
         outputs["header_tokens"].append(output_file)
 
@@ -1414,7 +1414,6 @@ def _create_pic_nopic_compile_source_actions(
         conlyopts,
         copts,
         cxxopts,
-        copts_filter,
         common_compile_variables,
         fdo_build_variables,
         output_category,
@@ -1429,7 +1428,8 @@ def _create_pic_nopic_compile_source_actions(
         additional_include_scanning_roots,
         generate_pic_action,
         generate_no_pic_action,
-        enable_dotd_files):
+        enable_dotd_files,
+        progress_message_prefix):
     results = []
     if generate_pic_action:
         pic_object = _create_compile_source_action(
@@ -1448,7 +1448,6 @@ def _create_pic_nopic_compile_source_actions(
             conlyopts = conlyopts,
             copts = copts,
             cxxopts = cxxopts,
-            copts_filter = copts_filter,
             common_compile_variables = common_compile_variables,
             fdo_build_variables = fdo_build_variables,
             output_category = output_category,
@@ -1463,6 +1462,7 @@ def _create_pic_nopic_compile_source_actions(
             additional_include_scanning_roots = additional_include_scanning_roots,
             use_pic = True,
             enable_dotd_files = enable_dotd_files,
+            progress_message_prefix = progress_message_prefix,
         )
         results.append(pic_object)
         if output_category == artifact_category.CPP_MODULE:
@@ -1485,7 +1485,6 @@ def _create_pic_nopic_compile_source_actions(
             conlyopts = conlyopts,
             copts = copts,
             cxxopts = cxxopts,
-            copts_filter = copts_filter,
             common_compile_variables = common_compile_variables,
             fdo_build_variables = fdo_build_variables,
             output_category = output_category,
@@ -1500,6 +1499,7 @@ def _create_pic_nopic_compile_source_actions(
             additional_include_scanning_roots = additional_include_scanning_roots,
             use_pic = False,
             enable_dotd_files = enable_dotd_files,
+            progress_message_prefix = progress_message_prefix,
         )
         results.append(nopic_object)
         if output_category == artifact_category.CPP_MODULE:
@@ -1523,7 +1523,6 @@ def _create_compile_source_action(
         conlyopts,
         copts,
         cxxopts,
-        copts_filter,
         common_compile_variables,
         fdo_build_variables,
         output_category,
@@ -1543,7 +1542,8 @@ def _create_compile_source_action(
         additional_outputs = [],
         module_files = depset(),
         modmap_file = None,
-        modmap_input_file = None):
+        modmap_input_file = None,
+        progress_message_prefix = None):
     output_pic_nopic_name = output_name
     if use_pic:
         output_pic_nopic_name = _cc_internal.get_artifact_name_for_category(
@@ -1657,7 +1657,6 @@ def _create_compile_source_action(
         cpp_configuration = cpp_configuration,
         language = language,
         copts = complete_copts,
-        copts_filter = copts_filter,
         common_compile_variables = common_compile_variables,
         feature_configuration = feature_configuration,
         fdo_context = fdo_context,
@@ -1668,6 +1667,7 @@ def _create_compile_source_action(
         use_pic = use_pic,
         action_name = action_name,
         enable_dotd_files = enable_dotd_files,
+        progress_message_prefix = progress_message_prefix,
     )
 
     # The fdo_context struct does not always have fields set, so we have to do this.
@@ -1691,12 +1691,11 @@ def _create_compile_source_action(
     else:
         module_args = {}
 
-    _cc_internal.create_cc_compile_action(
+    _create_compile_action(
         action_construction_context = action_construction_context,
         cc_compilation_context = cc_compilation_context,
         cc_toolchain = cc_toolchain,
         configuration = configuration,
-        copts_filter = copts_filter,
         feature_configuration = feature_configuration,
         additional_compilation_inputs = additional_inputs,
         additional_include_scanning_roots = additional_include_scanning_roots,
@@ -1715,6 +1714,7 @@ def _create_compile_source_action(
         ),
         needs_include_validation = _starlark_cc_semantics.needs_include_validation(language),
         toolchain_type = _starlark_cc_semantics.toolchain,
+        progress_message_prefix = progress_message_prefix,
         **module_args
     )
 
@@ -1749,7 +1749,6 @@ def _create_temps_action(
         cpp_configuration,
         language,
         copts,
-        copts_filter,
         common_compile_variables,
         feature_configuration,
         fdo_context,
@@ -1759,7 +1758,8 @@ def _create_temps_action(
         additional_include_scanning_roots,
         use_pic,
         action_name,
-        enable_dotd_files):
+        enable_dotd_files,
+        progress_message_prefix):
     if not cpp_configuration.save_temps():
         return []
 
@@ -1877,12 +1877,11 @@ def _create_temps_action(
         fdo_build_variables = fdo_build_variables,
         additional_build_variables = {"output_assembly_file": assembly_object_file.path},
     )
-    _cc_internal.create_cc_compile_action(
+    _create_compile_action(
         action_construction_context = action_construction_context,
         cc_compilation_context = cc_compilation_context,
         cc_toolchain = cc_toolchain,
         configuration = configuration,
-        copts_filter = copts_filter,
         feature_configuration = feature_configuration,
         source = source_artifact,
         additional_compilation_inputs = additional_compilation_inputs,
@@ -1898,13 +1897,13 @@ def _create_temps_action(
         action_name = action_name,
         needs_include_validation = _starlark_cc_semantics.needs_include_validation(language),
         toolchain_type = _starlark_cc_semantics.toolchain,
+        progress_message_prefix = progress_message_prefix,
     )
-    _cc_internal.create_cc_compile_action(
+    _create_compile_action(
         action_construction_context = action_construction_context,
         cc_compilation_context = cc_compilation_context,
         cc_toolchain = cc_toolchain,
         configuration = configuration,
-        copts_filter = copts_filter,
         feature_configuration = feature_configuration,
         source = source_artifact,
         additional_compilation_inputs = additional_compilation_inputs,
@@ -1920,6 +1919,7 @@ def _create_temps_action(
         action_name = action_name,
         needs_include_validation = _starlark_cc_semantics.needs_include_validation(language),
         toolchain_type = _starlark_cc_semantics.toolchain,
+        progress_message_prefix = progress_message_prefix,
     )
     return [preprocess_object_file, assembly_object_file]
 
@@ -1930,7 +1930,6 @@ def _create_module_codegen_action(
         configuration,
         conlyopts,
         copts,
-        copts_filter,
         cpp_configuration,
         cxxopts,
         fdo_context,
@@ -1943,7 +1942,8 @@ def _create_module_codegen_action(
         language,
         source_label,
         module,
-        outputs):
+        outputs,
+        progress_message_prefix):
     use_pic = ".pic" in module.basename
     output_name = paths.basename(module.basename)
 
@@ -2063,12 +2063,11 @@ def _create_module_codegen_action(
     if fdo_context_has_artifacts:
         additional_inputs = auxiliary_fdo_inputs.to_list()
 
-    _cc_internal.create_cc_compile_action(
+    _create_compile_action(
         action_construction_context = action_construction_context,
         cc_compilation_context = cc_compilation_context,
         cc_toolchain = cc_toolchain,
         configuration = configuration,
-        copts_filter = copts_filter,
         feature_configuration = feature_configuration,
         source = module,
         additional_compilation_inputs = additional_inputs,
@@ -2080,6 +2079,7 @@ def _create_module_codegen_action(
         compile_build_variables = compile_variables,
         needs_include_validation = _starlark_cc_semantics.needs_include_validation(language),
         toolchain_type = _starlark_cc_semantics.toolchain,
+        progress_message_prefix = progress_message_prefix,
     )
     if use_pic:
         outputs["pic_objects"].append(object_file)
@@ -2094,7 +2094,6 @@ def _create_module_action(
         conlyopts,
         copts,
         cxxopts,
-        copts_filter,
         cpp_configuration,
         fdo_context,
         auxiliary_fdo_inputs,
@@ -2108,7 +2107,8 @@ def _create_module_action(
         cpp_module_map,
         additional_compilation_inputs,
         additional_include_scanning_roots,
-        outputs):
+        outputs,
+        progress_message_prefix):
     module_map_label = Label(cpp_module_map.name)
     return _create_pic_nopic_compile_source_actions(
         action_construction_context = action_construction_context,
@@ -2132,7 +2132,6 @@ def _create_module_action(
         outputs = outputs,
         source_artifact = cpp_module_map.file,
         language = language,
-        copts_filter = copts_filter,
         output_category = artifact_category.CPP_MODULE,
         cpp_module_map = cpp_module_map,
         add_object = False,
@@ -2142,6 +2141,7 @@ def _create_module_action(
         additional_compilation_inputs = additional_compilation_inputs,
         additional_include_scanning_roots = additional_include_scanning_roots,
         enable_dotd_files = dotd_files_enabled(language, action_construction_context.fragments.cpp, feature_configuration),
+        progress_message_prefix = progress_message_prefix,
     )
 
 def _get_compile_output_file(ctx, label, *, output_name, configuration):
@@ -2296,3 +2296,54 @@ def _maybe_declare_gcno_file(
             ),
         )
     return gcno_file
+
+def _create_compile_action(
+        *,
+        action_construction_context = None,
+        action_name = None,
+        additional_compilation_inputs = None,
+        additional_include_scanning_roots = [],
+        cc_compilation_context = None,
+        cc_toolchain = None,
+        compile_build_variables = None,
+        configuration = None,
+        copts_filter = None,
+        diagnostics_file = None,
+        dotd_file = None,
+        dwo_file = None,
+        feature_configuration = None,
+        gcno_file = None,
+        lto_indexing_file = None,
+        needs_include_validation = None,
+        output_file = None,
+        progress_message_prefix = None,
+        source = None,
+        toolchain_type = None,
+        use_pic = False):
+    # TODO(bgorshenev): use bazel_features checks
+    version_dependent_kwargs = {}
+    if progress_message_prefix:
+        version_dependent_kwargs["progress_message_prefix"] = progress_message_prefix
+    return _cc_internal.create_cc_compile_action(
+        action_construction_context = action_construction_context,
+        action_name = action_name,
+        additional_compilation_inputs = additional_compilation_inputs,
+        additional_include_scanning_roots = additional_include_scanning_roots,
+        cc_compilation_context = cc_compilation_context,
+        cc_toolchain = cc_toolchain,
+        compile_build_variables = compile_build_variables,
+        configuration = configuration,
+        copts_filter = copts_filter,
+        diagnostics_file = diagnostics_file,
+        dotd_file = dotd_file,
+        dwo_file = dwo_file,
+        feature_configuration = feature_configuration,
+        gcno_file = gcno_file,
+        lto_indexing_file = lto_indexing_file,
+        needs_include_validation = needs_include_validation,
+        output_file = output_file,
+        source = source,
+        toolchain_type = toolchain_type,
+        use_pic = use_pic,
+        **version_dependent_kwargs
+    )

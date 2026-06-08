@@ -11,37 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-load("//cc:cc_library.bzl", "cc_library")
-load("//cc:cc_test.bzl", "cc_test")
+load(":local_includes_test.bzl", "local_includes_test")
 
 licenses(["notice"])
 
-cc_library(
-    name = "lib",
-    srcs = [
-        "lib/lib.c",
-        "lib/private/private.c",
-        "lib/private/private.h",
-    ],
-    hdrs = ["lib/include/public.h"],
-    includes = [
-        "lib/include",
-    ],
-    local_includes = [
-        "lib/private",
-    ],
-)
-
-cc_test(
-    name = "bin",
-    srcs = [
-        "binary.c",
-        "binary_helper.c",
-        "private/binary_helper.h",
-    ],
-    local_includes = [
-        "private",
-    ],
-    deps = [":lib"],
-)
+local_includes_test(name = "local_includes_test")

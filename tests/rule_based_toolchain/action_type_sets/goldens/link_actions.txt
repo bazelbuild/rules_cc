@@ -1,0 +1,7 @@
+c++-link-dynamic-library
+c++-link-executable
+c++-link-nodeps-dynamic-library
+lto-index-for-dynamic-library
+lto-index-for-executable
+lto-index-for-nodeps-dynamic-library
+objc-executable

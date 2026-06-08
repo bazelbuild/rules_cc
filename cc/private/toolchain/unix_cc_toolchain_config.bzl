@@ -1653,7 +1653,6 @@ def _impl(ctx):
                     ),
                 ],
             ),
-            # TODO: b/503100490 - We should centralize the stamp injection and remove this.
             flag_set(
                 actions = [ACTION_NAMES.linkstamp_compile],
                 flag_groups = [flag_group(flags = ["-DBUILD_LTO_TYPE=thin"])],

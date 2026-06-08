@@ -1,0 +1,12 @@
+assemble
+c++-compile
+c++-header-parsing
+c++-module-codegen
+c++-module-compile
+c-compile
+clif-match
+linkstamp-compile
+lto-backend
+objc++-compile
+objc-compile
+preprocess-assemble

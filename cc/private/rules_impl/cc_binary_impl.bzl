@@ -534,7 +534,6 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
         local_includes = cc_helper.include_dirs(ctx, additional_make_variable_substitutions, attr = "local_includes"),
         private_hdrs = cc_helper.get_private_hdrs(ctx),
         public_hdrs = cc_helper.get_public_hdrs(ctx),
-        copts_filter = cc_helper.copts_filter(ctx, additional_make_variable_substitutions),
         srcs = cc_helper.get_srcs(ctx),
         module_interfaces = cc_helper.get_cpp_module_interfaces(ctx),
         compilation_contexts = compilation_context_deps,
@@ -718,6 +717,7 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
         linking_mode = linking_mode,
         use_pic = use_pic,
         lto_artifacts = cc_linking_outputs_binary.all_lto_artifacts(),
+        dwp_exec_group = "cpp_dwp",
     )
     explicit_dwp_file = dwp_file
     if not cc_helper.should_create_per_object_debug_info(feature_configuration, cpp_config):

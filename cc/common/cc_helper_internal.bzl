@@ -160,6 +160,7 @@ PRIVATE_STARLARKIFICATION_ALLOWLIST = [
     ("", "third_party/protobuf"),
     ("protobuf", ""),
     ("com_google_protobuf", ""),
+    ("", "third_party/upb"),
     # Rust rules
     ("", "third_party/bazel_rules/rules_rust/rust/private"),
     ("rules_rust", "rust/private"),
@@ -187,7 +188,7 @@ _ARCHIVE = [".a", ".lib"]
 _PIC_ARCHIVE = [".pic.a"]
 _ALWAYSLINK_LIBRARY = [".lo"]
 _ALWAYSLINK_PIC_LIBRARY = [".pic.lo"]
-_SHARED_LIBRARY = [".so", ".dylib", ".dll", ".pyd", ".wasm"]
+_SHARED_LIBRARY = [".so", ".dylib", ".dll", ".pyd", ".wasm", ".xll"]
 _INTERFACE_SHARED_LIBRARY = [".ifso", ".tbd", ".lib", ".dll.a"]
 _OBJECT_FILE = [".o", ".obj"]
 _PIC_OBJECT_FILE = [".pic.o"]
@@ -261,7 +262,7 @@ _ArtifactCategoryInfo, _unused_new_aci = provider(
 _artifact_categories = [
     _ArtifactCategoryInfo("STATIC_LIBRARY", "lib", ".a", ".lib"),
     _ArtifactCategoryInfo("ALWAYSLINK_STATIC_LIBRARY", "lib", ".lo", ".lo.lib"),
-    _ArtifactCategoryInfo("DYNAMIC_LIBRARY", "lib", ".so", ".dylib", ".dll", ".pyd", ".wasm"),
+    _ArtifactCategoryInfo("DYNAMIC_LIBRARY", "lib", ".so", ".dylib", ".dll", ".pyd", ".wasm", ".xll"),
     _ArtifactCategoryInfo("EXECUTABLE", "", "", ".exe", ".wasm"),
     _ArtifactCategoryInfo("INTERFACE_LIBRARY", "lib", ".ifso", ".tbd", ".if.lib", ".lib"),
     _ArtifactCategoryInfo("PIC_FILE", "", ".pic"),
@@ -403,7 +404,7 @@ def should_stamp(ctx):
     )
 
 def is_shared_library(file):
-    return file.extension in ["so", "dylib", "dll", "pyd", "wasm", "tgt", "vpi"]
+    return file.extension in ["so", "dylib", "dll", "pyd", "wasm", "tgt", "vpi", "xll"]
 
 def is_versioned_shared_library(file):
     # Because regex matching can be slow, we first do a quick check for ".so." and ".dylib."

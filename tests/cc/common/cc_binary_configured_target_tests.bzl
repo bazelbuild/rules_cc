@@ -81,11 +81,9 @@ def _test_no_duplicate_linkopts(name, **kwargs):
     )
 
 def _test_no_duplicate_linkopts_impl(env, target):
-    executable = target[DefaultInfo].files_to_run.executable
-    link_action = env.expect.that_target(target).action_generating(executable.short_path)
-    argv = link_action.actual.argv
-    env.expect.that_collection(argv).contains("-fake_option")
-    env.expect.that_collection(argv).transform(
+    link_action = link_action_subject.from_target(env, target)
+    link_action.argv().contains("-fake_option")
+    link_action.argv().transform(
         filter = matching.equals_wrapper("-fake_option"),
     ).contains_no_duplicates()
 
@@ -96,10 +94,6 @@ def _test_action_graph(name, **kwargs):
         srcs = ["hello.cc"],
     )
     config_settings = {
-        "//command_line_option:features": [
-            "-no_dotd_file",
-            "-parse_showincludes",
-        ],
         "//command_line_option:force_pic": False,
     }
 
@@ -108,12 +102,15 @@ def _test_action_graph(name, **kwargs):
         impl = _test_action_graph_impl,
         target = name + "/hello",
         config_settings = config_settings,
+        test_features = [
+            "no_dotd_file",
+        ],
         **kwargs
     )
 
 def _test_action_graph_impl(env, target):
     executable = target[DefaultInfo].files_to_run.executable
-    link_action = env.expect.that_target(target).action_generating(executable.short_path)
+    link_action = link_action_subject.from_target(env, target)
 
     # link.inputs = { hello.o }
     hello_obj_files = [
@@ -125,19 +122,18 @@ def _test_action_graph_impl(env, target):
     obj_file = hello_obj_files[0]
 
     # link.outputs = { hello }
-    env.expect.that_collection(link_action.actual.outputs.to_list()).contains_exactly([executable])
+    link_action.outputs().contains_exactly([executable.short_path])
 
     compile_action = env.expect.that_target(target).action_generating(obj_file.short_path)
-    env.expect.that_str(compile_action.actual.mnemonic).equals("CppCompile")
+    compile_action.mnemonic().equals("CppCompile")
 
     # compile.inputs = { hello_cc }
-    compile_inputs = [f.short_path for f in compile_action.actual.inputs.to_list()]
-    env.expect.that_collection(compile_inputs).contains_predicate(matching.str_endswith("hello.cc"))
+    compile_action.inputs().contains("{package}/hello.cc")
 
-    # compile.outputs = { hello.o, hello.d }
-    compile_outputs = [f.short_path for f in compile_action.actual.outputs.to_list()]
-    env.expect.that_collection(compile_outputs).contains(obj_file.short_path)
-    env.expect.that_collection(compile_outputs).contains_predicate(matching.str_endswith("hello.o"))
+    # compile.outputs = { hello.o } (mock toolchain doesn't generate .d)
+    compile_outputs = compile_action.actual.outputs.to_list()
+    env.expect.that_collection(compile_outputs).has_size(1)
+    env.expect.that_collection(compile_outputs).contains(obj_file)
 
     # TODO: Test stripped action
 
@@ -266,16 +262,81 @@ def _test_pic(name, **kwargs):
     )
 
 def _test_pic_impl(env, target):
-    executable = target[DefaultInfo].files_to_run.executable
-    link_action = env.expect.that_target(target).action_generating(executable.short_path)
+    link_action = link_action_subject.from_target(env, target)
     hello_obj_files = [
         f
         for f in link_action.actual.inputs.to_list()
-        if f.basename.startswith("hello.") and f.extension in ["o", "obj"]
+        if f.basename.startswith("hello.pic.") and f.extension in ["o", "obj"]
     ]
 
     env.expect.that_collection(hello_obj_files).has_size(1)
-    env.expect.that_file(hello_obj_files[0]).basename().equals("hello.pic.o")
+
+def _test_duplicate_linkopts(name, **kwargs):
+    util.helper_target(
+        cc_library,
+        name = name + "/lib",
+        srcs = ["lib.cc"],
+        linkopts = [
+            "-z bar",
+            "-z baz",
+        ],
+    )
+
+    util.helper_target(
+        cc_binary,
+        name = name + "/app",
+        srcs = ["app.cc"],
+        linkopts = [
+            "-z foo",
+            "-z bar",
+        ],
+        deps = [name + "/lib"],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_duplicate_linkopts_impl,
+        target = name + "/app",
+        **kwargs
+    )
+
+def _test_duplicate_linkopts_impl(env, target):
+    executable = target[DefaultInfo].files_to_run.executable
+    link_action = env.expect.that_target(target).action_generating(executable.short_path)
+    argv = link_action.actual.argv
+    env.expect.that_collection(argv).contains_at_least([
+        "-z",
+        "foo",
+        "-z",
+        "bar",
+        "-z",
+        "bar",
+        "-z",
+        "baz",
+    ]).in_order()
+
+def _test_unsupported_src_file(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/bad",
+        srcs = ["bad.unknown"],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_unsupported_src_file_impl,
+        target = name + "/bad",
+        expect_failure = True,
+        **kwargs
+    )
+
+def _test_unsupported_src_file_impl(env, target):
+    env.expect.that_target(target).failures().contains_predicate(
+        matching.contains("is misplaced here"),
+    )
+    env.expect.that_target(target).failures().contains_predicate(
+        matching.contains("bad.unknown"),
+    )
 
 def _test_missing_action_config_for_strip_is_a_rule_error(name, **kwargs):
     util.helper_target(
@@ -469,6 +530,8 @@ def cc_binary_configured_target_tests(name):
         _test_action_graph,
         _test_runtime_dynamic_libraries_copy_behavior,
         _test_pic,
+        _test_duplicate_linkopts,
+        _test_unsupported_src_file,
         _test_missing_action_config_for_strip_is_a_rule_error,
     ]
 

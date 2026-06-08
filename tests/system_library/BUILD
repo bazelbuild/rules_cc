@@ -19,8 +19,8 @@ sh_test(
     size = "small",
     srcs = ["system_library_test.sh"],
     data = [
-        ":unittest.bash",
         "//cc:system_library.bzl",
+        "//tests:unittest_bash",
         "@bazel_tools//tools/bash/runfiles",
     ],
     env_inherit = ["PATH"],

@@ -32,12 +32,24 @@ def _test_action_types_impl(env, targets):
         targets.cpp_compile.label,
     ])
 
+def _test_action_type_set_excludes_impl(env, targets):
+    env.expect.that_target(targets.all_compile_except_c).provider(ActionTypeSetInfo) \
+        .actions().contains_exactly([targets.cpp_compile.label])
+
+def _test_action_type_set_excludes_nested_impl(env, targets):
+    env.expect.that_target(targets.all_compile_except_c_nested).provider(ActionTypeSetInfo) \
+        .actions().contains_exactly([targets.cpp_compile.label])
+
 TARGETS = [
     ":c_compile",
     ":cpp_compile",
     ":all_compile",
+    ":all_compile_except_c",
+    ":all_compile_except_c_nested",
 ]
 
 TESTS = {
     "actions_test": _test_action_types_impl,
+    "action_type_set_excludes_test": _test_action_type_set_excludes_impl,
+    "action_type_set_excludes_nested_test": _test_action_type_set_excludes_nested_impl,
 }
