@@ -94,10 +94,6 @@ def _test_action_graph(name, **kwargs):
         srcs = ["hello.cc"],
     )
     config_settings = {
-        "//command_line_option:features": [
-            "-no_dotd_file",
-            "-parse_showincludes",
-        ],
         "//command_line_option:force_pic": False,
     }
 
@@ -106,6 +102,9 @@ def _test_action_graph(name, **kwargs):
         impl = _test_action_graph_impl,
         target = name + "/hello",
         config_settings = config_settings,
+        test_features = [
+            "no_dotd_file",
+        ],
         **kwargs
     )
 

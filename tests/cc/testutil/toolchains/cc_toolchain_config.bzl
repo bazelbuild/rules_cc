@@ -1315,6 +1315,8 @@ _generate_linkmap_feature = feature(
     ],
 )
 
+_no_dotd_file_feature = feature(name = FEATURE_NAMES.no_dotd_file)
+
 _feature_name_to_feature = {
     FEATURE_NAMES.cpp_modules: _cpp_modules_feature,
     FEATURE_NAMES.no_legacy_features: _no_legacy_features_feature,
@@ -1400,6 +1402,7 @@ _feature_name_to_feature = {
     FEATURE_NAMES.shorten_virtual_includes: _shorten_virtual_includes_feature,
     FEATURE_NAMES.preprocessor_defines: _preprocessor_defines_feature,
     FEATURE_NAMES.skip_virtual_includes: _skip_virtual_includes_feature,
+    FEATURE_NAMES.no_dotd_file: _no_dotd_file_feature,
     "header_modules_feature_configuration": _header_modules_feature_configuration,
     "env_var_feature_configuration": _env_var_feature_configuration,
     "host_and_nonhost_configuration": _host_and_nonhost_configuration,
