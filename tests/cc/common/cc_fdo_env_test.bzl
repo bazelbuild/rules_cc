@@ -1,6 +1,6 @@
 """Tests for FDO action environment variables."""
 
-load("@bazel_features//private:util.bzl", _bazel_version_ge = "ge")
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@rules_testing//lib:analysis_test.bzl", "analysis_test", "test_suite")
 load("@rules_testing//lib:util.bzl", "TestingAspectInfo")
 load("//cc:action_names.bzl", "ACTION_NAMES")
@@ -108,7 +108,7 @@ def cc_fdo_env_tests(name):
     )
 
     tests = []
-    if _bazel_version_ge("9.0.0"):
+    if bazel_features.cc.cc_common_is_in_rules_cc:
         tests = [
             _test_fdo_profdata_env,
             _test_csfdo_profdata_merge_env,
