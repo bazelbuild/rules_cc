@@ -141,9 +141,9 @@ def validate_env_variables(*, env, variables, actions, used_format_vars, fail = 
     env_requires_types = {}
     if env.requires_not_none:
         env_requires_types[env.requires_not_none] = struct(
-            msg = "requires_not_none for env variables only works on optional string, file, or directory types",
+            msg = "requires_not_none for env variables only works on optional void, string, file, or directory types",
             valid_types = ["option"],
-            valid_elements = ["string", "file", "directory"],
+            valid_elements = ["void", "string", "file", "directory"],
         )
 
     for var_name in used_format_vars:
