@@ -392,12 +392,21 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
         warn = True,
         silent = True,
     )
+    libtool = _find_generic(
+        repository_ctx,
+        "libtool",
+        "LIBTOOL",
+        overridden_tools,
+        warn = not darwin,
+        silent = True,
+    )
     if darwin:
         overridden_tools["gcc"] = "cc_wrapper.sh"
-        overridden_tools["ar"] = _find_generic(repository_ctx, "libtool", "LIBTOOL", overridden_tools)
 
     auto_configure_warning_maybe(repository_ctx, "CC used: " + str(cc))
     tool_paths = _get_tool_paths(repository_ctx, overridden_tools)
+    if libtool:
+        tool_paths["libtool"] = escape_string(libtool)
     tool_paths["cpp-module-deps-scanner"] = "deps_scanner_wrapper.sh"
 
     toolchain_features = []
