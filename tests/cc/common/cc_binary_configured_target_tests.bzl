@@ -740,6 +740,7 @@ def _create_dep_tree(name, use_actual_cc_binary = False):
         ],
     )
 
+# buildifier: disable=unused-variable
 def _test_cc_runtimes_added_to_libraries(name, **kwargs):
     _create_dep_tree(name)
     cc_analysis_test(
@@ -1204,7 +1205,7 @@ def cc_binary_configured_target_tests(name):
             _test_sanitize_pwd_macos_no_pwd,
             _test_system_include_paths_reclassifies_local_includes_after_includes,
             _test_system_include_paths_reclassifies_local_includes_without_propagation,
-            _test_cc_runtimes_added_to_libraries,
+            # _test_cc_runtimes_added_to_libraries,  # copybara-comment-this-out-please
         ])
 
     test_suite(
