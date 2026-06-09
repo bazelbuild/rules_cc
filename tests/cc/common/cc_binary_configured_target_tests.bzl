@@ -522,6 +522,116 @@ def _test_system_include_paths_reclassifies_local_includes_after_includes_impl(e
         "dep_private",
     ]).in_order()
 
+def _test_linkopts_diamond(name, **kwargs):
+    util.helper_target(
+        cc_library,
+        name = name + "/core",
+        srcs = ["core.cc"],
+        linkopts = ["-z core"],
+    )
+    util.helper_target(
+        cc_library,
+        name = name + "/lib1",
+        srcs = ["lib1.cc"],
+        linkopts = ["-z lib1"],
+        deps = [name + "/core"],
+    )
+    util.helper_target(
+        cc_library,
+        name = name + "/lib2",
+        srcs = ["lib2.cc"],
+        linkopts = ["-z lib2"],
+        deps = [name + "/core"],
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/app",
+        srcs = ["app.cc"],
+        linkopts = ["-z app"],
+        deps = [
+            name + "/lib1",
+            name + "/lib2",
+        ],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_linkopts_diamond_impl,
+        target = name + "/app",
+        **kwargs
+    )
+
+def _test_linkopts_diamond_impl(env, target):
+    link_action = link_action_subject.from_target(env, target)
+    link_action.argv().contains_at_least([
+        "-z",
+        "app",
+        "-z",
+        "lib1",
+        "-z",
+        "lib2",
+        "-z",
+        "core",
+    ]).in_order()
+
+def _test_linkopts_fake_diamond(name, **kwargs):
+    util.helper_target(
+        cc_library,
+        name = name + "/core1",
+        srcs = ["core.cc"],
+        linkopts = ["-z core"],
+    )
+    util.helper_target(
+        cc_library,
+        name = name + "/core2",
+        srcs = ["core.cc"],
+        linkopts = ["-z core"],
+    )
+    util.helper_target(
+        cc_library,
+        name = name + "/lib1",
+        srcs = ["lib1.cc"],
+        linkopts = ["-z lib1"],
+        deps = [name + "/core1"],
+    )
+    util.helper_target(
+        cc_library,
+        name = name + "/lib2",
+        srcs = ["lib2.cc"],
+        linkopts = ["-z lib2"],
+        deps = [name + "/core2"],
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/app",
+        srcs = ["app.cc"],
+        linkopts = ["-z app"],
+        deps = [
+            name + "/lib1",
+            name + "/lib2",
+        ],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_linkopts_fake_diamond_impl,
+        target = name + "/app",
+        **kwargs
+    )
+
+def _test_linkopts_fake_diamond_impl(env, target):
+    link_action = link_action_subject.from_target(env, target)
+    link_action.argv().contains_at_least([
+        "-z",
+        "app",
+        "-z",
+        "lib1",
+        "-z",
+        "core",
+        "-z",
+        "lib2",
+        "-z",
+        "core",
+    ]).in_order()
+
 def cc_binary_configured_target_tests(name):
     tests = [
         _test_files_to_build,
@@ -533,6 +643,8 @@ def cc_binary_configured_target_tests(name):
         _test_duplicate_linkopts,
         _test_unsupported_src_file,
         _test_missing_action_config_for_strip_is_a_rule_error,
+        _test_linkopts_diamond,
+        _test_linkopts_fake_diamond,
     ]
 
     # sanitize_pwd is implemented in Starlark in rules_cc, requires Bazel 9+.
