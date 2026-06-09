@@ -3,6 +3,11 @@
 load("@rules_testing//lib:analysis_test.bzl", "analysis_test")
 load("//tests/cc/testutil/toolchains:additional_toolchains.bzl", "ADDITIONAL_MOCK_TOOLCHAINS")
 
+MOCK_TOOLCHAINS = [
+    "//tests/cc/testutil/toolchains:cc-toolchain-k8-compiler",
+    "//tests/cc/testutil/toolchains:cc-toolchain-macos-compiler",
+] + ADDITIONAL_MOCK_TOOLCHAINS
+
 def cc_analysis_test(name, with_features = None, test_features = [], with_action_configs = [], **kwargs):
     """Runs an analysis_test with the a mock C++ toolchain.
 
@@ -33,13 +38,8 @@ def cc_analysis_test(name, with_features = None, test_features = [], with_action
     with_features_flag = Label("//tests/cc/testutil/toolchains:with_features")
     with_action_configs_flag = Label("//tests/cc/testutil/toolchains:with_action_configs")
 
-    mock_toolchains = [
-        "//tests/cc/testutil/toolchains:cc-toolchain-k8-compiler",
-        "//tests/cc/testutil/toolchains:cc-toolchain-macos-compiler",
-    ] + ADDITIONAL_MOCK_TOOLCHAINS
-
     config_settings = {
-        "//command_line_option:extra_toolchains": ",".join(mock_toolchains),
+        "//command_line_option:extra_toolchains": ",".join(MOCK_TOOLCHAINS),
         str(with_features_flag): with_features,
         str(with_action_configs_flag): with_action_configs,
         "//command_line_option:features": test_features,

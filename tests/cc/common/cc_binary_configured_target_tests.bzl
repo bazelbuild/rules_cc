@@ -1,4 +1,4 @@
-"""Tests for cc_binary."""
+"""White-box unit test of cc_binary rule."""
 
 load("@bazel_features//:features.bzl", "bazel_features")
 load("@rules_testing//lib:analysis_test.bzl", "analysis_test", "test_suite")
@@ -8,7 +8,9 @@ load("//cc:action_names.bzl", "ACTION_NAMES")
 load("//cc:cc_binary.bzl", _actual_cc_binary = "cc_binary")
 load("//cc:cc_import.bzl", "cc_import")
 load("//cc:cc_library.bzl", "cc_library")
-load("//tests/cc/testutil:cc_analysis_test.bzl", "cc_analysis_test")
+load("//cc/common:cc_common.bzl", "cc_common")
+load("//cc/common:cc_info.bzl", "CcInfo")
+load("//tests/cc/testutil:cc_analysis_test.bzl", "MOCK_TOOLCHAINS", "cc_analysis_test")
 load("//tests/cc/testutil:cc_binary_target_subject.bzl", "cc_binary_target_subject")
 load("//tests/cc/testutil:link_action_subject.bzl", "link_action_subject")
 load("//tests/cc/testutil/toolchains:features.bzl", "FEATURE_NAMES")
@@ -632,7 +634,542 @@ def _test_linkopts_fake_diamond_impl(env, target):
         "core",
     ]).in_order()
 
+def _create_dep_tree(name, use_actual_cc_binary = False):
+    binary_rule = _actual_cc_binary if use_actual_cc_binary else cc_binary
+
+    # Mallocs
+    util.helper_target(
+        cc_library,
+        name = name + "/system_malloc",
+        srcs = ["system_malloc.cc"],
+    )
+    util.helper_target(
+        cc_library,
+        name = name + "/mymalloc",
+        srcs = ["mymalloc.cc"],
+        linkopts = ["-Lmalloc_dir -lmalloc_opt"],
+    )
+
+    # Infrastructure
+    util.helper_target(
+        cc_library,
+        name = name + "/infrastructure1",
+        srcs = ["infrastructure1.cc"],
+        linkopts = [
+            "-Linfrastructure1_dir",
+            "-linfrastructure1_opt",
+        ],
+        linkstamp = "linkstamp.cc",
+        linkstatic = 1,
+    )
+    util.helper_target(
+        cc_library,
+        name = name + "/infrastructure2",
+        srcs = ["infrastructure2.cc"],
+        linkopts = ["-Linfrastructure2_dir -linfrastructure2_opt"],
+        linkstamp = "linkstamp.cc",
+    )
+
+    # Middleware
+    util.helper_target(
+        cc_library,
+        name = name + "/middleware1",
+        srcs = ["middleware1.cc"],
+        linkopts = [
+            "-Lmiddleware1_dir",
+            "-lmiddleware1_opt",
+        ],
+        deps = [name + "/infrastructure1"],
+    )
+    util.helper_target(
+        binary_rule,
+        name = name + "/middleware2.so",
+        srcs = ["middleware2.cc"],
+        linkopts = [
+            "-Lmiddleware2_dir",
+            "-lmiddleware2_opt",
+        ],
+        linkshared = 1,
+        linkstatic = 1,
+        deps = [name + "/infrastructure2"],
+    )
+    util.helper_target(
+        binary_rule,
+        name = name + "/middleware3.so.1",
+        srcs = ["middleware3.cc"],
+        linkopts = [
+            "-Lmiddleware3_dir",
+            "-lmiddleware3_opt",
+        ],
+        linkshared = 1,
+        deps = [name + "/infrastructure2"],
+    )
+
+    # App
+    util.helper_target(
+        binary_rule,
+        name = name + "/app",
+        srcs = ["app.cc"],
+        # Override potential default link_extra_lib attribute value
+        link_extra_lib = "//tests/cc/testutil/toolchains:link_extra_lib",
+        linkopts = [
+            "-Lapp_dir1 -Lapp_dir2",
+            "-lapp_opt",
+        ],
+        deps = [
+            name + "/middleware1",
+            name + "/middleware2.so",
+            name + "/middleware3.so.1",
+        ],
+    )
+    util.helper_target(
+        binary_rule,
+        name = name + "/app_nonstatic",
+        srcs = ["app.cc"],
+        # Override potential default link_extra_lib attribute value
+        link_extra_lib = "//tests/cc/testutil/toolchains:link_extra_lib",
+        linkopts = [
+            "-Lapp_dir1 -Lapp_dir2",
+            "-lapp_opt",
+        ],
+        linkstatic = 0,
+        deps = [
+            name + "/middleware1",
+            name + "/middleware2.so",
+            name + "/middleware3.so.1",
+        ],
+    )
+
+def _test_cc_runtimes_added_to_libraries(name, **kwargs):
+    _create_dep_tree(name)
+    cc_analysis_test(
+        name = name,
+        impl = _test_cc_runtimes_added_to_libraries_impl,
+        target = name + "/app",
+        test_features = [
+            FEATURE_NAMES.supports_pic,
+        ],
+        config_settings = {
+            "//command_line_option:extra_toolchains": ",".join(
+                MOCK_TOOLCHAINS + [
+                    "//tests/cc/common:cc_runtimes_mock_toolchain",
+                ],
+            ),
+        },
+        **kwargs
+    )
+
+def _test_cc_runtimes_added_to_libraries_impl(env, target):
+    link_action = link_action_subject.from_target(env, target)
+    inputs = [f.basename for f in link_action.actual.inputs.to_list()]
+
+    env.expect.that_collection(inputs).contains_at_least([
+        "app.pic.o",
+        "libmiddleware1.a",
+        "libinfrastructure1.a",
+        "liblink_extra_lib.a",
+        "libruntime.a",
+        "linkstamp.o",
+    ])
+
+def _test_ignore_custom_malloc(name, **kwargs):
+    _create_dep_tree(name, use_actual_cc_binary = True)
+    custom_malloc_label = Label("//tests/cc/common:" + name + "/system_malloc")
+    cc_analysis_test(
+        name = name,
+        impl = _test_ignore_custom_malloc_impl,
+        target = name + "/app",
+        config_settings = {
+            "//command_line_option:custom_malloc": custom_malloc_label,
+        },
+        **kwargs
+    )
+
+def _test_ignore_custom_malloc_impl(env, target):
+    link_action = link_action_subject.from_target(env, target)
+    inputs = [f.basename for f in link_action.actual.inputs.to_list()]
+    env.expect.that_collection(inputs).contains("libsystem_malloc.a")
+    env.expect.that_collection(inputs).not_contains("libmock_malloc.a")
+
+def _test_custom_malloc(name, **kwargs):
+    _create_dep_tree(name, use_actual_cc_binary = True)
+    custom_malloc_label = Label("//tests/cc/common:" + name + "/mymalloc")
+    cc_analysis_test(
+        name = name,
+        impl = _test_custom_malloc_impl,
+        target = name + "/app",
+        test_features = [FEATURE_NAMES.supports_pic],
+        config_settings = {
+            "//command_line_option:custom_malloc": custom_malloc_label,
+        },
+        **kwargs
+    )
+
+def _test_custom_malloc_impl(env, target):
+    link_action = link_action_subject.from_target(env, target)
+    inputs = [f.basename for f in link_action.actual.inputs.to_list()]
+    env.expect.that_collection(inputs).contains("libmymalloc.a")
+    env.expect.that_collection(inputs).not_contains("libmock_malloc.a")
+
+CcRuntimesInfo = provider(
+    doc = "Information about runtime libraries to link into c++ targets.",
+    fields = ["runtimes", "copts"],
+)
+
+def _test_app_linking_static(name, **kwargs):
+    _create_dep_tree(name)
+    cc_analysis_test(
+        name = name,
+        impl = _test_app_linking_static_impl,
+        target = name + "/app",
+        test_features = [
+            FEATURE_NAMES.supports_pic,
+            FEATURE_NAMES.supports_dynamic_linker,
+            FEATURE_NAMES.supports_interface_shared_libraries,
+        ],
+        **kwargs
+    )
+
+def _test_app_linking_static_impl(env, target):
+    link_action = link_action_subject.from_target(env, target)
+    inputs = [f.basename for f in link_action.actual.inputs.to_list()]
+
+    # Assert inputs
+    env.expect.that_collection(inputs).contains("app.pic.o")
+    env.expect.that_collection(inputs).contains("libmiddleware1.a")
+    env.expect.that_collection(inputs).contains("libinfrastructure1.a")
+    env.expect.that_collection(inputs).contains("linkstamp.o")
+
+    # Assert NOT inputs
+    env.expect.that_collection(inputs).not_contains("libinfrastructure2.a")
+    env.expect.that_collection(inputs).not_contains("libmiddleware2.so")
+    env.expect.that_collection(inputs).not_contains("libmiddleware3.so.1")
+
+    # Assert linkopts
+    link_action.argv().contains_at_least([
+        "-Lapp_dir1",
+        "-Lapp_dir2",
+        "-lapp_opt",
+        "-Lmiddleware1_dir",
+        "-lmiddleware1_opt",
+        "-Linfrastructure1_dir",
+        "-linfrastructure1_opt",
+    ]).in_order()
+
+def _test_app_linking_dynamic(name, **kwargs):
+    _create_dep_tree(name)
+    cc_analysis_test(
+        name = name,
+        impl = _test_app_linking_dynamic_impl,
+        target = name + "/app_nonstatic",
+        test_features = [
+            FEATURE_NAMES.supports_pic,
+            FEATURE_NAMES.supports_dynamic_linker,
+            FEATURE_NAMES.supports_interface_shared_libraries,
+        ],
+        **kwargs
+    )
+
+def _test_app_linking_dynamic_impl(env, target):
+    link_action = link_action_subject.from_target(env, target)
+    inputs = [f.basename for f in link_action.actual.inputs.to_list()]
+
+    # Assert inputs
+    env.expect.that_collection(inputs).contains("app.pic.o")
+    env.expect.that_collection(inputs).contains("libinfrastructure1.a")
+    env.expect.that_collection(inputs).contains("linkstamp.o")
+
+    # Assert dynamic library symlink (mangled)
+    env.expect.that_collection(inputs).contains_predicate(
+        matching.str_endswith("_Slibmiddleware1.ifso"),
+    )
+
+    # Assert NOT inputs
+    env.expect.that_collection(inputs).not_contains("libmiddleware1.a")
+    env.expect.that_collection(inputs).not_contains("libinfrastructure2.a")
+
+    # Assert linkopts
+    link_action.argv().contains_at_least([
+        "-Lapp_dir1",
+        "-Lapp_dir2",
+        "-lapp_opt",
+        "-Lmiddleware1_dir",
+        "-lmiddleware1_opt",
+        "-Linfrastructure1_dir",
+        "-linfrastructure1_opt",
+    ]).in_order()
+
+def _test_compilation_prerequisites_in_output_group(name, **kwargs):
+    out_file = name + "_a.cc"
+    util.helper_target(
+        native.genrule,
+        name = name + "/gen",
+        outs = [out_file],
+        cmd = "echo '' > $@",
+    )
+    util.helper_target(
+        cc_library,
+        name = name + "/mylib",
+        hdrs = ["b.h"],
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/prerequisites",
+        srcs = [
+            name + "/gen",
+            "hello.cc",
+            "hello.h",
+        ],
+        deps = [name + "/mylib"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_compilation_prerequisites_in_output_group_impl,
+        target = name + "/prerequisites",
+        attrs = {
+            "out_file": attr.string(),
+        },
+        attr_values = {
+            "out_file": out_file,
+        },
+        **kwargs
+    )
+
+def _test_compilation_prerequisites_in_output_group_impl(env, target):
+    prereqs = target[OutputGroupInfo].compilation_prerequisites_INTERNAL_.to_list()
+    prereq_paths = [f.short_path for f in prereqs]
+    target_subject = env.expect.that_target(target)
+    prereqs_subject = subjects.collection(
+        prereq_paths,
+        meta = target_subject.meta.derive("compilation_prerequisites"),
+        format = True,
+    )
+
+    prereqs_subject.contains("{package}/hello.cc")
+    prereqs_subject.contains("{package}/hello.h")
+    prereqs_subject.contains("{package}/b.h")
+
+    out_file = env.ctx.attr.out_file
+    prereqs_subject.contains("{package}/" + out_file)
+    prereqs_subject.contains_predicate(matching.str_endswith("cppmap"))
+
+def _create_prefers_pic_libs_dep_tree(name):
+    util.helper_target(
+        cc_library,
+        name = name + "/mylib",
+        srcs = ["dep.pic.a", "dep.nopic.a"],
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/mybinary",
+        srcs = ["mybinary.cc"],
+        deps = [name + "/mylib"],
+    )
+
+def _test_pic_mode_prefers_pic_libs_force_pic_disabled(name, **kwargs):
+    _create_prefers_pic_libs_dep_tree(name)
+    cc_analysis_test(
+        name = name,
+        impl = _test_pic_mode_prefers_pic_libs_force_pic_disabled_impl,
+        target = name + "/mybinary",
+        test_features = [FEATURE_NAMES.supports_pic],
+        config_settings = {
+            "//command_line_option:force_pic": False,
+        },
+        **kwargs
+    )
+
+def _test_pic_mode_prefers_pic_libs_force_pic_disabled_impl(env, target):
+    link_action = link_action_subject.from_target(env, target)
+    inputs = [f.basename for f in link_action.actual.inputs.to_list()]
+    env.expect.that_collection(inputs).contains("dep.nopic.a")
+    env.expect.that_collection(inputs).not_contains("dep.pic.a")
+
+def _test_pic_mode_prefers_pic_libs_force_pic_enabled(name, **kwargs):
+    _create_prefers_pic_libs_dep_tree(name)
+    cc_analysis_test(
+        name = name,
+        impl = _test_pic_mode_prefers_pic_libs_force_pic_enabled_impl,
+        target = name + "/mybinary",
+        test_features = [FEATURE_NAMES.supports_pic],
+        config_settings = {
+            "//command_line_option:force_pic": True,
+        },
+        **kwargs
+    )
+
+def _test_pic_mode_prefers_pic_libs_force_pic_enabled_impl(env, target):
+    link_action = link_action_subject.from_target(env, target)
+    inputs = [f.basename for f in link_action.actual.inputs.to_list()]
+    env.expect.that_collection(inputs).contains("dep.pic.a")
+    env.expect.that_collection(inputs).not_contains("dep.nopic.a")
+
+def _test_pic_mode_uses_pic_libs(name, **kwargs):
+    util.helper_target(
+        cc_library,
+        name = name + "/mylib",
+        srcs = ["dep.pic.o"],
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/mybinary",
+        srcs = ["mybinary.cc"],
+        deps = [name + "/mylib"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_pic_mode_uses_pic_libs_impl,
+        target = name + "/mybinary",
+        test_features = [
+            FEATURE_NAMES.supports_pic,
+            FEATURE_NAMES.supports_start_end_lib,
+        ],
+        config_settings = {
+            "//command_line_option:force_pic": True,
+        },
+        **kwargs
+    )
+
+def _test_pic_mode_uses_pic_libs_impl(env, target):
+    link_action = link_action_subject.from_target(env, target)
+    inputs = [f.basename for f in link_action.actual.inputs.to_list()]
+    env.expect.that_collection(inputs).contains("dep.pic.o")
+
+def _create_does_not_use_nopic_library_dep_tree(name):
+    util.helper_target(
+        cc_library,
+        name = name + "/mylib",
+        srcs = ["dep.nopic.o"],
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/mybinary",
+        srcs = ["mybinary.cc"],
+        deps = [name + "/mylib"],
+    )
+
+def _test_pic_mode_does_not_use_nopic_library_force_pic_disabled(name, **kwargs):
+    _create_does_not_use_nopic_library_dep_tree(name)
+    cc_analysis_test(
+        name = name,
+        impl = _test_pic_mode_does_not_use_nopic_library_force_pic_disabled_impl,
+        target = name + "/mybinary",
+        test_features = [FEATURE_NAMES.supports_pic],
+        config_settings = {
+            "//command_line_option:force_pic": False,
+        },
+        **kwargs
+    )
+
+def _test_pic_mode_does_not_use_nopic_library_force_pic_disabled_impl(env, target):
+    link_action = link_action_subject.from_target(env, target)
+    inputs = [f.basename for f in link_action.actual.inputs.to_list()]
+    env.expect.that_collection(inputs).contains("mybinary.pic.o")
+    env.expect.that_collection(inputs).not_contains("dep.nopic.o")
+
+def _test_pic_mode_does_not_use_nopic_library_force_pic_enabled(name, **kwargs):
+    _create_does_not_use_nopic_library_dep_tree(name)
+    cc_analysis_test(
+        name = name,
+        impl = _test_pic_mode_does_not_use_nopic_library_force_pic_enabled_impl,
+        target = name + "/mybinary",
+        test_features = [FEATURE_NAMES.supports_pic],
+        config_settings = {
+            "//command_line_option:force_pic": True,
+        },
+        **kwargs
+    )
+
+def _test_pic_mode_does_not_use_nopic_library_force_pic_enabled_impl(env, target):
+    link_action = link_action_subject.from_target(env, target)
+    inputs = [f.basename for f in link_action.actual.inputs.to_list()]
+    env.expect.that_collection(inputs).not_contains("dep.nopic.o")
+
+def _test_pic_mode_does_not_use_nopic_binary(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/mybinary",
+        srcs = ["xyz.nopic.o"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_pic_mode_does_not_use_nopic_binary_impl,
+        target = name + "/mybinary",
+        test_features = [FEATURE_NAMES.supports_pic],
+        **kwargs
+    )
+
+def _test_pic_mode_does_not_use_nopic_binary_impl(env, target):
+    link_action = link_action_subject.from_target(env, target)
+    inputs = [f.basename for f in link_action.actual.inputs.to_list()]
+    env.expect.that_collection(inputs).not_contains("xyz.nopic.o")
+
+def _cc_runtimes_toolchain_impl(ctx):
+    return [platform_common.ToolchainInfo(
+        cc_runtimes_info = CcRuntimesInfo(
+            runtimes = ctx.attr.runtimes,
+            copts = ctx.attr.copts,
+        ),
+    )]
+
+_cc_runtimes_toolchain = rule(
+    implementation = _cc_runtimes_toolchain_impl,
+    attrs = {
+        "runtimes": attr.label_list(),
+        "copts": attr.string_list(),
+    },
+)
+
+def _mock_runtime_library_impl(ctx):
+    lib_file = ctx.actions.declare_file("lib" + ctx.label.name + ".a")
+    ctx.actions.write(output = lib_file, content = "mock archive content")
+    library_to_link = cc_common.create_library_to_link(
+        actions = ctx.actions,
+        static_library = lib_file,
+    )
+    linker_input = cc_common.create_linker_input(
+        libraries = depset([library_to_link]),
+        owner = ctx.label,
+    )
+    linking_context = cc_common.create_linking_context(
+        linker_inputs = depset([linker_input]),
+    )
+    return [
+        CcInfo(linking_context = linking_context),
+        DefaultInfo(files = depset([lib_file])),
+    ]
+
+_mock_runtime_library = rule(
+    implementation = _mock_runtime_library_impl,
+    attrs = {},
+)
+
+def _setup_cc_runtimes_mock():
+    util.helper_target(
+        _mock_runtime_library,
+        name = "runtime",
+    )
+
+    util.helper_target(
+        _cc_runtimes_toolchain,
+        name = "runtimes_toolchain",
+        copts = ["-Iruntimes"],
+        runtimes = [":runtime"],
+    )
+
+    native.toolchain(
+        name = "cc_runtimes_mock_toolchain",
+        toolchain = ":runtimes_toolchain",
+        toolchain_type = Label("@bazel_tools//tools/cpp:cc_runtimes_toolchain_type"),
+        tags = ["manual", "notap"],
+    )
+
 def cc_binary_configured_target_tests(name):
+    """Creates the test suite for cc_binary tests.
+
+    Args:
+        name: The name of the test suite.
+    """
     tests = [
         _test_files_to_build,
         _test_headers_not_passed_to_linking_action,
@@ -645,16 +1182,29 @@ def cc_binary_configured_target_tests(name):
         _test_missing_action_config_for_strip_is_a_rule_error,
         _test_linkopts_diamond,
         _test_linkopts_fake_diamond,
+        _test_app_linking_static,
+        _test_app_linking_dynamic,
+        _test_compilation_prerequisites_in_output_group,
+        _test_pic_mode_prefers_pic_libs_force_pic_disabled,
+        _test_pic_mode_prefers_pic_libs_force_pic_enabled,
+        _test_pic_mode_uses_pic_libs,
+        _test_pic_mode_does_not_use_nopic_library_force_pic_disabled,
+        _test_pic_mode_does_not_use_nopic_library_force_pic_enabled,
+        _test_pic_mode_does_not_use_nopic_binary,
+        _test_ignore_custom_malloc,
+        _test_custom_malloc,
     ]
 
     # sanitize_pwd is implemented in Starlark in rules_cc, requires Bazel 9+.
     if bazel_features.cc.cc_common_is_in_rules_cc:
+        _setup_cc_runtimes_mock()
         tests.extend([
             _test_sanitize_pwd_feature_enabled,
             _test_sanitize_pwd_feature_disabled,
             _test_sanitize_pwd_macos_no_pwd,
             _test_system_include_paths_reclassifies_local_includes_after_includes,
             _test_system_include_paths_reclassifies_local_includes_without_propagation,
+            _test_cc_runtimes_added_to_libraries,
         ])
 
     test_suite(
