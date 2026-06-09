@@ -72,10 +72,12 @@ def _test_provider_contents():
     dwo_files_contents_test(
         name = "dwo_files_content_test",
         target_under_test = ":main",
+        target_compatible_with = ["@platforms//os:linux"],
     )
     dwo_files_no_contents_test(
         name = "dwo_files_no_content_test",
         target_under_test = ":main",
+        target_compatible_with = ["@platforms//os:linux"],
     )
 
 def dwo_files_test_suite(name):
@@ -91,4 +93,5 @@ def dwo_files_test_suite(name):
                 ":dwo_files_content_test",
                 ":dwo_files_no_content_test",
             ],
+            target_compatible_with = ["@platforms//os:linux"],
         )
