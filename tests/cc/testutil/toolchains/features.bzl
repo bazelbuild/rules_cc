@@ -97,4 +97,5 @@ FEATURE_NAMES = struct(
     shorten_virtual_includes = "shorten_virtual_includes",
     preprocessor_defines = "preprocessor_defines",
     skip_virtual_includes = "skip_virtual_includes",
+    no_dotd_file = "no_dotd_file",
 )

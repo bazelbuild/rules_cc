@@ -54,6 +54,14 @@ util.helper_target(
 
 util.helper_target(
     cc_args,
+    name = "env_only_requires_void",
+    actions = ["//cc/toolchains/actions:cpp_link_executable"],
+    env = {"STRIP_DEBUG_SYMBOLS": "1"},
+    requires_not_none = "//cc/toolchains/variables:strip_debug_symbols",
+)
+
+util.helper_target(
+    cc_args,
     name = "iterate_over_optional",
     actions = ["//cc/toolchains/actions:compile_actions"],
     args = ["{user_compile_flags}"],

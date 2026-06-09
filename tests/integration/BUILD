@@ -10,3 +10,12 @@ rules_cc_integration_test(
     shard_count = 2,
     test_script = "cc_tests.sh",
 )
+
+rules_cc_integration_test(
+    name = "lto_tests",
+    tags = [
+        "no_macos",
+        "no_windows",
+    ],
+    test_script = "lto_tests.sh",
+)
