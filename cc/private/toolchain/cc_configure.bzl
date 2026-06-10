@@ -26,7 +26,7 @@ def _should_disable_toolchain(repository_ctx):
     env = repository_ctx.os.environ
     disabled_via_env = "BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN" in env and env["BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN"] == "1"
     macos_legacy_support = "BAZEL_USE_LEGACY_MACOS_TOOLCHAIN" in env and env["BAZEL_USE_LEGACY_MACOS_TOOLCHAIN"] == "1"
-    return disabled_via_env or (repository_ctx.os.name.startswith("mac os") and macos_legacy_support)
+    return disabled_via_env or (repository_ctx.os.name.startswith("mac os") and not macos_legacy_support)
 
 def cc_autoconf_toolchains_impl(repository_ctx):
     """Generate BUILD file with 'toolchain' targets for the local host C++ toolchain.
