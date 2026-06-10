@@ -238,7 +238,6 @@ tasks:
     platform: windows
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
-    build_flags: *flags_bazel_less_than_9
     test_flags: *windows_test_flags
     coverage_flags: *windows_coverage_flags_bazel_less_than_9
     coverage_targets: *test_targets_bazel_6
