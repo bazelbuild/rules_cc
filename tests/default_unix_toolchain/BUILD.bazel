@@ -1,0 +1,67 @@
+load("//cc:cc_library.bzl", "cc_library")
+load("//cc/private/toolchain:unix_cc_toolchain_config.bzl", "cc_toolchain_config")  # buildifier: disable=bzl-visibility
+load("//cc/toolchains:cc_toolchain.bzl", "cc_toolchain")
+load(":unix_archiver_test.bzl", "unix_archiver_tests")
+
+platform(
+    name = "macos",
+    constraint_values = ["@platforms//os:macos"],
+)
+
+filegroup(
+    name = "empty",
+)
+
+cc_toolchain_config(
+    name = "macos_config",
+    abi_libc_version = "local",
+    abi_version = "local",
+    compiler = "compiler",
+    cpu = "darwin",
+    host_system_name = "local",
+    target_libc = "macosx",
+    target_system_name = "local",
+    tool_paths = {
+        "ar": "/usr/bin/ar",
+        "cpp": "/usr/bin/cpp",
+        "gcc": "/usr/bin/cc",
+        "ld": "/usr/bin/ld",
+        "libtool": "/usr/bin/libtool",
+        "nm": "/usr/bin/nm",
+        "objcopy": "/usr/bin/objcopy",
+        "objdump": "/usr/bin/objdump",
+        "strip": "/usr/bin/strip",
+    },
+    toolchain_identifier = "default-unix-toolchain-test",
+)
+
+cc_toolchain(
+    name = "macos_cc_toolchain",
+    all_files = ":empty",
+    ar_files = ":empty",
+    as_files = ":empty",
+    compiler_files = ":empty",
+    dwp_files = ":empty",
+    linker_files = ":empty",
+    objcopy_files = ":empty",
+    strip_files = ":empty",
+    toolchain_config = ":macos_config",
+    toolchain_identifier = "default-unix-toolchain-test",
+)
+
+toolchain(
+    name = "macos_cc_toolchain_registration",
+    target_compatible_with = ["@platforms//os:macos"],
+    toolchain = ":macos_cc_toolchain",
+    toolchain_type = "//cc:toolchain_type",
+)
+
+cc_library(
+    name = "archive",
+    srcs = ["archive.cc"],
+)
+
+unix_archiver_tests(
+    name = "unix_archiver_tests",
+    target = ":archive",
+)
