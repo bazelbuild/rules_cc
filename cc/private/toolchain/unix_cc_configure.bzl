@@ -163,9 +163,6 @@ def _is_linker_option_supported(repository_ctx, cc, force_linker_flags, option, 
     ])
     return result.stderr.find(pattern) == -1
 
-def _is_oso_prefix_supported(repository_ctx, ld):
-    return repository_ctx.execute([ld, "-v", "-oso_prefix", "."]).return_code == 0
-
 def _find_linker_path(repository_ctx, cc, linker, is_clang):
     """Checks if a given linker is supported by the C compiler.
 
@@ -255,14 +252,14 @@ def get_env(repository_ctx):
     else:
         return ""
 
-def _coverage_flags(repository_ctx, darwin):
+def _coverage_flags(repository_ctx):
     use_llvm_cov = "1" == get_env_var(
         repository_ctx,
         "BAZEL_USE_LLVM_NATIVE_COVERAGE",
         default = "0",
         enable_warning = False,
     )
-    if darwin or use_llvm_cov:
+    if use_llvm_cov:
         compile_flags = '"-fprofile-instr-generate",  "-fcoverage-mapping"'
         link_flags = '"-fprofile-instr-generate"'
     else:
@@ -353,7 +350,6 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     )
 
     repository_ctx.file("tools/cpp/empty.cc", "int main() {}")
-    darwin = cpu_value.startswith("darwin")
     bsd = cpu_value == "freebsd" or cpu_value == "openbsd"
 
     cc = _find_generic(repository_ctx, "gcc", "CC", overridden_tools)
@@ -392,24 +388,10 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
         warn = True,
         silent = True,
     )
-    if darwin:
-        overridden_tools["gcc"] = "cc_wrapper.sh"
-        overridden_tools["ar"] = _find_generic(repository_ctx, "libtool", "LIBTOOL", overridden_tools)
-        xcrun = repository_ctx.which("xcrun")
-        if xcrun:
-            for tool_name in ["llvm-cov", "llvm-profdata"]:
-                if overridden_tools.get(tool_name) == None:
-                    xcrun_result = repository_ctx.execute([xcrun, "--find", tool_name])
-                    if xcrun_result.return_code == 0:
-                        overridden_tools[tool_name] = xcrun_result.stdout.strip()
 
     auto_configure_warning_maybe(repository_ctx, "CC used: " + str(cc))
     tool_paths = _get_tool_paths(repository_ctx, overridden_tools)
     tool_paths["cpp-module-deps-scanner"] = "deps_scanner_wrapper.sh"
-
-    toolchain_features = []
-    if darwin and _is_oso_prefix_supported(repository_ctx, tool_paths["ld"]):
-        toolchain_features.append("macos_reproducible")
 
     # The parse_header tool needs to be a wrapper around the compiler as it has
     # to touch the output file.
@@ -427,19 +409,15 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
             paths["@rules_cc//cc/private/toolchain:validate_static_library.sh.tpl"],
             {
                 "%{c++filt}": escape_string(str(repository_ctx.path(tool_paths["c++filt"]))),
-                # Certain weak symbols are otherwise listed with type T in the output of nm on macOS.
-                "%{nm_extra_args}": "--no-weak" if darwin else "",
+                "%{nm_extra_args}": "",
                 "%{nm}": escape_string(str(repository_ctx.path(tool_paths["nm"]))),
             },
         )
         tool_paths["validate_static_library"] = "validate_static_library.sh"
 
-    cc_wrapper_src = (
-        "@rules_cc//cc/private/toolchain:osx_cc_wrapper.sh.tpl" if darwin else "@rules_cc//cc/private/toolchain:linux_cc_wrapper.sh.tpl"
-    )
     repository_ctx.template(
         "cc_wrapper.sh",
-        paths[cc_wrapper_src],
+        paths["@rules_cc//cc/private/toolchain:linux_cc_wrapper.sh.tpl"],
         {
             "%{cc}": escape_string(str(cc)),
             "%{env}": escape_string(get_env(repository_ctx)),
@@ -503,10 +481,9 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     if gold_or_lld_linker_path:
         force_linker_flags.append("-fuse-ld=" + gold_or_lld_linker_path)
 
-    # TODO: It's unclear why these flags aren't added on macOS.
-    if bin_search_flags and not darwin:
+    if bin_search_flags:
         force_linker_flags.extend(bin_search_flags)
-    use_libcpp = darwin or bsd
+    use_libcpp = bsd
     is_as_needed_supported = _is_linker_option_supported(
         repository_ctx,
         cc,
@@ -551,7 +528,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
         bazel_linklibs,
         False,
     ), ":")
-    coverage_compile_flags, coverage_link_flags = _coverage_flags(repository_ctx, darwin)
+    coverage_compile_flags, coverage_link_flags = _coverage_flags(repository_ctx)
     print_resource_dir_supported = _is_compiler_option_supported(
         repository_ctx,
         cc,
@@ -588,10 +565,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
             cc,
             "-xc++",
             cxx_opts + no_canonical_prefixes_opt + ["-stdlib=libc++"],
-        ) +
-        # Always included in case the user has Xcode + the CLT installed, both
-        # paths can be used interchangeably
-        (["/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"] if darwin else []),
+        ),
     )
 
     generate_modulemap = is_clang
@@ -697,8 +671,6 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
                 "-z",
             ) + (
                 [
-                    "-headerpad_max_install_names",
-                ] if darwin else [
                     # Gold linker only? Can we enable this by default?
                     # "-Wl,--warn-execstack",
                     # "-Wl,--detect-odr-violations"
@@ -739,7 +711,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
                 ],
             ),
             "%{opt_link_flags}": get_starlark_list(
-                ["-Wl,-dead_strip"] if darwin else _add_linker_option_if_supported(
+                _add_linker_option_if_supported(
                     repository_ctx,
                     cc,
                     force_linker_flags,
@@ -754,14 +726,14 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
                 "-Wl,--start-lib",
                 "--start-lib",
             ) else "False",
-            "%{toolchain_features}": get_starlark_list(toolchain_features),
+            "%{toolchain_features}": get_starlark_list([]),
             "%{target_cpu}": escape_string(get_env_var(
                 repository_ctx,
                 "BAZEL_TARGET_CPU",
                 cpu_value,
                 False,
             )),
-            "%{target_libc}": "macosx" if darwin else escape_string(get_env_var(
+            "%{target_libc}": escape_string(get_env_var(
                 repository_ctx,
                 "BAZEL_TARGET_LIBC",
                 "local",
