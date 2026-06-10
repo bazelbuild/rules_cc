@@ -152,11 +152,25 @@ def get_cc_toolchain_provider(ctx, attributes):
     )
     tool_paths = _compute_tool_paths(toolchain_config_info, tools_directory)
     toolchain_features = cc_common.cc_toolchain_features(toolchain_config_info = toolchain_config_info, tools_directory = tools_directory)
+
+    # action_is_enabled only returns true for action_configs that are in
+    # requested_features (or transitively implied). Request the action names
+    # we fall back to below so the guard in tool_path returns true
+    # when those action_configs are declared.
     feature_configuration = toolchain_features.configure_features(
-        requested_features = toolchain_features.default_features_and_action_configs() + [ACTION_NAMES.llvm_profdata],
+        requested_features = toolchain_features.default_features_and_action_configs() + [
+            ACTION_NAMES.c_compile,
+            ACTION_NAMES.cpp_link_static_library,
+            ACTION_NAMES.cpp_link_executable,
+            ACTION_NAMES.strip,
+            ACTION_NAMES.objcopy_embed_data,
+            ACTION_NAMES.gcov,
+            ACTION_NAMES.llvm_profdata,
+        ],
     )
+
     fdo_context = create_fdo_context(
-        llvm_profdata = tool_paths.get("llvm-profdata"),
+        llvm_profdata = cc_helper.tool_path(tool_paths, "llvm-profdata", feature_configuration, ACTION_NAMES.llvm_profdata),
         all_files = attributes.all_files,
         zipper = attributes.zipper,
         cc_toolchain_config_info = toolchain_config_info,
@@ -235,15 +249,15 @@ def get_cc_toolchain_provider(ctx, attributes):
         solib_dir = solib_directory,
         additional_make_variables = _additional_make_variables(toolchain_config_info.make_variables),
         legacy_cc_flags_make_variable = _legacy_cc_flags_make_variable(toolchain_config_info.make_variables),
-        objcopy_executable = tool_paths.get("objcopy", ""),
-        compiler_executable = tool_paths.get("gcc", ""),
+        objcopy_executable = cc_helper.tool_path(tool_paths, "objcopy", feature_configuration, ACTION_NAMES.objcopy_embed_data),
+        compiler_executable = cc_helper.tool_path(tool_paths, "gcc", feature_configuration, ACTION_NAMES.c_compile),
         preprocessor_executable = tool_paths.get("cpp", ""),
         nm_executable = tool_paths.get("nm", ""),
         objdump_executable = tool_paths.get("objdump", ""),
-        ar_executable = tool_paths.get("ar", ""),
-        strip_executable = tool_paths.get("strip", ""),
-        ld_executable = tool_paths.get("ld", ""),
-        gcov_executable = tool_paths.get("gcov", ""),
+        ar_executable = cc_helper.tool_path(tool_paths, "ar", feature_configuration, ACTION_NAMES.cpp_link_static_library),
+        strip_executable = cc_helper.tool_path(tool_paths, "strip", feature_configuration, ACTION_NAMES.strip),
+        ld_executable = cc_helper.tool_path(tool_paths, "ld", feature_configuration, ACTION_NAMES.cpp_link_executable),
+        gcov_executable = cc_helper.tool_path(tool_paths, "gcov", feature_configuration, ACTION_NAMES.gcov),
         build_variables_dict = build_variables_dict,
         build_variables = build_variables,
         all_files = attributes.all_files,
