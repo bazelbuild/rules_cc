@@ -7,7 +7,7 @@ exports_files(
 
 rules_cc_integration_test(
     name = "cc_tests",
-    shard_count = 2,
+    shard_count = 4,
     test_script = "cc_tests.sh",
 )
 

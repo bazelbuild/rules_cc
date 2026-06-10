@@ -32,6 +32,11 @@ source "${RUNFILES_DIR:-/dev/null}/$f" 2>/dev/null || \
 
 source "$(rlocation rules_cc/tests/test_utils.sh)"
 
+# Set environment vars for Windows
+if is_windows; then
+  export MSYS_NO_PATHCONV=1
+fi
+
 # Put bazel on PATH
 bazel_binary="$(rlocation "$BAZEL_BINARY")"
 bazel_bin_dir="$TEST_TMPDIR/bazel"
