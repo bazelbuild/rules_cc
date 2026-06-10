@@ -66,6 +66,8 @@ windows_coverage_flags: &windows_coverage_flags
   # Test failures are not collected under `coverage` invocations.
   # https://github.com/bazelbuild/continuous-integration/issues/1838
   - "--test_output=errors"
+  - "--test_tag_filters=-no_windows"
+
 
 coverage_flags_bazel_less_than_9: &coverage_flags_bazel_less_than_9
   # See above
@@ -76,6 +78,8 @@ windows_coverage_flags_bazel_less_than_9: &windows_coverage_flags_bazel_less_tha
   # See above
   - "--test_env=IGNORE_COVERAGE_COLLECTION_FAILURES=1"
   - "--test_output=errors"
+  - "--test_tag_filters=-no_windows"
+
 
 windows_test_flags: &windows_test_flags
   - "--test_tag_filters=-no_windows"
