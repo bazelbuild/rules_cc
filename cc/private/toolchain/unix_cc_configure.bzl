@@ -395,6 +395,13 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     if darwin:
         overridden_tools["gcc"] = "cc_wrapper.sh"
         overridden_tools["ar"] = _find_generic(repository_ctx, "libtool", "LIBTOOL", overridden_tools)
+        xcrun = repository_ctx.which("xcrun")
+        if xcrun:
+            for tool_name in ["llvm-cov", "llvm-profdata"]:
+                if overridden_tools.get(tool_name) == None:
+                    xcrun_result = repository_ctx.execute([xcrun, "--find", tool_name])
+                    if xcrun_result.return_code == 0:
+                        overridden_tools[tool_name] = xcrun_result.stdout.strip()
 
     auto_configure_warning_maybe(repository_ctx, "CC used: " + str(cc))
     tool_paths = _get_tool_paths(repository_ctx, overridden_tools)

@@ -55,6 +55,11 @@ coverage_targets_bazel_6: &coverage_targets_bazel_6
 
 
 common_coverage_flags: &common_coverage_flags
+  # Test failures are not collected under `coverage` invocations.
+  # https://github.com/bazelbuild/continuous-integration/issues/1838
+  - "--test_output=errors"
+
+windows_coverage_flags: &windows_coverage_flags
   # Starting in Bazel 9 coverage collection causes some tests to fail.
   # https://github.com/bazelbuild/rules_cc/issues/613
   - "--test_env=IGNORE_COVERAGE_COLLECTION_FAILURES=1"
@@ -63,6 +68,11 @@ common_coverage_flags: &common_coverage_flags
   - "--test_output=errors"
 
 coverage_flags_bazel_less_than_9: &coverage_flags_bazel_less_than_9
+  # See above
+  - "--test_output=errors"
+  - "--deleted_packages=//tests/local_includes"
+
+windows_coverage_flags_bazel_less_than_9: &windows_coverage_flags_bazel_less_than_9
   # See above
   - "--test_env=IGNORE_COVERAGE_COLLECTION_FAILURES=1"
   - "--test_output=errors"
@@ -157,6 +167,8 @@ tasks:
     build_targets: *build_targets
     test_targets: *test_targets
     test_flags: *windows_test_flags
+    coverage_flags: *windows_coverage_flags
+    coverage_targets: *test_targets
 
 # Bazel 7
   ubuntu2004_bazel_7:
@@ -226,7 +238,10 @@ tasks:
     platform: windows
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
+    build_flags: *flags_bazel_less_than_9
     test_flags: *windows_test_flags
+    coverage_flags: *windows_coverage_flags_bazel_less_than_9
+    coverage_targets: *test_targets_bazel_6
 
 # Bazel 9
   ubuntu2004:
@@ -261,6 +276,8 @@ tasks:
     build_targets: *build_targets
     test_targets: *test_targets
     test_flags: *windows_test_flags
+    coverage_flags: *windows_coverage_flags
+    coverage_targets: *test_targets
   ubuntu_bzlmod:
     name: Ubuntu 20.04 (Bazel 9, bzlmod)
     bazel: 9.x
@@ -273,7 +290,6 @@ tasks:
   ubuntu_rule_based_toolchains_bazel_7:
     name: Ubuntu rule-based toolchains (Bazel 7)
     bazel: 7.2.1
-    name: Ubuntu rule-based toolchains
     platform: ubuntu1804
     working_directory: examples/rule_based_toolchain
     build_flags:
