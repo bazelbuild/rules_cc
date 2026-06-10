@@ -1,0 +1,91 @@
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+load("//cc:cc_import.bzl", "cc_import")
+load("//cc:cc_library.bzl", "cc_library")
+load("//cc:cc_static_library.bzl", "cc_static_library")
+load("//cc:cc_test.bzl", "cc_test")
+load(":define_test.bzl", "define_test")
+load(":starlark_tests.bzl", "analysis_test_suite")
+load(":static_import_strip_include_prefix_test.bzl", "static_import_strip_include_prefix_test")
+
+cc_static_library(
+    name = "static",
+    deps = [
+        ":bar",
+        ":lib_only_static_lib",
+    ],
+)
+
+cc_library(
+    name = "bar",
+    srcs = ["bar.cc"],
+    hdrs = ["bar.h"],
+    deps = [":foo"],
+)
+
+cc_library(
+    name = "foo",
+    srcs = ["foo.cc"],
+    hdrs = ["foo.h"],
+)
+
+cc_library(
+    name = "lib_only",
+    srcs = ["lib_only.cc"],
+    linkstatic = True,
+)
+
+cc_import(
+    name = "lib_only_static_lib",
+    static_library = ":lib_only",
+)
+
+cc_import(
+    name = "static_import",
+    hdrs = ["bar.h"],
+    static_library = ":static",
+)
+
+static_import_strip_include_prefix_test(name = "static_import_strip_include_prefix")
+
+cc_import(
+    name = "static_import_includes",
+    hdrs = ["nested/nested_bar.h"],
+    includes = ["nested"],
+    static_library = ":static",
+)
+
+cc_test(
+    name = "test_static_import_includes",
+    srcs = ["test_static_import_includes.cc"],
+    deps = [":static_import_includes"],
+)
+
+cc_test(
+    name = "test",
+    srcs = ["test.cc"],
+    deps = [":static_import"],
+)
+
+define_test(name = "define_test")
+
+# The sh_test doesn't find the static lib normally for some reason.
+filegroup(
+    name = "static_file",
+    srcs = [":static"],
+)
+
+sh_test(
+    name = "cc_static_library_integration_test",
+    srcs = [
+        "cc_static_library_integration_test.sh",
+    ],
+    data = [
+        ":static_file",
+    ],
+    target_compatible_with = select({
+        "@platforms//os:linux": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+)
+
+analysis_test_suite(name = "analysis_test_suite")

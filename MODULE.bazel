@@ -18,12 +18,21 @@ register_toolchains(
 )
 
 bazel_dep(name = "rules_shell", version = "0.2.0", dev_dependency = True)
+
+bazel_dep(name = "rules_python", version = "1.7.0")
+
 bazel_dep(name = "googletest", version = "1.17.0", dev_dependency = True)
 single_version_override(
     module_name = "googletest",
     patch_strip = 1,
     patches = ["//:googletest.patch"],
     version = "1.17.0",
+)
+
+bazel_dep(name = "test_repo", dev_dependency = True, repo_name = "cross_repo_test")
+local_path_override(
+    module_name = "test_repo",
+    path = "tests/builtins_bzl/cc/cc_shared_library/test2",
 )
 
 # Required commit 26a0b7d "Add CollectionSubject.contains_no_duplicates"

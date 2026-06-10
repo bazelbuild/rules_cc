@@ -1,15 +1,30 @@
 ---
+build_targets_head: &build_targets_head
+  - "//:all"
+  - "//cc/..."
+  - "//examples/..."
+  - "//tests/..."
+  - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
+test_targets_head: &test_targets_head
+  - "//:all"
+  - "//cc/..."
+  - "//examples/..."
+  - "//tests/..."
+  - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
+
 build_targets: &build_targets
   - "//:all"
   - "//cc/..."
   - "//examples/..."
   - "//tests/..."
+  - "-//tests/builtins_bzl/..." # Only intended to work at HEAD
   - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
 test_targets: &test_targets
   - "//:all"
   - "//cc/..."
   - "//examples/..."
   - "//tests/..."
+  - "-//tests/builtins_bzl/..." # Only intended to work at HEAD
   - "-//tests/system_library:system_library_test" # Only intended to work in WORKSPACE files
   - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
 coverage_targets: &coverage_targets
@@ -27,6 +42,7 @@ build_targets_bazel_6: &build_targets_bazel_6
   - "//examples/..."
   - "//tests/..."
   - "-//tests/rule_based_toolchain/..." # proto.encode_text doesn't support None
+  - "-//tests/builtins_bzl/..." # Only intended to work at HEAD
   - "-//cc:optional_current_cc_toolchain" # Not supported in Bazel 6
   - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
 test_targets_bazel_6: &test_targets_bazel_6
@@ -34,6 +50,7 @@ test_targets_bazel_6: &test_targets_bazel_6
   - "//cc:all"
   - "//examples/..."
   - "//tests/..."
+  - "-//tests/builtins_bzl/..." # Only intended to work at HEAD
   - "-//tests/rule_based_toolchain/..." # proto.encode_text doesn't support None
   - "-//cc:optional_current_cc_toolchain" # Not supported in Bazel 6
   - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
@@ -45,6 +62,7 @@ coverage_targets_bazel_6: &coverage_targets_bazel_6
   - "//cc:all"
   - "//examples/..."
   - "//tests/..."
+  - "-//tests/builtins_bzl/..." # Only intended to work at HEAD
   - "-//tests/integration/..."
   - "-//tests/rule_based_toolchain/..." # proto.encode_text doesn't support None
   - "-//cc:optional_current_cc_toolchain" # Not supported in Bazel 6
@@ -52,6 +70,7 @@ coverage_targets_bazel_6: &coverage_targets_bazel_6
   - "-//tests/system_library:system_library_test" # Should be skipped on Windows and MacOS
   - "-//tests/cc/common:test_runtime_dynamic_libraries_copy_behavior" # known bug, see https://github.com/bazelbuild/rules_cc/pull/623
   - "-//tests/strip_include_prefix:test_include_textual"  # Not supported in bazel <9.
+
 
 
 common_coverage_flags: &common_coverage_flags
@@ -105,33 +124,28 @@ tasks:
     name: Ubuntu 20.04 (Bazel HEAD)
     bazel: last_green
     platform: ubuntu2004
-    build_targets: *build_targets
-    test_targets:
-      - "//:all"
-      - "//cc/..."
-      - "//examples/..."
-      - "//tests/..."
-      - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
+    build_targets: *build_targets_head
+    test_targets: *test_targets_head
   macos_intel_head:
     name: MacOS Intel (Bazel HEAD)
     bazel: last_green
     platform: macos
-    build_targets: *build_targets
-    test_targets: *test_targets
+    build_targets: *build_targets_head
+    test_targets: *test_targets_head
     test_flags: *macos_test_flags
   macos_head:
     name: MacOS (Bazel HEAD)
     bazel: last_green
     platform: macos_arm64
-    build_targets: *build_targets
-    test_targets: *test_targets
+    build_targets: *build_targets_head
+    test_targets: *test_targets_head
     test_flags: *macos_test_flags
   windows_head:
     name: Windows (Bazel HEAD)
     bazel: last_green
     platform: windows
-    build_targets: *build_targets
-    test_targets: *test_targets
+    build_targets: *build_targets_head
+    test_targets: *test_targets_head
     test_flags: *windows_test_flags
 
   # Bazel@rolling
@@ -140,12 +154,7 @@ tasks:
     bazel: rolling
     platform: ubuntu2004
     build_targets: *build_targets
-    test_targets:
-    - "//:all"
-    - "//cc/..."
-    - "//examples/..."
-    - "//tests/..."
-    - "-//tests/rule_based_toolchain/tool_map:_duplicate_action_test_subject" # Intentionally broken rule.
+    test_targets: *test_targets
   macos_intel_rolling:
     name: MacOS Intel (Bazel rolling)
     bazel: rolling
@@ -179,6 +188,8 @@ tasks:
     name: Ubuntu 20.04 (Bazel 7)
     bazel: 7.x
     platform: ubuntu2004
+    build_flags:
+      - "--experimental_cc_static_library"
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
     coverage_flags: *coverage_flags_bazel_less_than_9
@@ -187,6 +198,8 @@ tasks:
     name: MacOS Intel (Bazel 7)
     bazel: 7.x
     platform: macos
+    build_flags:
+      - "--experimental_cc_static_library"
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
     test_flags: *macos_test_flags
@@ -196,6 +209,8 @@ tasks:
     name: MacOS (Bazel 7)
     bazel: 7.x
     platform: macos_arm64
+    build_flags:
+      - "--experimental_cc_static_library"
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
     test_flags: *macos_test_flags
@@ -205,6 +220,8 @@ tasks:
     name: Windows (Bazel 7)
     bazel: 7.x
     platform: windows
+    build_flags:
+      - "--experimental_cc_static_library"
     build_targets: *build_targets_bazel_6
     test_targets: *test_targets_bazel_6
     test_flags: *windows_test_flags
