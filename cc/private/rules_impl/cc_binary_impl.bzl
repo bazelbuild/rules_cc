@@ -598,9 +598,14 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
                             if library.objects != None:
                                 object_files.extend(library.objects)
 
-            def_parser = ctx.file._def_parser
-            if def_parser != None:
-                generated_def_file = cc_helper.generate_def_file(ctx, def_parser, object_files, binary.basename)
+            generated_def_file = cc_helper.generate_def_file(
+                ctx,
+                ctx.file._def_parser,
+                object_files,
+                binary.basename,
+                cc_toolchain,
+                feature_configuration,
+            )
             custom_win_def_file = ctx.file.win_def_file
             win_def_file = cc_helper.get_windows_def_file_for_linking(ctx, custom_win_def_file, generated_def_file, feature_configuration)
             link_variables["def_file_path"] = win_def_file.path

@@ -691,11 +691,16 @@ def _cc_shared_library_impl(ctx):
                     if library.objects != None:
                         object_files.extend(library.objects)
 
-        def_parser = ctx.file._def_parser
-
         generated_def_file = None
-        if def_parser != None:
-            generated_def_file = cc_helper.generate_def_file(ctx, def_parser, object_files, ctx.label.name)
+        generated_def_file = cc_helper.generate_def_file(
+            ctx,
+            ctx.file._def_parser,
+            object_files,
+            ctx.label.name,
+            cc_toolchain,
+            feature_configuration,
+        )
+        if generated_def_file != None:
             additional_output_groups["def_file"] = depset([generated_def_file])
         custom_win_def_file = ctx.file.win_def_file
         win_def_file = cc_helper.get_windows_def_file_for_linking(ctx, custom_win_def_file, generated_def_file, feature_configuration)

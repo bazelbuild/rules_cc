@@ -137,9 +137,15 @@ def _cc_library_impl(ctx):
             dll_name_suffix = cc_helper.dll_hash_suffix(ctx, feature_configuration, ctx.fragments.cpp)
             generated_def_file = None
 
-            def_parser = ctx.file._def_parser
-            if def_parser != None:
-                generated_def_file = cc_helper.generate_def_file(ctx, def_parser, compilation_outputs.objects, ctx.label.name + dll_name_suffix)
+            generated_def_file = cc_helper.generate_def_file(
+                ctx,
+                ctx.file._def_parser,
+                compilation_outputs.objects,
+                ctx.label.name + dll_name_suffix,
+                cc_toolchain,
+                feature_configuration,
+            )
+            if generated_def_file != None:
                 output_group_builder["def_file"] = depset([generated_def_file])
 
             win_def_file = cc_helper.get_windows_def_file_for_linking(ctx, ctx.file.win_def_file, generated_def_file, feature_configuration)

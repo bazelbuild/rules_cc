@@ -118,6 +118,9 @@ VALIDATE_STATIC_LIBRARY = "validate-static-library"
 # Name of the DWARF packaging utility action.
 DWP = "dwp"
 
+# Name of the action that generates a Windows DEF file from object files.
+GENERATE_DEF_FILE_ACTION_NAME = "generate-def-file"
+
 ACTION_NAMES = struct(
     c_compile = C_COMPILE_ACTION_NAME,
     cpp_compile = CPP_COMPILE_ACTION_NAME,
@@ -154,6 +157,7 @@ ACTION_NAMES = struct(
     objcopy_embed_data = OBJ_COPY_ACTION_NAME,
     validate_static_library = VALIDATE_STATIC_LIBRARY,
     dwp = DWP,
+    generate_def_file = GENERATE_DEF_FILE_ACTION_NAME,
 )
 
 # Names of actions that parse or compile C++ code.
