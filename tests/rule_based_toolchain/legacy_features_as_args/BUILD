@@ -1,8 +1,9 @@
-load(":compare_feature.bzl", "compare_feature_implementation")
+load(":compare_feature.bzl", "compare_cc_feature_implementation", "compare_feature_implementation")
 load(":goldens/macos/archiver_flags.bzl", _MACOS_ARCHIVER_FLAGS = "GOLDEN")
 load(":goldens/macos/force_pic_flags.bzl", _MACOS_FORCE_PIC_FLAGS = "GOLDEN")
 load(":goldens/macos/libraries_to_link.bzl", _MACOS_LIBRARIES_TO_LINK = "GOLDEN")
 load(":goldens/macos/runtime_library_search_directories.bzl", _MACOS_RUNTIME_LIBRARY_SEARCH_DIRECTORIES = "GOLDEN")
+load(":goldens/macos/thin_lto.bzl", _MACOS_THIN_LTO = "GOLDEN")
 load(":goldens/unix/archiver_flags.bzl", _UNIX_ARCHIVER_FLAGS = "GOLDEN")
 load(":goldens/unix/force_pic_flags.bzl", _UNIX_FORCE_PIC_FLAGS = "GOLDEN")
 load(":goldens/unix/libraries_to_link.bzl", _UNIX_LIBRARIES_TO_LINK = "GOLDEN")
@@ -129,4 +130,11 @@ compare_feature_implementation(
     expected = _UNIX_SHARED_FLAG,
     feature_name = "shared_flag_test",
     platform = ":linux",
+)
+
+compare_cc_feature_implementation(
+    name = "thin_lto_macos_test",
+    actual_implementation = "//cc/toolchains/args/thin_lto:feature",
+    expected = _MACOS_THIN_LTO,
+    platform = ":macos",
 )
