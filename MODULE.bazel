@@ -47,6 +47,9 @@ archive_override(
 
 bazel_dep(name = "stardoc", version = "0.8.0", dev_dependency = True)
 
+# Here for running basic cc tests on macOS, the behavior of this specific toolchain shouldn't be tested directly
+bazel_dep(name = "apple_support", version = "2.6.1", dev_dependency = True)
+
 # Compatibility layer
 compat = use_extension("//cc:extensions.bzl", "compatibility_proxy")
 use_repo(compat, "cc_compatibility_proxy")
