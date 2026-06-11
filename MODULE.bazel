@@ -19,7 +19,7 @@ register_toolchains(
 
 bazel_dep(name = "rules_shell", version = "0.2.0", dev_dependency = True)
 
-bazel_dep(name = "rules_python", version = "1.7.0")
+bazel_dep(name = "rules_python", version = "1.9.1")
 
 bazel_dep(name = "googletest", version = "1.17.0", dev_dependency = True)
 single_version_override(
