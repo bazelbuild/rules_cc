@@ -1053,9 +1053,12 @@ _external_include_paths_feature = feature(
             actions = [ACTION_NAMES.cpp_compile],
             flag_groups = [
                 flag_group(
+                    expand_if_available = "external_include_paths",
                     flags = [
                         "-isystem",
+                        "%{external_include_paths}",
                     ],
+                    iterate_over = "external_include_paths",
                 ),
             ],
         ),
