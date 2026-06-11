@@ -71,16 +71,16 @@ def get_fdo_build_stamp(cpp_configuration, fdo_context, feature_configuration):
 def get_linkstamp_stamps(
         cc_toolchain,
         feature_configuration,
-        label_replacement,
-        output_replacement,
+        target_name,
+        build_target,
         additional_linkstamp_defines):
     """Returns a dict of stamps for linkstamp compilation/PostMark.
 
     Args:
       cc_toolchain: The C++ toolchain provider.
       feature_configuration: The feature configuration.
-      label_replacement: String to replace ${LABEL} in linkstamp defines.
-      output_replacement: String to replace ${OUTPUT_PATH} in linkstamp defines.
+      target_name: Value for the G3_TARGET_NAME linkstamp define.
+      build_target: Value for the G3_BUILD_TARGET linkstamp define.
       additional_linkstamp_defines: A list of additional defines for linkstamp compilation.
 
     Returns:
@@ -100,12 +100,12 @@ def get_linkstamp_stamps(
         # depend on which target(s) were specified on the command line.  So in that case we
         # have to use the (obscure) name of the .so file instead, or more precisely the path of
         # the .so file relative to the workspace root.
-        "G3_TARGET_NAME": label_replacement,
+        "G3_TARGET_NAME": target_name,
         # G3_BUILD_TARGET is a C string literal containing the output of this
         # link.  (An undocumented and untested invariant is that G3_BUILD_TARGET is the
         # location of the executable, either absolutely, or relative to the directory part of
         # BUILD_INFO.)
-        "G3_BUILD_TARGET": output_replacement,
+        "G3_BUILD_TARGET": build_target,
     }
     if fdo_build_stamp:
         stamps["BUILD_FDO_TYPE"] = fdo_build_stamp
@@ -115,8 +115,6 @@ def get_linkstamp_stamps(
 
     if additional_linkstamp_defines:
         for d in additional_linkstamp_defines:
-            # TODO: b/503100490 - This replacement looks redundant, but we should remove this in a separate CL.
-            d = d.replace("${LABEL}", label_replacement).replace("${OUTPUT_PATH}", output_replacement)
             if "=" in d:
                 k, v = d.split("=", 1)
                 stamps[k] = v

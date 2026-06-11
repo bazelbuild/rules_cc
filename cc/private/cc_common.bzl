@@ -422,9 +422,20 @@ def _register_linkstamp_compile_action(
         output_file,
         compilation_inputs,
         inputs_for_validation,
-        label_replacement,
-        output_replacement):
+        target_name = None,
+        build_target = None,
+        label_replacement = None,  # deprecated, use target_name
+        output_replacement = None):  # deprecated, use build_target
     _cc_internal.check_private_api(allowlist = _PRIVATE_STARLARKIFICATION_ALLOWLIST)
+
+    resolved_target_name = target_name if target_name != None else label_replacement
+    if resolved_target_name == None:
+        fail("target_name must be specified.")
+
+    resolved_build_target = build_target if build_target != None else output_replacement
+    if resolved_build_target == None:
+        fail("build_target must be specified.")
+
     return register_linkstamp_compile_action(
         actions = actions,
         cc_toolchain = cc_toolchain,
@@ -433,8 +444,8 @@ def _register_linkstamp_compile_action(
         output_file = output_file,
         compilation_inputs = compilation_inputs,
         inputs_for_validation = inputs_for_validation,
-        label_replacement = label_replacement,
-        output_replacement = output_replacement,
+        target_name = resolved_target_name,
+        build_target = resolved_build_target,
     )
 
 def _compile(
