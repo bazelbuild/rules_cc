@@ -43,6 +43,7 @@ def cc_analysis_test(name, with_features = None, test_features = [], with_action
         str(with_features_flag): with_features,
         str(with_action_configs_flag): with_action_configs,
         "//command_line_option:features": test_features,
+        "//command_line_option:compilation_mode": "fastbuild",
     }
     if "config_settings" in kwargs:
         config_settings = dict(config_settings, **kwargs["config_settings"])
