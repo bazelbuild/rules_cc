@@ -407,10 +407,8 @@ def _filter_inputs(
     linker_inputs_seen = {}
     linker_inputs_count = 0
     label_to_linker_inputs = {}
-    experimental_remove_before_7_0_linker_inputs = []
 
     def _add_linker_input_to_dict(owner, linker_input):
-        experimental_remove_before_7_0_linker_inputs.append(linker_input)
         label_to_linker_inputs.setdefault(owner, []).append(linker_input)
 
     # We use this dictionary to give an error if a target containing only
