@@ -499,52 +499,39 @@ def _get_compilation_contexts_from_deps(deps):
             compilation_contexts.append(dep[CcInfo].compilation_context)
     return compilation_contexts
 
-def _tool_path(cc_toolchain, tool, feature_configuration = None, action_name = None):
-    tool = cc_toolchain._tool_paths.get(tool, None)
-    if tool:
-        return tool
+def _tool_path(tool_paths, tool, feature_configuration = None, action_name = None, default = ""):
+    path = tool_paths.get(tool, None)
+    if path:
+        return path
     if feature_configuration != None and action_name != None:
         if not cc_common.action_is_enabled(
             feature_configuration = feature_configuration,
             action_name = action_name,
         ):
-            return None
+            return default
 
         return cc_common.get_tool_for_action(
             feature_configuration = feature_configuration,
             action_name = action_name,
-        )
-    return None
-
-def _tool_path_for_action(cc_toolchain, tool, feature_configuration, action_name):
-    path = cc_toolchain._tool_paths.get(tool, None)
-    if path:
-        return path
-    if action_name != None and cc_common.action_is_enabled(
-        feature_configuration = feature_configuration,
-        action_name = action_name,
-    ):
-        return cc_common.get_tool_for_action(
-            feature_configuration = feature_configuration,
-            action_name = action_name,
-        ) or ""
-    return ""
+        ) or default
+    return default
 
 def _get_toolchain_global_make_variables(cc_toolchain, feature_configuration):
+    tool_paths = cc_toolchain._tool_paths
     result = {
-        "CC": _tool_path_for_action(cc_toolchain, "gcc", feature_configuration, ACTION_NAMES.c_compile),
-        "AR": _tool_path_for_action(cc_toolchain, "ar", feature_configuration, ACTION_NAMES.cpp_link_static_library),
-        "NM": _tool_path_for_action(cc_toolchain, "nm", feature_configuration, None),
-        "LD": _tool_path_for_action(cc_toolchain, "ld", feature_configuration, ACTION_NAMES.cpp_link_executable),
-        "STRIP": _tool_path_for_action(cc_toolchain, "strip", feature_configuration, ACTION_NAMES.strip),
+        "CC": _tool_path(tool_paths, "gcc", feature_configuration, ACTION_NAMES.c_compile),
+        "AR": _tool_path(tool_paths, "ar", feature_configuration, ACTION_NAMES.cpp_link_static_library),
+        "NM": _tool_path(tool_paths, "nm", feature_configuration, None),
+        "LD": _tool_path(tool_paths, "ld", feature_configuration, ACTION_NAMES.cpp_link_executable),
+        "STRIP": _tool_path(tool_paths, "strip", feature_configuration, ACTION_NAMES.strip),
         "C_COMPILER": cc_toolchain.compiler,
     }  # buildifier: disable=unsorted-dict-items
 
-    obj_copy_tool = _tool_path_for_action(cc_toolchain, "objcopy", feature_configuration, ACTION_NAMES.objcopy_embed_data)
+    obj_copy_tool = _tool_path(tool_paths, "objcopy", feature_configuration, ACTION_NAMES.objcopy_embed_data)
     if obj_copy_tool != None:
         # objcopy is optional in Crostool.
         result["OBJCOPY"] = obj_copy_tool
-    gcov_tool = _tool_path_for_action(cc_toolchain, "gcov-tool", feature_configuration, None)
+    gcov_tool = _tool_path(tool_paths, "gcov-tool", feature_configuration, None)
     if gcov_tool:
         # gcovtool is optional in Crostool.
         result["GCOVTOOL"] = gcov_tool
@@ -1064,9 +1051,9 @@ def _get_coverage_environment(ctx, cc_config, cc_toolchain, feature_configuratio
 
     # buildifier: disable=unsorted-dict-items
     env = {
-        "COVERAGE_GCOV_PATH": _tool_path(cc_toolchain, "gcov", feature_configuration, ACTION_NAMES.gcov),
-        "LLVM_COV": _tool_path(cc_toolchain, "llvm-cov", feature_configuration, ACTION_NAMES.llvm_cov),
-        "LLVM_PROFDATA": _tool_path(cc_toolchain, "llvm-profdata", feature_configuration, ACTION_NAMES.llvm_profdata),
+        "COVERAGE_GCOV_PATH": _tool_path(cc_toolchain._tool_paths, "gcov", feature_configuration, ACTION_NAMES.gcov, default = None),
+        "LLVM_COV": _tool_path(cc_toolchain._tool_paths, "llvm-cov", feature_configuration, ACTION_NAMES.llvm_cov, default = None),
+        "LLVM_PROFDATA": _tool_path(cc_toolchain._tool_paths, "llvm-profdata", feature_configuration, ACTION_NAMES.llvm_profdata, default = None),
         "GENERATE_LLVM_LCOV": "1" if cc_config.generate_llvm_lcov() else "0",
     }
     for k in list(env.keys()):
@@ -1136,6 +1123,7 @@ cc_helper = struct(
     tokenize = _tokenize,
     is_valid_shared_library_artifact = _is_valid_shared_library_artifact,
     is_valid_shared_library_name = _is_valid_shared_library_name,
+    tool_path = _tool_path,
     get_toolchain_global_make_variables = _get_toolchain_global_make_variables,
     get_cc_flags_make_variable = _get_cc_flags_make_variable,
     get_compilation_contexts_from_deps = _get_compilation_contexts_from_deps,
