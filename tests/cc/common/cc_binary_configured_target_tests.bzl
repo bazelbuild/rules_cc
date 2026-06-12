@@ -1329,31 +1329,31 @@ def _create_link_staticness_dep_tree(name):
     )
     util.helper_target(
         cc_binary,
-        name = name + "/hello",
-        srcs = ["hello.cc"],
+        name = name + "/binary-static",
+        srcs = ["binary.cc"],
         deps = [name + "/dep"],
         linkopts = ["-static"],
     )
     util.helper_target(
         cc_test,
-        name = name + "/hello_test",
-        srcs = ["hello.cc", "hello_test.cc"],
+        name = name + "/test",
+        srcs = ["binary.cc", "test.cc"],
         deps = [name + "/dep"],
     )
     util.helper_target(
         cc_test,
-        name = name + "/hello_test2",
-        srcs = ["hello.cc", "hello_test.cc"],
+        name = name + "/test-linkstatic",
+        srcs = ["binary.cc", "test.cc"],
         deps = [name + "/dep"],
         linkstatic = 1,
     )
 
 # Default Config Suite
-def _test_link_staticness_hello_default(name, **kwargs):
+def _test_link_staticness_binary_static_dynamic_mode_default(name, **kwargs):
     _create_link_staticness_dep_tree(name)
     _register_link_staticness_test(
         name = name,
-        target_under_test = name + "/hello",
+        target_under_test = name + "/binary-static",
         expected_static = True,
         config_settings = {
             "//command_line_option:dynamic_mode": "default",
@@ -1362,11 +1362,11 @@ def _test_link_staticness_hello_default(name, **kwargs):
         **kwargs
     )
 
-def _test_link_staticness_hello_test_default(name, **kwargs):
+def _test_link_staticness_hello_test_dynamic_mode_default(name, **kwargs):
     _create_link_staticness_dep_tree(name)
     _register_link_staticness_test(
         name = name,
-        target_under_test = name + "/hello_test",
+        target_under_test = name + "/test",
         expected_static = False,
         config_settings = {
             "//command_line_option:dynamic_mode": "default",
@@ -1375,11 +1375,11 @@ def _test_link_staticness_hello_test_default(name, **kwargs):
         **kwargs
     )
 
-def _test_link_staticness_hello_test2_default(name, **kwargs):
+def _test_link_staticness_hello_test_linkstatic_dynamic_mode_default(name, **kwargs):
     _create_link_staticness_dep_tree(name)
     _register_link_staticness_test(
         name = name,
-        target_under_test = name + "/hello_test2",
+        target_under_test = name + "/test-linkstatic",
         expected_static = True,
         config_settings = {
             "//command_line_option:dynamic_mode": "default",
@@ -1389,11 +1389,11 @@ def _test_link_staticness_hello_test2_default(name, **kwargs):
     )
 
 # Off Config Suite
-def _test_link_staticness_hello_off(name, **kwargs):
+def _test_link_staticness_binary_static_dynamic_mode_off(name, **kwargs):
     _create_link_staticness_dep_tree(name)
     _register_link_staticness_test(
         name = name,
-        target_under_test = name + "/hello",
+        target_under_test = name + "/binary-static",
         expected_static = True,
         config_settings = {
             "//command_line_option:dynamic_mode": "off",
@@ -1402,11 +1402,11 @@ def _test_link_staticness_hello_off(name, **kwargs):
         **kwargs
     )
 
-def _test_link_staticness_hello_test_off(name, **kwargs):
+def _test_link_staticness_hello_test_dynamic_mode_off(name, **kwargs):
     _create_link_staticness_dep_tree(name)
     _register_link_staticness_test(
         name = name,
-        target_under_test = name + "/hello_test",
+        target_under_test = name + "/test",
         expected_static = True,
         config_settings = {
             "//command_line_option:dynamic_mode": "off",
@@ -1415,11 +1415,11 @@ def _test_link_staticness_hello_test_off(name, **kwargs):
         **kwargs
     )
 
-def _test_link_staticness_hello_test2_off(name, **kwargs):
+def _test_link_staticness_hello_test_linkstatic_dynamic_mode_off(name, **kwargs):
     _create_link_staticness_dep_tree(name)
     _register_link_staticness_test(
         name = name,
-        target_under_test = name + "/hello_test2",
+        target_under_test = name + "/test-linkstatic",
         expected_static = True,
         config_settings = {
             "//command_line_option:dynamic_mode": "off",
@@ -1429,11 +1429,11 @@ def _test_link_staticness_hello_test2_off(name, **kwargs):
     )
 
 # Fully Config Suite
-def _test_link_staticness_hello_fully(name, **kwargs):
+def _test_link_staticness_binary_static_dynamic_mode_fully(name, **kwargs):
     _create_link_staticness_dep_tree(name)
     _register_link_staticness_test(
         name = name,
-        target_under_test = name + "/hello",
+        target_under_test = name + "/binary-static",
         expected_static = False,
         config_settings = {
             "//command_line_option:dynamic_mode": "fully",
@@ -1442,11 +1442,11 @@ def _test_link_staticness_hello_fully(name, **kwargs):
         **kwargs
     )
 
-def _test_link_staticness_hello_test_fully(name, **kwargs):
+def _test_link_staticness_hello_test_dynamic_mode_fully(name, **kwargs):
     _create_link_staticness_dep_tree(name)
     _register_link_staticness_test(
         name = name,
-        target_under_test = name + "/hello_test",
+        target_under_test = name + "/test",
         expected_static = False,
         config_settings = {
             "//command_line_option:dynamic_mode": "fully",
@@ -1455,11 +1455,11 @@ def _test_link_staticness_hello_test_fully(name, **kwargs):
         **kwargs
     )
 
-def _test_link_staticness_hello_test2_fully(name, **kwargs):
+def _test_link_staticness_hello_test_linkstatic_dynamic_mode_fully(name, **kwargs):
     _create_link_staticness_dep_tree(name)
     _register_link_staticness_test(
         name = name,
-        target_under_test = name + "/hello_test2",
+        target_under_test = name + "/test-linkstatic",
         expected_static = False,
         config_settings = {
             "//command_line_option:dynamic_mode": "fully",
@@ -1627,15 +1627,15 @@ def cc_binary_configured_target_tests(name):
             _test_system_include_paths_reclassifies_local_includes_without_propagation,
             _test_generated_def_file_uses_toolchain_action,  # copybara-uncomment-this-please
             _test_generated_def_file_uses_default_tool,  # copybara-uncomment-this-please
-            _test_link_staticness_hello_default,
-            _test_link_staticness_hello_test_default,
-            _test_link_staticness_hello_test2_default,
-            _test_link_staticness_hello_off,
-            _test_link_staticness_hello_test_off,
-            _test_link_staticness_hello_test2_off,
-            _test_link_staticness_hello_fully,
-            _test_link_staticness_hello_test_fully,
-            _test_link_staticness_hello_test2_fully,
+            _test_link_staticness_binary_static_dynamic_mode_default,
+            _test_link_staticness_hello_test_dynamic_mode_default,
+            _test_link_staticness_hello_test_linkstatic_dynamic_mode_default,
+            _test_link_staticness_binary_static_dynamic_mode_off,
+            _test_link_staticness_hello_test_dynamic_mode_off,
+            _test_link_staticness_hello_test_linkstatic_dynamic_mode_off,
+            _test_link_staticness_binary_static_dynamic_mode_fully,
+            _test_link_staticness_hello_test_dynamic_mode_fully,
+            _test_link_staticness_hello_test_linkstatic_dynamic_mode_fully,
             _test_linking_mode_features_true_default,
             _test_linking_mode_features_false_default,
             _test_linking_mode_features_true_fully,
