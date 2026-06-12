@@ -8,6 +8,7 @@ load("//cc:action_names.bzl", "ACTION_NAMES")
 load("//cc:cc_binary.bzl", _actual_cc_binary = "cc_binary")
 load("//cc:cc_import.bzl", "cc_import")
 load("//cc:cc_library.bzl", "cc_library")
+load("//cc:cc_test.bzl", _actual_cc_test = "cc_test")
 load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/common:cc_info.bzl", "CcInfo")
 load("//tests/cc/testutil:cc_analysis_test.bzl", "MOCK_TOOLCHAINS", "cc_analysis_test")
@@ -21,6 +22,16 @@ def cc_binary(name, **kwargs):
         # Avoid the real "malloc", which might use arbitrary toolchain actions and features.
         kwargs["malloc"] = "//tests/cc/testutil/toolchains:mock_malloc"
     _actual_cc_binary(
+        name = name,
+        **kwargs
+    )
+
+# Wrap cc_test to mock out common dependencies.
+def cc_test(name, **kwargs):
+    if "malloc" not in kwargs:
+        # Avoid the real "malloc", which might use arbitrary toolchain actions and features.
+        kwargs["malloc"] = "//tests/cc/testutil/toolchains:mock_malloc"
+    _actual_cc_test(
         name = name,
         **kwargs
     )
@@ -733,6 +744,24 @@ def _test_linkopts_fake_diamond_impl(env, target):
         "core",
     ]).in_order()
 
+def _is_shared_library(path):
+    basename = path.split("/")[-1]
+    parts = basename.split(".")
+    ext = parts[-1] if len(parts) > 1 else ""
+    return ext in ["so", "dylib", "dll", "ifso"] or ".so" in basename or ".dylib" in basename
+
+def _assert_link_staticness(env, target, expected_static):
+    link_action = link_action_subject.from_target(env, target)
+    shared_libs = link_action.inputs().transform(
+        desc = "shared libraries",
+        filter = _is_shared_library,
+    )
+
+    if expected_static:
+        shared_libs.is_empty()
+    else:
+        shared_libs.is_not_empty()
+
 def _create_dep_tree(name, use_actual_cc_binary = False):
     binary_rule = _actual_cc_binary if use_actual_cc_binary else cc_binary
 
@@ -1264,6 +1293,296 @@ def _setup_cc_runtimes_mock():
         tags = ["manual", "notap"],
     )
 
+def _register_link_staticness_test(name, target_under_test, expected_static, config_settings = {}, with_features = [], **kwargs):
+    config_settings = dict(
+        {
+            # Apple builds do not support statically linked binaries so we force the target platform
+            # to Linux. TODO: Do we want to test this separately for Windows targets?
+            # Note: Already the previous Java tests set --cpu=k8 for these tests.
+            "//command_line_option:platforms": [Label("//tests/cc/testutil:linux_x86_64")],
+        },
+        **config_settings
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _link_staticness_test_impl,
+        target = target_under_test,
+        config_settings = config_settings,
+        with_features = with_features,
+        attrs = {
+            "expected_static": attr.bool(),
+        },
+        attr_values = {
+            "expected_static": expected_static,
+        },
+        **kwargs
+    )
+
+def _link_staticness_test_impl(env, target):
+    _assert_link_staticness(env, target, env.ctx.attr.expected_static)
+
+def _create_link_staticness_dep_tree(name):
+    util.helper_target(
+        cc_library,
+        name = name + "/dep",
+        srcs = ["dep.cc"],
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/hello",
+        srcs = ["hello.cc"],
+        deps = [name + "/dep"],
+        linkopts = ["-static"],
+    )
+    util.helper_target(
+        cc_test,
+        name = name + "/hello_test",
+        srcs = ["hello.cc", "hello_test.cc"],
+        deps = [name + "/dep"],
+    )
+    util.helper_target(
+        cc_test,
+        name = name + "/hello_test2",
+        srcs = ["hello.cc", "hello_test.cc"],
+        deps = [name + "/dep"],
+        linkstatic = 1,
+    )
+
+# Default Config Suite
+def _test_link_staticness_hello_default(name, **kwargs):
+    _create_link_staticness_dep_tree(name)
+    _register_link_staticness_test(
+        name = name,
+        target_under_test = name + "/hello",
+        expected_static = True,
+        config_settings = {
+            "//command_line_option:dynamic_mode": "default",
+        },
+        with_features = [FEATURE_NAMES.supports_pic, FEATURE_NAMES.supports_dynamic_linker],
+        **kwargs
+    )
+
+def _test_link_staticness_hello_test_default(name, **kwargs):
+    _create_link_staticness_dep_tree(name)
+    _register_link_staticness_test(
+        name = name,
+        target_under_test = name + "/hello_test",
+        expected_static = False,
+        config_settings = {
+            "//command_line_option:dynamic_mode": "default",
+        },
+        with_features = [FEATURE_NAMES.supports_pic, FEATURE_NAMES.supports_dynamic_linker],
+        **kwargs
+    )
+
+def _test_link_staticness_hello_test2_default(name, **kwargs):
+    _create_link_staticness_dep_tree(name)
+    _register_link_staticness_test(
+        name = name,
+        target_under_test = name + "/hello_test2",
+        expected_static = True,
+        config_settings = {
+            "//command_line_option:dynamic_mode": "default",
+        },
+        with_features = [FEATURE_NAMES.supports_pic, FEATURE_NAMES.supports_dynamic_linker],
+        **kwargs
+    )
+
+# Off Config Suite
+def _test_link_staticness_hello_off(name, **kwargs):
+    _create_link_staticness_dep_tree(name)
+    _register_link_staticness_test(
+        name = name,
+        target_under_test = name + "/hello",
+        expected_static = True,
+        config_settings = {
+            "//command_line_option:dynamic_mode": "off",
+        },
+        with_features = [FEATURE_NAMES.supports_pic, FEATURE_NAMES.supports_dynamic_linker],
+        **kwargs
+    )
+
+def _test_link_staticness_hello_test_off(name, **kwargs):
+    _create_link_staticness_dep_tree(name)
+    _register_link_staticness_test(
+        name = name,
+        target_under_test = name + "/hello_test",
+        expected_static = True,
+        config_settings = {
+            "//command_line_option:dynamic_mode": "off",
+        },
+        with_features = [FEATURE_NAMES.supports_pic, FEATURE_NAMES.supports_dynamic_linker],
+        **kwargs
+    )
+
+def _test_link_staticness_hello_test2_off(name, **kwargs):
+    _create_link_staticness_dep_tree(name)
+    _register_link_staticness_test(
+        name = name,
+        target_under_test = name + "/hello_test2",
+        expected_static = True,
+        config_settings = {
+            "//command_line_option:dynamic_mode": "off",
+        },
+        with_features = [FEATURE_NAMES.supports_pic, FEATURE_NAMES.supports_dynamic_linker],
+        **kwargs
+    )
+
+# Fully Config Suite
+def _test_link_staticness_hello_fully(name, **kwargs):
+    _create_link_staticness_dep_tree(name)
+    _register_link_staticness_test(
+        name = name,
+        target_under_test = name + "/hello",
+        expected_static = False,
+        config_settings = {
+            "//command_line_option:dynamic_mode": "fully",
+        },
+        with_features = [FEATURE_NAMES.supports_pic, FEATURE_NAMES.supports_dynamic_linker],
+        **kwargs
+    )
+
+def _test_link_staticness_hello_test_fully(name, **kwargs):
+    _create_link_staticness_dep_tree(name)
+    _register_link_staticness_test(
+        name = name,
+        target_under_test = name + "/hello_test",
+        expected_static = False,
+        config_settings = {
+            "//command_line_option:dynamic_mode": "fully",
+        },
+        with_features = [FEATURE_NAMES.supports_pic, FEATURE_NAMES.supports_dynamic_linker],
+        **kwargs
+    )
+
+def _test_link_staticness_hello_test2_fully(name, **kwargs):
+    _create_link_staticness_dep_tree(name)
+    _register_link_staticness_test(
+        name = name,
+        target_under_test = name + "/hello_test2",
+        expected_static = False,
+        config_settings = {
+            "//command_line_option:dynamic_mode": "fully",
+        },
+        with_features = [FEATURE_NAMES.supports_pic, FEATURE_NAMES.supports_dynamic_linker],
+        **kwargs
+    )
+
+def _create_linking_mode_features_dep_tree(name):
+    util.helper_target(
+        cc_binary,
+        name = name + "/linkstatic_true",
+        srcs = ["binary.cc"],
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/linkstatic_false",
+        srcs = ["binary.cc"],
+        linkstatic = 0,
+    )
+
+def _register_linking_mode_features_test(name, target_under_test, expected_mode, config_settings = {}, **kwargs):
+    config_settings = dict(
+        {
+            # Windows does not support linking_mode features so we force the target platform to
+            # Linux. TODO: Do we want to test this separately for Apple targets?
+            "//command_line_option:platforms": [Label("//tests/cc/testutil:linux_x86_64")],
+        },
+        **config_settings
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _linking_mode_features_test_impl,
+        target = target_under_test,
+        config_settings = config_settings,
+        with_features = [
+            FEATURE_NAMES.static_linking_mode,
+            FEATURE_NAMES.dynamic_linking_mode,
+            FEATURE_NAMES.supports_dynamic_linker,
+        ],
+        attrs = {
+            "expected_mode": attr.string(),
+        },
+        attr_values = {
+            "expected_mode": expected_mode,
+        },
+        **kwargs
+    )
+
+def _linking_mode_features_test_impl(env, target):
+    link_action = link_action_subject.from_target(env, target)
+    link_action.env().get("linking_mode", factory = subjects.str).equals(env.ctx.attr.expected_mode)
+
+# Default Config
+def _test_linking_mode_features_true_default(name, **kwargs):
+    _create_linking_mode_features_dep_tree(name)
+    _register_linking_mode_features_test(name, name + "/linkstatic_true", "static", **kwargs)
+
+def _test_linking_mode_features_false_default(name, **kwargs):
+    _create_linking_mode_features_dep_tree(name)
+    _register_linking_mode_features_test(name, name + "/linkstatic_false", "dynamic", **kwargs)
+
+# Fully Config
+def _test_linking_mode_features_true_fully(name, **kwargs):
+    _create_linking_mode_features_dep_tree(name)
+    _register_linking_mode_features_test(
+        name,
+        name + "/linkstatic_true",
+        "dynamic",
+        config_settings = {"//command_line_option:dynamic_mode": "fully"},
+        **kwargs
+    )
+
+def _test_linking_mode_features_false_fully(name, **kwargs):
+    _create_linking_mode_features_dep_tree(name)
+    _register_linking_mode_features_test(
+        name,
+        name + "/linkstatic_false",
+        "dynamic",
+        config_settings = {"//command_line_option:dynamic_mode": "fully"},
+        **kwargs
+    )
+
+# Off Config
+def _test_linking_mode_features_true_off(name, **kwargs):
+    _create_linking_mode_features_dep_tree(name)
+    _register_linking_mode_features_test(
+        name,
+        name + "/linkstatic_true",
+        "static",
+        config_settings = {"//command_line_option:dynamic_mode": "off"},
+        **kwargs
+    )
+
+def _test_linking_mode_features_false_off(name, **kwargs):
+    _create_linking_mode_features_dep_tree(name)
+    _register_linking_mode_features_test(
+        name,
+        name + "/linkstatic_false",
+        "static",
+        config_settings = {"//command_line_option:dynamic_mode": "off"},
+        **kwargs
+    )
+
+# Regression test for b/157471662.
+def _test_link_shared_does_not_have_to_provide_extension(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/foo",
+        srcs = ["foo.cc"],
+        linkshared = 1,
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_link_shared_does_not_have_to_provide_extension_impl,
+        target = name + "/foo",
+        **kwargs
+    )
+
+def _test_link_shared_does_not_have_to_provide_extension_impl(env, target):
+    executable = target[DefaultInfo].files_to_run.executable
+    env.expect.that_str(executable.basename).equals("libfoo.so")
+
 def cc_binary_configured_target_tests(name):
     """Creates the test suite for cc_binary tests.
 
@@ -1293,6 +1612,7 @@ def cc_binary_configured_target_tests(name):
         _test_pic_mode_does_not_use_nopic_binary,
         _test_ignore_custom_malloc,
         _test_custom_malloc,
+        _test_link_shared_does_not_have_to_provide_extension,
     ]
 
     # sanitize_pwd is implemented in Starlark in rules_cc, requires Bazel 9+.
@@ -1307,6 +1627,21 @@ def cc_binary_configured_target_tests(name):
             _test_system_include_paths_reclassifies_local_includes_without_propagation,
             _test_generated_def_file_uses_toolchain_action,  # copybara-uncomment-this-please
             _test_generated_def_file_uses_default_tool,  # copybara-uncomment-this-please
+            _test_link_staticness_hello_default,
+            _test_link_staticness_hello_test_default,
+            _test_link_staticness_hello_test2_default,
+            _test_link_staticness_hello_off,
+            _test_link_staticness_hello_test_off,
+            _test_link_staticness_hello_test2_off,
+            _test_link_staticness_hello_fully,
+            _test_link_staticness_hello_test_fully,
+            _test_link_staticness_hello_test2_fully,
+            _test_linking_mode_features_true_default,
+            _test_linking_mode_features_false_default,
+            _test_linking_mode_features_true_fully,
+            _test_linking_mode_features_false_fully,
+            _test_linking_mode_features_true_off,
+            _test_linking_mode_features_false_off,
             # _test_cc_runtimes_added_to_libraries,  # copybara-comment-this-out-please
         ])
 
