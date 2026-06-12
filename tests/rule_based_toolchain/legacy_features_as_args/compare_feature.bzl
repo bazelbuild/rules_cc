@@ -14,8 +14,8 @@
 """Test helper for cc_arg_list validation."""
 
 load("//cc:cc_toolchain_config_lib.bzl", "feature")
-load("//cc/toolchains:cc_toolchain_info.bzl", "ArgsListInfo")
-load("//cc/toolchains/impl:legacy_converter.bzl", "convert_args")
+load("//cc/toolchains:cc_toolchain_info.bzl", "ArgsListInfo", "FeatureInfo")
+load("//cc/toolchains/impl:legacy_converter.bzl", "convert_args", "convert_feature")
 load("//tests/rule_based_toolchain:testing_rules.bzl", "analysis_test")
 
 def _feature_textproto(feature_impl):
@@ -37,6 +37,9 @@ def _compare_feature_implementation_impl(env, target):
         env_sets = [es for one_arg in converted_args for es in one_arg.env_sets],
     )
     env.expect.that_str(_feature_textproto(feature_impl)).equals(env.ctx.attr.expected)
+
+def _compare_cc_feature_implementation_impl(env, target):
+    env.expect.that_str(_feature_textproto(convert_feature(target[FeatureInfo]))).equals(env.ctx.attr.expected)
 
 def compare_feature_implementation(name, actual_implementation, expected, platform, feature_name = None):
     """Compares the feature implementation of a given ArgsListInfo against an expected textproto.
@@ -64,6 +67,34 @@ def compare_feature_implementation(name, actual_implementation, expected, platfo
         attr_values = {
             "expected": expected,
             "feature_name": feature_name,
+            "size": "small",
+        },
+        config_settings = {
+            "//command_line_option:platforms": [native.package_relative_label(platform)],
+        },
+    )
+
+def compare_cc_feature_implementation(name, actual_implementation, expected, platform):
+    """Compares a cc_feature implementation against an expected textproto.
+
+    Args:
+        name: The name of the test.
+        actual_implementation: The label of the cc_feature to test.
+        expected: The expected textproto output.
+        platform: The platform to test with.
+    """
+    analysis_test(
+        name = name,
+        target = actual_implementation,
+        impl = _compare_cc_feature_implementation_impl,
+        attrs = {
+            "expected": attr.string(mandatory = True),
+            "target": {
+                "providers": [FeatureInfo],
+            },
+        },
+        attr_values = {
+            "expected": expected,
             "size": "small",
         },
         config_settings = {
