@@ -34,12 +34,7 @@ load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
 load("@rules_cc//cc/toolchains:feature_injection.bzl", "FeatureInfo", "convert_feature")
 
-def _target_os_version(ctx):
-    platform_type = ctx.fragments.apple.single_arch_platform.platform_type
-    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
-    return xcode_config.minimum_os_for_platform_type(platform_type)
-
-def layering_check_features(compiler, extra_flags_per_feature, is_macos):
+def layering_check_features(compiler, extra_flags_per_feature):
     if compiler != "clang":
         return []
     return [
@@ -56,10 +51,8 @@ def layering_check_features(compiler, extra_flags_per_feature, is_macos):
                     ],
                     flag_groups = [
                         flag_group(
-                            # macOS requires -Xclang because of a bug in Apple Clang
-                            flags = (["-Xclang"] if is_macos else []) + [
+                            flags = [
                                 "-fmodule-name=%{module_name}",
-                            ] + (["-Xclang"] if is_macos else []) + [
                                 "-fmodule-map-file=%{module_map_file}",
                             ] + extra_flags_per_feature.get("use_module_maps", []),
                         ),
@@ -91,7 +84,7 @@ def layering_check_features(compiler, extra_flags_per_feature, is_macos):
                         ]),
                         flag_group(
                             iterate_over = "dependent_module_map_files",
-                            flags = (["-Xclang"] if is_macos else []) + [
+                            flags = [
                                 "-fmodule-map-file=%{dependent_module_map_files}",
                             ],
                         ),
@@ -246,7 +239,6 @@ def _sanitizer_feature(name = "", specific_compile_flags = [], specific_link_fla
     )
 
 def _impl(ctx):
-    is_linux = ctx.attr.target_libc != "macosx"
     profile_correction_flags = get_profile_correction_flags(ctx)
 
     tool_paths = [
@@ -492,18 +484,6 @@ def _impl(ctx):
                     ),
                 ] if ctx.attr.opt_link_flags else []),
                 with_features = [with_feature_set(features = ["opt"])],
-            ),
-        ],
-        env_sets = [
-            env_set(
-                actions = all_link_actions + lto_index_actions + [ACTION_NAMES.cpp_link_static_library],
-                env_entries = ([
-                    env_entry(
-                        # Required for hermetic links on macOS
-                        key = "ZERO_AR_DATE",
-                        value = "1",
-                    ),
-                ]),
             ),
         ],
     )
@@ -835,134 +815,88 @@ def _impl(ctx):
         provides = ["profile"],
     )
 
-    if is_linux:
-        runtime_library_search_directories_feature = feature(
-            name = "runtime_library_search_directories",
-            flag_sets = [
-                flag_set(
-                    actions = all_link_actions + lto_index_actions,
-                    flag_groups = [
-                        flag_group(
-                            iterate_over = "runtime_library_search_directories",
-                            flag_groups = [
-                                flag_group(
-                                    flags = [
-                                        "-Xlinker",
-                                        "-rpath",
-                                        "-Xlinker",
-                                        "$EXEC_ORIGIN/%{runtime_library_search_directories}",
-                                    ],
-                                    expand_if_true = "is_cc_test",
-                                ),
-                                flag_group(
-                                    flags = [
-                                        "-Xlinker",
-                                        "-rpath",
-                                        "-Xlinker",
-                                        "$ORIGIN/%{runtime_library_search_directories}",
-                                    ],
-                                    expand_if_false = "is_cc_test",
-                                ),
-                            ],
-                            expand_if_available =
-                                "runtime_library_search_directories",
-                        ),
-                    ],
-                    with_features = [
-                        with_feature_set(features = ["static_link_cpp_runtimes"]),
-                    ],
-                ),
-                flag_set(
-                    actions = all_link_actions + lto_index_actions,
-                    flag_groups = [
-                        flag_group(
-                            iterate_over = "runtime_library_search_directories",
-                            flag_groups = [
-                                flag_group(
-                                    flags = [
-                                        "-Xlinker",
-                                        "-rpath",
-                                        "-Xlinker",
-                                        "$ORIGIN/%{runtime_library_search_directories}",
-                                    ],
-                                ),
-                            ],
-                            expand_if_available =
-                                "runtime_library_search_directories",
-                        ),
-                    ],
-                    with_features = [
-                        with_feature_set(
-                            not_features = ["static_link_cpp_runtimes"],
-                        ),
-                    ],
-                ),
-            ],
-        )
-        set_install_name_feature = feature(
-            name = "set_soname",
-            flag_sets = [
-                flag_set(
-                    actions = [
-                        ACTION_NAMES.cpp_link_dynamic_library,
-                        ACTION_NAMES.cpp_link_nodeps_dynamic_library,
-                    ],
-                    flag_groups = [
-                        flag_group(
-                            flags = [
-                                "-Wl,-soname,%{runtime_solib_name}",
-                            ],
-                            expand_if_available = "runtime_solib_name",
-                        ),
-                    ],
-                ),
-            ],
-        )
-    else:
-        runtime_library_search_directories_feature = feature(
-            name = "runtime_library_search_directories",
-            flag_sets = [
-                flag_set(
-                    actions = all_link_actions + lto_index_actions,
-                    flag_groups = [
-                        flag_group(
-                            iterate_over = "runtime_library_search_directories",
-                            flag_groups = [
-                                flag_group(
-                                    flags = [
-                                        "-Xlinker",
-                                        "-rpath",
-                                        "-Xlinker",
-                                        "@loader_path/%{runtime_library_search_directories}",
-                                    ],
-                                ),
-                            ],
-                            expand_if_available = "runtime_library_search_directories",
-                        ),
-                    ],
-                ),
-            ],
-        )
-        set_install_name_feature = feature(
-            name = "set_install_name",
-            enabled = getattr(ctx.fragments.cpp, "do_not_use_macos_set_install_name", True),
-            flag_sets = [
-                flag_set(
-                    actions = [
-                        ACTION_NAMES.cpp_link_dynamic_library,
-                        ACTION_NAMES.cpp_link_nodeps_dynamic_library,
-                    ],
-                    flag_groups = [
-                        flag_group(
-                            flags = [
-                                "-Wl,-install_name,@rpath/%{runtime_solib_name}",
-                            ],
-                            expand_if_available = "runtime_solib_name",
-                        ),
-                    ],
-                ),
-            ],
-        )
+    runtime_library_search_directories_feature = feature(
+        name = "runtime_library_search_directories",
+        flag_sets = [
+            flag_set(
+                actions = all_link_actions + lto_index_actions,
+                flag_groups = [
+                    flag_group(
+                        iterate_over = "runtime_library_search_directories",
+                        flag_groups = [
+                            flag_group(
+                                flags = [
+                                    "-Xlinker",
+                                    "-rpath",
+                                    "-Xlinker",
+                                    "$EXEC_ORIGIN/%{runtime_library_search_directories}",
+                                ],
+                                expand_if_true = "is_cc_test",
+                            ),
+                            flag_group(
+                                flags = [
+                                    "-Xlinker",
+                                    "-rpath",
+                                    "-Xlinker",
+                                    "$ORIGIN/%{runtime_library_search_directories}",
+                                ],
+                                expand_if_false = "is_cc_test",
+                            ),
+                        ],
+                        expand_if_available =
+                            "runtime_library_search_directories",
+                    ),
+                ],
+                with_features = [
+                    with_feature_set(features = ["static_link_cpp_runtimes"]),
+                ],
+            ),
+            flag_set(
+                actions = all_link_actions + lto_index_actions,
+                flag_groups = [
+                    flag_group(
+                        iterate_over = "runtime_library_search_directories",
+                        flag_groups = [
+                            flag_group(
+                                flags = [
+                                    "-Xlinker",
+                                    "-rpath",
+                                    "-Xlinker",
+                                    "$ORIGIN/%{runtime_library_search_directories}",
+                                ],
+                            ),
+                        ],
+                        expand_if_available =
+                            "runtime_library_search_directories",
+                    ),
+                ],
+                with_features = [
+                    with_feature_set(
+                        not_features = ["static_link_cpp_runtimes"],
+                    ),
+                ],
+            ),
+        ],
+    )
+    set_install_name_feature = feature(
+        name = "set_soname",
+        flag_sets = [
+            flag_set(
+                actions = [
+                    ACTION_NAMES.cpp_link_dynamic_library,
+                    ACTION_NAMES.cpp_link_nodeps_dynamic_library,
+                ],
+                flag_groups = [
+                    flag_group(
+                        flags = [
+                            "-Wl,-soname,%{runtime_solib_name}",
+                        ],
+                        expand_if_available = "runtime_solib_name",
+                    ),
+                ],
+            ),
+        ],
+    )
 
     fission_support_feature = feature(
         name = "fission_support",
@@ -1386,7 +1320,7 @@ def _impl(ctx):
 
     libtool_feature = feature(
         name = "libtool",
-        enabled = not is_linux,
+        enabled = False,
     )
 
     archiver_flags_feature = feature(
@@ -1397,7 +1331,7 @@ def _impl(ctx):
                 flag_groups = [
                     flag_group(
                         flags = [
-                            "rcsD" if is_linux else "rcs",
+                            "rcsD",
                             "%{output_execpath}",
                         ],
                         expand_if_available = "output_execpath",
@@ -1583,7 +1517,7 @@ def _impl(ctx):
                 flag_groups = [
                     flag_group(
                         flags = [
-                            "-Wl,-Map=%{output_execpath}.map" if is_linux else "-Wl,-map,%{output_execpath}.map",
+                            "-Wl,-Map=%{output_execpath}.map",
                         ],
                         expand_if_available = "output_execpath",
                     ),
@@ -1716,7 +1650,7 @@ def _impl(ctx):
             flag_set(
                 actions = all_link_actions,
                 flag_groups = [flag_group(
-                    flags = ["-Wl,-fatal-warnings"] if is_linux else ["-Wl,-fatal_warnings"],
+                    flags = ["-Wl,-fatal-warnings"],
                 )],
             ),
         ],
@@ -1766,51 +1700,6 @@ def _impl(ctx):
         ],
         specific_link_flags = [
             "-fsanitize=undefined",
-        ],
-    )
-
-    # If you have Xcode + the CLT installed the version defaults can be
-    # too old for some standard C apis such as thread locals
-    macos_minimum_os_feature = feature(
-        name = "macos_minimum_os",
-        enabled = True,
-        flag_sets = [
-            flag_set(
-                actions = all_compile_actions + all_link_actions,
-                flag_groups = [flag_group(flags = ["-mmacosx-version-min={}".format(_target_os_version(ctx))])],
-            ),
-        ],
-    )
-
-    macos_reproducible_feature = feature(
-        name = "macos_reproducible",
-        enabled = "macos_reproducible" in ctx.features,
-        flag_sets = [
-            flag_set(
-                actions = all_compile_actions,
-                flag_groups = [flag_group(flags = ["-ffile-compilation-dir=."])],
-            ),
-            flag_set(
-                actions = all_link_actions,
-                flag_groups = [flag_group(flags = ["-Wl,-oso_prefix,."])],
-            ),
-        ],
-    )
-
-    # Kept for backwards compatibility with the crosstool that moved. Without
-    # linking the objc runtime binaries don't link CoreFoundation for free,
-    # which breaks abseil.
-    macos_default_link_flags_feature = feature(
-        name = "macos_default_link_flags",
-        enabled = True,
-        flag_sets = [
-            flag_set(
-                actions = all_link_actions,
-                flag_groups = [flag_group(flags = [
-                    "-no-canonical-prefixes",
-                    "-fobjc-link-runtime",
-                ])],
-            ),
         ],
     )
 
@@ -1869,141 +1758,84 @@ def _impl(ctx):
 
     skip_virtual_includes_feature = feature(name = "skip_virtual_includes")
 
-    # TODO(#8303): Mac crosstool should also declare every feature.
-    if is_linux:
-        # Linux artifact name patterns are the default.
-        artifact_name_patterns = [
-            artifact_name_pattern(
-                category_name = "cpp_module",
-                prefix = "",
-                extension = ".pcm",
-            ),
-        ]
-        features = [
-            cpp_modules_feature,
-            cpp_module_modmap_file_feature,
-            cpp20_module_compile_flags_feature,
-            dependency_file_feature,
-            serialized_diagnostics_file_feature,
-            random_seed_feature,
-            pic_feature,
-            per_object_debug_info_feature,
-            preprocessor_defines_feature,
-            includes_feature,
-            include_paths_feature,
-            external_include_paths_feature,
-            fdo_instrument_feature,
-            cs_fdo_instrument_feature,
-            cs_fdo_optimize_feature,
-            no_use_lto_indexing_bitcode_file_feature,
-            use_lto_native_object_directory_feature,
-            thinlto_feature,
-            fdo_prefetch_hints_feature,
-            autofdo_feature,
-            build_interface_libraries_feature,
-            dynamic_library_linker_tool_feature,
-            generate_linkmap_feature,
-            shared_flag_feature,
-            linkstamps_feature,
-            output_execpath_flags_feature,
-            runtime_library_search_directories_feature,
-            library_search_directories_feature,
-            libtool_feature,
-            archiver_flags_feature,
-            force_pic_flags_feature,
-            fission_support_feature,
-            strip_debug_symbols_feature,
-            coverage_feature,
-            supports_pic_feature,
-            prefer_pic_for_opt_binaries_feature,
-            asan_feature,
-            lsan_feature,
-            tsan_feature,
-            ubsan_feature,
-            gcc_quoting_for_param_files_feature,
-            static_link_cpp_runtimes_feature,
-        ] + (
-            [
-                supports_start_end_lib_feature,
-            ] if ctx.attr.supports_start_end_lib else []
-        ) + [
-            default_compile_flags_feature,
-            default_link_flags_feature,
-            libraries_to_link_feature,
-            user_link_flags_feature,
-            default_link_libs_feature,
-            static_libgcc_feature,
-            fdo_optimize_feature,
-            supports_dynamic_linker_feature,
-            fastbuild_feature,
-            dbg_feature,
-            opt_feature,
-            user_compile_flags_feature,
-            sysroot_feature,
-            compiler_input_flags_feature,
-            compiler_output_flags_feature,
-            unfiltered_compile_flags_feature,
-            treat_warnings_as_errors_feature,
-            archive_param_file_feature,
-            set_install_name_feature,
-            no_dotd_file_feature,
-            skip_virtual_includes_feature,
-        ] + layering_check_features(ctx.attr.compiler, ctx.attr.extra_flags_per_feature, is_macos = False)
-    else:
-        # macOS artifact name patterns differ from the defaults only for dynamic
-        # libraries.
-        artifact_name_patterns = [
-            artifact_name_pattern(
-                category_name = "dynamic_library",
-                prefix = "lib",
-                extension = ".dylib",
-            ),
-        ]
-        features = [
-            cpp_modules_feature,
-            cpp_module_modmap_file_feature,
-            cpp20_module_compile_flags_feature,
-            macos_minimum_os_feature,
-            macos_reproducible_feature,
-            macos_default_link_flags_feature,
-            dependency_file_feature,
-            runtime_library_search_directories_feature,
-            set_install_name_feature,
-            libtool_feature,
-            archiver_flags_feature,
-            asan_feature,
-            lsan_feature,
-            tsan_feature,
-            ubsan_feature,
-            gcc_quoting_for_param_files_feature,
-            static_link_cpp_runtimes_feature,
-        ] + (
-            [
-                supports_start_end_lib_feature,
-            ] if ctx.attr.supports_start_end_lib else []
-        ) + [
-            coverage_feature,
-            default_compile_flags_feature,
-            default_link_flags_feature,
-            user_link_flags_feature,
-            default_link_libs_feature,
-            includes_feature,
-            include_paths_feature,
-            external_include_paths_feature,
-            fdo_optimize_feature,
-            dbg_feature,
-            opt_feature,
-            user_compile_flags_feature,
-            sysroot_feature,
-            compiler_input_flags_feature,
-            compiler_output_flags_feature,
-            unfiltered_compile_flags_feature,
-            treat_warnings_as_errors_feature,
-            archive_param_file_feature,
-            generate_linkmap_feature,
-            no_dotd_file_feature,
-            skip_virtual_includes_feature,
-        ] + layering_check_features(ctx.attr.compiler, ctx.attr.extra_flags_per_feature, is_macos = True)
+    # Linux artifact name patterns are the default.
+    artifact_name_patterns = [
+        artifact_name_pattern(
+            category_name = "cpp_module",
+            prefix = "",
+            extension = ".pcm",
+        ),
+    ]
+    features = [
+        cpp_modules_feature,
+        cpp_module_modmap_file_feature,
+        cpp20_module_compile_flags_feature,
+        dependency_file_feature,
+        serialized_diagnostics_file_feature,
+        random_seed_feature,
+        pic_feature,
+        per_object_debug_info_feature,
+        preprocessor_defines_feature,
+        includes_feature,
+        include_paths_feature,
+        external_include_paths_feature,
+        fdo_instrument_feature,
+        cs_fdo_instrument_feature,
+        cs_fdo_optimize_feature,
+        no_use_lto_indexing_bitcode_file_feature,
+        use_lto_native_object_directory_feature,
+        thinlto_feature,
+        fdo_prefetch_hints_feature,
+        autofdo_feature,
+        build_interface_libraries_feature,
+        dynamic_library_linker_tool_feature,
+        generate_linkmap_feature,
+        shared_flag_feature,
+        linkstamps_feature,
+        output_execpath_flags_feature,
+        runtime_library_search_directories_feature,
+        library_search_directories_feature,
+        libtool_feature,
+        archiver_flags_feature,
+        force_pic_flags_feature,
+        fission_support_feature,
+        strip_debug_symbols_feature,
+        coverage_feature,
+        supports_pic_feature,
+        prefer_pic_for_opt_binaries_feature,
+        asan_feature,
+        lsan_feature,
+        tsan_feature,
+        ubsan_feature,
+        gcc_quoting_for_param_files_feature,
+        static_link_cpp_runtimes_feature,
+    ] + (
+        [
+            supports_start_end_lib_feature,
+        ] if ctx.attr.supports_start_end_lib else []
+    ) + [
+        default_compile_flags_feature,
+        default_link_flags_feature,
+        libraries_to_link_feature,
+        user_link_flags_feature,
+        default_link_libs_feature,
+        static_libgcc_feature,
+        fdo_optimize_feature,
+        supports_dynamic_linker_feature,
+        fastbuild_feature,
+        dbg_feature,
+        opt_feature,
+        user_compile_flags_feature,
+        sysroot_feature,
+        compiler_input_flags_feature,
+        compiler_output_flags_feature,
+        unfiltered_compile_flags_feature,
+        treat_warnings_as_errors_feature,
+        archive_param_file_feature,
+        set_install_name_feature,
+        no_dotd_file_feature,
+        skip_virtual_includes_feature,
+    ] + layering_check_features(ctx.attr.compiler, ctx.attr.extra_flags_per_feature)
 
     parse_headers_action_configs, parse_headers_features = parse_headers_support(
         parse_headers_tool_path = ctx.attr.tool_paths.get("parse_headers"),
@@ -2083,11 +1915,7 @@ This is only offered as a migration bridge for projects transitioning to rule-ba
         "tool_paths": attr.string_dict(),
         "toolchain_identifier": attr.string(mandatory = True),
         "unfiltered_compile_flags": attr.string_list(),
-        "_xcode_config": attr.label(default = configuration_field(
-            fragment = "apple",
-            name = "xcode_config_label",
-        )),
     },
-    fragments = ["apple", "cpp"],
+    fragments = ["cpp"],
     provides = [CcToolchainConfigInfo],
 )
