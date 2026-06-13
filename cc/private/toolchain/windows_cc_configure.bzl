@@ -722,6 +722,7 @@ def _get_msvc_vars(repository_ctx, paths, target_arch = "x64", msvc_vars_x64 = N
         build_tools["LIB"] = find_llvm_tool(repository_ctx, llvm_path, "llvm-lib.exe")
         if not build_tools["LIB"]:
             build_tools["LIB"] = find_msvc_tool(repository_ctx, vc_path, "lib.exe", "x64")
+        build_tools["DUMPBIN"] = find_msvc_tool(repository_ctx, vc_path, "dumpbin.exe", "x64")
     else:
         build_tools = _find_msvc_tools(repository_ctx, vc_path, target_arch)
 
