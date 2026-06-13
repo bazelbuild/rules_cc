@@ -32,6 +32,7 @@ step process:
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("//cc/common:cc_helper_internal.bzl", "should_create_per_object_debug_info")
+load("//cc/common:semantics.bzl", _starlark_cc_semantics = "semantics")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private/rules_impl:native_cc_common.bzl", _cc_common_internal = "native_cc_common")
 
@@ -385,6 +386,7 @@ def create_lto_backend_artifacts(
             bitcode_file = bitcode_file,
             object_file = object_file,
             dwo_file = dwo_file,
+            toolchain_type = _starlark_cc_semantics.toolchain,
         )
     else:
         object_file = actions.declare_shareable_artifact(obj)
@@ -493,6 +495,7 @@ def _create_lto_backend_action(
         imports = imports,
         outputs = outputs,
         env = env,
+        toolchain_type = _starlark_cc_semantics.toolchain,
     )
 
 def _paths_build_variables(index, object_file, dwo_file, bitcode_file):
