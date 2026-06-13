@@ -470,19 +470,21 @@ def _filter_inputs(
             if len(static_libraries) and owner in dynamic_only_roots:
                 dynamic_only_roots.pop(owner)
 
+            exported_by_filter = _check_if_target_should_be_exported_with_filter(
+                linker_input.owner,
+                ctx.label,
+                ctx.attr.exports_filter,
+            )
+
             linker_input_to_be_linked_statically = linker_input
-            if owner in top_level_linker_input_labels_set:
+            if owner in top_level_linker_input_labels_set or exported_by_filter:
                 linker_input_to_be_linked_statically = _wrap_static_library_with_alwayslink(
                     ctx,
                     feature_configuration,
                     cc_toolchain,
                     linker_input,
                 )
-            if _check_if_target_should_be_exported_with_filter(
-                linker_input.owner,
-                ctx.label,
-                ctx.attr.exports_filter,
-            ):
+            if exported_by_filter:
                 exports[owner] = True
 
             _add_linker_input_to_dict(linker_input.owner, linker_input_to_be_linked_statically)
