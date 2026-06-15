@@ -262,10 +262,54 @@ def _test_copts_impl(env, target):
     files_to_compile = target[OutputGroupInfo].compilation_outputs.to_list()
     env.expect.that_collection(files_to_compile).has_size(1)
     compile_action = env.expect.that_target(target).action_generating(files_to_compile[0].short_path)
-    env.expect.that_collection(compile_action.actual.argv).contains_at_least([
+    compile_action.argv().contains_at_least([
         "-Wmy-warning",
         "-frun-faster",
     ])
+
+def _test_copts_tokenization(name):
+    util.helper_target(
+        cc_library,
+        name = name + "/c_lib",
+        srcs = ["foo.cc"],
+        copts = ["-Wmy-warning -frun-faster"],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_copts_tokenization_impl,
+        target = name + "/c_lib",
+    )
+
+def _test_copts_tokenization_impl(env, target):
+    files_to_compile = target[OutputGroupInfo].compilation_outputs.to_list()
+    env.expect.that_collection(files_to_compile).has_size(1)
+    compile_action = env.expect.that_target(target).action_generating(files_to_compile[0].short_path)
+    compile_action.argv().contains_at_least([
+        "-Wmy-warning",
+        "-frun-faster",
+    ])
+
+def _test_copts_no_tokenization(name):
+    util.helper_target(
+        cc_library,
+        name = name + "/c_lib",
+        srcs = ["foo.cc"],
+        copts = ["-Wmy-warning -frun-faster"],
+        features = ["no_copts_tokenization"],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_copts_no_tokenization_impl,
+        target = name + "/c_lib",
+    )
+
+def _test_copts_no_tokenization_impl(env, target):
+    files_to_compile = target[OutputGroupInfo].compilation_outputs.to_list()
+    env.expect.that_collection(files_to_compile).has_size(1)
+    compile_action = env.expect.that_target(target).action_generating(files_to_compile[0].short_path)
+    compile_action.argv().contains("-Wmy-warning -frun-faster")
 
 def _test_isolated_defines(name):
     util.helper_target(
@@ -282,10 +326,121 @@ def _test_isolated_defines(name):
     )
 
 def _test_isolated_defines_impl(env, target):
-    env.expect.that_collection(target[CcInfo].compilation_context.defines.to_list()).contains_exactly([
+    cc_info_subject.from_target(env, target).compilation_context().defines().contains_exactly([
         "FOO",
         "BAR",
     ]).in_order()
+
+def _test_expanded_defines_against_deps(name):
+    util.helper_target(
+        cc_library,
+        name = name + "/foo",
+        srcs = ["foo.cc"],
+    )
+    util.helper_target(
+        cc_library,
+        name = name + "/expand_deps",
+        srcs = ["defines.cc"],
+        deps = [":" + name + "/foo"],
+        defines = ["FOO=$(location :" + name + "/foo)"],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_expanded_defines_against_deps_impl,
+        target = name + "/expand_deps",
+    )
+
+def _test_expanded_defines_against_deps_impl(env, target):
+    bin_path = target[TestingAspectInfo].bin_path
+    package = target.label.package
+    parts = target.label.name.split("/")
+    test_name = parts[0]
+
+    expected = "FOO={bin_path}/{package}/{test_name}/libfoo.a".format(
+        bin_path = bin_path,
+        package = package,
+        test_name = test_name,
+    )
+    cc_info_subject.from_target(env, target).compilation_context().defines().contains_exactly([expected])
+
+def _test_expanded_defines_against_srcs(name):
+    util.helper_target(
+        cc_library,
+        name = name + "/expand_srcs",
+        srcs = ["defines.cc"],
+        defines = ["FOO=$(location defines.cc)"],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_expanded_defines_against_srcs_impl,
+        target = name + "/expand_srcs",
+    )
+
+def _test_expanded_defines_against_srcs_impl(env, target):
+    package = target.label.package
+    expected = "FOO={package}/defines.cc".format(package = package)
+    cc_info_subject.from_target(env, target).compilation_context().defines().contains_exactly([expected])
+
+def _test_expanded_defines_against_data(name):
+    util.helper_target(
+        native.filegroup,
+        name = name + "/data",
+        srcs = ["data_file.txt"],
+    )
+    util.helper_target(
+        cc_library,
+        name = name + "/expand_srcs",
+        srcs = ["defines.cc"],
+        data = [":" + name + "/data"],
+        defines = ["FOO=$(location :" + name + "/data)"],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_expanded_defines_against_data_impl,
+        target = name + "/expand_srcs",
+    )
+
+def _test_expanded_defines_against_data_impl(env, target):
+    package = target.label.package
+    expected = "FOO={package}/data_file.txt".format(package = package)
+    cc_info_subject.from_target(env, target).compilation_context().defines().contains_exactly([expected])
+
+def _test_expanded_defines_duplicate_targets(name):
+    util.helper_target(
+        cc_library,
+        name = name + "/a",
+        srcs = ["foo.cc"],
+    )
+    util.helper_target(
+        cc_library,
+        name = name + "/expand_srcs",
+        srcs = ["defines.cc"],
+        data = [":" + name + "/a"],
+        deps = [":" + name + "/a"],
+        defines = ["FOO=$(location :" + name + "/a)"],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_expanded_defines_duplicate_targets_impl,
+        target = name + "/expand_srcs",
+    )
+
+def _test_expanded_defines_duplicate_targets_impl(env, target):
+    bin_path = target[TestingAspectInfo].bin_path
+    package = target.label.package
+    parts = target.label.name.split("/")
+    test_name = parts[0]
+
+    expected = "FOO={bin_path}/{package}/{test_name}/liba.a".format(
+        bin_path = bin_path,
+        package = package,
+        test_name = test_name,
+    )
+    cc_info_subject.from_target(env, target).compilation_context().defines().contains_exactly([expected])
 
 def _test_library_in_hdrs(name):
     util.helper_target(
@@ -334,7 +489,13 @@ def cc_common_tests(name):
         _test_isolated_includes,
         _test_empty_library,
         _test_copts,
+        _test_copts_tokenization,
+        _test_copts_no_tokenization,
         _test_isolated_defines,
+        _test_expanded_defines_against_deps,
+        _test_expanded_defines_against_srcs,
+        _test_expanded_defines_against_data,
+        _test_expanded_defines_duplicate_targets,
         _test_library_in_hdrs,
         _test_alwayslink_yields_lo,
     ]

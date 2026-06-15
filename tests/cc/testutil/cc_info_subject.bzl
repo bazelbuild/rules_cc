@@ -56,6 +56,10 @@ def _new_cc_compilation_context_subject(cc_compilation_context, meta):
             self.actual.headers,
             meta = self.meta.derive("headers"),
         ),
+        defines = lambda: subjects.collection(
+            self.actual.defines.to_list(),
+            self.meta.derive("defines"),
+        ),
     )
     return public
 
