@@ -76,11 +76,10 @@ def _test_headers_not_passed_to_linking_action(name, **kwargs):
     )
 
 def _test_headers_not_passed_to_linking_action_impl(env, target):
-    link_action_subject.from_target(env, target).inputs().contains_none_of([
-        matching.str_endswith(".h"),
-        matching.str_endswith(".hpp"),
-        matching.str_endswith(".hxx"),
-    ])
+    link_action_subject.from_target(env, target).inputs().transform(
+        desc = "extensions",
+        map_each = lambda f: f.extension,
+    ).contains_none_of(["h", "hpp", "hxx"])
 
 def _test_no_duplicate_linkopts(name, **kwargs):
     # Regression test for b/943558: linkopts duplicated in linker invocation
@@ -139,7 +138,7 @@ def _test_action_graph_impl(env, target):
     obj_file = hello_obj_files[0]
 
     # link.outputs = { hello }
-    link_action.outputs().contains_exactly([executable.short_path])
+    link_action.outputs().contains_exactly([executable])
 
     compile_action = env.expect.that_target(target).action_generating(obj_file.short_path)
     compile_action.mnemonic().equals("CppCompile")
@@ -748,11 +747,8 @@ def _test_linkopts_fake_diamond_impl(env, target):
         "core",
     ]).in_order()
 
-def _is_shared_library(path):
-    basename = path.split("/")[-1]
-    parts = basename.split(".")
-    ext = parts[-1] if len(parts) > 1 else ""
-    return ext in ["so", "dylib", "dll", "ifso"] or ".so" in basename or ".dylib" in basename
+def _is_shared_library(f):
+    return f.extension in ["so", "dylib", "dll", "ifso"] or ".so" in f.basename or ".dylib" in f.basename
 
 def _assert_link_staticness(env, target, expected_static):
     link_action = link_action_subject.from_target(env, target)
@@ -1088,7 +1084,7 @@ def _test_transitive_libs_are_collected_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
     input_basenames = link_action.inputs().transform(
         desc = "input basenames",
-        map_each = lambda path: path.split("/")[-1],
+        map_each = lambda f: f.basename,
     )
 
     input_basenames.contains_at_least([
@@ -1111,7 +1107,7 @@ def _test_transitive_linkstamps_are_collected_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
     input_basenames = link_action.inputs().transform(
         desc = "input basenames",
-        map_each = lambda path: path.split("/")[-1],
+        map_each = lambda f: f.basename,
     )
 
     input_basenames.contains("linkstamp.o")
@@ -1197,7 +1193,7 @@ def _test_additional_linker_inputs_impl(env, target):
     )
     input_basenames = link_action.inputs().transform(
         desc = "input basenames",
-        map_each = lambda path: path.split("/")[-1],
+        map_each = lambda f: f.basename,
     )
     input_basenames.contains("main.extra_file")
 
