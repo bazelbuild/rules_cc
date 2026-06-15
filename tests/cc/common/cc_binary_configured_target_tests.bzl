@@ -9,11 +9,15 @@ load("//cc:cc_binary.bzl", _actual_cc_binary = "cc_binary")
 load("//cc:cc_import.bzl", "cc_import")
 load("//cc:cc_library.bzl", "cc_library")
 load("//cc:cc_test.bzl", _actual_cc_test = "cc_test")
-load("//cc/common:cc_common.bzl", "cc_common")
-load("//cc/common:cc_info.bzl", "CcInfo")
 load("//tests/cc/testutil:cc_analysis_test.bzl", "MOCK_TOOLCHAINS", "cc_analysis_test")
 load("//tests/cc/testutil:cc_binary_target_subject.bzl", "cc_binary_target_subject")
 load("//tests/cc/testutil:link_action_subject.bzl", "link_action_subject")
+load(
+    "//tests/cc/testutil:mock_rules.bzl",
+    "cc_runtimes_toolchain",
+    "mock_go_library",
+    "mock_runtime_library",
+)
 load("//tests/cc/testutil/toolchains:features.bzl", "FEATURE_NAMES")
 
 # Wrap cc_binary to mock out common dependencies.
@@ -940,11 +944,6 @@ def _test_custom_malloc_impl(env, target):
     env.expect.that_collection(inputs).contains("libmymalloc.a")
     env.expect.that_collection(inputs).not_contains("libmock_malloc.a")
 
-CcRuntimesInfo = provider(
-    doc = "Information about runtime libraries to link into c++ targets.",
-    fields = ["runtimes", "copts"],
-)
-
 def _test_app_linking_static(name, **kwargs):
     _create_dep_tree(name)
     cc_analysis_test(
@@ -1027,6 +1026,213 @@ def _test_app_linking_dynamic_impl(env, target):
         "-Linfrastructure1_dir",
         "-linfrastructure1_opt",
     ]).in_order()
+
+def _test_so_in_srcs(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/cookies",
+        srcs = [
+            "cookies.cc",
+            "library.so",
+            "library2.so.1",
+        ],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_so_in_srcs_impl,
+        target = name + "/cookies",
+        **kwargs
+    )
+
+def _test_so_in_srcs_impl(env, target):
+    runfiles = env.expect.that_target(target).runfiles()
+    runfiles.contains_predicate(matching.str_endswith("library.so"))
+    runfiles.not_contains_predicate(matching.str_endswith("library.so.1"))
+    runfiles.contains_predicate(matching.str_endswith("library2.so.1"))
+    runfiles.not_contains_predicate(matching.str_endswith("library2.so"))
+
+def _create_three_rules_chain(name):
+    util.helper_target(
+        cc_library,
+        name = name + "/baz",
+        srcs = ["baz.cc"],
+        linkstamp = "linkstamp.cc",
+    )
+    util.helper_target(
+        cc_library,
+        name = name + "/bar",
+        srcs = ["bar.cc"],
+        deps = [":" + name + "/baz"],
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/foo",
+        srcs = ["foo.cc"],
+        deps = [":" + name + "/bar"],
+    )
+
+def _test_transitive_libs_are_collected(name, **kwargs):
+    _create_three_rules_chain(name)
+    cc_analysis_test(
+        name = name,
+        impl = _test_transitive_libs_are_collected_impl,
+        target = name + "/foo",
+        config_settings = {
+            "//command_line_option:start_end_lib": False,
+        },
+        test_features = [FEATURE_NAMES.supports_pic],
+        **kwargs
+    )
+
+def _test_transitive_libs_are_collected_impl(env, target):
+    link_action = link_action_subject.from_target(env, target)
+    input_basenames = link_action.inputs().transform(
+        desc = "input basenames",
+        map_each = lambda path: path.split("/")[-1],
+    )
+
+    input_basenames.contains_at_least([
+        "foo.pic.o",
+        "libbar.a",
+        "libbaz.a",
+        "linkstamp.o",
+    ])
+
+def _test_transitive_linkstamps_are_collected(name, **kwargs):
+    _create_three_rules_chain(name)
+    cc_analysis_test(
+        name = name,
+        impl = _test_transitive_linkstamps_are_collected_impl,
+        target = name + "/foo",
+        **kwargs
+    )
+
+def _test_transitive_linkstamps_are_collected_impl(env, target):
+    link_action = link_action_subject.from_target(env, target)
+    input_basenames = link_action.inputs().transform(
+        desc = "input basenames",
+        map_each = lambda path: path.split("/")[-1],
+    )
+
+    input_basenames.contains("linkstamp.o")
+    input_basenames.not_contains("linkstamp.cc")
+
+def _test_linker_toolchain_feature(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/foo",
+        srcs = ["foo.cc"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_linker_toolchain_feature_impl,
+        target = name + "/foo",
+        test_features = [FEATURE_NAMES.link_env],
+        **kwargs
+    )
+
+def _test_linker_toolchain_feature_impl(env, target):
+    link_action = link_action_subject.from_target(env, target)
+    link_action.env().contains_at_least({"foo": "bar"})
+
+def _test_go_code_comes_after_deps(name, **kwargs):
+    util.helper_target(
+        mock_go_library,
+        name = name + "/go_lib",
+    )
+    util.helper_target(
+        cc_library,
+        name = name + "/cc_lib",
+        srcs = ["cc_lib.cc"],
+        deps = [":" + name + "/go_lib"],
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = ["binary.cc"],
+        deps = [":" + name + "/cc_lib"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_go_code_comes_after_deps_impl,
+        target = name + "/bin",
+        **kwargs
+    )
+
+def _test_go_code_comes_after_deps_impl(env, target):
+    link_action = link_action_subject.from_target(env, target)
+    link_action.argv().contains_at_least_predicates([
+        matching.str_endswith("libcc_lib.a"),
+        matching.str_endswith("libgo_lib.a"),
+    ]).in_order()
+
+def _test_additional_linker_inputs(name, **kwargs):
+    util.helper_target(
+        native.genrule,
+        name = name + "/gen_extra",
+        outs = ["main.extra_file"],
+        cmd = "echo '' > $@",
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = ["main.cc"],
+        additional_linker_inputs = [":" + name + "/gen_extra"],
+        linkopts = ["--option=$(location :" + name + "/gen_extra)"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_additional_linker_inputs_impl,
+        target = name + "/bin",
+        **kwargs
+    )
+
+def _test_additional_linker_inputs_impl(env, target):
+    link_action = link_action_subject.from_target(env, target)
+    link_action.argv().contains_predicate(
+        matching.custom(
+            "starts with --option= and ends with main.extra_file",
+            lambda arg: arg.startswith("--option=") and arg.endswith("main.extra_file"),
+        ),
+    )
+    input_basenames = link_action.inputs().transform(
+        desc = "input basenames",
+        map_each = lambda path: path.split("/")[-1],
+    )
+    input_basenames.contains("main.extra_file")
+
+# Regression test for b/193125967
+def _test_conflicting_linkstamps(name, **kwargs):
+    util.helper_target(
+        cc_library,
+        name = name + "/foo",
+        hdrs = ["foo.h"],
+        linkstamp = "foo.cc",
+    )
+    util.helper_target(
+        cc_library,
+        name = name + "/bar",
+        hdrs = ["bar.h"],
+        linkstamp = "foo.cc",
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        deps = [
+            ":" + name + "/bar",
+            ":" + name + "/foo",
+        ],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_conflicting_linkstamps_impl,
+        target = name + "/bin",
+        **kwargs
+    )
+
+def _test_conflicting_linkstamps_impl(_env, _target):
+    # The test passes if analysis succeeds.
+    pass
 
 def _test_compilation_prerequisites_in_output_group(name, **kwargs):
     out_file = name + "_a.cc"
@@ -1233,54 +1439,14 @@ def _test_pic_mode_does_not_use_nopic_binary_impl(env, target):
     inputs = [f.basename for f in link_action.actual.inputs.to_list()]
     env.expect.that_collection(inputs).not_contains("xyz.nopic.o")
 
-def _cc_runtimes_toolchain_impl(ctx):
-    return [platform_common.ToolchainInfo(
-        cc_runtimes_info = CcRuntimesInfo(
-            runtimes = ctx.attr.runtimes,
-            copts = ctx.attr.copts,
-        ),
-    )]
-
-_cc_runtimes_toolchain = rule(
-    implementation = _cc_runtimes_toolchain_impl,
-    attrs = {
-        "runtimes": attr.label_list(),
-        "copts": attr.string_list(),
-    },
-)
-
-def _mock_runtime_library_impl(ctx):
-    lib_file = ctx.actions.declare_file("lib" + ctx.label.name + ".a")
-    ctx.actions.write(output = lib_file, content = "mock archive content")
-    library_to_link = cc_common.create_library_to_link(
-        actions = ctx.actions,
-        static_library = lib_file,
-    )
-    linker_input = cc_common.create_linker_input(
-        libraries = depset([library_to_link]),
-        owner = ctx.label,
-    )
-    linking_context = cc_common.create_linking_context(
-        linker_inputs = depset([linker_input]),
-    )
-    return [
-        CcInfo(linking_context = linking_context),
-        DefaultInfo(files = depset([lib_file])),
-    ]
-
-_mock_runtime_library = rule(
-    implementation = _mock_runtime_library_impl,
-    attrs = {},
-)
-
 def _setup_cc_runtimes_mock():
     util.helper_target(
-        _mock_runtime_library,
+        mock_runtime_library,
         name = "runtime",
     )
 
     util.helper_target(
-        _cc_runtimes_toolchain,
+        cc_runtimes_toolchain,
         name = "runtimes_toolchain",
         copts = ["-Iruntimes"],
         runtimes = [":runtime"],
@@ -1603,6 +1769,12 @@ def cc_binary_configured_target_tests(name):
         _test_linkopts_fake_diamond,
         _test_app_linking_static,
         _test_app_linking_dynamic,
+        _test_so_in_srcs,
+        _test_transitive_libs_are_collected,
+        _test_transitive_linkstamps_are_collected,
+        _test_go_code_comes_after_deps,
+        _test_additional_linker_inputs,
+        _test_conflicting_linkstamps,
         _test_compilation_prerequisites_in_output_group,
         _test_pic_mode_prefers_pic_libs_force_pic_disabled,
         _test_pic_mode_prefers_pic_libs_force_pic_enabled,
@@ -1627,6 +1799,7 @@ def cc_binary_configured_target_tests(name):
             _test_system_include_paths_reclassifies_local_includes_without_propagation,
             _test_generated_def_file_uses_toolchain_action,  # copybara-uncomment-this-please
             _test_generated_def_file_uses_default_tool,  # copybara-uncomment-this-please
+            _test_linker_toolchain_feature,
             _test_link_staticness_binary_static_dynamic_mode_default,
             _test_link_staticness_hello_test_dynamic_mode_default,
             _test_link_staticness_hello_test_linkstatic_dynamic_mode_default,
