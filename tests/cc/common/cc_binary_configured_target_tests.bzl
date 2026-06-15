@@ -129,13 +129,12 @@ def _test_action_graph_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
 
     # link.inputs = { hello.o }
-    hello_obj_files = [
-        f
-        for f in link_action.actual.inputs.to_list()
-        if f.basename.startswith("hello.") and f.extension in ["o", "obj"]
-    ]
-    env.expect.that_collection(hello_obj_files).has_size(1)
-    obj_file = hello_obj_files[0]
+    hello_obj_files = link_action.inputs().transform(
+        desc = "hello object files",
+        filter = lambda f: f.basename.startswith("hello.") and f.extension in ["o", "obj"],
+    )
+    hello_obj_files.has_size(1)
+    obj_file = hello_obj_files.offset(0, subjects.file).actual
 
     # link.outputs = { hello }
     link_action.outputs().contains_exactly([executable])
@@ -279,13 +278,10 @@ def _test_pic(name, **kwargs):
 
 def _test_pic_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    hello_obj_files = [
-        f
-        for f in link_action.actual.inputs.to_list()
-        if f.basename.startswith("hello.pic.") and f.extension in ["o", "obj"]
-    ]
-
-    env.expect.that_collection(hello_obj_files).has_size(1)
+    link_action.inputs().transform(
+        desc = "hello pic object files",
+        filter = lambda f: f.basename.startswith("hello.pic.") and f.extension in ["o", "obj"],
+    ).has_size(1)
 
 def _generated_def_file_test(name, impl, with_action_configs = None, **kwargs):
     if with_action_configs == None:
@@ -747,6 +743,12 @@ def _test_linkopts_fake_diamond_impl(env, target):
         "core",
     ]).in_order()
 
+def _input_basenames(link_action):
+    return link_action.inputs().transform(
+        desc = "input basenames",
+        map_each = lambda f: f.basename,
+    )
+
 def _is_shared_library(f):
     return f.extension in ["so", "dylib", "dll", "ifso"] or ".so" in f.basename or ".dylib" in f.basename
 
@@ -890,9 +892,7 @@ def _test_cc_runtimes_added_to_libraries(name, **kwargs):
 
 def _test_cc_runtimes_added_to_libraries_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    inputs = [f.basename for f in link_action.actual.inputs.to_list()]
-
-    env.expect.that_collection(inputs).contains_at_least([
+    _input_basenames(link_action).contains_at_least([
         "app.pic.o",
         "libmiddleware1.a",
         "libinfrastructure1.a",
@@ -916,9 +916,9 @@ def _test_ignore_custom_malloc(name, **kwargs):
 
 def _test_ignore_custom_malloc_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    inputs = [f.basename for f in link_action.actual.inputs.to_list()]
-    env.expect.that_collection(inputs).contains("libsystem_malloc.a")
-    env.expect.that_collection(inputs).not_contains("libmock_malloc.a")
+    basenames = _input_basenames(link_action)
+    basenames.contains("libsystem_malloc.a")
+    basenames.not_contains("libmock_malloc.a")
 
 def _test_custom_malloc(name, **kwargs):
     _create_dep_tree(name, use_actual_cc_binary = True)
@@ -936,9 +936,9 @@ def _test_custom_malloc(name, **kwargs):
 
 def _test_custom_malloc_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    inputs = [f.basename for f in link_action.actual.inputs.to_list()]
-    env.expect.that_collection(inputs).contains("libmymalloc.a")
-    env.expect.that_collection(inputs).not_contains("libmock_malloc.a")
+    basenames = _input_basenames(link_action)
+    basenames.contains("libmymalloc.a")
+    basenames.not_contains("libmock_malloc.a")
 
 def _test_app_linking_static(name, **kwargs):
     _create_dep_tree(name)
@@ -956,18 +956,18 @@ def _test_app_linking_static(name, **kwargs):
 
 def _test_app_linking_static_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    inputs = [f.basename for f in link_action.actual.inputs.to_list()]
+    basenames = _input_basenames(link_action)
 
     # Assert inputs
-    env.expect.that_collection(inputs).contains("app.pic.o")
-    env.expect.that_collection(inputs).contains("libmiddleware1.a")
-    env.expect.that_collection(inputs).contains("libinfrastructure1.a")
-    env.expect.that_collection(inputs).contains("linkstamp.o")
+    basenames.contains("app.pic.o")
+    basenames.contains("libmiddleware1.a")
+    basenames.contains("libinfrastructure1.a")
+    basenames.contains("linkstamp.o")
 
     # Assert NOT inputs
-    env.expect.that_collection(inputs).not_contains("libinfrastructure2.a")
-    env.expect.that_collection(inputs).not_contains("libmiddleware2.so")
-    env.expect.that_collection(inputs).not_contains("libmiddleware3.so.1")
+    basenames.not_contains("libinfrastructure2.a")
+    basenames.not_contains("libmiddleware2.so")
+    basenames.not_contains("libmiddleware3.so.1")
 
     # Assert linkopts
     link_action.argv().contains_at_least([
@@ -996,21 +996,21 @@ def _test_app_linking_dynamic(name, **kwargs):
 
 def _test_app_linking_dynamic_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    inputs = [f.basename for f in link_action.actual.inputs.to_list()]
+    basenames = _input_basenames(link_action)
 
     # Assert inputs
-    env.expect.that_collection(inputs).contains("app.pic.o")
-    env.expect.that_collection(inputs).contains("libinfrastructure1.a")
-    env.expect.that_collection(inputs).contains("linkstamp.o")
+    basenames.contains("app.pic.o")
+    basenames.contains("libinfrastructure1.a")
+    basenames.contains("linkstamp.o")
 
     # Assert dynamic library symlink (mangled)
-    env.expect.that_collection(inputs).contains_predicate(
+    basenames.contains_predicate(
         matching.str_endswith("_Slibmiddleware1.ifso"),
     )
 
     # Assert NOT inputs
-    env.expect.that_collection(inputs).not_contains("libmiddleware1.a")
-    env.expect.that_collection(inputs).not_contains("libinfrastructure2.a")
+    basenames.not_contains("libmiddleware1.a")
+    basenames.not_contains("libinfrastructure2.a")
 
     # Assert linkopts
     link_action.argv().contains_at_least([
@@ -1082,10 +1082,7 @@ def _test_transitive_libs_are_collected(name, **kwargs):
 
 def _test_transitive_libs_are_collected_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    input_basenames = link_action.inputs().transform(
-        desc = "input basenames",
-        map_each = lambda f: f.basename,
-    )
+    input_basenames = _input_basenames(link_action)
 
     input_basenames.contains_at_least([
         "foo.pic.o",
@@ -1105,10 +1102,7 @@ def _test_transitive_linkstamps_are_collected(name, **kwargs):
 
 def _test_transitive_linkstamps_are_collected_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    input_basenames = link_action.inputs().transform(
-        desc = "input basenames",
-        map_each = lambda f: f.basename,
-    )
+    input_basenames = _input_basenames(link_action)
 
     input_basenames.contains("linkstamp.o")
     input_basenames.not_contains("linkstamp.cc")
@@ -1191,10 +1185,7 @@ def _test_additional_linker_inputs_impl(env, target):
             lambda arg: arg.startswith("--option=") and arg.endswith("main.extra_file"),
         ),
     )
-    input_basenames = link_action.inputs().transform(
-        desc = "input basenames",
-        map_each = lambda f: f.basename,
-    )
+    input_basenames = _input_basenames(link_action)
     input_basenames.contains("main.extra_file")
 
 # Regression test for b/193125967
@@ -1312,9 +1303,9 @@ def _test_pic_mode_prefers_pic_libs_force_pic_disabled(name, **kwargs):
 
 def _test_pic_mode_prefers_pic_libs_force_pic_disabled_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    inputs = [f.basename for f in link_action.actual.inputs.to_list()]
-    env.expect.that_collection(inputs).contains("dep.nopic.a")
-    env.expect.that_collection(inputs).not_contains("dep.pic.a")
+    basenames = _input_basenames(link_action)
+    basenames.contains("dep.nopic.a")
+    basenames.not_contains("dep.pic.a")
 
 def _test_pic_mode_prefers_pic_libs_force_pic_enabled(name, **kwargs):
     _create_prefers_pic_libs_dep_tree(name)
@@ -1331,9 +1322,9 @@ def _test_pic_mode_prefers_pic_libs_force_pic_enabled(name, **kwargs):
 
 def _test_pic_mode_prefers_pic_libs_force_pic_enabled_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    inputs = [f.basename for f in link_action.actual.inputs.to_list()]
-    env.expect.that_collection(inputs).contains("dep.pic.a")
-    env.expect.that_collection(inputs).not_contains("dep.nopic.a")
+    basenames = _input_basenames(link_action)
+    basenames.contains("dep.pic.a")
+    basenames.not_contains("dep.nopic.a")
 
 def _test_pic_mode_uses_pic_libs(name, **kwargs):
     util.helper_target(
@@ -1363,8 +1354,7 @@ def _test_pic_mode_uses_pic_libs(name, **kwargs):
 
 def _test_pic_mode_uses_pic_libs_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    inputs = [f.basename for f in link_action.actual.inputs.to_list()]
-    env.expect.that_collection(inputs).contains("dep.pic.o")
+    _input_basenames(link_action).contains("dep.pic.o")
 
 def _create_does_not_use_nopic_library_dep_tree(name):
     util.helper_target(
@@ -1394,9 +1384,9 @@ def _test_pic_mode_does_not_use_nopic_library_force_pic_disabled(name, **kwargs)
 
 def _test_pic_mode_does_not_use_nopic_library_force_pic_disabled_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    inputs = [f.basename for f in link_action.actual.inputs.to_list()]
-    env.expect.that_collection(inputs).contains("mybinary.pic.o")
-    env.expect.that_collection(inputs).not_contains("dep.nopic.o")
+    basenames = _input_basenames(link_action)
+    basenames.contains("mybinary.pic.o")
+    basenames.not_contains("dep.nopic.o")
 
 def _test_pic_mode_does_not_use_nopic_library_force_pic_enabled(name, **kwargs):
     _create_does_not_use_nopic_library_dep_tree(name)
@@ -1413,8 +1403,7 @@ def _test_pic_mode_does_not_use_nopic_library_force_pic_enabled(name, **kwargs):
 
 def _test_pic_mode_does_not_use_nopic_library_force_pic_enabled_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    inputs = [f.basename for f in link_action.actual.inputs.to_list()]
-    env.expect.that_collection(inputs).not_contains("dep.nopic.o")
+    _input_basenames(link_action).not_contains("dep.nopic.o")
 
 def _test_pic_mode_does_not_use_nopic_binary(name, **kwargs):
     util.helper_target(
@@ -1432,8 +1421,7 @@ def _test_pic_mode_does_not_use_nopic_binary(name, **kwargs):
 
 def _test_pic_mode_does_not_use_nopic_binary_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    inputs = [f.basename for f in link_action.actual.inputs.to_list()]
-    env.expect.that_collection(inputs).not_contains("xyz.nopic.o")
+    _input_basenames(link_action).not_contains("xyz.nopic.o")
 
 def _setup_cc_runtimes_mock():
     util.helper_target(
