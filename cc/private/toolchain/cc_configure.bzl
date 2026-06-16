@@ -25,7 +25,7 @@ def _should_disable_toolchain(repository_ctx):
     """Returns true if the toolchain should be disabled based on environment variables."""
     env = repository_ctx.os.environ
     disabled_via_env = "BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN" in env and env["BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN"] == "1"
-    macos_legacy_support = "BAZEL_USE_LEGACY_MACOS_TOOLCHAIN" in env and env["BAZEL_USE_LEGACY_MACOS_TOOLCHAIN"] == "1"
+    macos_legacy_support = env.get("BAZEL_USE_LEGACY_MACOS_TOOLCHAIN", "1") == "1"
     return disabled_via_env or (repository_ctx.os.name.startswith("mac os") and not macos_legacy_support)
 
 def cc_autoconf_toolchains_impl(repository_ctx):
@@ -49,11 +49,12 @@ def cc_autoconf_toolchains_impl(repository_ctx):
             {"%{name}": get_cpu_value(repository_ctx)},
         )
     else:
-        repository_ctx.file("BUILD", "# C++ toolchain autoconfiguration was disabled by BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN env variable or because you're on macOS, use apple_support instead or set BAZEL_USE_LEGACY_MACOS_TOOLCHAIN=1 temporarily.")
+        repository_ctx.file("BUILD", "# C++ toolchain autoconfiguration was disabled by BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 or BAZEL_USE_LEGACY_MACOS_TOOLCHAIN=0.")
 
 cc_autoconf_toolchains = repository_rule(
     environ = [
         "BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN",
+        "BAZEL_USE_LEGACY_MACOS_TOOLCHAIN",
     ],
     implementation = cc_autoconf_toolchains_impl,
     configure = True,
@@ -130,6 +131,7 @@ cc_autoconf = repository_rule(
         "BAZEL_TARGET_LIBC",
         "BAZEL_TARGET_SYSTEM",
         "BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN",
+        "BAZEL_USE_LEGACY_MACOS_TOOLCHAIN",
         "BAZEL_USE_LLVM_NATIVE_COVERAGE",
         "BAZEL_WIN32_WINNT",
         "BAZEL_LLVM",
