@@ -59,16 +59,11 @@ cd "$scratch_workspace"
 cat > MODULE.bazel << EOF
 module(name = "test_module")
 
-bazel_dep(name = "apple_support", version = "2.6.1")
 bazel_dep(name = "rules_cc", version = "0.0.0")
 local_path_override(
     module_name = "rules_cc",
     path = "$rules_cc_dir"
 )
-
-cc_configure = use_extension("@rules_cc//cc:extensions.bzl", "cc_configure_extension")
-use_repo(cc_configure, "local_config_cc", "local_config_cc_toolchains")
-register_toolchains("@local_config_cc_toolchains//:all")
 EOF
 
 test_runner_path="$(rlocation "$TEST_RUNNER")" || (echo >&2 "FAILED TO LOAD TEST RUNNER" && exit 1)
