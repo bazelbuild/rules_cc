@@ -114,6 +114,14 @@ arguments to the compiler with a `@params` file.
 
 This feature must be enabled if desired.
 
+### `compiler_param_file_on_demand`
+
+A marker feature indicating that bazel / `rules_cc` should pass
+arguments to the compiler with a `@params` file only when it seems like
+it will be needed based on command length.
+
+This feature must be enabled if desired.
+
 ### `compile_all_modules`
 
 A marker feature that causes all headers in the generated `modulemap`s
@@ -376,6 +384,14 @@ own. This feature is special to `rules_cc` but is also used by users to
 enable this behavior, and disable it for incompatible targets.
 
 See also [`layering_check`](#layering_check)
+
+This should be off by default and turned on at the project / target
+level.
+
+### `parse_headers_as_c`
+
+This feature is used alongside `parse_headers` to parse headers as C
+instead of C++. This is useful headers that are not valid C++.
 
 This should be off by default and turned on at the project / target
 level.
