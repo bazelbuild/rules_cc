@@ -1,0 +1,26 @@
+load("//cc:cc_library.bzl", "cc_library")
+load("//cc:cc_shared_library.bzl", "cc_shared_library")
+
+package(default_visibility = ["//tests/builtins_bzl/cc/cc_shared_library:__subpackages__"])
+
+licenses(["notice"])
+
+cc_library(
+    name = "bar",
+    srcs = ["bar.cc"],
+    hdrs = ["bar.h"],
+)
+
+cc_library(
+    name = "diff_pkg",
+    srcs = ["diff_pkg.cc"],
+    hdrs = ["diff_pkg.h"],
+)
+
+cc_shared_library(
+    name = "diff_pkg_so",
+    features = ["windows_export_all_symbols"],
+    deps = [
+        ":diff_pkg",
+    ],
+)

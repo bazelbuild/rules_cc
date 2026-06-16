@@ -7,10 +7,11 @@ def _link_action_subject_new(actual, meta):
     return struct(
         actual = actual,
         meta = meta,
-        inputs = lambda: subjects.collection([f.short_path for f in actual.inputs.to_list()], meta = meta.derive("inputs")),
-        outputs = lambda: subjects.collection([f.short_path for f in actual.outputs.to_list()], meta = meta.derive("outputs")),
+        inputs = lambda: subjects.collection(actual.inputs.to_list(), meta = meta.derive("inputs")),
+        outputs = lambda: subjects.collection(actual.outputs.to_list(), meta = meta.derive("outputs")),
         argv = lambda: subjects.collection(actual.argv, meta = meta.derive("argv")),
         env = lambda: subjects.dict(actual.env, meta = meta.derive("env")),
+        execution_info = lambda: subjects.dict(actual.execution_info, meta = meta.derive("execution_info")),
     )
 
 def _link_action_subject_from_target(env, target):

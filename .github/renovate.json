@@ -1,4 +1,7 @@
 {
+  "extends": [
+    "config:base"
+  ],
   "bazel": {
     "enabled": false
   },

@@ -598,9 +598,14 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
                             if library.objects != None:
                                 object_files.extend(library.objects)
 
-            def_parser = ctx.file._def_parser
-            if def_parser != None:
-                generated_def_file = cc_helper.generate_def_file(ctx, def_parser, object_files, binary.basename)
+            generated_def_file = cc_helper.generate_def_file(
+                ctx,
+                ctx.file._def_parser,
+                object_files,
+                binary.basename,
+                cc_toolchain,
+                feature_configuration,
+            )
             custom_win_def_file = ctx.file.win_def_file
             win_def_file = cc_helper.get_windows_def_file_for_linking(ctx, custom_win_def_file, generated_def_file, feature_configuration)
             link_variables["def_file_path"] = win_def_file.path
@@ -707,7 +712,7 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
     stripped_file = ctx.outputs.stripped_binary
     cc_helper.create_strip_action(ctx, cc_toolchain, cpp_config, binary, stripped_file, feature_configuration)
     dwp_file = ctx.outputs.dwp_file
-    create_debug_packager_actions(
+    dwo_files = create_debug_packager_actions(
         ctx,
         cc_toolchain,
         dwp_file,
@@ -812,6 +817,7 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
         stripped_file = stripped_file,
         unstripped_file = binary,
         dwp_file = explicit_dwp_file,
+        dwo_files = dwo_files,
     )
     binary_info = struct(
         files = files_to_build,

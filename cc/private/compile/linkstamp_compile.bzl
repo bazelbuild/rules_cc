@@ -39,8 +39,8 @@ def register_linkstamp_compile_action(
         output_file,
         compilation_inputs,
         inputs_for_validation,
-        label_replacement,
-        output_replacement,
+        target_name,
+        build_target,
         needs_pic = False,
         stamping = None,
         additional_linkstamp_defines = None):
@@ -54,8 +54,8 @@ def register_linkstamp_compile_action(
         output_file: The output object file.
         compilation_inputs: A depset of artifacts used for compilation.
         inputs_for_validation: A depset of artifacts to be used as inputs for invalidation for the action.
-        label_replacement: String to replace ${LABEL} in linkstamp defines.
-        output_replacement: String to replace ${OUTPUT_PATH} in linkstamp defines.
+        target_name: Value for the G3_TARGET_NAME linkstamp define.
+        build_target: Value for the G3_BUILD_TARGET linkstamp define.
         needs_pic: Whether PIC compilation is needed.
         stamping: Whether stamping is enabled. If None, it's computed based on configuration.
         additional_linkstamp_defines: A list of additional defines for linkstamp compilation.
@@ -74,8 +74,8 @@ def register_linkstamp_compile_action(
     compile_build_variables = get_linkstamp_compile_variables(
         source_file = source_file,
         output_file = output_file,
-        label_replacement = label_replacement,
-        output_replacement = output_replacement,
+        target_name = target_name,
+        build_target = build_target,
         additional_linkstamp_defines = additional_linkstamp_defines,
         build_info_header_artifacts = build_info_files,
         feature_configuration = feature_configuration,

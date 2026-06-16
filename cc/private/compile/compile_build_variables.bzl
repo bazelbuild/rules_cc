@@ -539,8 +539,8 @@ def _should_pass_propeller_profiles(
 def get_linkstamp_compile_variables(
         source_file,
         output_file,
-        label_replacement,
-        output_replacement,
+        target_name,
+        build_target,
         additional_linkstamp_defines,
         build_info_header_artifacts,
         feature_configuration,
@@ -551,8 +551,8 @@ def get_linkstamp_compile_variables(
     Args:
         source_file: The linkstamp source file to be compiled.
         output_file: The output object file.
-        label_replacement: String to replace ${LABEL} in linkstamp defines.
-        output_replacement: String to replace ${OUTPUT_PATH} in linkstamp defines.
+        target_name: Value for the G3_TARGET_NAME linkstamp define.
+        build_target: Value for the G3_BUILD_TARGET linkstamp define.
         additional_linkstamp_defines: A list of additional defines for linkstamp compilation.
         build_info_header_artifacts: A list of build info header artifacts.
         feature_configuration: The feature configuration.
@@ -578,8 +578,8 @@ def get_linkstamp_compile_variables(
         label = None,
     )
     defines = _compute_all_linkstamp_defines(
-        label_replacement = label_replacement,
-        output_replacement = output_replacement,
+        target_name = target_name,
+        build_target = build_target,
         additional_linkstamp_defines = additional_linkstamp_defines,
         cc_toolchain = cc_toolchain,
         feature_configuration = feature_configuration,
@@ -610,8 +610,8 @@ def _stamps_to_defines(stamps):
     return defines
 
 def _compute_all_linkstamp_defines(
-        label_replacement,
-        output_replacement,
+        target_name,
+        build_target,
         additional_linkstamp_defines,
         cc_toolchain,
         feature_configuration):
@@ -619,8 +619,8 @@ def _compute_all_linkstamp_defines(
     stamps = get_linkstamp_stamps(
         cc_toolchain = cc_toolchain,
         feature_configuration = feature_configuration,
-        label_replacement = label_replacement,
-        output_replacement = output_replacement,
+        target_name = target_name,
+        build_target = build_target,
         additional_linkstamp_defines = additional_linkstamp_defines,
     )
     return _stamps_to_defines(stamps)

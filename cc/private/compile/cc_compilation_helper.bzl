@@ -467,14 +467,16 @@ def _init_cc_compilation_context(
         system_include_dirs_for_context = list(system_include_dirs)
         include_dirs_for_context = list(include_dirs)
     else:
-        # Do not add system_include_dirs and include_dirs directly to compilation context.
+        # Do not add include dirs directly to the regular compilation context; all public search
+        # paths for external repositories are reclassified as external includes.
+        quote_include_dirs_for_context = []
         system_include_dirs_for_context = []
         include_dirs_for_context = []
 
         external_include_dirs.append(repo_path)
         external_include_dirs.append(gen_include_dir)
         external_include_dirs.append(bin_include_dir)
-        external_include_dirs.extend(quote_include_dirs_for_context)
+        external_include_dirs.extend(quote_include_dirs)
         external_include_dirs.extend(system_include_dirs)
         external_include_dirs.extend(include_dirs)
 

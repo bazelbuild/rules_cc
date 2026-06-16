@@ -125,15 +125,23 @@ def parse_headers_support(parse_headers_tool_path):
                     flag_groups = [
                         flag_group(
                             flags = [
-                                # Note: This treats all headers as C++ headers, which may lead to
-                                # parsing failures for C headers that are not valid C++.
-                                # For such headers, use features = ["-parse_headers"] to selectively
-                                # disable parsing.
                                 "-xc++-header",
                                 "-fsyntax-only",
                             ],
                         ),
                     ],
+                    with_features = [with_feature_set(not_features = ["parse_headers_as_c"])],
+                ),
+                flag_set(
+                    flag_groups = [
+                        flag_group(
+                            flags = [
+                                "-xc-header",
+                                "-fsyntax-only",
+                            ],
+                        ),
+                    ],
+                    with_features = [with_feature_set(features = ["parse_headers_as_c"])],
                 ),
             ],
             implies = [
@@ -149,6 +157,7 @@ def parse_headers_support(parse_headers_tool_path):
     ]
     features = [
         feature(name = "parse_headers"),
+        feature(name = "parse_headers_as_c"),
     ]
     return action_configs, features
 
@@ -272,6 +281,18 @@ def _impl(ctx):
             ],
         )
         action_configs.append(llvm_cov_action)
+
+    llvm_profdata = ctx.attr.tool_paths.get("llvm-profdata")
+    if llvm_profdata:
+        llvm_profdata_action = action_config(
+            action_name = ACTION_NAMES.llvm_profdata,
+            tools = [
+                tool(
+                    path = llvm_profdata,
+                ),
+            ],
+        )
+        action_configs.append(llvm_profdata_action)
 
     objcopy = ctx.attr.tool_paths.get("objcopy")
     if objcopy:

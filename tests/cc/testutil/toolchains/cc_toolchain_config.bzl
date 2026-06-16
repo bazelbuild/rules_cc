@@ -819,6 +819,10 @@ _targets_windows_feature = feature(
     implies = ["copy_dynamic_libraries_to_binary"],
 )
 
+_windows_export_all_symbols_feature = feature(
+    name = FEATURE_NAMES.windows_export_all_symbols,
+)
+
 _archive_param_file_feature = feature(
     name = FEATURE_NAMES.archive_param_file,
 )
@@ -1049,9 +1053,12 @@ _external_include_paths_feature = feature(
             actions = [ACTION_NAMES.cpp_compile],
             flag_groups = [
                 flag_group(
+                    expand_if_available = "external_include_paths",
                     flags = [
                         "-isystem",
+                        "%{external_include_paths}",
                     ],
+                    iterate_over = "external_include_paths",
                 ),
             ],
         ),
@@ -1365,6 +1372,7 @@ _feature_name_to_feature = {
     FEATURE_NAMES.supports_pic: _supports_pic_feature,
     FEATURE_NAMES.prefer_pic_for_opt_binaries: _prefer_pic_for_opt_binaries_feature,
     FEATURE_NAMES.targets_windows: _targets_windows_feature,
+    FEATURE_NAMES.windows_export_all_symbols: _windows_export_all_symbols_feature,
     FEATURE_NAMES.archive_param_file: _archive_param_file_feature,
     FEATURE_NAMES.compiler_param_file: _compiler_param_file_feature,
     FEATURE_NAMES.gcc_quoting_for_param_files: _gcc_quoting_for_param_files_feature,
@@ -1452,6 +1460,7 @@ _action_name_to_action = {
 }
 
 _tool_for_action_config = {
+    "generate-def-file": "def_parser_tool",
     "objcopy_embed_data": "objcopy_embed_data_tool",
     "ld_embed_data": "ld_embed_data_tool",
 }

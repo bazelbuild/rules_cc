@@ -73,7 +73,7 @@ SOURCE_CATEGORY_CC = set(
     extensions.CC_HEADER +
     extensions.C_SOURCE +
     extensions.ASSEMBLER +
-    extensions.ASSESMBLER_WITH_C_PREPROCESSOR +
+    extensions.ASSEMBLER_WITH_C_PREPROCESSOR +
     extensions.CLIF_INPUT_PROTO,
 )
 
@@ -85,7 +85,7 @@ SOURCE_CATEGORY_CC_AND_OBJC = set(
     extensions.OBJCPP_SOURCE +
     extensions.C_SOURCE +
     extensions.ASSEMBLER +
-    extensions.ASSESMBLER_WITH_C_PREPROCESSOR,
+    extensions.ASSEMBLER_WITH_C_PREPROCESSOR,
 )
 # LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/rules/cpp/CppCompileActionTemplate.java:cc_and_objc_file_types)
 

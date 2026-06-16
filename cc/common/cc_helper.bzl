@@ -414,7 +414,14 @@ def _should_generate_def_file(ctx, feature_configuration):
     no_windows_export_all_symbols_enabled = cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "no_windows_export_all_symbols")
     return windows_export_all_symbols_enabled and (not no_windows_export_all_symbols_enabled) and (ctx.attr.win_def_file == None)
 
-def _generate_def_file(ctx, def_parser, object_files, dll_name):
+def _generate_def_file(ctx, def_parser, object_files, dll_name, cc_toolchain, feature_configuration):
+    use_toolchain_action = cc_common.action_is_enabled(
+        feature_configuration = feature_configuration,
+        action_name = ACTION_NAMES.generate_def_file,
+    )
+    if not use_toolchain_action and def_parser == None:
+        return None
+
     def_file = ctx.actions.declare_file(ctx.label.name + ".gen.def")
     args = ctx.actions.args()
     args.add(def_file)
@@ -425,12 +432,40 @@ def _generate_def_file(ctx, def_parser, object_files, dll_name):
     for object_file in object_files:
         argv.add(object_file.path)
 
+    executable = def_parser
+    inputs = object_files
+    env = {}
+    execution_requirements = {}
+    if use_toolchain_action:
+        executable = cc_common.get_tool_for_action(
+            feature_configuration = feature_configuration,
+            action_name = ACTION_NAMES.generate_def_file,
+        )
+        env = cc_common.get_environment_variables(
+            feature_configuration = feature_configuration,
+            action_name = ACTION_NAMES.generate_def_file,
+            variables = cc_common.empty_variables(),
+        )
+        execution_requirements = {
+            requirement: ""
+            for requirement in cc_common.get_execution_requirements(
+                feature_configuration = feature_configuration,
+                action_name = ACTION_NAMES.generate_def_file,
+            )
+        }
+        inputs = depset(
+            direct = object_files,
+            transitive = [cc_toolchain.all_files],
+        )
+
     ctx.actions.run(
         mnemonic = "DefParser",
-        executable = def_parser,
+        executable = executable,
         toolchain = None,
         arguments = [args, argv],
-        inputs = object_files,
+        env = env,
+        execution_requirements = execution_requirements,
+        inputs = inputs,
         outputs = [def_file],
         use_default_shell_env = True,
     )
