@@ -203,7 +203,6 @@ def _cc_aspect_impl(target, ctx):
           feature_configuration = feature_configuration,
           name = ctx.label.name + "_aspect",
           cc_toolchain = toolchain,
-          disallow_dynamic_library = True,
           compilation_outputs = compilation_outputs,
       )
     )
@@ -241,7 +240,6 @@ def _cc_skylark_library_impl(ctx):
           feature_configuration=feature_configuration,
           linking_contexts = dep_linking_contexts,
           name = ctx.label.name,
-          disallow_dynamic_library = True,
           compilation_outputs=compilation_outputs)
      )
     return [CcInfo(
