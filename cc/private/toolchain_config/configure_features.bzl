@@ -204,10 +204,10 @@ def configure_features(
                 all_features.append("enable_xbinaryfdo_thinlto")
 
     if cpp_configuration._fdo_prefetch_hints_label != None:
-        all_requested_features_set.add("fdo_prefetch_hints")
+        all_features.append("fdo_prefetch_hints")
 
     if enable_propeller_optimize:
-        all_requested_features_set.add("propeller_optimize")
+        all_features.append("propeller_optimize")
 
     for feature in all_features:
         if feature not in all_unsupported_features_set:
