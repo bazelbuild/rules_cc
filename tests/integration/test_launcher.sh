@@ -59,6 +59,8 @@ cd "$scratch_workspace"
 cat > MODULE.bazel << EOF
 module(name = "test_module")
 
+# Bring in macOS toolchain for basic testing
+bazel_dep(name = "apple_support", version = "2.6.1")
 bazel_dep(name = "rules_cc", version = "0.0.0")
 local_path_override(
     module_name = "rules_cc",
