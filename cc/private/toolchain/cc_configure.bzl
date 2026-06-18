@@ -25,7 +25,7 @@ def _should_disable_toolchain(repository_ctx):
     """Returns true if the toolchain should be disabled based on environment variables."""
     env = repository_ctx.os.environ
     disabled_via_env = "BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN" in env and env["BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN"] == "1"
-    macos_legacy_support = env.get("BAZEL_USE_LEGACY_MACOS_TOOLCHAIN", "1") == "1"
+    macos_legacy_support = env.get("BAZEL_USE_LEGACY_MACOS_TOOLCHAIN", "0") == "1"
     return disabled_via_env or (repository_ctx.os.name.startswith("mac os") and not macos_legacy_support)
 
 def cc_autoconf_toolchains_impl(repository_ctx):
