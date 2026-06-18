@@ -95,7 +95,7 @@ LTO_SOURCE_EXTENSIONS = set(extensions.CC_SOURCE + extensions.C_SOURCE)
 # LINT.IfChange(compile_api)
 def compile(
         *,
-        actions,
+        ctx,
         feature_configuration,
         cc_toolchain,
         srcs = [],
@@ -140,7 +140,7 @@ def compile(
     """Should be used for C++ compilation.
 
     Args:
-        actions: <code>actions</code> object.
+        ctx: The rule context.
         feature_configuration: <code>feature_configuration</code> to be queried."),
         cc_toolchain: <code>CcToolchainInfo</code> provider to be used."),
         srcs: The list of source files to be compiled.",
@@ -213,7 +213,7 @@ def compile(
     """
 
     # LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/starlarkbuildapi/cpp/CcModuleApi.java:compile_api)
-    ctx = _cc_internal.actions2ctx_cheat(actions)
+    actions = ctx.actions
     _starlark_cc_semantics.validate_cc_compile_call(
         label = ctx.label,
         include_prefix = include_prefix,
@@ -225,7 +225,7 @@ def compile(
     if additional_module_maps == None:
         additional_module_maps = []
 
-    label = _cc_internal.actions2ctx_cheat(actions).label.same_package_label(name)
+    label = ctx.label.same_package_label(name)
     fdo_context = cc_toolchain._fdo_context
 
     use_pic_for_dynamic_libraries = _use_pic_for_dynamic_libs(cpp_configuration, feature_configuration)
@@ -248,7 +248,6 @@ def compile(
     language_normalized = "c++" if language == None else language
     language_normalized = language_normalized.replace("+", "p").upper()
     source_category = SOURCE_CATEGORY_CC if language_normalized == "CPP" else SOURCE_CATEGORY_CC_AND_OBJC
-    ctx = _cc_internal.actions2ctx_cheat(actions)
     if type(includes) == "depset":
         includes = includes.to_list()
     textual_hdrs_list = textual_hdrs.to_list() if type(textual_hdrs) == "depset" else textual_hdrs

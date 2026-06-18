@@ -42,7 +42,8 @@ load("//cc/private/link:target_types.bzl", "LINKING_MODE", "LINK_TARGET_TYPE", "
 # this can be done after removing Objc archives from cc_common.link.
 
 def create_cc_link_actions(
-        actions,
+        ctx,
+        link_actions,
         name,
         static_link_type,
         dynamic_link_type,
@@ -80,7 +81,8 @@ def create_cc_link_actions(
     behavior.
 
     Args:
-        actions: (Actions) `actions` object.
+        ctx: The rule context.
+        link_actions: The wrapped action factory used to declare link artifacts.
         name: (str) This is used for naming the output artifacts of actions created by this method.
         static_link_type: (None|LINK_TARGET_TYPE) Type of static libraries to create.
         dynamic_link_type: (None|LINK_TARGET_TYPE) Type of dynamic libraries to create.
@@ -151,7 +153,8 @@ def create_cc_link_actions(
     use_pic_for_dynamic_libs = _use_pic_for_dynamic_libs(cpp_config, feature_configuration)
 
     link_action_kwargs = dict(
-        actions = actions,
+        ctx = ctx,
+        link_actions = link_actions,
         stamping = stamping,
         feature_configuration = feature_configuration,
         cc_toolchain = cc_toolchain,
@@ -176,7 +179,7 @@ def create_cc_link_actions(
     static_library = {}
     if static_link_type:
         static_library = _create_no_pic_and_pic_static_libs_actions(
-            actions,
+            link_actions,
             name,
             static_link_type,
             cc_toolchain,
@@ -203,7 +206,7 @@ def create_cc_link_actions(
 
         dynamic_library, all_lto_artifacts, linker_output_artifact = \
             _create_dynamic_link_actions(
-                actions,
+                link_actions,
                 name,
                 dynamic_link_type,
                 linking_mode,

@@ -24,7 +24,8 @@ load("//cc/private/rules_impl:native_cc_common.bzl", _cc_common_internal = "nati
 
 def link_action(
         *,
-        actions,
+        ctx,
+        link_actions,
         mnemonic,
         library_identifier,  # TODO(b/331164666): Set in the callee and remove
         link_type,
@@ -76,7 +77,8 @@ def link_action(
     and returned.
 
     Args:
-        actions: (Actions) `actions` object.
+        ctx: The rule context.
+        link_actions: The wrapped action factory used to declare link artifacts.
         mnemonic: (str) The mnemonic used in the action.
         library_identifier: (str) Identifier of the library.
         link_type: (LINK_TARGET_TYPE) Type of libraries to create.
@@ -141,7 +143,7 @@ def link_action(
     if thinlto_param_file:
         non_code_inputs.append(thinlto_param_file)
 
-    linkstamp_map = _map_linkstamps_to_outputs(actions, linkstamps, output)
+    linkstamp_map = _map_linkstamps_to_outputs(link_actions, linkstamps, output)
     linkstamp_object_file_inputs = linkstamp_map.values()
     object_file_inputs = object_files
 
@@ -161,7 +163,7 @@ def link_action(
             object_files = combined_object_artifacts if use_archiver else [],
             lto_compilation_context = lto_compilation_context if use_archiver else [],
             shared_non_lto_backends = create_shared_non_lto_artifacts(
-                actions,
+                link_actions,
                 lto_compilation_context,
                 link_type.linker_or_archiver == USE_LINKER,
                 feature_configuration,
@@ -191,7 +193,7 @@ def link_action(
         feature_configuration,
         output,
         _cc_internal.dynamic_library_soname(
-            actions,
+            link_actions,
             # Must match https://github.com/bazelbuild/bazel/blob/795af54db5c348af5ca8b2961a982b399206ea20/src/main/java/com/google/devtools/build/lib/rules/cpp/SolibSymlinkAction.java#L169.
             root_relative_path(output),
             link_type != LINK_TARGET_TYPE.NODEPS_DYNAMIC_LIBRARY,
@@ -203,7 +205,7 @@ def link_action(
     user_link_flags = linkopts + cc_toolchain._cpp_configuration.linkopts
 
     finalize_link_action(
-        actions,
+        ctx,
         # TODO(b/331164666): use default value instead of an if
         mnemonic if mnemonic else "CppLink",
         link_type.action_name,
@@ -241,14 +243,14 @@ def link_action(
 
     return output_library, interface_output_library
 
-def _map_linkstamps_to_outputs(actions, linkstamps, output):
+def _map_linkstamps_to_outputs(link_actions, linkstamps, output):
     """ Translates a collection of Linkstamp instances to an immutable mapping from linkstamp to object files.
 
      In other words, given a set of source files, this method determines the output
      path to which each file should be compiled.
 
      Args:
-       actions: (Actions) `actions` object.
+       link_actions: The wrapped action factory used to declare link artifacts.
        linkstamps: (list[Linkstamp])
        output: the binary output path for this link
     Returns:
@@ -269,6 +271,6 @@ def _map_linkstamps_to_outputs(actions, linkstamps, output):
             stamp_output_dir,
             paths.replace_extension(linkstamp_file.short_path, ".o"),
         )
-        stamp_output_file = actions.declare_shareable_artifact(stamp_output_path)
+        stamp_output_file = link_actions.declare_shareable_artifact(stamp_output_path)
         map[linkstamp] = stamp_output_file
     return map

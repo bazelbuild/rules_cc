@@ -380,7 +380,7 @@ def _create_transitive_linking_actions(
         link_deps_statically = False
 
     cc_linking_outputs = cc_common.link(
-        actions = ctx.actions,
+        ctx = ctx,
         feature_configuration = feature_configuration,
         cc_toolchain = cc_toolchain,
         compilation_outputs = cc_compilation_outputs_with_only_objects,
@@ -522,7 +522,7 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
 
     (compilation_context, compilation_outputs) = cc_common.compile(
         name = ctx.label.name,
-        actions = ctx.actions,
+        ctx = ctx,
         feature_configuration = feature_configuration,
         cc_toolchain = cc_toolchain,
         user_compile_flags = runtimes_copts + cc_helper.get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "copts"),
@@ -569,7 +569,7 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
     cc_linking_outputs = None
     if link_compile_output_separately and not cc_helper.is_compilation_outputs_empty(cc_compilation_outputs):
         (_, cc_linking_outputs) = cc_common.create_linking_context_from_compilation_outputs(
-            actions = ctx.actions,
+            ctx = ctx,
             feature_configuration = feature_configuration,
             cc_toolchain = cc_toolchain,
             compilation_outputs = cc_compilation_outputs,

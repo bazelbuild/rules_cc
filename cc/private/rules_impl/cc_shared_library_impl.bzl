@@ -709,7 +709,7 @@ def _cc_shared_library_impl(ctx):
 
     additional_inputs.extend(ctx.files.additional_linker_inputs)
     linking_outputs = cc_common.link(
-        actions = ctx.actions,
+        ctx = ctx,
         feature_configuration = feature_configuration,
         cc_toolchain = cc_toolchain,
         linking_contexts = [linking_context] + runtimes_linking_contexts,
