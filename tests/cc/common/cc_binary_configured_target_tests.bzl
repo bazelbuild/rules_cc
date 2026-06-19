@@ -1023,6 +1023,61 @@ def _test_app_linking_dynamic_impl(env, target):
         "-linfrastructure1_opt",
     ]).in_order()
 
+def _test_runtime_solib_name_preserves_output_basename(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/app_with_underscore",
+        srcs = ["main.cc"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_runtime_solib_name_preserves_output_basename_impl,
+        target = name + "/app_with_underscore",
+        test_features = [FEATURE_NAMES.runtime_solib_name],
+        **kwargs
+    )
+
+def _test_runtime_solib_name_preserves_output_basename_impl(env, target):
+    link_action = link_action_subject.from_target(env, target)
+    link_action.argv().contains("--runtime_solib_name=app_with_underscore")
+
+def _test_runtime_solib_name_mangles_output_path(name, **kwargs):
+    util.helper_target(
+        cc_library,
+        name = name + "/lib_with_underscore",
+        srcs = ["a.cc"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_runtime_solib_name_mangles_output_path_impl,
+        target = name + "/lib_with_underscore",
+        test_features = [
+            FEATURE_NAMES.runtime_solib_name,
+            FEATURE_NAMES.supports_dynamic_linker,
+            FEATURE_NAMES.supports_pic,
+        ],
+        **kwargs
+    )
+
+def _test_runtime_solib_name_mangles_output_path_impl(env, target):
+    dynamic_library_actions = []
+    for action in target[TestingAspectInfo].actions:
+        if action.mnemonic == "CppLink" and any([output.extension == "so" for output in action.outputs.to_list()]):
+            dynamic_library_actions.append(action)
+
+    env.expect.that_collection(dynamic_library_actions).has_size(1)
+    if not dynamic_library_actions:
+        return
+
+    test_name = env.ctx.label.name.replace("_", "_U")
+    expected_suffix = "_tests_Scc_Scommon_S{}_Sliblib_Uwith_Uunderscore.so".format(test_name)
+    env.expect.that_collection(dynamic_library_actions[0].argv).contains_predicate(
+        matching.custom(
+            "starts with the transitioned configuration and ends with the escaped output path",
+            lambda arg: arg.startswith("--runtime_solib_name=libST-") and arg.endswith(expected_suffix),
+        ),
+    )
+
 def _test_so_in_srcs(name, **kwargs):
     util.helper_target(
         cc_binary,
@@ -1819,6 +1874,8 @@ def cc_binary_configured_target_tests(name):
         _test_linkopts_fake_diamond,
         _test_app_linking_static,
         _test_app_linking_dynamic,
+        _test_runtime_solib_name_preserves_output_basename,
+        _test_runtime_solib_name_mangles_output_path,
         _test_so_in_srcs,
         _test_transitive_libs_are_collected,
         _test_transitive_linkstamps_are_collected,

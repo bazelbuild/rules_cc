@@ -14,11 +14,11 @@
 """Functions that create C++ link action."""
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
-load("//cc/common:cc_helper_internal.bzl", "root_relative_path", artifact_category = "artifact_category_names")
-load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
+load("//cc/common:cc_helper_internal.bzl", artifact_category = "artifact_category_names")
 load("//cc/private/link:finalize_link_action.bzl", "finalize_link_action")
 load("//cc/private/link:link_build_variables.bzl", "setup_linking_variables")
 load("//cc/private/link:lto_backends.bzl", "create_shared_non_lto_artifacts")
+load("//cc/private/link:solib.bzl", "dynamic_library_soname")
 load("//cc/private/link:target_types.bzl", "LINK_TARGET_TYPE", "USE_ARCHIVER", "USE_LINKER", "is_dynamic_library")
 load("//cc/private/rules_impl:native_cc_common.bzl", _cc_common_internal = "native_cc_common")
 
@@ -190,11 +190,9 @@ def link_action(
         cc_toolchain,
         feature_configuration,
         output,
-        _cc_internal.dynamic_library_soname(
-            actions,
-            # Must match https://github.com/bazelbuild/bazel/blob/795af54db5c348af5ca8b2961a982b399206ea20/src/main/java/com/google/devtools/build/lib/rules/cpp/SolibSymlinkAction.java#L169.
-            root_relative_path(output),
-            link_type != LINK_TARGET_TYPE.NODEPS_DYNAMIC_LIBRARY,
+        dynamic_library_soname(
+            output,
+            preserve_name = link_type != LINK_TARGET_TYPE.NODEPS_DYNAMIC_LIBRARY,
         ),
         interface_output,
         thinlto_param_file,
