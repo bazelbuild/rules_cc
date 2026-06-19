@@ -1,3 +1,4 @@
+load("@bazel_features//:features.bzl", "bazel_features")  # copybara-uncomment-this-please
 load("//tests/integration:rules_cc_integration_test.bzl", "rules_cc_integration_test")
 
 exports_files(
@@ -31,4 +32,14 @@ rules_cc_integration_test(
         "//conditions:default": [],
     }),
     test_script = "cc_shared_library_tests.sh",
+)
+
+VERSION_GATE = [] if bazel_features.cc.cc_common_is_in_rules_cc else ["@platforms//:incompatible"]  # copybara-uncomment-this-please
+# VERSION_GATE = ["@platforms//:incompatible"]  # copybara-comment-this-out-please
+
+rules_cc_integration_test(
+    name = "cc_static_library_failure_tests",
+    tags = ["notap"],
+    target_compatible_with = VERSION_GATE,
+    test_script = "cc_static_library_failure_tests.sh",
 )
