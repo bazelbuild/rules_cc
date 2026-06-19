@@ -5,6 +5,8 @@ load("@rules_testing//lib:analysis_test.bzl", "test_suite")
 load("@rules_testing//lib:truth.bzl", "matching")
 load("@rules_testing//lib:util.bzl", "TestingAspectInfo", "util")
 load("//cc:cc_library.bzl", "cc_library")
+load("//cc:find_cc_toolchain.bzl", "CC_TOOLCHAIN_ATTRS", "find_cpp_toolchain", "use_cc_toolchain")
+load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/common:cc_info.bzl", "CcInfo")
 load("//tests/cc/testutil:cc_analysis_test.bzl", "cc_analysis_test")
 load("//tests/cc/testutil:cc_info_subject.bzl", "cc_info_subject")
@@ -482,6 +484,68 @@ def _test_alwayslink_yields_lo_impl(env, target):
     files = [f.basename for f in target[DefaultInfo].files.to_list()]
     env.expect.that_collection(files).contains("libalways_link.lo")
 
+def _solib_symlinks_impl(ctx):
+    cc_toolchain = find_cpp_toolchain(ctx)
+    feature_configuration = cc_common.configure_features(
+        ctx = ctx,
+        cc_toolchain = cc_toolchain,
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+    library = ctx.actions.declare_file("liboriginal.so")
+    ctx.actions.write(library, "")
+    library_to_link = cc_common.create_library_to_link(
+        actions = ctx.actions,
+        cc_toolchain = cc_toolchain,
+        dynamic_library = library,
+        dynamic_library_symlink_path = "custom/libalias.so",
+        feature_configuration = feature_configuration,
+    )
+    runtime_symlink = cc_common.solib_symlink_action(
+        ctx = ctx,
+        artifact = library,
+        solib_directory = "unused_solib_directory",
+        runtime_solib_dir_base = "runtime_solib",
+    )
+    return [DefaultInfo(files = depset([library_to_link.dynamic_library, runtime_symlink]))]
+
+_solib_symlinks = rule(
+    implementation = _solib_symlinks_impl,
+    attrs = CC_TOOLCHAIN_ATTRS,
+    fragments = ["cpp"],
+    toolchains = use_cc_toolchain(),
+)
+
+def _test_solib_symlinks(name):
+    util.helper_target(
+        _solib_symlinks,
+        name = name + "/target",
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_solib_symlinks_impl,
+        target = name + "/target",
+    )
+
+def _test_solib_symlinks_impl(env, target):
+    symlink_outputs = target[DefaultInfo].files.to_list()
+    explicit = [output for output in symlink_outputs if output.basename == "libalias.so"][0]
+    runtime = [output for output in symlink_outputs if output.basename == "liboriginal.so"][0]
+
+    explicit_path = env.expect.that_str(explicit.short_path)
+    explicit_path.contains("_solib_")
+    explicit_path.ends_with("/custom/libalias.so")
+    env.expect.that_str(runtime.short_path).ends_with("runtime_solib/liboriginal.so")
+
+    symlinks = [action for action in target[TestingAspectInfo].actions if action.mnemonic == "Symlink"]
+    env.expect.that_collection(symlinks).has_size(2)
+    env.expect.that_collection([output for action in symlinks for output in action.outputs.to_list()]).contains_exactly([
+        explicit,
+        runtime,
+    ])
+    for action in symlinks:
+        env.expect.that_collection([input.basename for input in action.inputs.to_list()]).contains_exactly(["liboriginal.so"])
+
 def cc_common_tests(name):
     tests = [
         _test_same_cc_file_twice,
@@ -505,6 +569,7 @@ def cc_common_tests(name):
             _test_strip_include_prefix_no_virtual_includes_when_enabled,
             _test_strip_include_prefix_with_include_prefix_uses_virtual_includes,
             _test_strip_include_prefix_error_not_under_prefix,
+            _test_solib_symlinks,
         ])
     test_suite(
         name = name,

@@ -40,6 +40,15 @@ def wrap_with_check_private_api(symbol):
 
     return callback
 
+def create_solib_symlink(actions, library, symlink_path):
+    """Declares a shareable symlink to a dynamic library."""
+    symlink = actions.declare_shareable_artifact(symlink_path)
+    actions.symlink(
+        output = symlink,
+        target_file = library,
+    )
+    return symlink
+
 CPP_SOURCE_TYPE_HEADER = "HEADER"
 CPP_SOURCE_TYPE_SOURCE = "SOURCE"
 CPP_SOURCE_TYPE_CLIF_INPUT_PROTO = "CLIF_INPUT_PROTO"
