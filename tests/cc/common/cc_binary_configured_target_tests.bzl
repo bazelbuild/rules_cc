@@ -1733,6 +1733,72 @@ def _test_link_shared_does_not_have_to_provide_extension_impl(env, target):
     executable = target[DefaultInfo].files_to_run.executable
     env.expect.that_str(executable.basename).equals("libfoo.so")
 
+def _test_pdb_files(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin.dll",
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_pdb_files_impl,
+        target = name + "/bin.dll",
+        test_features = [FEATURE_NAMES.generate_pdb_file],
+        **kwargs
+    )
+
+def _test_pdb_files_impl(env, target):
+    env.expect.that_target(target).output_group("pdb_file").contains_predicate(
+        matching.file_basename_equals("bin.pdb"),
+    )
+
+# Even if there are no instrumented C++ files, a C++ binary must provide some form of coverage
+# support since this is assumed by other tooling. Specifically, lcov_merger. See b/269749859.
+# TODO(cmita): This doesn't seem reasonable; if nothing C++ is instrumented then we shouldn't
+# need this.
+def _test_coverage_support_always_provided(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/main",
+        srcs = ["main.cc"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_coverage_support_always_provided_impl,
+        target = name + "/main",
+        config_settings = {
+            "//command_line_option:collect_code_coverage": "true",
+            "//command_line_option:instrumentation_filter": "/unused",
+        },
+        **kwargs
+    )
+
+def _test_coverage_support_always_provided_impl(env, target):
+    env.expect.that_bool(InstrumentedFilesInfo in target).equals(True)
+    info = target[InstrumentedFilesInfo]
+    env.expect.that_collection(info.metadata_files.to_list()).is_empty()
+    env.expect.that_collection(info.instrumented_files.to_list()).is_empty()
+
+    # TODO: pzembrod - Rerun presubmit once the attributes are available in Bazel at head.
+    if hasattr(info, "get_coverage_environment"):
+        coverage_env = subjects.dict(
+            info.get_coverage_environment(),
+            meta = env.expect.meta.derive("coverage_environment"),
+        )
+        coverage_env.contains_at_least({
+            "COVERAGE_GCOV_PATH": "/usr/bin/mock-gcov",
+            "LLVM_COV": "/usr/bin/mock-llvm-cov",
+            "LLVM_PROFDATA": "/usr/bin/mock-llvm-profdata",
+            "GENERATE_LLVM_LCOV": "0",
+        })
+    if hasattr(info, "get_coverage_support_files"):
+        support_files = subjects.collection(
+            info.get_coverage_support_files().to_list(),
+            meta = env.expect.meta.derive("coverage_support_files"),
+        )
+        support_files.contains_predicate(
+            matching.file_basename_equals("coverage-file"),
+        )
+
 def cc_binary_configured_target_tests(name):
     """Creates the test suite for cc_binary tests.
 
@@ -1769,6 +1835,8 @@ def cc_binary_configured_target_tests(name):
         _test_ignore_custom_malloc,
         _test_custom_malloc,
         _test_link_shared_does_not_have_to_provide_extension,
+        _test_pdb_files,
+        _test_coverage_support_always_provided,
     ]
 
     # sanitize_pwd is implemented in Starlark in rules_cc, requires Bazel 9+.

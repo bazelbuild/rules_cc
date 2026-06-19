@@ -1622,6 +1622,7 @@ def _impl(ctx):
             tool_path(name = "dwp", path = "/usr/bin/mock-dwp"),
             tool_path(name = "gcc", path = "/usr/bin/mock-gcc"),
             tool_path(name = "gcov", path = "/usr/bin/mock-gcov"),
+            tool_path(name = "llvm-cov", path = "/usr/bin/mock-llvm-cov"),
             tool_path(name = "ld", path = "/usr/bin/mock-ld"),
             tool_path(name = "nm", path = "/usr/bin/mock-nm"),
             tool_path(name = "objcopy", path = "/usr/bin/mock-objcopy"),
