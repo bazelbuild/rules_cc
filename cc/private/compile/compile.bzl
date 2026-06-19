@@ -1033,7 +1033,7 @@ def _create_cc_compile_actions_with_cpp20_module(
         progress_message_prefix):
     """Constructs the C++ compiler actions with C++20 modules support.
     """
-    output_name_prefix_dir = _cc_internal.compute_output_name_prefix_dir(configuration = configuration, purpose = purpose)
+    output_name_prefix_dir = _compute_output_name_prefix_dir(purpose)
     output_name_map = _calculate_output_name_map_by_type(compilation_unit_sources | module_interfaces_sources, output_name_prefix_dir)
     use_pic_values = []
     if generate_no_pic_action:
@@ -1230,7 +1230,7 @@ def _create_cc_compile_actions(
                     progress_message_prefix = progress_message_prefix,
                 )
 
-    output_name_prefix_dir = _cc_internal.compute_output_name_prefix_dir(configuration = configuration, purpose = purpose)
+    output_name_prefix_dir = _compute_output_name_prefix_dir(purpose)
     output_name_map = _calculate_output_name_map_by_type(compilation_unit_sources, output_name_prefix_dir)
 
     compiled_basenames = set()
@@ -2186,6 +2186,13 @@ def _calculate_output_name_map_by_type(sources, prefix_dir):
             prefix_dir,
         )
     )
+
+def _compute_output_name_prefix_dir(purpose):
+    if purpose.endswith("_non_objc_arc"):
+        return "non_arc"
+    if purpose.endswith("_objc_arc"):
+        return "arc"
+    return ""
 
 def _calculate_output_name_map(source_artifacts, prefix_dir):
     """Calculates the output names for object file paths from a set of source files."""
