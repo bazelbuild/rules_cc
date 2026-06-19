@@ -5,9 +5,62 @@ load("@rules_testing//lib:analysis_test.bzl", "test_suite")
 load("@rules_testing//lib:truth.bzl", "matching")
 load("@rules_testing//lib:util.bzl", "TestingAspectInfo", "util")
 load("//cc:cc_library.bzl", "cc_library")
+load("//cc/common:cc_helper_internal.bzl", "artifact_name_pattern_overrides_from_toolchain_config", "get_artifact_name_for_category")
 load("//cc/common:cc_info.bzl", "CcInfo")
 load("//tests/cc/testutil:cc_analysis_test.bzl", "cc_analysis_test")
 load("//tests/cc/testutil:cc_info_subject.bzl", "cc_info_subject")
+
+def _test_get_artifact_name_for_category(env):
+    default_toolchain = struct(_artifact_name_pattern_overrides = {})
+    env.expect.that_str(
+        get_artifact_name_for_category(
+            cc_toolchain = default_toolchain,
+            category = "STATIC_LIBRARY",
+            output_name = "foo/bar",
+        ),
+    ).equals("foo/libbar.a")
+    env.expect.that_str(
+        get_artifact_name_for_category(
+            cc_toolchain = default_toolchain,
+            category = "EXECUTABLE",
+            output_name = "foo",
+        ),
+    ).equals("foo")
+    env.expect.that_str(
+        get_artifact_name_for_category(
+            cc_toolchain = default_toolchain,
+            category = "STATIC_LIBRARY",
+            output_name = "foo/baz/../bar",
+        ),
+    ).equals("foo/libbar.a")
+
+    toolchain_config = struct(
+        _artifact_name_patterns_DO_NOT_USE = [
+            struct(
+                category_name = "static_library",
+                extension = ".lib",
+                prefix = None,
+            ),
+            struct(
+                category_name = "object_file",
+                extension = ".o",
+                prefix = "",
+            ),
+        ],
+    )
+    configured_toolchain = struct(
+        _artifact_name_pattern_overrides = artifact_name_pattern_overrides_from_toolchain_config(toolchain_config),
+    )
+    env.expect.that_str(
+        get_artifact_name_for_category(
+            cc_toolchain = configured_toolchain,
+            category = "STATIC_LIBRARY",
+            output_name = "foo/bar",
+        ),
+    ).equals("foo/bar.lib")
+    env.expect.that_dict(configured_toolchain._artifact_name_pattern_overrides).contains_exactly({
+        "STATIC_LIBRARY": ("", ".lib"),
+    })
 
 def _test_same_cc_file_twice(name):
     util.helper_target(
@@ -508,5 +561,6 @@ def cc_common_tests(name):
         ])
     test_suite(
         name = name,
+        basic_tests = [_test_get_artifact_name_for_category],
         tests = tests,
     )
