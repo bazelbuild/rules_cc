@@ -5,7 +5,7 @@ load("@rules_testing//lib:analysis_test.bzl", "test_suite")
 load("@rules_testing//lib:truth.bzl", "matching")
 load("@rules_testing//lib:util.bzl", "TestingAspectInfo", "util")
 load("//cc:cc_library.bzl", "cc_library")
-load("//cc/common:cc_helper_internal.bzl", "artifact_name_pattern_overrides_from_toolchain_config", "get_artifact_name_for_category")
+load("//cc/common:cc_helper_internal.bzl", "artifact_name_pattern_overrides_from_toolchain_config", "get_artifact_name_extension_for_category", "get_artifact_name_for_category")
 load("//cc/common:cc_info.bzl", "CcInfo")
 load("//tests/cc/testutil:cc_analysis_test.bzl", "cc_analysis_test")
 load("//tests/cc/testutil:cc_info_subject.bzl", "cc_info_subject")
@@ -19,6 +19,12 @@ def _test_get_artifact_name_for_category(env):
             output_name = "foo/bar",
         ),
     ).equals("foo/libbar.a")
+    env.expect.that_str(
+        get_artifact_name_extension_for_category(
+            cc_toolchain = default_toolchain,
+            category = "OBJECT_FILE",
+        ),
+    ).equals(".o")
     env.expect.that_str(
         get_artifact_name_for_category(
             cc_toolchain = default_toolchain,
@@ -58,6 +64,12 @@ def _test_get_artifact_name_for_category(env):
             output_name = "foo/bar",
         ),
     ).equals("foo/bar.lib")
+    env.expect.that_str(
+        get_artifact_name_extension_for_category(
+            cc_toolchain = configured_toolchain,
+            category = "STATIC_LIBRARY",
+        ),
+    ).equals(".lib")
     env.expect.that_dict(configured_toolchain._artifact_name_pattern_overrides).contains_exactly({
         "STATIC_LIBRARY": ("", ".lib"),
     })

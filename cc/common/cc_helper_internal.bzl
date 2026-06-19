@@ -330,6 +330,21 @@ def get_artifact_name_for_category(*, cc_toolchain, category, output_name):
     artifact_name = prefix + paths.basename(normalized_output_name) + extension
     return paths.join(paths.dirname(normalized_output_name), artifact_name)
 
+def get_artifact_name_extension_for_category(*, cc_toolchain, category):
+    """Returns the cc_toolchain extension for category.
+
+    Args:
+      cc_toolchain: A CcToolchainInfo.
+      category: An artifact category name.
+
+    Returns:
+      The configured or default extension for category.
+    """
+    pattern = cc_toolchain._artifact_name_pattern_overrides.get(category)
+    if pattern != None:
+        return pattern[1]
+    return _ARTIFACT_CATEGORIES_BY_NAME[category].default_extension
+
 output_subdirectories = struct(
     OBJS = "_objs",
     PIC_OBJS = "_pic_objs",
