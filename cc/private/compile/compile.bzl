@@ -1581,10 +1581,9 @@ def _create_compile_source_action(
     if generate_dwo and not bitcode_output:
         dwo_file_name = paths.replace_extension(paths.basename(object_file.path), ".dwo")
 
-        dwo_file = _cc_internal.declare_other_output_file(
-            ctx = action_construction_context,
-            output_name = dwo_file_name,
-            object_file = object_file,
+        dwo_file = action_construction_context.actions.declare_file(
+            dwo_file_name,
+            sibling = object_file,
         )
 
     lto_indexing_file = None
@@ -1593,10 +1592,9 @@ def _create_compile_source_action(
             paths.basename(object_file.path),
             extensions.LTO_INDEXING_OBJECT_FILE[0],
         )
-        lto_indexing_file = _cc_internal.declare_other_output_file(
-            ctx = action_construction_context,
-            output_name = lto_indexing_file_name,
-            object_file = object_file,
+        lto_indexing_file = action_construction_context.actions.declare_file(
+            lto_indexing_file_name,
+            sibling = object_file,
         )
 
     complete_copts = get_copts(
