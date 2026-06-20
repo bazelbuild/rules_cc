@@ -98,4 +98,5 @@ FEATURE_NAMES = struct(
     preprocessor_defines = "preprocessor_defines",
     skip_virtual_includes = "skip_virtual_includes",
     no_dotd_file = "no_dotd_file",
+    has_configured_linker_path = "has_configured_linker_path",
 )
