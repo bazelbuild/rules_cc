@@ -28,6 +28,7 @@ def _create_fdo_context(
         zipper,
         cc_toolchain_config_info,
         coverage_enabled,
+        env,
         _fdo_prefetch_hints,
         _propeller_optimize,
         _memprof_profile,
@@ -186,6 +187,7 @@ def _create_fdo_context(
                 all_files,
                 zipper,
                 cc_toolchain_config_info,
+                env,
             )
         elif branch_fdo_mode in ["auto_fdo", "xbinary_fdo"]:
             profile_artifact = _symlink_input(
@@ -203,6 +205,7 @@ def _create_fdo_context(
                 all_files,
                 zipper,
                 cc_toolchain_config_info,
+                env,
             )
             cs_profile_artifact = _convert_llvm_raw_profile_to_indexed(
                 ctx,
@@ -212,6 +215,7 @@ def _create_fdo_context(
                 all_files,
                 zipper,
                 cc_toolchain_config_info,
+                env,
             )
             profile_artifact = _merge_llvm_profiles(
                 ctx,
@@ -254,7 +258,8 @@ def _convert_llvm_raw_profile_to_indexed(
         llvm_profdata,
         all_files,
         zipper,
-        cc_toolchain_config_info):
+        cc_toolchain_config_info,
+        env):
     """This function checks the input profile format and converts it to the indexed format (.profdata) if necessary."""
     basename = _basename(fdo_inputs)
     if basename.endswith(".profdata"):
@@ -312,6 +317,7 @@ def _convert_llvm_raw_profile_to_indexed(
         outputs = [profile_artifact],
         use_default_shell_env = True,
         progress_message = "LLVMProfDataAction: Generating %{output}",
+        env = env,
     )
 
     return profile_artifact
