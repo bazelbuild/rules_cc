@@ -16,13 +16,17 @@
 
 load("//cc/common:cc_common.bzl", "cc_common")
 
-def _check_toolchain_supports_objc_compile(ctx, cc_toolchain):
+def _check_toolchain_supports_objc_compile(ctx, cc_toolchain, requested_features = None, unsupported_features = None):
+    if requested_features == None:
+        requested_features = ctx.features
+    if unsupported_features == None:
+        unsupported_features = ctx.disabled_features
     feature_configuration = cc_common.configure_features(
         ctx = ctx,
         cc_toolchain = cc_toolchain,
         language = "objc",
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
+        requested_features = requested_features,
+        unsupported_features = unsupported_features,
     )
 
     if not cc_common.action_is_enabled(

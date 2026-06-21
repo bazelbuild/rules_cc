@@ -928,11 +928,13 @@ def _expand_make_variables_for_copts(ctx, tokenization, unexpanded_tokens, addit
                 tokens.append(_expand(ctx, token, additional_make_variable_substitutions, targets = targets))
     return tokens
 
-def _get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "copts"):
+def _get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "copts", requested_features = None):
     if not hasattr(ctx.attr, attr):
         fail("could not find rule attribute named: '{}'".format(attr))
+    if requested_features == None:
+        requested_features = ctx.features
     attribute_copts = getattr(ctx.attr, attr)
-    tokenization = not (cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "no_copts_tokenization") or "no_copts_tokenization" in ctx.features)
+    tokenization = not (cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "no_copts_tokenization") or "no_copts_tokenization" in requested_features)
     expanded_attribute_copts = _expand_make_variables_for_copts(ctx, tokenization, attribute_copts, additional_make_variable_substitutions)
     return expanded_attribute_copts
 

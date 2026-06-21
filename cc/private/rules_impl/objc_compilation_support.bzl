@@ -77,7 +77,13 @@ def _build_common_variables(
         extra_enabled_features = [],
         attr_linkopts = [],
         alwayslink = False,
-        direct_cc_compilation_contexts = []):
+        direct_cc_compilation_contexts = [],
+        requested_features = None,
+        unsupported_features = None):
+    if requested_features == None:
+        requested_features = ctx.features
+    if unsupported_features == None:
+        unsupported_features = ctx.disabled_features
     compilation_attributes = _create_compilation_attributes(ctx = ctx)
     intermediate_artifacts = create_intermediate_artifacts(ctx = ctx)
     if empty_compilation_artifacts:
@@ -112,7 +118,9 @@ def _build_common_variables(
         extra_enabled_features = extra_enabled_features,
         objc_compilation_context = objc_compilation_context,
         objc_linking_context = objc_linking_context,
+        requested_features = requested_features,
         toolchain = toolchain,
+        unsupported_features = unsupported_features,
         alwayslink = alwayslink,
         use_pch = use_pch,
         objc_config = ctx.fragments.objc,
@@ -120,14 +128,12 @@ def _build_common_variables(
     )
 
 def _build_feature_configuration(common_variables, support_parse_headers):
-    ctx = common_variables.ctx
-
     enabled_features = []
-    enabled_features.extend(ctx.features)
+    enabled_features.extend(common_variables.requested_features)
     enabled_features.extend(common_variables.extra_enabled_features)
 
     disabled_features = []
-    disabled_features.extend(ctx.disabled_features)
+    disabled_features.extend(common_variables.unsupported_features)
     disabled_features.extend(common_variables.extra_disabled_features)
 
     if not support_parse_headers:
