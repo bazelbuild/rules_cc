@@ -13,6 +13,7 @@
 # limitations under the License.
 """Rules for configuring the C++ toolchain (experimental)."""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load(
     ":lib_cc_configure.bzl",
     "get_cpu_value",
@@ -26,6 +27,10 @@ def _should_disable_toolchain(repository_ctx):
     env = repository_ctx.os.environ
     if env.get("BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN") == "1":
         return True
+
+    # Keep macOS toolchain before bazel 9.x
+    if not bazel_features.cc.cc_common_is_in_rules_cc:
+        return False
 
     macos_legacy_support = env.get("BAZEL_USE_LEGACY_MACOS_TOOLCHAIN", "0") == "1"
     if repository_ctx.os.name.startswith("mac os") and not macos_legacy_support:

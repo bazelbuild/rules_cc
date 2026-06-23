@@ -59,9 +59,6 @@ cd "$scratch_workspace"
 cat > MODULE.bazel << EOF
 module(name = "test_module")
 
-# TODO: Remove when we drop bazel 8.x support
-# Bring in macOS toolchain for basic testing
-bazel_dep(name = "apple_support", version = "2.6.1")
 bazel_dep(name = "rules_cc", version = "0.0.0")
 local_path_override(
     module_name = "rules_cc",
