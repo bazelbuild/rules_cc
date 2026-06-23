@@ -34,11 +34,6 @@ load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
 load("@rules_cc//cc/toolchains:feature_injection.bzl", "FeatureInfo", "convert_feature")
 
-def _target_os_version(ctx):
-    platform_type = ctx.fragments.apple.single_arch_platform.platform_type
-    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
-    return xcode_config.minimum_os_for_platform_type(platform_type)
-
 def layering_check_features(compiler, extra_flags_per_feature, is_macos):
     if compiler != "clang":
         return []
@@ -1769,19 +1764,6 @@ def _impl(ctx):
         ],
     )
 
-    # If you have Xcode + the CLT installed the version defaults can be
-    # too old for some standard C apis such as thread locals
-    macos_minimum_os_feature = feature(
-        name = "macos_minimum_os",
-        enabled = True,
-        flag_sets = [
-            flag_set(
-                actions = all_compile_actions + all_link_actions,
-                flag_groups = [flag_group(flags = ["-mmacosx-version-min={}".format(_target_os_version(ctx))])],
-            ),
-        ],
-    )
-
     macos_reproducible_feature = feature(
         name = "macos_reproducible",
         enabled = "macos_reproducible" in ctx.features,
@@ -1963,7 +1945,6 @@ def _impl(ctx):
             cpp_modules_feature,
             cpp_module_modmap_file_feature,
             cpp20_module_compile_flags_feature,
-            macos_minimum_os_feature,
             macos_reproducible_feature,
             macos_default_link_flags_feature,
             dependency_file_feature,
@@ -2083,11 +2064,7 @@ This is only offered as a migration bridge for projects transitioning to rule-ba
         "tool_paths": attr.string_dict(),
         "toolchain_identifier": attr.string(mandatory = True),
         "unfiltered_compile_flags": attr.string_list(),
-        "_xcode_config": attr.label(default = configuration_field(
-            fragment = "apple",
-            name = "xcode_config_label",
-        )),
     },
-    fragments = ["apple", "cpp"],
+    fragments = ["cpp"],
     provides = [CcToolchainConfigInfo],
 )
