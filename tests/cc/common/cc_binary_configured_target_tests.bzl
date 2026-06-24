@@ -1799,6 +1799,62 @@ def _test_coverage_support_always_provided_impl(env, target):
             matching.file_basename_equals("coverage-file"),
         )
 
+def _test_thin_lto(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/hello",
+        srcs = ["hello.cc"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_thin_lto_impl,
+        target = name + "/hello",
+        test_features = ["thin_lto", "supports_start_end_lib"],
+        **kwargs
+    )
+
+def _test_thin_lto_impl(env, target):
+    actions = target[TestingAspectInfo].actions
+
+    compile_actions = [a for a in actions if a.mnemonic == "CppCompile"]
+    thin_lto_compile_actions = [a for a in compile_actions if "-flto=thin" in a.argv]
+    env.expect.that_collection(thin_lto_compile_actions).is_not_empty()
+
+    lto_indexing_actions = [a for a in actions if a.mnemonic == "CppLTOIndexing"]
+    env.expect.that_collection(lto_indexing_actions).has_size(1)
+
+    lto_backend_actions = [a for a in actions if a.mnemonic == "CcLtoBackendCompile"]
+    env.expect.that_collection(lto_backend_actions).is_not_empty()
+
+def _test_thin_lto_disabled(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/hello",
+        srcs = ["hello.cc"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_thin_lto_disabled_impl,
+        target = name + "/hello",
+        with_features = ["thin_lto", "supports_start_end_lib"],
+        test_features = ["-thin_lto", "supports_start_end_lib"],
+        **kwargs
+    )
+
+def _test_thin_lto_disabled_impl(env, target):
+    actions = target[TestingAspectInfo].actions
+
+    compile_actions = [a for a in actions if a.mnemonic == "CppCompile"]
+    env.expect.that_collection(compile_actions).is_not_empty()
+    thin_lto_compile_actions = [a for a in compile_actions if "-flto=thin" in a.argv]
+    env.expect.that_collection(thin_lto_compile_actions).is_empty()
+
+    lto_indexing_actions = [a for a in actions if a.mnemonic == "CppLTOIndexing"]
+    env.expect.that_collection(lto_indexing_actions).is_empty()
+
+    lto_backend_actions = [a for a in actions if a.mnemonic == "CcLtoBackendCompile"]
+    env.expect.that_collection(lto_backend_actions).is_empty()
+
 def cc_binary_configured_target_tests(name):
     """Creates the test suite for cc_binary tests.
 
@@ -1837,6 +1893,8 @@ def cc_binary_configured_target_tests(name):
         _test_link_shared_does_not_have_to_provide_extension,
         _test_pdb_files,
         _test_coverage_support_always_provided,
+        _test_thin_lto,
+        _test_thin_lto_disabled,
     ]
 
     # sanitize_pwd is implemented in Starlark in rules_cc, requires Bazel 9+.
