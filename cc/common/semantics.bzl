@@ -22,9 +22,6 @@ USE_EXEC_ROOT_FOR_VIRTUAL_INCLUDES_SYMLINKS = False
 # TODO: b/142314377 - Cleanup this temporary flag.
 STRIP_INCLUDE_PREFIX_APPLIES_TO_TEXTUAL_HEADERS = True
 
-def _get_proto_aspects():
-    return []
-
 def _validate_attributes(_ctx):
     pass
 
@@ -197,7 +194,6 @@ semantics = struct(
     get_cc_runtimes_copts = _get_cc_runtimes_copts,
     get_coverage_attrs = _get_coverage_attrs,
     get_coverage_env = _get_coverage_env,
-    get_proto_aspects = _get_proto_aspects,
     get_nocopts_attr = _get_nocopts_attr,
     get_experimental_link_static_libraries_once = _get_experimental_link_static_libraries_once,
     cpp_modules_tools = _cpp_modules_tools,
