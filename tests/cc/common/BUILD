@@ -1,4 +1,5 @@
 load(":cc_binary_configured_target_tests.bzl", "cc_binary_configured_target_tests")
+load(":cc_binary_thin_lto_tests.bzl", "cc_binary_thin_lto_tests")
 load(":cc_common_test.bzl", "cc_common_tests")
 load(":cc_fdo_env_test.bzl", "cc_fdo_env_tests")
 load(":cc_import_configured_target_tests.bzl", "cc_import_configured_target_tests")
@@ -7,6 +8,8 @@ load(":cc_objc_library_configured_target_tests.bzl", "cc_objc_library_configured
 load(":debug_info_packaging_test.bzl", "debug_info_packaging_tests")
 
 cc_binary_configured_target_tests(name = "cc_binary_configured_target_tests")
+
+cc_binary_thin_lto_tests(name = "cc_binary_thin_lto_tests")
 
 cc_common_tests(name = "cc_common_tests")
 

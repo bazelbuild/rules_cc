@@ -1442,6 +1442,8 @@ _feature_name_to_feature = {
     "simple_thin_lto": _simple_thin_lto_feature,
     "extra_implies_module_maps": _extra_implies_module_maps_feature,
     "layering_check_module_maps_header_modules_simple_features": _layering_check_module_maps_header_modules_simple_features,
+    FEATURE_NAMES.env_feature: _env_feature,
+    FEATURE_NAMES.static_env_feature: _static_env_feature,
 }
 
 _cc_flags_action_config_foo_bar_baz_config = action_config(
