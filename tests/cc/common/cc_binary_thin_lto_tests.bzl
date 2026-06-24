@@ -772,6 +772,281 @@ def _verify_dwos_in_dwp(env, dwp_action, targets, expected_dwos):
     expected_dict = {dwo: True for dwo in expected_dwos}
     env.expect.that_dict(dwo_found).contains_exactly(expected_dict)
 
+def _test_linkstatic_cc_test(name, **kwargs):
+    util.helper_target(
+        cc_library,
+        name = name + "/lib",
+        srcs = ["bye.cc"],
+        hdrs = ["bye.h"],
+        linkstamp = "linkstamp.cc",
+    )
+    util.helper_target(
+        cc_test,
+        name = name + "/bin_test",
+        srcs = ["hello.cc"],
+        deps = [":" + name + "/lib"],
+        linkstatic = 1,
+    )
+    util.helper_target(
+        cc_test,
+        name = name + "/bin_test2",
+        srcs = ["hello.cc"],
+        deps = [":" + name + "/lib"],
+        linkstatic = 1,
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_linkstatic_cc_test_impl,
+        targets = {
+            "bin1": name + "/bin_test",
+            "bin2": name + "/bin_test2",
+            "lib": name + "/lib",
+        },
+        test_features = [
+            "thin_lto",
+            "supports_pic",
+            "supports_start_end_lib",
+            "thin_lto_linkstatic_tests_use_shared_nonlto_backends",
+            "per_object_debug_info",
+            "user_compile_flags",
+        ],
+        config_settings = {
+            "//command_line_option:linkopt": ["alinkopt"],
+        },
+        **kwargs
+    )
+
+def _test_linkstatic_cc_test_impl(env, targets):
+    bin1_target = targets.bin1
+    bin2_target = targets.bin2
+    lib_target = targets.lib
+
+    package = bin1_target.label.package
+    bin1_name = bin1_target.label.name
+    bin2_name = bin2_target.label.name
+    lib_name = lib_target.label.name
+    bindir = bin1_target[TestingAspectInfo].bin_path
+
+    lib_obj_path = "shared.nonlto/{bindir}/{package}/_objs/{lib_target_name}/bye.pic.o".format(
+        bindir = bindir,
+        package = package,
+        lib_target_name = lib_name,
+    )
+
+    bin1_obj_path = "shared.nonlto/{bindir}/{package}/_objs/{bin1_target_name}/hello.pic.o".format(
+        bindir = bindir,
+        package = package,
+        bin1_target_name = bin1_name,
+    )
+
+    bin1_backend_action = env.expect.that_target(bin1_target).action_generating(bin1_obj_path)
+    bin1_backend_action.mnemonic().equals("CcLtoBackendCompile")
+    bin1_backend_action.argv().not_contains("alinkopt")
+
+    lib_backend_action = env.expect.that_target(lib_target).action_generating(lib_obj_path)
+    lib_backend_action.mnemonic().equals("CcLtoBackendCompile")
+    lib_backend_action.argv().contains("-fPIC")
+    lib_backend_action.argv().not_contains("alinkopt")
+
+    bin1_subject = cc_binary_target_subject.from_target(env, bin1_target)
+    bin1_executable = "{package}/{name}".format(package = package, name = bin1_name)
+    bin1_link_action = bin1_subject.action_generating(bin1_executable)
+    bin1_link_action.inputs().contains(lib_obj_path)
+
+    bin2_subject = cc_binary_target_subject.from_target(env, bin2_target)
+    bin2_executable = "{package}/{name}".format(package = package, name = bin2_name)
+    bin2_link_action = bin2_subject.action_generating(bin2_executable)
+    bin2_link_action.inputs().contains(lib_obj_path)
+
+def _test_test_only_target(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = ["hello.cc"],
+        testonly = 1,
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_test_only_target_impl,
+        target = name + "/bin",
+        test_features = [
+            "thin_lto",
+            "supports_pic",
+            "supports_start_end_lib",
+            "thin_lto_linkstatic_tests_use_shared_nonlto_backends",
+            "user_compile_flags",
+        ],
+        config_settings = {
+            "//command_line_option:linkopt": ["alinkopt"],
+        },
+        **kwargs
+    )
+
+def _test_test_only_target_impl(env, target):
+    package = target.label.package
+    name = target.label.name
+    bindir = target[TestingAspectInfo].bin_path
+
+    obj_path = "shared.nonlto/{bindir}/{package}/_objs/{name}/hello.pic.o".format(
+        bindir = bindir,
+        package = package,
+        name = name,
+    )
+
+    backend_action = env.expect.that_target(target).action_generating(obj_path)
+    backend_action.mnemonic().equals("CcLtoBackendCompile")
+    backend_action.argv().not_contains("alinkopt")
+
+def _test_use_shared_all_linkstatic(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = ["hello.cc"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_use_shared_all_linkstatic_impl,
+        target = name + "/bin",
+        test_features = [
+            "thin_lto",
+            "supports_pic",
+            "supports_start_end_lib",
+            "thin_lto_all_linkstatic_use_shared_nonlto_backends",
+            "user_compile_flags",
+        ],
+        config_settings = {
+            "//command_line_option:linkopt": ["alinkopt"],
+        },
+        **kwargs
+    )
+
+def _test_use_shared_all_linkstatic_impl(env, target):
+    package = target.label.package
+    name = target.label.name
+    bindir = target[TestingAspectInfo].bin_path
+
+    obj_path = "shared.nonlto/{bindir}/{package}/_objs/{name}/hello.pic.o".format(
+        bindir = bindir,
+        package = package,
+        name = name,
+    )
+
+    backend_action = env.expect.that_target(target).action_generating(obj_path)
+    backend_action.mnemonic().equals("CcLtoBackendCompile")
+    backend_action.argv().not_contains("alinkopt")
+
+def _test_assembler_source(name, **kwargs):
+    s_file = util.empty_file(name + "_tracing.S")
+    util.helper_target(
+        cc_library,
+        name = name + "/lib",
+        srcs = ["bye.cc", s_file],
+        hdrs = ["bye.h"],
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = ["hello.cc"],
+        deps = [":" + name + "/lib"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_assembler_source_impl,
+        targets = {
+            "bin": name + "/bin",
+            "lib": name + "/lib",
+        },
+        test_features = ["thin_lto", "supports_pic", "supports_start_end_lib"],
+        **kwargs
+    )
+
+def _test_assembler_source_impl(env, targets):
+    bin_target = targets.bin
+    lib_target = targets.lib
+
+    package = bin_target.label.package
+    name = bin_target.label.name
+
+    test_name = name.split("/")[0]
+    lib_target_name = test_name + "/lib"
+    s_file_name = test_name + "_tracing"
+
+    obj_path = "{package}/_objs/{lib_target_name}/{s_file_name}.pic.o".format(
+        package = package,
+        lib_target_name = lib_target_name,
+        s_file_name = s_file_name,
+    )
+
+    compile_action = env.expect.that_target(lib_target).action_generating(obj_path)
+    compile_action.mnemonic().equals("CppCompile")
+
+    binary_target = cc_binary_target_subject.from_target(env, bin_target)
+    link_action = binary_target.action_generating("{package}/{name}{binary_extension}")
+    link_action.inputs().contains(obj_path)
+
+# Make sure we don't choke on a cc_library without sources and therefore, without bitcode files.
+def _test_no_source_files(name, **kwargs):
+    a_file = util.empty_file(name + "_static.a")
+    util.helper_target(
+        cc_library,
+        name = name + "/lib",
+        srcs = [a_file],
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = ["hello.cc"],
+        deps = [":" + name + "/lib"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_no_source_files_impl,
+        target = name + "/bin",
+        test_features = ["thin_lto", "supports_pic", "supports_start_end_lib"],
+        **kwargs
+    )
+
+def _test_no_source_files_impl(env, target):
+    env.expect.that_str(target.label.name).ends_with("bin")
+
+def _test_fdo_instrument(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = ["hello.cc"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_fdo_instrument_impl,
+        target = name + "/bin",
+        test_features = ["thin_lto", "supports_pic", "supports_start_end_lib"],
+        with_features = ["thin_lto", "supports_pic", "supports_start_end_lib", "fdo_instrument"],
+        config_settings = {
+            "//command_line_option:fdo_instrument": "profiles",
+        },
+        **kwargs
+    )
+
+def _test_fdo_instrument_impl(env, target):
+    package = target.label.package
+    name = target.label.name
+    bindir = target[TestingAspectInfo].bin_path
+
+    obj_path = "{package}/{name}.lto/{bindir}/{package}/_objs/{name}/hello.pic.o".format(
+        package = package,
+        name = name,
+        bindir = bindir,
+    )
+
+    backend_action = env.expect.that_target(target).action_generating(obj_path)
+    backend_action.mnemonic().equals("CcLtoBackendCompile")
+
+    # If the LtoBackendAction incorrectly tries to add the fdo_instrument
+    # feature, we will fail with an "unknown variable 'fdo_instrument_path'"
+    # error. But let's also explicitly confirm that the fdo_instrument
+    # option didn't end up here.
+    backend_action.argv().not_contains("fdo_instrument_option")
+
 def cc_binary_thin_lto_tests(name):
     """TestSuite for cc_binary with ThinLTO.
 
@@ -787,10 +1062,18 @@ def cc_binary_thin_lto_tests(name):
     tests.append(_test_thin_lto_no_linkstatic_fission)
     tests.append(_test_thin_lto_linkstatic_cc_test_fission)
 
+    # Batch 2 tests (run always)
+    tests.append(_test_assembler_source)
+    tests.append(_test_no_source_files)
+    tests.append(_test_fdo_instrument)
+
     # These tests fail on Bazel 7 and 8, run only for Bazel 9+.
     if bazel_features.cc.cc_common_is_in_rules_cc:
         tests.append(_test_thin_lto_linkshared)
         tests.append(_test_thin_lto_backend_env)
+        tests.append(_test_linkstatic_cc_test)
+        tests.append(_test_test_only_target)
+        tests.append(_test_use_shared_all_linkstatic)
 
     test_suite(
         name = name,
