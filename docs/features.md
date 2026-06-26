@@ -312,7 +312,7 @@ Bazel / `rules_cc` have many special features for LTO behavior:
 - `no_use_lto_indexing_bitcode_file` read the source
 - `use_lto_native_object_directory` read the source
 
-These feature must be enabled if desired.
+These features must be enabled if desired.
 
 ### `module_maps`
 
