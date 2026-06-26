@@ -33,6 +33,13 @@ load(
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
 load("@rules_cc//cc/toolchains:feature_injection.bzl", "FeatureInfo", "convert_feature")
+load("@bazel_features//private:util.bzl", "ge")
+
+def _cpp_module_extension(compiler):
+    """Returns the BMI/CMI file extension for cpp_module artifact_name_pattern."""
+    if compiler == "gcc" and ge("9.0.0"):
+        return ".gcm"
+    return ".pcm"
 
 def layering_check_features(compiler, extra_flags_per_feature, is_macos):
     if compiler != "clang":
@@ -1876,7 +1883,7 @@ def _impl(ctx):
             artifact_name_pattern(
                 category_name = "cpp_module",
                 prefix = "",
-                extension = ".pcm",
+                extension = _cpp_module_extension(ctx.attr.compiler),
             ),
         ]
         features = [
