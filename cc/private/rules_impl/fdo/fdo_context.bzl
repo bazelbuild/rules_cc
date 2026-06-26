@@ -267,6 +267,8 @@ def _create_fdo_context(
         propeller_optimize_info = propeller_optimize_info,
         memprof_profile_artifact = memprof_profile_artifact,
         proto_profile_artifact = proto_profile_artifact,
+        fdo_profile_changelist = getattr(fdo_inputs, "changelist", None) if fdo_inputs else None,
+        memprof_profile_changelist = getattr(mem_prof_profile, "changelist", None) if mem_prof_profile else None,
     )
 
 def _convert_llvm_raw_profile_to_indexed(

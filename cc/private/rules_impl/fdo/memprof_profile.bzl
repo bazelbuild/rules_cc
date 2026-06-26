@@ -16,11 +16,14 @@
 
 MemProfProfileInfo = provider(
     doc = "Contains the memprof profile",
-    fields = ["artifact"],
+    fields = ["artifact", "changelist"],
 )
 
 def _impl(ctx):
-    return MemProfProfileInfo(artifact = ctx.file.profile)
+    return MemProfProfileInfo(
+        artifact = ctx.file.profile,
+        changelist = ctx.attr.changelist,
+    )
 
 memprof_profile = rule(
     implementation = _impl,
@@ -45,6 +48,10 @@ either a .profdata extension (for an indexed/symbolized memprof
 profile), or a .zip extension for a zipfile containing a memprof.profdata
 file.
 The label can also point to an fdo_absolute_path_profile rule.""",
+        ),
+        "changelist": attr.string(
+            doc = "The profile generation CL version.",
+            default = "0",
         ),
     },
     provides = [MemProfProfileInfo],

@@ -51,6 +51,18 @@ cc_variable(
 )
 
 cc_variable(
+    name = "fdo_profile_changelist",
+    actions = ["//cc/toolchains/actions:source_compile_actions"],
+    type = types.option(types.string),
+)
+
+cc_variable(
+    name = "memprof_profile_changelist",
+    actions = ["//cc/toolchains/actions:source_compile_actions"],
+    type = types.option(types.string),
+)
+
+cc_variable(
     name = "fdo_profile_path",
     actions = ["//cc/toolchains/actions:compile_actions"],
     type = types.option(types.file),
@@ -578,6 +590,7 @@ cc_builtin_variables(
         ":external_include_paths",
         ":fdo_instrument_path",
         ":fdo_prefetch_hints_path",
+        ":fdo_profile_changelist",
         ":fdo_profile_path",
         ":filelist",
         ":force_load_exec_paths",
@@ -605,6 +618,7 @@ cc_builtin_variables(
         ":linkmap_exec_path",
         ":linkstamp_paths",
         ":lto_indexing_bitcode_file",
+        ":memprof_profile_changelist",
         ":module_files",
         ":module_map_file",
         ":module_name",
