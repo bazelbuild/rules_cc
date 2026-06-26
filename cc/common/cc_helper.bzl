@@ -208,6 +208,13 @@ def _build_output_groups_for_emitting_compile_providers(
     else:
         output_groups_builder["module_files"] = depset(compilation_outputs._module_files)
 
+    # Add trace JSON files to output groups
+    if hasattr(compilation_outputs, "_trace_files") and compilation_outputs._trace_files:
+        output_groups_builder["trace_files"] = depset(compilation_outputs._trace_files)
+    if hasattr(compilation_outputs, "_pic_trace_files") and compilation_outputs._pic_trace_files:
+        pic_trace_group = output_groups_builder.get("trace_files", depset())
+        output_groups_builder["trace_files"] = depset(transitive = [pic_trace_group, depset(compilation_outputs._pic_trace_files)])
+
     if generate_hidden_top_level_group:
         output_groups_builder["_hidden_top_level_INTERNAL_"] = _collect_library_hidden_top_level_artifacts(
             ctx,

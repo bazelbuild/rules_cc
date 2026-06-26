@@ -343,7 +343,6 @@ def get_specific_compile_build_variables(
         # TODO: Blaze currently uses `gcov_gcno_file` to detect if code coverage
         # is enabled. It should use a different signal.
         result[_VARS.GCOV_GCNO_FILE] = ""
-
     if dwo_file:
         result[_VARS.PER_OBJECT_DEBUG_INFO_FILE] = dwo_file
     if using_fission:
