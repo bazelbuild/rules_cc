@@ -579,6 +579,7 @@ def _create_scan_deps_action(
         compile_build_variables = compile_variables,
         action_name = ACTION_NAMES.cpp_module_deps_scanning,
         toolchain_type = _starlark_cc_semantics.toolchain,
+        needs_include_validation = _starlark_cc_semantics.needs_include_validation(language),
         progress_message_prefix = progress_message_prefix,
     )
 
@@ -2319,11 +2320,22 @@ def _create_compile_action(
         progress_message_prefix = None,
         source = None,
         toolchain_type = None,
-        use_pic = False):
+        use_pic = False,
+        additional_outputs = [],
+        module_files = None,
+        modmap_file = None,
+        modmap_input_file = None):
     # TODO(bgorshenev): use bazel_features checks
     version_dependent_kwargs = {}
     if progress_message_prefix:
         version_dependent_kwargs["progress_message_prefix"] = progress_message_prefix
+    if additional_outputs:
+        version_dependent_kwargs["additional_outputs"] = additional_outputs
+    if modmap_file:
+        version_dependent_kwargs["module_files"] = module_files
+        version_dependent_kwargs["modmap_file"] = modmap_file
+        version_dependent_kwargs["modmap_input_file"] = modmap_input_file
+
     return _cc_internal.create_cc_compile_action(
         action_construction_context = action_construction_context,
         action_name = action_name,
