@@ -18,7 +18,7 @@ load("//cc:cc_postmark.bzl", "postmark")
 load("//cc:find_cc_toolchain.bzl", "find_cc_toolchain")
 load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/common:cc_debug_helper.bzl", "create_debug_packager_actions")
-load("//cc/common:cc_helper.bzl", "cc_helper", "linker_mode")
+load("//cc/common:cc_helper.bzl", "artifact_category", "cc_helper", "linker_mode")
 load("//cc/common:cc_info.bzl", "CcInfo")
 load("//cc/common:debug_package_info.bzl", "DebugPackageInfo")
 load("//cc/common:semantics.bzl", "semantics")
@@ -466,11 +466,10 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
 
     precompiled_files = cc_helper.build_precompiled_files(ctx)
     link_target_type = _EXECUTABLE
+    linked_artifact_category = artifact_category.EXECUTABLE
     if _is_link_shared(ctx):
         link_target_type = _DYNAMIC_LIBRARY
-    is_dynamic_link_type = True
-    if link_target_type == _EXECUTABLE:
-        is_dynamic_link_type = False
+        linked_artifact_category = artifact_category.DYNAMIC_LIBRARY
     semantics.validate_attributes(ctx)
 
     # TODO(b/198254254): Fill in empty providers if needed.
@@ -491,7 +490,7 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
         binary = cc_helper.get_linked_artifact(
             ctx = ctx,
             cc_toolchain = cc_toolchain,
-            is_dynamic_link_type = is_dynamic_link_type,
+            linked_artifact_category = linked_artifact_category,
         )
     linking_mode = _get_link_staticness(
         ctx,

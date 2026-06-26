@@ -86,18 +86,13 @@ def _get_base_name(name):
         return name
     return name[last_slash + 1:]
 
-def _get_artifact_name_for_category(cc_toolchain, is_dynamic_link_type, output_name):
-    linked_artifact_category = None
-    if is_dynamic_link_type:
-        linked_artifact_category = artifact_category.DYNAMIC_LIBRARY
-    else:
-        linked_artifact_category = artifact_category.EXECUTABLE
-
-    return cc_common.get_artifact_name_for_category(cc_toolchain = cc_toolchain, category = linked_artifact_category, output_name = output_name)
-
-def _get_linked_artifact(ctx, cc_toolchain, is_dynamic_link_type):
+def _get_linked_artifact(ctx, cc_toolchain, linked_artifact_category):
     name = ctx.label.name
-    new_name = _get_artifact_name_for_category(cc_toolchain, is_dynamic_link_type, _get_base_name(name))
+    new_name = cc_common.get_artifact_name_for_category(
+        cc_toolchain = cc_toolchain,
+        category = linked_artifact_category,
+        output_name = _get_base_name(name),
+    )
     name = _replace_name(name, new_name)
 
     return ctx.actions.declare_file(name)
