@@ -16,6 +16,7 @@ load(
     "make_variable",
     "tool",
     "tool_path",
+    "variable_with_value",
     "with_feature_set",
 )
 load("//cc:action_names.bzl", "ACTION_NAMES")
@@ -1340,7 +1341,91 @@ _generate_linkmap_feature = feature(
 
 _no_dotd_file_feature = feature(name = FEATURE_NAMES.no_dotd_file)
 
+_force_pic_flags_feature = feature(
+    name = FEATURE_NAMES.force_pic_flags,
+    enabled = True,
+    flag_sets = [
+        flag_set(
+            actions = [
+                ACTION_NAMES.cpp_link_executable,
+                ACTION_NAMES.cpp_link_dynamic_library,
+                ACTION_NAMES.cpp_link_nodeps_dynamic_library,
+            ],
+            flag_groups = [
+                flag_group(
+                    expand_if_available = "force_pic",
+                    flags = ["--force-pic-flag"],
+                ),
+            ],
+        ),
+    ],
+)
+
+_libraries_to_link_feature = feature(
+    name = FEATURE_NAMES.libraries_to_link,
+    enabled = True,
+    flag_sets = [
+        flag_set(
+            actions = [
+                ACTION_NAMES.cpp_link_executable,
+                ACTION_NAMES.cpp_link_dynamic_library,
+                ACTION_NAMES.cpp_link_nodeps_dynamic_library,
+            ],
+            flag_groups = [
+                flag_group(
+                    iterate_over = "libraries_to_link",
+                    flag_groups = [
+                        flag_group(
+                            expand_if_equal = variable_with_value(
+                                name = "libraries_to_link.type",
+                                value = "object_file",
+                            ),
+                            flags = ["--library-to-link=%{libraries_to_link.name}"],
+                        ),
+                        flag_group(
+                            expand_if_equal = variable_with_value(
+                                name = "libraries_to_link.type",
+                                value = "dynamic_library",
+                            ),
+                            flags = ["--library-to-link=%{libraries_to_link.name}"],
+                        ),
+                        flag_group(
+                            expand_if_equal = variable_with_value(
+                                name = "libraries_to_link.type",
+                                value = "versioned_dynamic_library",
+                            ),
+                            flags = ["--library-to-link=%{libraries_to_link.name}"],
+                        ),
+                        flag_group(
+                            expand_if_equal = variable_with_value(
+                                name = "libraries_to_link.type",
+                                value = "static_library",
+                            ),
+                            flags = ["--library-to-link=%{libraries_to_link.name}"],
+                        ),
+                        flag_group(
+                            expand_if_equal = variable_with_value(
+                                name = "libraries_to_link.type",
+                                value = "object_file_group",
+                            ),
+                            flag_groups = [
+                                flag_group(
+                                    expand_if_available = "libraries_to_link.object_files",
+                                    iterate_over = "libraries_to_link.object_files",
+                                    flags = ["--object-file-to-link=%{libraries_to_link.object_files}"],
+                                ),
+                            ],
+                        ),
+                    ],
+                ),
+            ],
+        ),
+    ],
+)
+
 _feature_name_to_feature = {
+    FEATURE_NAMES.force_pic_flags: _force_pic_flags_feature,
+    FEATURE_NAMES.libraries_to_link: _libraries_to_link_feature,
     FEATURE_NAMES.cpp_modules: _cpp_modules_feature,
     FEATURE_NAMES.no_legacy_features: _no_legacy_features_feature,
     FEATURE_NAMES.do_not_split_linking_cmdline: _do_not_split_linking_cmdline_feature,

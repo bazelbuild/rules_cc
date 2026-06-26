@@ -99,4 +99,6 @@ FEATURE_NAMES = struct(
     skip_virtual_includes = "skip_virtual_includes",
     no_dotd_file = "no_dotd_file",
     llvm_profdata_env = "llvm_profdata_env",
+    force_pic_flags = "force_pic_flags",
+    libraries_to_link = "libraries_to_link",
 )
