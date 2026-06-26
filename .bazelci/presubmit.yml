@@ -82,6 +82,9 @@ tasks:
     name: MacOS Intel (Bazel HEAD)
     bazel: last_green
     platform: macos
+    environment:
+      ANDROID_HOME: ""
+      ANDROID_NDK_HOME: ""
     build_targets: *build_targets
     test_targets: *test_targets
     test_flags: *macos_test_flags
@@ -113,6 +116,9 @@ tasks:
     name: MacOS Intel (Bazel rolling)
     bazel: rolling
     platform: macos
+    environment:
+      ANDROID_HOME: ""
+      ANDROID_NDK_HOME: ""
     build_targets: *build_targets
     test_targets: *test_targets
     test_flags: *macos_test_flags
