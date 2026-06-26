@@ -1210,11 +1210,30 @@ _uses_ifso_variables_feature = feature(
     enabled = True,
     flag_sets = [
         flag_set(
-            actions = [ACTION_NAMES.cpp_link_dynamic_library],
+            actions = [
+                ACTION_NAMES.cpp_link_dynamic_library,
+                ACTION_NAMES.cpp_link_nodeps_dynamic_library,
+                ACTION_NAMES.cpp_link_static_library,
+                "lto-index-for-executable",
+                "lto-index-for-dynamic-library",
+                "lto-index-for-nodeps-dynamic-library",
+            ],
             flag_groups = [
                 flag_group(
                     expand_if_available = "generate_interface_library",
-                    flags = ["--generate_interface_library_was_available"],
+                    flags = ["--generate-interface-library=%{generate_interface_library}"],
+                ),
+                flag_group(
+                    expand_if_available = "interface_library_builder_path",
+                    flags = ["--interface-library-builder=%{interface_library_builder_path}"],
+                ),
+                flag_group(
+                    expand_if_available = "interface_library_input_path",
+                    flags = ["--interface-library-input=%{interface_library_input_path}"],
+                ),
+                flag_group(
+                    expand_if_available = "interface_library_output_path",
+                    flags = ["--interface-library-output=%{interface_library_output_path}"],
                 ),
             ],
         ),
