@@ -304,7 +304,7 @@ target level.
 
 ### LTO features
 
-Bazel / `rules_cc` have a man special features for LTO behavior:
+Bazel / `rules_cc` have many special features for LTO behavior:
 
 - `thin_lto` top level feature that is also used by users
 - `thin_lto_all_linkstatic_use_shared_nonlto_backends` read the source
