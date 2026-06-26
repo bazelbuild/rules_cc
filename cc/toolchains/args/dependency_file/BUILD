@@ -10,7 +10,10 @@ cc_feature(
 
 cc_args(
     name = "flags",
-    actions = ["//cc/toolchains/actions:compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:compile_actions",
+        "//cc/toolchains/actions:cpp20_module_actions",
+    ],
     args = [
         "-MD",
         "-MF",
