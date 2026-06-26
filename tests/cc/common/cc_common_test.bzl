@@ -4,6 +4,7 @@ load("@bazel_features//:features.bzl", "bazel_features")
 load("@rules_testing//lib:analysis_test.bzl", "test_suite")
 load("@rules_testing//lib:truth.bzl", "matching")
 load("@rules_testing//lib:util.bzl", "TestingAspectInfo", "util")
+load("//cc:cc_binary.bzl", "cc_binary")
 load("//cc:cc_library.bzl", "cc_library")
 load("//cc/common:cc_info.bzl", "CcInfo")
 load("//tests/cc/testutil:cc_analysis_test.bzl", "cc_analysis_test")
@@ -442,6 +443,182 @@ def _test_expanded_defines_duplicate_targets_impl(env, target):
     )
     cc_info_subject.from_target(env, target).compilation_context().defines().contains_exactly([expected])
 
+def _test_start_end_lib(name):
+    util.helper_target(
+        cc_library,
+        name = name + "/lib",
+        srcs = ["lib.c"],
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = ["bin.c"],
+        deps = [":" + name + "/lib"],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_start_end_lib_impl,
+        target = name + "/bin",
+        with_features = ["supports_start_end_lib"],
+        config_settings = {
+            "//command_line_option:start_end_lib": True,
+        },
+    )
+
+def _test_start_end_lib_impl(env, target):
+    executable = target[DefaultInfo].files_to_run.executable
+    link_action = env.expect.that_target(target).action_generating(executable.short_path)
+    link_action.inputs().not_contains_predicate(matching.file_extension_in(["a", "lib"]))
+
+def _test_temps_with_different_extensions(name):
+    util.helper_target(
+        cc_library,
+        name = name + "/ananas",
+        srcs = [
+            "1.c",
+            "2.cc",
+            "3.cpp",
+            "4.S",
+            "5.h",
+            "6.hpp",
+            "7.inc",
+            "8.inl",
+            "9.tlh",
+            "A.tli",
+        ],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_temps_with_different_extensions_impl,
+        target = name + "/ananas",
+        with_features = ["supports_pic"],
+        config_settings = {
+            "//command_line_option:save_temps": True,
+        },
+    )
+
+def _test_temps_with_different_extensions_impl(env, target):
+    temps = target[OutputGroupInfo].temp_files_INTERNAL_.to_list()
+    env.expect.that_collection(temps).transform(
+        desc = "basenames",
+        map_each = lambda f: f.basename,
+    ).contains_exactly([
+        "1.pic.i",
+        "1.pic.s",
+        "2.pic.ii",
+        "2.pic.s",
+        "3.pic.ii",
+        "3.pic.s",
+    ])
+
+def _test_temps_for_cc_with_pic(name):
+    util.helper_target(
+        cc_library,
+        name = name + "/foo",
+        srcs = ["foo.cc"],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_temps_for_cc_with_pic_impl,
+        target = name + "/foo",
+        with_features = ["supports_pic"],
+        config_settings = {
+            "//command_line_option:save_temps": True,
+        },
+    )
+
+def _test_temps_for_cc_with_pic_impl(env, target):
+    temps = target[OutputGroupInfo].temp_files_INTERNAL_.to_list()
+    env.expect.that_collection(temps).transform(
+        desc = "basenames",
+        map_each = lambda f: f.basename,
+    ).contains_exactly([
+        "foo.pic.ii",
+        "foo.pic.s",
+    ])
+
+def _test_temps_for_cc_without_pic(name):
+    util.helper_target(
+        cc_library,
+        name = name + "/foo",
+        srcs = ["foo.cc"],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_temps_for_cc_without_pic_impl,
+        target = name + "/foo",
+        config_settings = {
+            "//command_line_option:save_temps": True,
+        },
+    )
+
+def _test_temps_for_cc_without_pic_impl(env, target):
+    temps = target[OutputGroupInfo].temp_files_INTERNAL_.to_list()
+    env.expect.that_collection(temps).transform(
+        desc = "basenames",
+        map_each = lambda f: f.basename,
+    ).contains_exactly([
+        "foo.ii",
+        "foo.s",
+    ])
+
+def _test_temps_for_c_with_pic(name):
+    util.helper_target(
+        cc_library,
+        name = name + "/csrc",
+        srcs = ["foo.c"],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_temps_for_c_with_pic_impl,
+        target = name + "/csrc",
+        with_features = ["supports_pic"],
+        config_settings = {
+            "//command_line_option:save_temps": True,
+        },
+    )
+
+def _test_temps_for_c_with_pic_impl(env, target):
+    temps = target[OutputGroupInfo].temp_files_INTERNAL_.to_list()
+    env.expect.that_collection(temps).transform(
+        desc = "basenames",
+        map_each = lambda f: f.basename,
+    ).contains_exactly([
+        "foo.pic.i",
+        "foo.pic.s",
+    ])
+
+def _test_temps_for_c_without_pic(name):
+    util.helper_target(
+        cc_library,
+        name = name + "/csrc",
+        srcs = ["foo.c"],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_temps_for_c_without_pic_impl,
+        target = name + "/csrc",
+        config_settings = {
+            "//command_line_option:save_temps": True,
+        },
+    )
+
+def _test_temps_for_c_without_pic_impl(env, target):
+    temps = target[OutputGroupInfo].temp_files_INTERNAL_.to_list()
+    env.expect.that_collection(temps).transform(
+        desc = "basenames",
+        map_each = lambda f: f.basename,
+    ).contains_exactly([
+        "foo.i",
+        "foo.s",
+    ])
+
 def _test_library_in_hdrs(name):
     util.helper_target(
         cc_library,
@@ -496,6 +673,12 @@ def cc_common_tests(name):
         _test_expanded_defines_against_srcs,
         _test_expanded_defines_against_data,
         _test_expanded_defines_duplicate_targets,
+        _test_start_end_lib,
+        _test_temps_with_different_extensions,
+        _test_temps_for_cc_with_pic,
+        _test_temps_for_cc_without_pic,
+        _test_temps_for_c_with_pic,
+        _test_temps_for_c_without_pic,
         _test_library_in_hdrs,
         _test_alwayslink_yields_lo,
     ]
