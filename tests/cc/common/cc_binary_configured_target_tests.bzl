@@ -1925,7 +1925,7 @@ def cc_binary_configured_target_tests(name):
             _test_linking_mode_features_false_fully,
             _test_linking_mode_features_true_off,
             _test_linking_mode_features_false_off,
-            # _test_cc_runtimes_added_to_libraries,  # copybara-comment-this-out-please
+            _test_cc_runtimes_added_to_libraries,
         ])
 
     test_suite(

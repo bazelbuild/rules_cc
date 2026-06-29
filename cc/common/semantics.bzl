@@ -22,6 +22,8 @@ USE_EXEC_ROOT_FOR_VIRTUAL_INCLUDES_SYMLINKS = False
 # TODO: b/142314377 - Cleanup this temporary flag.
 STRIP_INCLUDE_PREFIX_APPLIES_TO_TEXTUAL_HEADERS = True
 
+_CC_RUNTIMES_TOOLCHAIN_TYPE = Label("@bazel_tools//tools/cpp:cc_runtimes_toolchain_type")
+
 def _get_proto_aspects():
     return []
 
@@ -66,7 +68,17 @@ def _get_grep_includes():
     return attr.label()
 
 def _get_runtimes_toolchain():
-    return []
+    return [config_common.toolchain_type(_CC_RUNTIMES_TOOLCHAIN_TYPE, mandatory = False)]
+
+def _get_cc_runtimes_info(ctx):
+    if _CC_RUNTIMES_TOOLCHAIN_TYPE not in ctx.toolchains:
+        return None
+
+    toolchain = ctx.toolchains[_CC_RUNTIMES_TOOLCHAIN_TYPE]
+    if toolchain == None:
+        return None
+
+    return toolchain.cc_runtimes_info
 
 def _get_test_malloc_attr():
     return {}
@@ -89,8 +101,11 @@ def _get_coverage_env(ctx):
     return ctx.runfiles(), {}
 
 def _get_cc_runtimes(ctx, is_library):
+    cc_runtimes_info = _get_cc_runtimes_info(ctx)
+    toolchain_runtimes = cc_runtimes_info.runtimes if cc_runtimes_info != None else []
+
     if is_library:
-        return []
+        return toolchain_runtimes
 
     runtimes = [ctx.attr.link_extra_lib]
 
@@ -99,10 +114,13 @@ def _get_cc_runtimes(ctx, is_library):
     else:
         runtimes.append(ctx.attr.malloc)
 
+    runtimes.extend(toolchain_runtimes)
+
     return runtimes
 
-def _get_cc_runtimes_copts(_ctx):
-    return []
+def _get_cc_runtimes_copts(ctx):
+    cc_runtimes_info = _get_cc_runtimes_info(ctx)
+    return cc_runtimes_info.copts if cc_runtimes_info != None else []
 
 def _get_implementation_deps_allowed_attr():
     return {}
