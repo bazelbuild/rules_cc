@@ -1099,7 +1099,6 @@ def _test_lto_standalone_command_lines(name, **kwargs):
         test_features = ["thin_lto", "supports_pic", "supports_start_end_lib"],
         config_settings = {
             "//command_line_option:ltoindexopt": ["anltoindexopt"],
-            "//command_line_option:incompatible_make_thinlto_command_lines_standalone": "true",
         },
         **kwargs
     )
