@@ -16,7 +16,13 @@
 
 FdoProfileInfo = provider(
     doc = "Contains the profile used for FDO",
-    fields = ["artifact", "absolute_path", "proto_profile_artifact", "memprof_artifact"],
+    fields = [
+        "artifact",
+        "absolute_path",
+        "proto_profile_artifact",
+        "memprof_artifact",
+        "changelist",
+    ],
 )
 
 def _impl(ctx):
@@ -24,6 +30,7 @@ def _impl(ctx):
         artifact = ctx.file.profile,
         proto_profile_artifact = ctx.file.proto_profile,
         memprof_artifact = ctx.file.memprof_profile,
+        changelist = ctx.attr.changelist,
     )
 
 fdo_profile = rule(
@@ -56,6 +63,10 @@ Label of the MemProf profile. The profile is expected to have
 either a .profdata extension (for an indexed/symbolized memprof
 profile), or a .zip extension for a zipfile containing a memprof.profdata
 file."""),
+        "changelist": attr.string(
+            doc = "The profile generation CL version.",
+            default = "0",
+        ),
     },  # buildifier: disable=unsorted-dict-items
     provides = [FdoProfileInfo],
 )

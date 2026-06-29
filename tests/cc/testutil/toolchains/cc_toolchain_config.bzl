@@ -16,6 +16,7 @@ load(
     "make_variable",
     "tool",
     "tool_path",
+    "variable_with_value",
     "with_feature_set",
 )
 load("//cc:action_names.bzl", "ACTION_NAMES")
@@ -866,6 +867,22 @@ _simple_link_feature = feature(
     ],
 )
 
+_llvm_profdata_env_feature = feature(
+    name = FEATURE_NAMES.llvm_profdata_env,
+    enabled = True,
+    env_sets = [
+        env_set(
+            actions = [ACTION_NAMES.llvm_profdata],
+            env_entries = [
+                env_entry(
+                    key = "LLVM_PROFDATA_ENV_KEY",
+                    value = "LLVM_PROFDATA_ENV_VALUE",
+                ),
+            ],
+        ),
+    ],
+)
+
 _link_env_feature = feature(
     name = FEATURE_NAMES.link_env,
     env_sets = [
@@ -1193,11 +1210,30 @@ _uses_ifso_variables_feature = feature(
     enabled = True,
     flag_sets = [
         flag_set(
-            actions = [ACTION_NAMES.cpp_link_dynamic_library],
+            actions = [
+                ACTION_NAMES.cpp_link_dynamic_library,
+                ACTION_NAMES.cpp_link_nodeps_dynamic_library,
+                ACTION_NAMES.cpp_link_static_library,
+                "lto-index-for-executable",
+                "lto-index-for-dynamic-library",
+                "lto-index-for-nodeps-dynamic-library",
+            ],
             flag_groups = [
                 flag_group(
                     expand_if_available = "generate_interface_library",
-                    flags = ["--generate_interface_library_was_available"],
+                    flags = ["--generate-interface-library=%{generate_interface_library}"],
+                ),
+                flag_group(
+                    expand_if_available = "interface_library_builder_path",
+                    flags = ["--interface-library-builder=%{interface_library_builder_path}"],
+                ),
+                flag_group(
+                    expand_if_available = "interface_library_input_path",
+                    flags = ["--interface-library-input=%{interface_library_input_path}"],
+                ),
+                flag_group(
+                    expand_if_available = "interface_library_output_path",
+                    flags = ["--interface-library-output=%{interface_library_output_path}"],
                 ),
             ],
         ),
@@ -1324,7 +1360,91 @@ _generate_linkmap_feature = feature(
 
 _no_dotd_file_feature = feature(name = FEATURE_NAMES.no_dotd_file)
 
+_force_pic_flags_feature = feature(
+    name = FEATURE_NAMES.force_pic_flags,
+    enabled = True,
+    flag_sets = [
+        flag_set(
+            actions = [
+                ACTION_NAMES.cpp_link_executable,
+                ACTION_NAMES.cpp_link_dynamic_library,
+                ACTION_NAMES.cpp_link_nodeps_dynamic_library,
+            ],
+            flag_groups = [
+                flag_group(
+                    expand_if_available = "force_pic",
+                    flags = ["--force-pic-flag"],
+                ),
+            ],
+        ),
+    ],
+)
+
+_libraries_to_link_feature = feature(
+    name = FEATURE_NAMES.libraries_to_link,
+    enabled = True,
+    flag_sets = [
+        flag_set(
+            actions = [
+                ACTION_NAMES.cpp_link_executable,
+                ACTION_NAMES.cpp_link_dynamic_library,
+                ACTION_NAMES.cpp_link_nodeps_dynamic_library,
+            ],
+            flag_groups = [
+                flag_group(
+                    iterate_over = "libraries_to_link",
+                    flag_groups = [
+                        flag_group(
+                            expand_if_equal = variable_with_value(
+                                name = "libraries_to_link.type",
+                                value = "object_file",
+                            ),
+                            flags = ["--library-to-link=%{libraries_to_link.name}"],
+                        ),
+                        flag_group(
+                            expand_if_equal = variable_with_value(
+                                name = "libraries_to_link.type",
+                                value = "dynamic_library",
+                            ),
+                            flags = ["--library-to-link=%{libraries_to_link.name}"],
+                        ),
+                        flag_group(
+                            expand_if_equal = variable_with_value(
+                                name = "libraries_to_link.type",
+                                value = "versioned_dynamic_library",
+                            ),
+                            flags = ["--library-to-link=%{libraries_to_link.name}"],
+                        ),
+                        flag_group(
+                            expand_if_equal = variable_with_value(
+                                name = "libraries_to_link.type",
+                                value = "static_library",
+                            ),
+                            flags = ["--library-to-link=%{libraries_to_link.name}"],
+                        ),
+                        flag_group(
+                            expand_if_equal = variable_with_value(
+                                name = "libraries_to_link.type",
+                                value = "object_file_group",
+                            ),
+                            flag_groups = [
+                                flag_group(
+                                    expand_if_available = "libraries_to_link.object_files",
+                                    iterate_over = "libraries_to_link.object_files",
+                                    flags = ["--object-file-to-link=%{libraries_to_link.object_files}"],
+                                ),
+                            ],
+                        ),
+                    ],
+                ),
+            ],
+        ),
+    ],
+)
+
 _feature_name_to_feature = {
+    FEATURE_NAMES.force_pic_flags: _force_pic_flags_feature,
+    FEATURE_NAMES.libraries_to_link: _libraries_to_link_feature,
     FEATURE_NAMES.cpp_modules: _cpp_modules_feature,
     FEATURE_NAMES.no_legacy_features: _no_legacy_features_feature,
     FEATURE_NAMES.do_not_split_linking_cmdline: _do_not_split_linking_cmdline_feature,
@@ -1381,6 +1501,7 @@ _feature_name_to_feature = {
     FEATURE_NAMES.simple_compile_feature: _simple_compile_feature,
     FEATURE_NAMES.simple_link_feature: _simple_link_feature,
     FEATURE_NAMES.link_env: _link_env_feature,
+    FEATURE_NAMES.llvm_profdata_env: _llvm_profdata_env_feature,
     FEATURE_NAMES.static_linking_mode: _static_linking_mode_feature,
     FEATURE_NAMES.dynamic_linking_mode: _dynamic_linking_mode_feature,
     FEATURE_NAMES.objcopy_embed_flags: _objcopy_embed_flags_feature,
@@ -1425,6 +1546,8 @@ _feature_name_to_feature = {
     "simple_thin_lto": _simple_thin_lto_feature,
     "extra_implies_module_maps": _extra_implies_module_maps_feature,
     "layering_check_module_maps_header_modules_simple_features": _layering_check_module_maps_header_modules_simple_features,
+    FEATURE_NAMES.env_feature: _env_feature,
+    FEATURE_NAMES.static_env_feature: _static_env_feature,
 }
 
 _cc_flags_action_config_foo_bar_baz_config = action_config(
@@ -1622,6 +1745,7 @@ def _impl(ctx):
             tool_path(name = "dwp", path = "/usr/bin/mock-dwp"),
             tool_path(name = "gcc", path = "/usr/bin/mock-gcc"),
             tool_path(name = "gcov", path = "/usr/bin/mock-gcov"),
+            tool_path(name = "llvm-cov", path = "/usr/bin/mock-llvm-cov"),
             tool_path(name = "ld", path = "/usr/bin/mock-ld"),
             tool_path(name = "nm", path = "/usr/bin/mock-nm"),
             tool_path(name = "objcopy", path = "/usr/bin/mock-objcopy"),
