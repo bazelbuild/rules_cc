@@ -1047,6 +1047,260 @@ def _test_fdo_instrument_impl(env, target):
     # option didn't end up here.
     backend_action.argv().not_contains("fdo_instrument_option")
 
+def _create_thin_lto_basic_targets(name):
+    util.helper_target(
+        cc_library,
+        name = name + "/lib",
+        srcs = ["libfile.cc"],
+        hdrs = ["libfile.h"],
+        linkstamp = "linkstamp.cc",
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = ["binfile.cc"],
+        deps = [":" + name + "/lib"],
+    )
+
+def _test_lto_index_opt(name, **kwargs):
+    _create_thin_lto_basic_targets(name)
+    cc_analysis_test(
+        name = name,
+        impl = _test_lto_index_opt_impl,
+        target = name + "/bin",
+        test_features = ["thin_lto", "supports_pic", "supports_start_end_lib"],
+        config_settings = {
+            "//command_line_option:ltoindexopt": ["anltoindexopt"],
+        },
+        **kwargs
+    )
+
+def _test_lto_index_opt_impl(env, target):
+    package = target.label.package
+    name = target.label.name
+    bindir = target[TestingAspectInfo].bin_path
+
+    binary_obj_path = "{package}/{name}.lto/{bindir}/{package}/_objs/{name}/binfile.pic.o".format(
+        package = package,
+        name = name,
+        bindir = bindir,
+    )
+
+    index_action = env.expect.that_target(target).action_generating(binary_obj_path + ".thinlto.bc")
+    index_action.mnemonic().equals("CppLTOIndexing")
+    index_action.argv().contains("anltoindexopt")
+
+def _test_lto_standalone_command_lines(name, **kwargs):
+    _create_thin_lto_basic_targets(name)
+    cc_analysis_test(
+        name = name,
+        impl = _test_lto_standalone_command_lines_impl,
+        target = name + "/bin",
+        test_features = ["thin_lto", "supports_pic", "supports_start_end_lib"],
+        config_settings = {
+            "//command_line_option:ltoindexopt": ["anltoindexopt"],
+            "//command_line_option:incompatible_make_thinlto_command_lines_standalone": "true",
+        },
+        **kwargs
+    )
+
+def _test_lto_standalone_command_lines_impl(env, target):
+    package = target.label.package
+    name = target.label.name
+    bindir = target[TestingAspectInfo].bin_path
+
+    binary_obj_path = "{package}/{name}.lto/{bindir}/{package}/_objs/{name}/binfile.pic.o".format(
+        package = package,
+        name = name,
+        bindir = bindir,
+    )
+
+    index_action = env.expect.that_target(target).action_generating(binary_obj_path + ".thinlto.bc")
+    index_action.mnemonic().equals("CppLTOIndexing")
+    index_action.argv().contains("--i_come_from_standalone_lto_index=anltoindexopt")
+
+def _test_copt(name, **kwargs):
+    _create_thin_lto_basic_targets(name)
+    cc_analysis_test(
+        name = name,
+        impl = _test_copt_impl,
+        target = name + "/bin",
+        test_features = ["thin_lto", "supports_pic", "supports_start_end_lib"],
+        config_settings = {
+            "//command_line_option:copt": ["acopt"],
+        },
+        **kwargs
+    )
+
+def _test_copt_impl(env, target):
+    package = target.label.package
+    name = target.label.name
+    bindir = target[TestingAspectInfo].bin_path
+
+    binary_obj_path = "{package}/{name}.lto/{bindir}/{package}/_objs/{name}/binfile.pic.o".format(
+        package = package,
+        name = name,
+        bindir = bindir,
+    )
+
+    backend_action = env.expect.that_target(target).action_generating(binary_obj_path)
+    backend_action.mnemonic().equals("CcLtoBackendCompile")
+    backend_action.argv().contains("acopt")
+
+def _test_per_file_copt(name, **kwargs):
+    _create_thin_lto_basic_targets(name)
+    cc_analysis_test(
+        name = name,
+        impl = _test_per_file_copt_impl,
+        target = name + "/bin",
+        test_features = ["thin_lto", "supports_pic", "supports_start_end_lib"],
+        config_settings = {
+            "//command_line_option:per_file_copt": [
+                "binfile\\.cc@copt1",
+                "libfile\\.cc@copt2",
+                ".*\\.cc,-binfile\\.cc@copt2",
+            ],
+        },
+        **kwargs
+    )
+
+def _test_per_file_copt_impl(env, target):
+    package = target.label.package
+    name = target.label.name
+    bindir = target[TestingAspectInfo].bin_path
+
+    test_name = name.split("/")[0]
+    lib_target_name = test_name + "/lib"
+
+    binary_obj_path = "{package}/{name}.lto/{bindir}/{package}/_objs/{name}/binfile.pic.o".format(
+        package = package,
+        name = name,
+        bindir = bindir,
+    )
+    lib_obj_path = "{package}/{name}.lto/{bindir}/{package}/_objs/{lib_target_name}/libfile.pic.o".format(
+        package = package,
+        name = name,
+        bindir = bindir,
+        lib_target_name = lib_target_name,
+    )
+
+    bin_backend_action = env.expect.that_target(target).action_generating(binary_obj_path)
+    bin_backend_action.mnemonic().equals("CcLtoBackendCompile")
+    bin_backend_action.argv().contains("copt1")
+    bin_backend_action.argv().not_contains("copt2")
+
+    lib_backend_action = env.expect.that_target(target).action_generating(lib_obj_path)
+    lib_backend_action.mnemonic().equals("CcLtoBackendCompile")
+    lib_backend_action.argv().contains("copt2")
+    lib_backend_action.argv().not_contains("copt1")
+
+def _test_lto_backend_opt(name, **kwargs):
+    _create_thin_lto_basic_targets(name)
+    cc_analysis_test(
+        name = name,
+        impl = _test_lto_backend_opt_impl,
+        target = name + "/bin",
+        test_features = ["thin_lto", "supports_pic", "supports_start_end_lib", "user_compile_flags"],
+        config_settings = {
+            "//command_line_option:ltobackendopt": ["anltobackendopt"],
+            "//command_line_option:linkopt": ["alinkopt"],
+        },
+        **kwargs
+    )
+
+def _test_lto_backend_opt_impl(env, target):
+    package = target.label.package
+    name = target.label.name
+    bindir = target[TestingAspectInfo].bin_path
+
+    binary_obj_path = "{package}/{name}.lto/{bindir}/{package}/_objs/{name}/binfile.pic.o".format(
+        package = package,
+        name = name,
+        bindir = bindir,
+    )
+
+    backend_action = env.expect.that_target(target).action_generating(binary_obj_path)
+    backend_action.mnemonic().equals("CcLtoBackendCompile")
+    backend_action.argv().contains_at_least([
+        "--default-compile-flag",
+        "anltobackendopt",
+    ])
+    backend_action.argv().not_contains("alinkopt")
+
+def _test_per_file_lto_backend_opt(name, **kwargs):
+    _create_thin_lto_basic_targets(name)
+    cc_analysis_test(
+        name = name,
+        impl = _test_per_file_lto_backend_opt_impl,
+        target = name + "/bin",
+        test_features = ["thin_lto", "supports_pic", "supports_start_end_lib"],
+        config_settings = {
+            "//command_line_option:per_file_ltobackendopt": [
+                "binfile\\.pic\\.o@ltobackendopt1",
+                ".*\\.o,-binfile\\.pic\\.o@ltobackendopt2",
+            ],
+        },
+        **kwargs
+    )
+
+def _test_per_file_lto_backend_opt_impl(env, target):
+    package = target.label.package
+    name = target.label.name
+    bindir = target[TestingAspectInfo].bin_path
+
+    test_name = name.split("/")[0]
+    lib_target_name = test_name + "/lib"
+
+    binary_obj_path = "{package}/{name}.lto/{bindir}/{package}/_objs/{name}/binfile.pic.o".format(
+        package = package,
+        name = name,
+        bindir = bindir,
+    )
+    lib_obj_path = "{package}/{name}.lto/{bindir}/{package}/_objs/{lib_target_name}/libfile.pic.o".format(
+        package = package,
+        name = name,
+        bindir = bindir,
+        lib_target_name = lib_target_name,
+    )
+
+    bin_backend_action = env.expect.that_target(target).action_generating(binary_obj_path)
+    bin_backend_action.mnemonic().equals("CcLtoBackendCompile")
+    bin_backend_action.argv().contains("ltobackendopt1")
+    bin_backend_action.argv().not_contains("ltobackendopt2")
+
+    lib_backend_action = env.expect.that_target(target).action_generating(lib_obj_path)
+    lib_backend_action.mnemonic().equals("CcLtoBackendCompile")
+    lib_backend_action.argv().contains("ltobackendopt2")
+    lib_backend_action.argv().not_contains("ltobackendopt1")
+
+def _test_link_opt(name, **kwargs):
+    _create_thin_lto_basic_targets(name)
+    cc_analysis_test(
+        name = name,
+        impl = _test_link_opt_impl,
+        target = name + "/bin",
+        test_features = ["thin_lto", "supports_pic", "supports_start_end_lib"],
+        config_settings = {
+            "//command_line_option:linkopt": ["alinkopt"],
+        },
+        **kwargs
+    )
+
+def _test_link_opt_impl(env, target):
+    package = target.label.package
+    name = target.label.name
+    bindir = target[TestingAspectInfo].bin_path
+
+    binary_obj_path = "{package}/{name}.lto/{bindir}/{package}/_objs/{name}/binfile.pic.o".format(
+        package = package,
+        name = name,
+        bindir = bindir,
+    )
+
+    backend_action = env.expect.that_target(target).action_generating(binary_obj_path)
+    backend_action.mnemonic().equals("CcLtoBackendCompile")
+    backend_action.argv().not_contains("alinkopt")
+
 def cc_binary_thin_lto_tests(name):
     """TestSuite for cc_binary with ThinLTO.
 
@@ -1061,11 +1315,13 @@ def cc_binary_thin_lto_tests(name):
     tests.append(_test_thin_lto_fission)
     tests.append(_test_thin_lto_no_linkstatic_fission)
     tests.append(_test_thin_lto_linkstatic_cc_test_fission)
-
-    # Batch 2 tests (run always)
     tests.append(_test_assembler_source)
     tests.append(_test_no_source_files)
     tests.append(_test_fdo_instrument)
+    tests.append(_test_lto_index_opt)
+    tests.append(_test_copt)
+    tests.append(_test_per_file_copt)
+    tests.append(_test_per_file_lto_backend_opt)
 
     # These tests fail on Bazel 7 and 8, run only for Bazel 9+.
     if bazel_features.cc.cc_common_is_in_rules_cc:
@@ -1074,6 +1330,9 @@ def cc_binary_thin_lto_tests(name):
         tests.append(_test_linkstatic_cc_test)
         tests.append(_test_test_only_target)
         tests.append(_test_use_shared_all_linkstatic)
+        tests.append(_test_lto_standalone_command_lines)
+        tests.append(_test_lto_backend_opt)
+        tests.append(_test_link_opt)
 
     test_suite(
         name = name,
