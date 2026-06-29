@@ -102,6 +102,21 @@ C++ Standard has no restriction about module interface file extension
 <code>--experimental_cpp_modules</code>.</p>
         """,
     ),
+    "module_header_maps": attr.string_keyed_label_dict(
+        allow_files = [".modulemap"],
+        doc = """
+Maps C++20 named module names to Clang module map files that redirect legacy
+<code>#include</code> to <code>import</code> for the same module.
+
+<p>Keys are logical module names (for example <code>a</code> for
+<code>export module a;</code>). Values are <code>.modulemap</code> files.</p>
+<p>All C++ sources on this target compiled with <code>cpp_modules</code> enabled
+receive every module listed here via a generated modmap, without per-source
+dependency scanning.</p>
+<p>Requires <code>--experimental_cpp_modules</code> and the
+<code>cpp_modules</code> toolchain feature.</p>
+        """,
+    ),
     "data": attr.label_list(
         allow_files = True,
         flags = ["SKIP_CONSTRAINTS_OVERRIDE"],
