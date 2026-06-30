@@ -13,6 +13,7 @@
 # limitations under the License.
 """A Starlark cc_toolchain configuration rule"""
 
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@rules_cc//cc:action_names.bzl", "ACTION_NAMES")
 load(
     "@rules_cc//cc:cc_toolchain_config_lib.bzl",
@@ -242,13 +243,27 @@ def _sanitizer_feature(name = "", specific_compile_flags = [], specific_link_fla
 
 def _impl(ctx):
     is_linux = ctx.attr.target_libc != "macosx"
+    target_macos_and_use_libtool = not is_linux and ctx.attr._use_libtool_on_macos[BuildSettingInfo].value
     profile_correction_flags = get_profile_correction_flags(ctx)
 
     tool_paths = [
         tool_path(name = name, path = path)
         for name, path in ctx.attr.tool_paths.items()
+        if name != "libtool"
     ]
     action_configs = []
+
+    action_configs.append(action_config(
+        action_name = ACTION_NAMES.cpp_link_static_library,
+        tools = [
+            tool(
+                path = ctx.attr.tool_paths.get("libtool", ctx.attr.tool_paths["ar"]),
+                with_features = [with_feature_set(features = ["libtool"])],
+            ),
+            tool(path = ctx.attr.tool_paths["ar"]),
+        ],
+        implies = ["archiver_flags", "linker_param_file"],
+    ))
 
     llvm_cov = ctx.attr.tool_paths.get("llvm-cov")
     if llvm_cov:
@@ -1399,7 +1414,7 @@ def _impl(ctx):
 
     libtool_feature = feature(
         name = "libtool",
-        enabled = not is_linux,
+        enabled = target_macos_and_use_libtool,
     )
 
     archiver_flags_feature = feature(
@@ -1738,6 +1753,7 @@ def _impl(ctx):
     archive_param_file_feature = feature(
         name = "archive_param_file",
         enabled = True,
+        requires = [] if is_linux else [feature_set(features = ["libtool"])],
     )
 
     asan_feature = _sanitizer_feature(
@@ -2082,6 +2098,9 @@ This is only offered as a migration bridge for projects transitioning to rule-ba
         "tool_paths": attr.string_dict(),
         "toolchain_identifier": attr.string(mandatory = True),
         "unfiltered_compile_flags": attr.string_list(),
+        "_use_libtool_on_macos": attr.label(
+            default = "@rules_cc//cc/toolchains/args/archiver_flags:use_libtool_on_macos",
+        ),
     },
     fragments = ["cpp"],
     provides = [CcToolchainConfigInfo],
