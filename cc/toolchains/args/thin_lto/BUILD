@@ -44,9 +44,10 @@ cc_args(
     actions = [
         ":lto_index_actions",
     ],
-    args = [
-        "-Wl,-plugin-opt,thinlto-index-only={thinlto_indexing_param_file}",
-    ],
+    args = select({
+        "@platforms//os:macos": ["-Wl,--thinlto-index-only={thinlto_indexing_param_file}"],
+        "//conditions:default": ["-Wl,-plugin-opt,thinlto-index-only={thinlto_indexing_param_file}"],
+    }),
     format = {
         "thinlto_indexing_param_file": "//cc/toolchains/variables:thinlto_indexing_param_file",
     },
@@ -58,9 +59,10 @@ cc_args(
     actions = [
         ":lto_index_actions",
     ],
-    args = [
-        "-Wl,-plugin-opt,thinlto-emit-imports-files",
-    ],
+    args = select({
+        "@platforms//os:macos": ["-Wl,--thinlto-emit-imports-files"],
+        "//conditions:default": ["-Wl,-plugin-opt,thinlto-emit-imports-files"],
+    }),
 )
 
 cc_args(
@@ -68,9 +70,10 @@ cc_args(
     actions = [
         ":lto_index_actions",
     ],
-    args = [
-        "-Wl,-plugin-opt,thinlto-prefix-replace={thinlto_prefix_replace}",
-    ],
+    args = select({
+        "@platforms//os:macos": ["-Wl,--thinlto-prefix-replace={thinlto_prefix_replace}"],
+        "//conditions:default": ["-Wl,-plugin-opt,thinlto-prefix-replace={thinlto_prefix_replace}"],
+    }),
     format = {
         "thinlto_prefix_replace": "//cc/toolchains/variables:thinlto_prefix_replace",
     },
@@ -82,9 +85,10 @@ cc_args(
     actions = [
         ":lto_index_actions",
     ],
-    args = [
-        "-Wl,-plugin-opt,thinlto-object-suffix-replace={thinlto_object_suffix_replace}",
-    ],
+    args = select({
+        "@platforms//os:macos": ["-Wl,--thinlto-object-suffix-replace={thinlto_object_suffix_replace}"],
+        "//conditions:default": ["-Wl,-plugin-opt,thinlto-object-suffix-replace={thinlto_object_suffix_replace}"],
+    }),
     format = {
         "thinlto_object_suffix_replace": "//cc/toolchains/variables:thinlto_object_suffix_replace",
     },
@@ -96,9 +100,10 @@ cc_args(
     actions = [
         ":lto_index_actions",
     ],
-    args = [
-        "-Wl,-plugin-opt,obj-path={thinlto_merged_object_file}",
-    ],
+    args = select({
+        "@platforms//os:macos": ["-Wl,--lto-obj-path={thinlto_merged_object_file}"],
+        "//conditions:default": ["-Wl,-plugin-opt,obj-path={thinlto_merged_object_file}"],
+    }),
     format = {
         "thinlto_merged_object_file": "//cc/toolchains/variables:thinlto_merged_object_file",
     },
