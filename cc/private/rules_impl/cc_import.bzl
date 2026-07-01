@@ -164,8 +164,8 @@ def _cc_import_impl(ctx):
     additional_make_variable_substitutions = cc_helper.get_toolchain_global_make_variables(cc_toolchain, feature_configuration)
     additional_make_variable_substitutions.update(cc_helper.get_cc_flags_make_variable(ctx, feature_configuration, cc_toolchain))
 
-    runtimes_deps = semantics.get_cc_runtimes(ctx, True)
-    runtimes_copts = semantics.get_cc_runtimes_copts(ctx)
+    runtimes_deps = cc_helper.get_cc_runtimes(ctx, True)
+    runtimes_copts = cc_helper.get_cc_runtimes_copts(ctx)
     compilation_contexts = cc_helper.get_compilation_contexts_from_deps(runtimes_deps)
     (compilation_context, _) = cc_common.compile(
         actions = ctx.actions,

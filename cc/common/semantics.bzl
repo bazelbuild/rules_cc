@@ -14,6 +14,13 @@
 
 """Semantics for Bazel cc rules"""
 
+load(
+    ":cc_helper_internal.bzl",
+    "CC_RUNTIMES_TOOLCHAIN_TYPE",
+    _get_cc_runtimes = "get_cc_runtimes",
+    _get_cc_runtimes_copts = "get_cc_runtimes_copts",
+)
+
 # Point virtual includes symlinks to the source root for better IDE integration.
 # See https://github.com/bazelbuild/bazel/pull/20540.
 # TODO: b/320980684 - Add a test that fails if this is flipped to True.
@@ -66,7 +73,12 @@ def _get_grep_includes():
     return attr.label()
 
 def _get_runtimes_toolchain():
-    return []
+    return [
+        config_common.toolchain_type(
+            CC_RUNTIMES_TOOLCHAIN_TYPE,
+            mandatory = False,
+        ),
+    ]
 
 def _get_test_malloc_attr():
     return {}
@@ -87,22 +99,6 @@ def _get_coverage_attrs():
 
 def _get_coverage_env(ctx):
     return ctx.runfiles(), {}
-
-def _get_cc_runtimes(ctx, is_library):
-    if is_library:
-        return []
-
-    runtimes = [ctx.attr.link_extra_lib]
-
-    if ctx.fragments.cpp.custom_malloc != None:
-        runtimes.append(ctx.attr._default_malloc)
-    else:
-        runtimes.append(ctx.attr.malloc)
-
-    return runtimes
-
-def _get_cc_runtimes_copts(_ctx):
-    return []
 
 def _get_implementation_deps_allowed_attr():
     return {}

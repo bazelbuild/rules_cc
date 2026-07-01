@@ -655,7 +655,7 @@ def _cc_shared_library_impl(ctx):
 
     linking_context = _create_linker_context(linker_inputs)
 
-    cc_runtimes_deps = semantics.get_cc_runtimes(ctx, True)
+    cc_runtimes_deps = cc_helper.get_cc_runtimes(ctx, True)
     runtimes_linking_contexts = cc_helper.get_linking_contexts_from_deps(cc_runtimes_deps)
 
     user_link_flags = []

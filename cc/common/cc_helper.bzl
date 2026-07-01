@@ -26,6 +26,8 @@ load(
     "should_create_per_object_debug_info",
     _artifact_category = "artifact_category_names",
     _extensions = "extensions",
+    _get_cc_runtimes = "get_cc_runtimes",
+    _get_cc_runtimes_copts = "get_cc_runtimes_copts",
     _is_stamping_enabled = "is_stamping_enabled",
     _package_source_root = "package_source_root",
     _repository_exec_path = "repository_exec_path",
@@ -1182,4 +1184,6 @@ cc_helper = struct(
     has_target_constraints = _has_target_constraints,
     package_exec_path = _package_exec_path,
     should_create_test_dwp_for_statically_linked_test = _should_create_test_dwp_for_statically_linked_test,
+    get_cc_runtimes = _get_cc_runtimes,
+    get_cc_runtimes_copts = _get_cc_runtimes_copts,
 )
