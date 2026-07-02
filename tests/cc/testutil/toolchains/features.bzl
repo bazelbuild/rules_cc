@@ -86,6 +86,7 @@ FEATURE_NAMES = struct(
     check_additional_variables = "check_additional_variables_feature",
     library_search_directories = "library_search_directories",
     runtime_library_search_directories = "runtime_library_search_directories",
+    runtime_solib_name = "runtime_solib_name",
     uses_ifso_variables = "uses_ifso_variables",
     def_feature = "def",
     strip_debug_symbols = "strip_debug_symbols",

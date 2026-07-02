@@ -17,6 +17,7 @@ load(
     "//cc/common:cc_helper_internal.bzl",
     _CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES = "CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES",
     _PRIVATE_STARLARKIFICATION_ALLOWLIST = "PRIVATE_STARLARKIFICATION_ALLOWLIST",
+    _escape_path = "escape_path",
 )
 load("//cc/private:cc_info.bzl", "CcNativeLibraryInfo", "create_compilation_context", "create_debug_context", "create_linking_context", "create_module_map", "merge_cc_infos", "merge_compilation_contexts", "merge_debug_context", "merge_linking_contexts")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
@@ -681,27 +682,12 @@ def _create_linkstamp(linkstamp, headers):
     _cc_internal.check_private_api(allowlist = _PRIVATE_STARLARKIFICATION_ALLOWLIST)
     return create_linkstamp(linkstamp, headers)
 
-_PATH_ESCAPE_REPLACEMENTS = {
-    "_": "_U",
-    "/": "_S",
-    "\\": "_B",
-    ":": "_C",
-    "@": "_A",
-}
-
 def _escape_label(*, label):
     _cc_internal.check_private_api(allowlist = _PRIVATE_STARLARKIFICATION_ALLOWLIST)
     path = label.package + ":" + label.name
     if label.repo_name:
         path = label.repo_name + "@" + path
-    result = []
-    for idx in range(len(path)):
-        c = path[idx]
-        result.append(_PATH_ESCAPE_REPLACEMENTS.get(
-            c,
-            c,  # no escaping by default
-        ))
-    return "".join(result)
+    return _escape_path(path)
 
 def _cc_toolchain_features(*, toolchain_config_info, tools_directory):
     _cc_internal.check_private_api(allowlist = _PRIVATE_STARLARKIFICATION_ALLOWLIST)
