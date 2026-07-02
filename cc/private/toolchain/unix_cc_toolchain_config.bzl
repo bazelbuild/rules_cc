@@ -1867,6 +1867,35 @@ def _impl(ctx):
 
     skip_virtual_includes_feature = feature(name = "skip_virtual_includes")
 
+    # Clang -ftime-trace support
+    trace_feature = feature(
+        name = "trace",
+        provides = ["trace"],
+    )
+
+    clang_trace_feature = feature(
+        name = "clang_trace",
+        flag_sets = [
+            flag_set(
+                actions = [
+                    ACTION_NAMES.preprocess_assemble,
+                    ACTION_NAMES.c_compile,
+                    ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cpp_module_compile,
+                    ACTION_NAMES.objc_compile,
+                    ACTION_NAMES.objcpp_compile,
+                ],
+                flag_groups = [
+                    flag_group(
+                        flags = ["-ftime-trace"],
+                    ),
+                ],
+            ),
+        ],
+        requires = [feature_set(features = ["trace"])],
+        enabled = True,
+    )
+
     # TODO(#8303): Mac crosstool should also declare every feature.
     if is_linux:
         # Linux artifact name patterns are the default.
@@ -2014,6 +2043,11 @@ def _impl(ctx):
     extra_rules_based_features = depset(ctx.attr.extra_enabled_features + ctx.attr.extra_known_features)
     features.extend([convert_feature(extra_feature[FeatureInfo], enabled = extra_feature in ctx.attr.extra_enabled_features) for extra_feature in extra_rules_based_features.to_list()])
 
+    features.extend([
+        trace_feature,
+    ])
+    if ctx.attr.compiler == "clang":
+        features.append(clang_trace_feature)
     return cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
         features = features,

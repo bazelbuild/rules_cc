@@ -43,3 +43,14 @@ rules_cc_integration_test(
     target_compatible_with = VERSION_GATE,
     test_script = "cc_static_library_failure_tests.sh",
 )
+
+rules_cc_integration_test(
+    name = "ftime_trace_tests",
+    timeout = "long",
+    target_compatible_with = select({
+        "@platforms//os:macos": ["@platforms//:incompatible"],
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+    test_script = "ftime_trace_tests.sh",
+)
