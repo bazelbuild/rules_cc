@@ -18,6 +18,7 @@ A module to create C/C++ link actions in a consistent way.
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
     "//cc/common:cc_helper_internal.bzl",
+    "get_artifact_name_for_category",
     "root_relative_path",
     "wrap_with_check_private_api",
     _use_pic_for_binaries = "use_pic_for_binaries",
@@ -512,7 +513,7 @@ def _construct_dynamic_library_to_link(
 def _get_linked_artifact(actions, name, link_target_type, cc_toolchain, linked_dll_name_suffix = ""):
     maybe_pic_name = name
     if link_target_type.is_pic:
-        maybe_pic_name = _cc_internal.get_artifact_name_for_category(
+        maybe_pic_name = get_artifact_name_for_category(
             cc_toolchain = cc_toolchain,
             category = artifact_category.PIC_FILE,
             output_name = maybe_pic_name,
@@ -521,7 +522,7 @@ def _get_linked_artifact(actions, name, link_target_type, cc_toolchain, linked_d
     linked_name = maybe_pic_name
     if link_target_type == LINK_TARGET_TYPE.NODEPS_DYNAMIC_LIBRARY:
         linked_name += linked_dll_name_suffix
-    linked_name = _cc_internal.get_artifact_name_for_category(
+    linked_name = get_artifact_name_for_category(
         cc_toolchain = cc_toolchain,
         category = link_target_type.linker_output,
         output_name = linked_name,

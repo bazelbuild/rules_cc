@@ -15,6 +15,8 @@
 Definition of CcToolchainInfo provider.
 """
 
+load("//cc/common:cc_helper_internal.bzl", "artifact_name_pattern_overrides_from_toolchain_config")
+
 visibility(["//cc/..."])
 
 def _needs_pic_for_dynamic_libraries(*, feature_configuration):
@@ -128,6 +130,7 @@ def _create_cc_toolchain_info(
         _compiler_files = compiler_files,
         _dwp_files = dwp_files,
         _builtin_include_files = builtin_include_files,
+        _artifact_name_pattern_overrides = artifact_name_pattern_overrides_from_toolchain_config(toolchain_config_info),
         _legacy_cc_flags_make_variable = legacy_cc_flags_make_variable,
         _additional_make_variables = additional_make_variables,
         _all_files_including_libc = all_files_including_libc,
@@ -219,6 +222,7 @@ CcToolchainInfo, _ = provider(
         "_compiler_files": "INTERNAL API, DO NOT USE!",
         "_dwp_files": "INTERNAL API, DO NOT USE!",
         "_builtin_include_files": "INTERNAL API, DO NOT USE!",
+        "_artifact_name_pattern_overrides": "INTERNAL API, DO NOT USE!",
         # TODO(b/65151735): Remove when cc_flags is entirely from features.
         "_legacy_cc_flags_make_variable": "INTERNAL API, DO NOT USE!",
         "_additional_make_variables": "INTERNAL API, DO NOT USE!",
