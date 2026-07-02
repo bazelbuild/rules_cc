@@ -273,6 +273,15 @@ cc_action_type_set(
 )
 
 cc_action_type_set(
+    name = "cpp20_module_actions",
+    actions = [
+        ":cpp20_module_compile",
+        ":cpp20_module_codegen",
+        ":cpp_module_deps_scanning",
+    ],
+)
+
+cc_action_type_set(
     name = "compile_actions_without_header_parsing",
     actions = [
         ":compile_actions",
