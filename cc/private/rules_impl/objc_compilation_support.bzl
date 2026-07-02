@@ -177,7 +177,7 @@ def _compile(
     runtimes_copts = cc_helper.get_cc_runtimes_copts(common_variables.ctx)
 
     return cc_common.compile(
-        actions = common_variables.ctx.actions,
+        ctx = common_variables.ctx,
         feature_configuration = feature_configuration,
         cc_toolchain = common_variables.toolchain,
         name = common_variables.ctx.label.name,
@@ -370,7 +370,7 @@ def _cc_compile_and_link(
     objc_linking_context = common_variables.objc_linking_context
     if len(compilation_outputs.objects) != 0 or len(compilation_outputs.pic_objects) != 0:
         (linking_context, _) = cc_common.create_linking_context_from_compilation_outputs(
-            actions = ctx.actions,
+            ctx = ctx,
             feature_configuration = feature_configuration,
             cc_toolchain = common_variables.toolchain,
             compilation_outputs = compilation_outputs,

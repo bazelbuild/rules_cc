@@ -36,7 +36,7 @@ _TARGET_TYPE = {
 # IMPORTANT: This function is public API exposed on cc_common module!
 def link(
         *,
-        actions,
+        ctx,
         name,
         feature_configuration,
         cc_toolchain,
@@ -91,7 +91,7 @@ def link(
     TODO(b/338618120): Migrate Objc to cc_common.create_linking_context_from_compilation_outputs.
 
     Args:
-        actions: (Actions) `actions` object.
+        ctx: The rule context.
         name: (str) This is used for naming the output artifacts of actions created by this method.
         feature_configuration: (FeatureConfiguration) `feature_configuration` to be queried.
         cc_toolchain: (CcToolchainInfo) CcToolchainInfo provider to be used.
@@ -161,10 +161,11 @@ def link(
 
     # TODO(b/338618120): Migrate Apple and Android rules, so they don't need to use build_config
     # when calling link. This happens because they are using deps with split configuration
-    actions = _cc_internal.wrap_link_actions(actions, build_config, use_shareable_artifact_factory)
+    link_actions = _cc_internal.wrap_link_actions(ctx.actions, build_config, use_shareable_artifact_factory)
 
     return create_cc_link_actions(
-        actions,
+        ctx,
+        link_actions,
         name,
         static_link_type,
         dynamic_link_type,

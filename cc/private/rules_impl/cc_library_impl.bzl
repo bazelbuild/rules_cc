@@ -54,7 +54,7 @@ def _cc_library_impl(ctx):
     additional_make_variable_substitutions.update(cc_helper.get_cc_flags_make_variable(ctx, feature_configuration, cc_toolchain))
 
     (compilation_context, srcs_compilation_outputs) = cc_common.compile(
-        actions = ctx.actions,
+        ctx = ctx,
         name = ctx.label.name,
         cc_toolchain = cc_toolchain,
         feature_configuration = feature_configuration,
@@ -156,7 +156,7 @@ def _cc_library_impl(ctx):
             linking_context,
             linking_outputs,
         ) = cc_common.create_linking_context_from_compilation_outputs(
-            actions = ctx.actions,
+            ctx = ctx,
             name = ctx.label.name,
             compilation_outputs = compilation_outputs,
             cc_toolchain = cc_toolchain,

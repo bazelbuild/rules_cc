@@ -27,7 +27,7 @@ load("//cc/private/link:target_types.bzl", "LINKING_MODE", "LINK_TARGET_TYPE")
 # IMPORTANT: This function is public API exposed on cc_common module!
 def create_linking_context_from_compilation_outputs(
         *,
-        actions,
+        ctx,
         name,
         feature_configuration,
         cc_toolchain,
@@ -68,7 +68,7 @@ def create_linking_context_from_compilation_outputs(
     those parameters need to be eventually removed or made public.
 
     Args:
-        actions: (Actions) `actions` object.
+        ctx: The rule context.
         name: (str) This is used for naming the output artifacts of actions created by this method.
         feature_configuration: (FeatureConfiguration) `feature_configuration` to be queried.
         language: ("cpp") Only C++ supported for now. Do not use this parameter.
@@ -94,7 +94,7 @@ def create_linking_context_from_compilation_outputs(
 
     # LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/starlarkbuildapi/cpp/CcModuleApi.java)
     # TODO(b/202252560): Fix for swift_library's implicit output, remove rule_kind_cheat.
-    if alwayslink and _cc_internal.rule_class(_cc_internal.actions2ctx_cheat(actions)) != "swift_library":
+    if alwayslink and _cc_internal.rule_class(ctx) != "swift_library":
         static_link_type = LINK_TARGET_TYPE.ALWAYS_LINK_STATIC_LIBRARY
     else:
         static_link_type = LINK_TARGET_TYPE.STATIC_LIBRARY
@@ -102,7 +102,8 @@ def create_linking_context_from_compilation_outputs(
         additional_inputs = depset(additional_inputs)
 
     cc_linking_outputs = create_cc_link_actions(
-        _cc_internal.wrap_link_actions(actions),
+        ctx,
+        _cc_internal.wrap_link_actions(ctx.actions),
         name,
         None if disallow_static_libraries else static_link_type,
         None if disallow_dynamic_library else LINK_TARGET_TYPE.NODEPS_DYNAMIC_LIBRARY,
@@ -122,8 +123,7 @@ def create_linking_context_from_compilation_outputs(
     )
 
     linker_input = create_linker_input(
-        # TODO(b/331164666): remove cheat, we always produce a file, file.owner gives us a label
-        owner = _cc_internal.actions2ctx_cheat(actions).label.same_package_label(name),
+        owner = ctx.label.same_package_label(name),
         libraries = depset([cc_linking_outputs.library_to_link] if cc_linking_outputs.library_to_link else []),
         user_link_flags = user_link_flags,
         additional_inputs = additional_inputs,
