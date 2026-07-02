@@ -55,7 +55,14 @@ def _objc_library_impl(ctx):
     _validate_attributes(srcs = ctx.attr.srcs, non_arc_srcs = ctx.attr.non_arc_srcs, label = ctx.label)
 
     cc_toolchain = find_cc_toolchain(ctx)
-    semantics.check_toolchain_supports_objc_compile(ctx, cc_toolchain)
+    requested_features = ctx.features
+    unsupported_features = ctx.disabled_features
+    semantics.check_toolchain_supports_objc_compile(
+        ctx = ctx,
+        cc_toolchain = cc_toolchain,
+        requested_features = requested_features,
+        unsupported_features = unsupported_features,
+    )
 
     common_variables = compilation_support.build_common_variables(
         ctx = ctx,
@@ -65,6 +72,8 @@ def _objc_library_impl(ctx):
         implementation_deps = ctx.attr.implementation_deps,
         attr_linkopts = ctx.attr.linkopts,
         alwayslink = cc.target_should_alwayslink(ctx),
+        requested_features = requested_features,
+        unsupported_features = unsupported_features,
     )
     files = []
     if common_variables.compilation_artifacts.archive != None:
@@ -90,8 +99,8 @@ def _objc_library_impl(ctx):
     feature_configuration = cc_common.configure_features(
         ctx = ctx,
         cc_toolchain = cc_toolchain,
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
+        requested_features = requested_features,
+        unsupported_features = unsupported_features,
     )
     instrumented_files_info = coverage_common.instrumented_files_info(
         ctx = ctx,
