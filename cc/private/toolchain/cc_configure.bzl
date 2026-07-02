@@ -13,6 +13,7 @@
 # limitations under the License.
 """Rules for configuring the C++ toolchain (experimental)."""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load(
     ":lib_cc_configure.bzl",
     "get_cpu_value",
@@ -24,9 +25,18 @@ load(":windows_cc_configure.bzl", "configure_windows_toolchain")
 def _should_disable_toolchain(repository_ctx):
     """Returns true if the toolchain should be disabled based on environment variables."""
     env = repository_ctx.os.environ
-    disabled_via_env = "BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN" in env and env["BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN"] == "1"
-    macos_legacy_support = env.get("BAZEL_USE_LEGACY_MACOS_TOOLCHAIN", "1") == "1"
-    return disabled_via_env or (repository_ctx.os.name.startswith("mac os") and not macos_legacy_support)
+    if env.get("BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN") == "1":
+        return True
+
+    # Keep macOS toolchain before bazel 9.x
+    if not bazel_features.cc.cc_common_is_in_rules_cc:
+        return False
+
+    macos_legacy_support = env.get("BAZEL_USE_LEGACY_MACOS_TOOLCHAIN", "0") == "1"
+    if repository_ctx.os.name.startswith("mac os") and not macos_legacy_support:
+        return True
+
+    return False
 
 def cc_autoconf_toolchains_impl(repository_ctx):
     """Generate BUILD file with 'toolchain' targets for the local host C++ toolchain.
