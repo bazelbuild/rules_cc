@@ -136,8 +136,12 @@ def finalize_link_action(
                          feature_configuration.is_enabled("supports_start_end_lib"))
 
     # TODO(b/338618120): deduplicate prefer_static_lib, prefer_pic_libs
-    prefer_static_libs = linking_mode == LINKING_MODE.STATIC or \
-                         not feature_configuration.is_enabled("supports_dynamic_linker")
+    # supports_dynamic_library_deps is the intended feature for controlling
+    # whether dynamic libraries can be consumed as deps. Fall back to
+    # supports_dynamic_linker for toolchains that haven't adopted the new feature.
+    supports_dynamic_deps = feature_configuration.is_enabled("supports_dynamic_library_deps") or \
+                            feature_configuration.is_enabled("supports_dynamic_linker")
+    prefer_static_libs = linking_mode == LINKING_MODE.STATIC or not supports_dynamic_deps
 
     # TODO(b/412540147): We select PIC libraries iff creating a dynamic library. Match PIC flags.
     prefer_pic_libs = is_dynamic_library(link_type)
