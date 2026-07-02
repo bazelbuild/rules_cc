@@ -336,6 +336,8 @@ def _create_compilation_context(
     )
 
 def _legacy_cc_flags_make_variable_do_not_use(*, cc_toolchain):
+    if hasattr(cc_toolchain, "_legacy_cc_flags_make_variable"):
+        return cc_toolchain._legacy_cc_flags_make_variable
     return _cc_common_internal.legacy_cc_flags_make_variable_do_not_use(cc_toolchain = cc_toolchain)
 
 # buildifier: disable=unused-variable
