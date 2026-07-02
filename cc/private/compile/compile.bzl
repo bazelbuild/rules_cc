@@ -2321,7 +2321,7 @@ def _create_compile_action(
         feature_configuration = None,
         gcno_file = None,
         lto_indexing_file = None,
-        needs_include_validation = None,
+        needs_include_validation = False,
         output_file = None,
         progress_message_prefix = None,
         source = None,
