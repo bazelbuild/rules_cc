@@ -142,7 +142,7 @@ def configure_features(
     all_features = [cpp_configuration.compilation_mode()]
     all_features.extend(DEFAULT_ACTION_CONFIGS)
     all_features.extend(requested_features)
-    all_features.extend(cc_toolchain._toolchain_features.default_features_and_action_configs())
+    all_features.extend(cc_toolchain._default_features_and_action_configs)
 
     if language == "objc" or language == "objcpp":
         all_features.extend(OBJC_ACTIONS)

@@ -137,6 +137,7 @@ def _create_cc_toolchain_info(
         _build_info_files = build_info_files,
         _supports_header_parsing = supports_header_parsing,
         _supports_param_files = supports_param_files,
+        _default_features_and_action_configs = toolchain_config_info._default_features_and_action_configs,
         _toolchain_features = toolchain_features,
         _toolchain_label = toolchain_label,
         _cpp_configuration = cpp_configuration,
@@ -232,6 +233,7 @@ CcToolchainInfo, _ = provider(
         # Fields still used by native code - will be used by Starlark in the future.
         "_supports_header_parsing": "INTERNAL API, DO NOT USE!",
         "_supports_param_files": "INTERNAL API, DO NOT USE!",
+        "_default_features_and_action_configs": "INTERNAL API, DO NOT USE!",
         "_toolchain_features": "INTERNAL API, DO NOT USE!",
         "_toolchain_label": "INTERNAL API, DO NOT USE!",
         "_cpp_configuration": "INTERNAL API, DO NOT USE!",
