@@ -159,6 +159,15 @@ def get_linkstamp_stamps(
     if fdo_build_stamp:
         stamps["BUILD_FDO_TYPE"] = fdo_build_stamp
 
+    fdo_context = getattr(cc_toolchain, "_fdo_context", None)
+    if fdo_context:
+        fdo_profile_changelist = getattr(fdo_context, "fdo_profile_changelist", None)
+        if fdo_profile_changelist:
+            stamps["BUILD_FDO_PROFILE_CHANGELIST"] = fdo_profile_changelist
+        memprof_profile_changelist = getattr(fdo_context, "memprof_profile_changelist", None)
+        if memprof_profile_changelist:
+            stamps["BUILD_MEMPROF_PROFILE_CHANGELIST"] = memprof_profile_changelist
+
     if feature_configuration.is_enabled("thin_lto"):
         stamps["BUILD_LTO_TYPE"] = "thin"
 

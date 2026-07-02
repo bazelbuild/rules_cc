@@ -659,12 +659,6 @@ def _impl(ctx):
                         ] + profile_correction_flags,
                         expand_if_available = "fdo_profile_path",
                     ),
-                    flag_group(
-                        expand_if_available = "fdo_profile_changelist",
-                        flags = [
-                            "-DFDO_PROFILE_CHANGELIST=%{fdo_profile_changelist}",
-                        ],
-                    ),
                 ],
             ),
         ],
@@ -827,12 +821,6 @@ def _impl(ctx):
                         ] + profile_correction_flags,
                         expand_if_available = "fdo_profile_path",
                     ),
-                    flag_group(
-                        expand_if_available = "fdo_profile_changelist",
-                        flags = [
-                            "-DFDO_PROFILE_CHANGELIST=%{fdo_profile_changelist}",
-                        ],
-                    ),
                 ],
             ),
         ],
@@ -850,12 +838,6 @@ def _impl(ctx):
                             "-fauto-profile=%{fdo_profile_path}",
                         ] + profile_correction_flags,
                         expand_if_available = "fdo_profile_path",
-                    ),
-                    flag_group(
-                        expand_if_available = "fdo_profile_changelist",
-                        flags = [
-                            "-DFDO_PROFILE_CHANGELIST=%{fdo_profile_changelist}",
-                        ],
                     ),
                 ],
             ),
