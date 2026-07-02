@@ -489,6 +489,7 @@ def _compile(
         purpose = _UNBOUND,
         separate_module_headers = _UNBOUND,
         module_interfaces = _UNBOUND,
+        module_header_map_entries = _UNBOUND,
         non_compilation_additional_inputs = _UNBOUND):
     if module_map != _UNBOUND or \
        additional_module_maps != _UNBOUND or \
@@ -501,6 +502,7 @@ def _compile(
        implementation_compilation_contexts != _UNBOUND or \
        separate_module_headers != _UNBOUND or \
        module_interfaces != _UNBOUND or \
+       module_header_map_entries != _UNBOUND or \
        non_compilation_additional_inputs != _UNBOUND:
         _cc_internal.check_private_api(allowlist = _PRIVATE_STARLARKIFICATION_ALLOWLIST)
 
@@ -524,6 +526,8 @@ def _compile(
         separate_module_headers = []
     if module_interfaces == _UNBOUND:
         module_interfaces = []
+    if module_header_map_entries == _UNBOUND:
+        module_header_map_entries = []
     if non_compilation_additional_inputs == _UNBOUND:
         non_compilation_additional_inputs = []
 
@@ -538,6 +542,7 @@ def _compile(
         name = name,
         srcs = srcs,
         module_interfaces = module_interfaces,
+        module_header_map_entries = module_header_map_entries,
         public_hdrs = public_hdrs,
         private_hdrs = private_hdrs,
         textual_hdrs = textual_hdrs,

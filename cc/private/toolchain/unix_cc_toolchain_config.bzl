@@ -1863,6 +1863,24 @@ def _impl(ctx):
         enabled = True,
     )
 
+    cpp_module_header_map_files_feature = feature(
+        name = "cpp_module_header_map_files",
+        flag_sets = [
+            flag_set(
+                actions = [
+                    ACTION_NAMES.cpp_compile,
+                ],
+                flag_groups = [
+                    flag_group(
+                        iterate_over = "cpp_module_header_map_files",
+                        flags = ["-fmodule-map-file=%{cpp_module_header_map_files}"],
+                    ),
+                ],
+            ),
+        ],
+        enabled = True,
+    )
+
     no_dotd_file_feature = feature(name = "no_dotd_file")
 
     skip_virtual_includes_feature = feature(name = "skip_virtual_includes")
@@ -1881,6 +1899,7 @@ def _impl(ctx):
             cpp_modules_feature,
             cpp_module_modmap_file_feature,
             cpp20_module_compile_flags_feature,
+            cpp_module_header_map_files_feature,
             dependency_file_feature,
             serialized_diagnostics_file_feature,
             random_seed_feature,
