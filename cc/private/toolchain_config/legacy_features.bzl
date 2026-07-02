@@ -167,6 +167,28 @@ def get_legacy_features(ctx, platform, existing_feature_names, linker_tool_path)
             )],
         ))
 
+    if "exec_cfg" not in existing_feature_names:
+        result.append(feature(
+            name = "exec_cfg",
+            flag_sets = [flag_set(
+                actions = [
+                    ACTION_NAMES.assemble,
+                    ACTION_NAMES.c_compile,
+                    ACTION_NAMES.clif_match,
+                    ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cpp_header_parsing,
+                    ACTION_NAMES.cpp_module_codegen,
+                    ACTION_NAMES.cpp_module_compile,
+                    ACTION_NAMES.linkstamp_compile,
+                    ACTION_NAMES.lto_backend,
+                    ACTION_NAMES.objc_compile,
+                    ACTION_NAMES.objcpp_compile,
+                    ACTION_NAMES.preprocess_assemble,
+                ],
+                flag_groups = [flag_group(flags = ["-g0"])],
+            )],
+        ))
+
     if "preprocessor_defines" not in existing_feature_names:
         result.append(feature(
             name = "preprocessor_defines",
