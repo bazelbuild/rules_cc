@@ -45,6 +45,7 @@ cc_args(
         ":lto_index_actions",
     ],
     args = select({
+        "@platforms//os:macos": ["-Wl,--thinlto-index-only={thinlto_indexing_param_file}"],
         "@platforms//os:windows": ["-Wl,--thinlto-index-only={thinlto_indexing_param_file}"],
         "//conditions:default": ["-Wl,-plugin-opt,thinlto-index-only={thinlto_indexing_param_file}"],
     }),
@@ -60,6 +61,7 @@ cc_args(
         ":lto_index_actions",
     ],
     args = select({
+        "@platforms//os:macos": ["-Wl,--thinlto-emit-imports-files"],
         "@platforms//os:windows": ["-Wl,--thinlto-emit-imports-files"],
         "//conditions:default": ["-Wl,-plugin-opt,thinlto-emit-imports-files"],
     }),
@@ -71,6 +73,7 @@ cc_args(
         ":lto_index_actions",
     ],
     args = select({
+        "@platforms//os:macos": ["-Wl,--thinlto-prefix-replace={thinlto_prefix_replace}"],
         "@platforms//os:windows": ["-Wl,--thinlto-prefix-replace={thinlto_prefix_replace}"],
         "//conditions:default": ["-Wl,-plugin-opt,thinlto-prefix-replace={thinlto_prefix_replace}"],
     }),
@@ -86,6 +89,7 @@ cc_args(
         ":lto_index_actions",
     ],
     args = select({
+        "@platforms//os:macos": ["-Wl,--thinlto-object-suffix-replace={thinlto_object_suffix_replace}"],
         "@platforms//os:windows": ["-Wl,--thinlto-object-suffix-replace={thinlto_object_suffix_replace}"],
         "//conditions:default": ["-Wl,-plugin-opt,thinlto-object-suffix-replace={thinlto_object_suffix_replace}"],
     }),
@@ -101,6 +105,7 @@ cc_args(
         ":lto_index_actions",
     ],
     args = select({
+        "@platforms//os:macos": ["-Wl,--lto-obj-path={thinlto_merged_object_file}"],
         "@platforms//os:windows": ["-Wl,/lto-obj-path:{thinlto_merged_object_file}"],
         "//conditions:default": ["-Wl,-plugin-opt,obj-path={thinlto_merged_object_file}"],
     }),
