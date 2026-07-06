@@ -34,6 +34,16 @@ rules_cc_integration_test(
     test_script = "cc_shared_library_tests.sh",
 )
 
+rules_cc_integration_test(
+    name = "fission_tests",
+    target_compatible_with = select({
+        "@platforms//os:macos": ["@platforms//:incompatible"],
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+    test_script = "fission_tests.sh",
+)
+
 VERSION_GATE = [] if bazel_features.cc.cc_common_is_in_rules_cc else ["@platforms//:incompatible"]  # copybara-uncomment-this-please
 # VERSION_GATE = ["@platforms//:incompatible"]  # copybara-comment-this-out-please
 

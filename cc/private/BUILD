@@ -35,6 +35,7 @@ filegroup(
         "*.bzl",
     ]) + [
         "//cc/private/compile:srcs",
+        "//cc/private/coverage:srcs",
         "//cc/private/link:srcs",
         "//cc/private/rules_impl:srcs",
         "//cc/private/toolchain:srcs",
