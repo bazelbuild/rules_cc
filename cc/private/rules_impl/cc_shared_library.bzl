@@ -52,6 +52,12 @@ def _graph_structure_aspect_impl(target, ctx):
         elif type(deps) == "Target" and GraphNodeInfo in deps:
             children.append(deps[GraphNodeInfo])
 
+    if hasattr(ctx.rule, "toolchains") and hasattr(ctx.rule.toolchains, "toolchain_types"):
+        for toolchain_type in ctx.rule.toolchains.toolchain_types():
+            dep = ctx.rule.toolchains[toolchain_type]
+            if dep and GraphNodeInfo in dep:
+                children.append(dep[GraphNodeInfo])
+
     # TODO(bazel-team): Add flag to Bazel that can toggle the initialization of
     # linkable_more_than_once.
     linkable_more_than_once = False
@@ -67,7 +73,8 @@ def _graph_structure_aspect_impl(target, ctx):
 
 graph_structure_aspect = aspect(
     attr_aspects = ["*"],
-    required_providers = [[CcInfo], [CcSharedLibraryHintInfo], [ProtoInfo]],
+    toolchains_aspects = ["*"],
+    required_providers = [[CcInfo], [CcSharedLibraryHintInfo], [ProtoInfo], [platform_common.ToolchainInfo]],
     required_aspect_providers = [[CcInfo], [CcSharedLibraryHintInfo]],
     implementation = _graph_structure_aspect_impl,
 )
