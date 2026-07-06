@@ -13,6 +13,7 @@
 # limitations under the License.
 """Functions that create LTO indexing action."""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("//cc/common:cc_helper_internal.bzl", "root_relative_path")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private/compile:lto_compilation_context.bzl", "get_minimized_bitcode_or_self")
@@ -284,6 +285,7 @@ def _lto_indexing_action(
         # Counterintuitively allow_lto_indexing is set to False, so that all
         # lto_mapped libraries are included on the linker command line.
         allow_lto_indexing = False,
+        command_line_param_file_name = output.basename + "-lto-index.params" if bazel_features.cc._get_link_args_has_param_file_name else None,
         **link_action_args
     )
 
