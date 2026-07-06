@@ -36,9 +36,8 @@ load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfig
 load("@rules_cc//cc/toolchains:feature_injection.bzl", "FeatureInfo", "convert_feature")
 
 def _target_os_version(ctx):
-    platform_type = ctx.fragments.apple.single_arch_platform.platform_type
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
-    return xcode_config.minimum_os_for_platform_type(platform_type)
+    return xcode_config.minimum_os_for_platform_type(apple_common.platform_type.macos)
 
 def layering_check_features(compiler, extra_flags_per_feature, is_macos):
     if compiler != "clang":
@@ -2107,6 +2106,6 @@ This is only offered as a migration bridge for projects transitioning to rule-ba
             name = "xcode_config_label",
         )),
     },
-    fragments = ["apple", "cpp"],
+    fragments = ["cpp"],
     provides = [CcToolchainConfigInfo],
 )
