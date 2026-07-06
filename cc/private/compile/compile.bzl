@@ -2326,11 +2326,11 @@ def _create_compile_action(
         progress_message_prefix = None,
         source = None,
         toolchain_type = None,
-        use_pic = False):
+        use_pic = False,
+        **kwargs):
     # TODO(bgorshenev): use bazel_features checks
-    version_dependent_kwargs = {}
     if progress_message_prefix:
-        version_dependent_kwargs["progress_message_prefix"] = progress_message_prefix
+        kwargs["progress_message_prefix"] = progress_message_prefix
     return _cc_internal.create_cc_compile_action(
         action_construction_context = action_construction_context,
         action_name = action_name,
@@ -2352,5 +2352,5 @@ def _create_compile_action(
         source = source,
         toolchain_type = toolchain_type,
         use_pic = use_pic,
-        **version_dependent_kwargs
+        **kwargs
     )
