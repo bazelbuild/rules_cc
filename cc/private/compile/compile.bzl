@@ -52,6 +52,9 @@ load("//cc/private/compile:lto_compilation_context.bzl", "create_lto_compilation
 
 _VALID_CPP_SOURCE_TYPES = set([CPP_SOURCE_TYPE_SOURCE, CPP_SOURCE_TYPE_HEADER, CPP_SOURCE_TYPE_CLIF_INPUT_PROTO])
 
+def _clang_trace_enabled(feature_configuration):
+    return feature_configuration.is_enabled("clang_trace")
+
 def _cpp_source_init(*, label, source, type):
     if type not in _VALID_CPP_SOURCE_TYPES:
         fail("invalid type of cpp source, got:", type, "expected one of:", _VALID_CPP_SOURCE_TYPES)
@@ -347,6 +350,8 @@ def compile(
         "lto_compilation_context": {},
         "gcno_files": [],
         "pic_gcno_files": [],
+        "trace_files": [],
+        "pic_trace_files": [],
         "dwo_files": [],
         "pic_dwo_files": [],
         "cpp_module_files": [],
@@ -837,6 +842,7 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
             cpp_module_map = cc_compilation_context._module_map,
             add_object = True,
             enable_coverage = is_code_coverage_enabled,
+            enable_trace = _clang_trace_enabled(feature_configuration),
             generate_dwo = should_create_per_object_debug_info(feature_configuration, cpp_configuration),
             bitcode_output = bitcode_output,
             fdo_context = fdo_context,
@@ -985,6 +991,7 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
             cpp_module_map = cc_compilation_context._module_map,
             add_object = True,
             enable_coverage = is_code_coverage_enabled,
+            enable_trace = _clang_trace_enabled(feature_configuration),
             generate_dwo = should_create_per_object_debug_info(feature_configuration, cpp_configuration),
             bitcode_output = bitcode_output,
             fdo_context = fdo_context,
@@ -1268,6 +1275,7 @@ def _create_cc_compile_actions(
                 cpp_module_map = cc_compilation_context._module_map,
                 add_object = True,
                 enable_coverage = is_code_coverage_enabled,
+                enable_trace = _clang_trace_enabled(feature_configuration),
                 generate_dwo = should_create_per_object_debug_info(feature_configuration, cpp_configuration),
                 bitcode_output = bitcode_output,
                 fdo_context = fdo_context,
@@ -1420,6 +1428,7 @@ def _create_pic_nopic_compile_source_actions(
         cpp_module_map,
         add_object,
         enable_coverage,
+        enable_trace,
         generate_dwo,
         bitcode_output,
         fdo_context,
@@ -1454,6 +1463,7 @@ def _create_pic_nopic_compile_source_actions(
             cpp_module_map = cpp_module_map,
             add_object = add_object,
             enable_coverage = enable_coverage,
+            enable_trace = enable_trace,
             generate_dwo = generate_dwo,
             bitcode_output = bitcode_output,
             fdo_context = fdo_context,
@@ -1491,6 +1501,7 @@ def _create_pic_nopic_compile_source_actions(
             cpp_module_map = cpp_module_map,
             add_object = add_object,
             enable_coverage = enable_coverage,
+            enable_trace = enable_trace,
             generate_dwo = generate_dwo,
             bitcode_output = bitcode_output,
             fdo_context = fdo_context,
@@ -1529,6 +1540,7 @@ def _create_compile_source_action(
         cpp_module_map,
         add_object,
         enable_coverage,
+        enable_trace,
         generate_dwo,
         bitcode_output,
         fdo_context,
@@ -1591,6 +1603,11 @@ def _create_compile_source_action(
         cpp_configuration = cpp_configuration,
         configuration = configuration,
         enable_coverage = enable_coverage,
+    )
+    trace_file = _maybe_declare_trace_file(
+        ctx = action_construction_context,
+        enable_trace = enable_trace,
+        object_file = object_file,
     )
 
     dwo_file = None
@@ -1680,14 +1697,20 @@ def _create_compile_source_action(
     if add_object and fdo_context_has_artifacts:
         additional_inputs = additional_compilation_inputs + auxiliary_fdo_inputs.to_list()
 
+    all_additional_outputs = list(additional_outputs)
+    if trace_file:
+        all_additional_outputs.append(trace_file)
+
     # Provide these args conditionally as they require a recent version of Bazel.
     if modmap_file:
         module_args = {
-            "additional_outputs": additional_outputs,
+            "additional_outputs": all_additional_outputs,
             "module_files": module_files,
             "modmap_file": modmap_file,
             "modmap_input_file": modmap_input_file,
         }
+    elif all_additional_outputs:
+        module_args = {"additional_outputs": all_additional_outputs}
     else:
         module_args = {}
 
@@ -1736,6 +1759,11 @@ def _create_compile_source_action(
             outputs["pic_gcno_files"].append(gcno_file)
         else:
             outputs["gcno_files"].append(gcno_file)
+    if trace_file:
+        if use_pic:
+            outputs["pic_trace_files"].append(trace_file)
+        else:
+            outputs["trace_files"].append(trace_file)
     return object_file
 
 def _create_temps_action(
@@ -2136,6 +2164,7 @@ def _create_module_action(
         cpp_module_map = cpp_module_map,
         add_object = False,
         enable_coverage = False,
+        enable_trace = False,
         generate_dwo = False,
         bitcode_output = False,
         additional_compilation_inputs = additional_compilation_inputs,
@@ -2304,12 +2333,25 @@ def _maybe_declare_gcno_file(
         )
     return gcno_file
 
+def _maybe_declare_trace_file(
+        ctx,
+        enable_trace,
+        object_file):
+    if not enable_trace:
+        return None
+    return _cc_internal.declare_other_output_file(
+        ctx = ctx,
+        output_name = paths.replace_extension(paths.basename(object_file.path), ".json"),
+        object_file = object_file,
+    )
+
 def _create_compile_action(
         *,
         action_construction_context = None,
         action_name = None,
         additional_compilation_inputs = None,
         additional_include_scanning_roots = [],
+        additional_outputs = [],
         cc_compilation_context = None,
         cc_toolchain = None,
         compile_build_variables = None,
@@ -2336,6 +2378,7 @@ def _create_compile_action(
         action_name = action_name,
         additional_compilation_inputs = additional_compilation_inputs,
         additional_include_scanning_roots = additional_include_scanning_roots,
+        additional_outputs = additional_outputs,
         cc_compilation_context = cc_compilation_context,
         cc_toolchain = cc_toolchain,
         compile_build_variables = compile_build_variables,
