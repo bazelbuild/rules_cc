@@ -61,6 +61,10 @@ alias(
         ),
     )
 
+    if hasattr(repository_ctx, "repo_metadata"):
+        return repository_ctx.repo_metadata(reproducible = False)
+    return None
+
 local_bazel_import = repository_rule(
     implementation = _local_bazel_import_impl,
     environ = ["PATH"],

@@ -33,6 +33,9 @@ def cc_autoconf_toolchains_impl(repository_ctx):
 
     Args:
       repository_ctx: repository context
+
+    Returns:
+      repo_metadata consumed by bazel
     """
     if not _should_disable_toolchain(repository_ctx):
         if repository_ctx.os.name.lower().find("windows") != -1:
@@ -51,6 +54,10 @@ def cc_autoconf_toolchains_impl(repository_ctx):
     else:
         repository_ctx.file("BUILD", "# C++ toolchain autoconfiguration was disabled by BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 or BAZEL_USE_LEGACY_MACOS_TOOLCHAIN=0.")
 
+    if hasattr(repository_ctx, "repo_metadata"):
+        return repository_ctx.repo_metadata(reproducible = True)
+    return None
+
 cc_autoconf_toolchains = repository_rule(
     environ = [
         "BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN",
@@ -66,6 +73,9 @@ def cc_autoconf_impl(repository_ctx, overriden_tools = dict()):
     Args:
        repository_ctx: repository context
        overriden_tools: dict of tool paths to use instead of autoconfigured tools
+
+    Returns:
+      repo_metadata consumed by bazel
     """
     cpu_value = get_cpu_value(repository_ctx)
     if _should_disable_toolchain(repository_ctx):
@@ -95,6 +105,10 @@ def cc_autoconf_impl(repository_ctx, overriden_tools = dict()):
         configure_windows_toolchain(repository_ctx)
     else:
         configure_unix_toolchain(repository_ctx, cpu_value, overriden_tools)
+
+    if hasattr(repository_ctx, "repo_metadata"):
+        return repository_ctx.repo_metadata(reproducible = False)
+    return None
 
 MSVC_ENVVARS = [
     "BAZEL_VC",

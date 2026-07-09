@@ -168,6 +168,10 @@ CcSharedLibraryInfo = NativeCcSharedLibraryInfo
             """,
         )
 
+    if hasattr(rctx, "repo_metadata"):
+        return rctx.repo_metadata(reproducible = False)
+    return None
+
 _compatibility_proxy_repo_rule = repository_rule(
     _compatibility_proxy_repo_impl,
     # force reruns on server restarts to use correct native.bazel_version
