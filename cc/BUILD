@@ -79,6 +79,7 @@ filegroup(
         "//cc/common:srcs",
         "//cc/private:srcs",
         "//cc/proto:srcs",
+        "//cc/settings:srcs",
         "//cc/toolchains:srcs",
         "@bazel_skylib//:test_deps",
     ],

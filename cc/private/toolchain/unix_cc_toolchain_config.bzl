@@ -13,6 +13,7 @@
 # limitations under the License.
 """A Starlark cc_toolchain configuration rule"""
 
+#buildifier: disable=bzl-visibility
 load("@bazel_features//private:util.bzl", "ge")
 load("@rules_cc//cc:action_names.bzl", "ACTION_NAMES")
 load(
@@ -40,6 +41,9 @@ def _cpp_module_extension(compiler):
     if compiler == "gcc" and ge("9.0.0"):
         return ".gcm"
     return ".pcm"
+def _target_os_version(ctx):
+    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    return xcode_config.minimum_os_for_platform_type(apple_common.platform_type.macos)
 
 def layering_check_features(compiler, extra_flags_per_feature, is_macos):
     if compiler != "clang":
@@ -249,13 +253,27 @@ def _sanitizer_feature(name = "", specific_compile_flags = [], specific_link_fla
 
 def _impl(ctx):
     is_linux = ctx.attr.target_libc != "macosx"
+    target_macos_and_use_libtool = not is_linux and ctx.attr._use_libtool_on_macos[BuildSettingInfo].value
     profile_correction_flags = get_profile_correction_flags(ctx)
 
     tool_paths = [
         tool_path(name = name, path = path)
         for name, path in ctx.attr.tool_paths.items()
+        if name != "libtool"
     ]
     action_configs = []
+
+    action_configs.append(action_config(
+        action_name = ACTION_NAMES.cpp_link_static_library,
+        tools = [
+            tool(
+                path = ctx.attr.tool_paths.get("libtool", ctx.attr.tool_paths["ar"]),
+                with_features = [with_feature_set(features = ["libtool"])],
+            ),
+            tool(path = ctx.attr.tool_paths["ar"]),
+        ],
+        implies = ["archiver_flags", "linker_param_file"],
+    ))
 
     llvm_cov = ctx.attr.tool_paths.get("llvm-cov")
     if llvm_cov:
@@ -651,12 +669,6 @@ def _impl(ctx):
                         ] + profile_correction_flags,
                         expand_if_available = "fdo_profile_path",
                     ),
-                    flag_group(
-                        expand_if_available = "fdo_profile_changelist",
-                        flags = [
-                            "-DFDO_PROFILE_CHANGELIST=%{fdo_profile_changelist}",
-                        ],
-                    ),
                 ],
             ),
         ],
@@ -819,12 +831,6 @@ def _impl(ctx):
                         ] + profile_correction_flags,
                         expand_if_available = "fdo_profile_path",
                     ),
-                    flag_group(
-                        expand_if_available = "fdo_profile_changelist",
-                        flags = [
-                            "-DFDO_PROFILE_CHANGELIST=%{fdo_profile_changelist}",
-                        ],
-                    ),
                 ],
             ),
         ],
@@ -842,12 +848,6 @@ def _impl(ctx):
                             "-fauto-profile=%{fdo_profile_path}",
                         ] + profile_correction_flags,
                         expand_if_available = "fdo_profile_path",
-                    ),
-                    flag_group(
-                        expand_if_available = "fdo_profile_changelist",
-                        flags = [
-                            "-DFDO_PROFILE_CHANGELIST=%{fdo_profile_changelist}",
-                        ],
                     ),
                 ],
             ),
@@ -1406,7 +1406,7 @@ def _impl(ctx):
 
     libtool_feature = feature(
         name = "libtool",
-        enabled = not is_linux,
+        enabled = target_macos_and_use_libtool,
     )
 
     archiver_flags_feature = feature(
@@ -1745,6 +1745,7 @@ def _impl(ctx):
     archive_param_file_feature = feature(
         name = "archive_param_file",
         enabled = True,
+        requires = [] if is_linux else [feature_set(features = ["libtool"])],
     )
 
     asan_feature = _sanitizer_feature(
@@ -1786,6 +1787,19 @@ def _impl(ctx):
         ],
         specific_link_flags = [
             "-fsanitize=undefined",
+        ],
+    )
+
+    # If you have Xcode + the CLT installed the version defaults can be
+    # too old for some standard C apis such as thread locals
+    macos_minimum_os_feature = feature(
+        name = "macos_minimum_os",
+        enabled = True,
+        flag_sets = [
+            flag_set(
+                actions = all_compile_actions + all_link_actions,
+                flag_groups = [flag_group(flags = ["-mmacosx-version-min={}".format(_target_os_version(ctx))])],
+            ),
         ],
     )
 
@@ -1970,6 +1984,7 @@ def _impl(ctx):
             cpp_modules_feature,
             cpp_module_modmap_file_feature,
             cpp20_module_compile_flags_feature,
+            macos_minimum_os_feature,
             macos_reproducible_feature,
             macos_default_link_flags_feature,
             dependency_file_feature,
@@ -2089,6 +2104,13 @@ This is only offered as a migration bridge for projects transitioning to rule-ba
         "tool_paths": attr.string_dict(),
         "toolchain_identifier": attr.string(mandatory = True),
         "unfiltered_compile_flags": attr.string_list(),
+        "_use_libtool_on_macos": attr.label(
+            default = "@rules_cc//cc/toolchains/args/archiver_flags:use_libtool_on_macos",
+        ),
+        "_xcode_config": attr.label(default = configuration_field(
+            fragment = "apple",
+            name = "xcode_config_label",
+        )),
     },
     fragments = ["cpp"],
     provides = [CcToolchainConfigInfo],

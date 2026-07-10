@@ -473,15 +473,6 @@ def _setup_fdo_build_variables(
         variables["memprof_profile_path"] = memprof_profile_artifact.path
 
     branch_fdo_profile = getattr(fdo_context, "branch_fdo_profile", None)
-    if branch_fdo_profile:
-        changelist = getattr(fdo_context, "fdo_profile_changelist", None)
-        if changelist:
-            variables["fdo_profile_changelist"] = changelist
-
-    if memprof_profile_artifact:
-        changelist = getattr(fdo_context, "memprof_profile_changelist", None)
-        if changelist:
-            variables["memprof_profile_changelist"] = changelist
 
     if (branch_fdo_profile and
         auxiliary_fdo_inputs_list and

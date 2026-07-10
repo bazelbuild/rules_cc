@@ -1033,7 +1033,7 @@ def _create_cc_compile_actions_with_cpp20_module(
         progress_message_prefix):
     """Constructs the C++ compiler actions with C++20 modules support.
     """
-    output_name_prefix_dir = _cc_internal.compute_output_name_prefix_dir(configuration = configuration, purpose = purpose)
+    output_name_prefix_dir = _compute_output_name_prefix_dir(purpose)
     output_name_map = _calculate_output_name_map_by_type(compilation_unit_sources | module_interfaces_sources, output_name_prefix_dir)
     use_pic_values = []
     if generate_no_pic_action:
@@ -1230,7 +1230,7 @@ def _create_cc_compile_actions(
                     progress_message_prefix = progress_message_prefix,
                 )
 
-    output_name_prefix_dir = _cc_internal.compute_output_name_prefix_dir(configuration = configuration, purpose = purpose)
+    output_name_prefix_dir = _compute_output_name_prefix_dir(purpose)
     output_name_map = _calculate_output_name_map_by_type(compilation_unit_sources, output_name_prefix_dir)
 
     compiled_basenames = set()
@@ -2187,6 +2187,13 @@ def _calculate_output_name_map_by_type(sources, prefix_dir):
         )
     )
 
+def _compute_output_name_prefix_dir(purpose):
+    if purpose.endswith("_non_objc_arc"):
+        return "non_arc"
+    if purpose.endswith("_objc_arc"):
+        return "arc"
+    return ""
+
 def _calculate_output_name_map(source_artifacts, prefix_dir):
     """Calculates the output names for object file paths from a set of source files."""
     output_name_map = {}
@@ -2314,16 +2321,16 @@ def _create_compile_action(
         feature_configuration = None,
         gcno_file = None,
         lto_indexing_file = None,
-        needs_include_validation = None,
+        needs_include_validation = False,
         output_file = None,
         progress_message_prefix = None,
         source = None,
         toolchain_type = None,
-        use_pic = False):
+        use_pic = False,
+        **kwargs):
     # TODO(bgorshenev): use bazel_features checks
-    version_dependent_kwargs = {}
     if progress_message_prefix:
-        version_dependent_kwargs["progress_message_prefix"] = progress_message_prefix
+        kwargs["progress_message_prefix"] = progress_message_prefix
     return _cc_internal.create_cc_compile_action(
         action_construction_context = action_construction_context,
         action_name = action_name,
@@ -2345,5 +2352,5 @@ def _create_compile_action(
         source = source,
         toolchain_type = toolchain_type,
         use_pic = use_pic,
-        **version_dependent_kwargs
+        **kwargs
     )

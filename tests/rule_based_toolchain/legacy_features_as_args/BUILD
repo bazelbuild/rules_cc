@@ -1,8 +1,9 @@
-load(":compare_feature.bzl", "compare_feature_implementation")
+load(":compare_feature.bzl", "compare_cc_feature_implementation", "compare_feature_implementation")
 load(":goldens/macos/archiver_flags.bzl", _MACOS_ARCHIVER_FLAGS = "GOLDEN")
 load(":goldens/macos/force_pic_flags.bzl", _MACOS_FORCE_PIC_FLAGS = "GOLDEN")
 load(":goldens/macos/libraries_to_link.bzl", _MACOS_LIBRARIES_TO_LINK = "GOLDEN")
 load(":goldens/macos/runtime_library_search_directories.bzl", _MACOS_RUNTIME_LIBRARY_SEARCH_DIRECTORIES = "GOLDEN")
+load(":goldens/macos/thin_lto.bzl", _MACOS_THIN_LTO = "GOLDEN")
 load(":goldens/unix/archiver_flags.bzl", _UNIX_ARCHIVER_FLAGS = "GOLDEN")
 load(":goldens/unix/force_pic_flags.bzl", _UNIX_FORCE_PIC_FLAGS = "GOLDEN")
 load(":goldens/unix/libraries_to_link.bzl", _UNIX_LIBRARIES_TO_LINK = "GOLDEN")
@@ -10,6 +11,8 @@ load(":goldens/unix/linker_param_file.bzl", _UNIX_LINKER_PARAM_FILE = "GOLDEN")
 load(":goldens/unix/runtime_library_search_directories.bzl", _UNIX_RUNTIME_LIBRARY_SEARCH_DIRECTORIES = "GOLDEN")
 load(":goldens/unix/shared_flag.bzl", _UNIX_SHARED_FLAG = "GOLDEN")
 load(":goldens/windows/def_file_gnu.bzl", _WINDOWS_DEF_FILE_GNU = "GOLDEN")
+load(":goldens/windows/libraries_to_link.bzl", _WINDOWS_LIBRARIES_TO_LINK = "GOLDEN")
+load(":goldens/windows/thin_lto.bzl", _WINDOWS_THIN_LTO = "GOLDEN")
 
 # These tests validate that the produced legacy feature implementations
 # properly reflect the implementations housed in the Java source of truth at
@@ -93,6 +96,14 @@ compare_feature_implementation(
 )
 
 compare_feature_implementation(
+    name = "libraries_to_link_windows_test",
+    actual_implementation = "//cc/toolchains/args/libraries_to_link",
+    expected = _WINDOWS_LIBRARIES_TO_LINK,
+    feature_name = "libraries_to_link_test",
+    platform = ":windows",
+)
+
+compare_feature_implementation(
     name = "linker_param_file_test",
     actual_implementation = "//cc/toolchains/args/linker_param_file",
     expected = _UNIX_LINKER_PARAM_FILE,
@@ -129,4 +140,18 @@ compare_feature_implementation(
     expected = _UNIX_SHARED_FLAG,
     feature_name = "shared_flag_test",
     platform = ":linux",
+)
+
+compare_cc_feature_implementation(
+    name = "thin_lto_macos_test",
+    actual_implementation = "//cc/toolchains/args/thin_lto:feature",
+    expected = _MACOS_THIN_LTO,
+    platform = ":macos",
+)
+
+compare_cc_feature_implementation(
+    name = "thin_lto_windows_test",
+    actual_implementation = "//cc/toolchains/args/thin_lto:feature",
+    expected = _WINDOWS_THIN_LTO,
+    platform = ":windows",
 )

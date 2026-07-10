@@ -94,6 +94,6 @@ depend on this target."""),
         common_attrs.LICENSES,
         common_attrs.SDK_FRAMEWORK_DEPENDER_RULE,
     ),
-    fragments = ["objc", "apple", "cpp"],
+    fragments = ["objc", "cpp"],
     toolchains = use_cc_toolchain() + cc_semantics.get_runtimes_toolchain(),
 )

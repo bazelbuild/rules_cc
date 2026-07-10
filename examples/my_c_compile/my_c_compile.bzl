@@ -57,6 +57,7 @@ def _my_c_compile_impl(ctx):
     )
 
     ctx.actions.run(
+        mnemonic = "MyCCompile",
         executable = c_compiler_path,
         arguments = command_line,
         env = env,

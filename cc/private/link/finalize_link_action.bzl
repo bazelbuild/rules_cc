@@ -13,6 +13,7 @@
 # limitations under the License.
 """Common functions that create C++ link and LTO indexing action."""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("//cc/common:semantics.bzl", "semantics")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private/compile:linkstamp_compile.bzl", "register_linkstamp_compile_action")
@@ -55,7 +56,8 @@ def finalize_link_action(
         additional_linkstamp_defines,
         # LTO:
         lto_mapping,
-        allow_lto_indexing):
+        allow_lto_indexing,
+        command_line_param_file_name = None):
     """Creates C++ linking or LTO indexing, and linkstamp compile actions.
 
     Runs all the libraries through `libraries_to_link_collector`.
@@ -94,6 +96,7 @@ def finalize_link_action(
         additional_linkstamp_defines: (list[str]) undocumented.
         lto_mapping: (dict[File, File]) Map from bitcode files to object files. Used to replace all linker inputs.
         allow_lto_indexing: (bool) Was LTO indexing done.
+        command_line_param_file_name: (None|str) Name of the parameter file for linker arguments.
 
     Returns:
       None
@@ -293,6 +296,7 @@ def finalize_link_action(
         progress_message,
         link_type,
         interface_output,
+        command_line_param_file_name,
     )
 
 def _create_action(
@@ -307,7 +311,8 @@ def _create_action(
         outputs,
         progress_message,
         link_type,
-        interface_output):
+        interface_output,
+        command_line_param_file_name):
     """
     Creates C++ linking or LTO indexing action.
 
@@ -324,6 +329,7 @@ def _create_action(
       progress_message: (str) progress message
       link_type: (LINK_TARGET_TYPE) link type, used to determine parameter file type
       interface_output: (File) Interface output file, if any.
+      command_line_param_file_name: (None|str) Name of the parameter file for linker arguments.
     """
 
     parameter_file_type = None
@@ -348,12 +354,17 @@ def _create_action(
         execution_info[req] = ""
 
     build_variables = _cc_internal.cc_toolchain_variables(vars = build_variables)
+    get_link_args_kwargs = {}
+    if bazel_features.cc._get_link_args_has_param_file_name:
+        get_link_args_kwargs["param_file_name"] = command_line_param_file_name
     link_args = _cc_internal.get_link_args(
         feature_configuration = feature_configuration,
         action_name = action_name,
         build_variables = build_variables,
         parameter_file_type = parameter_file_type,
+        **get_link_args_kwargs
     )
+
     env = _cc_common_internal.get_environment_variables(
         feature_configuration = feature_configuration,
         action_name = action_name,

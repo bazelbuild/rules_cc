@@ -475,6 +475,7 @@ def _create_lto_backend_action(
     outputs = _get_lto_backend_action_outputs(object_file, dwo_file)
 
     _path_variables = _paths_build_variables(
+        feature_configuration,
         index,
         object_file,
         dwo_file,
@@ -495,7 +496,7 @@ def _create_lto_backend_action(
         env = env,
     )
 
-def _paths_build_variables(index, object_file, dwo_file, bitcode_file):
+def _paths_build_variables(feature_configuration, index, object_file, dwo_file, bitcode_file):
     build_variables = {}
 
     # Ideally, those strings would come directly from the execPath of the Artifacts of
@@ -507,7 +508,9 @@ def _paths_build_variables(index, object_file, dwo_file, bitcode_file):
         build_variables["thinlto_index"] = index
     else:
         # An empty input indicates not to perform cross-module optimization.
-        build_variables["thinlto_index"] = "/dev/null"
+        build_variables["thinlto_index"] = (
+            "NUL" if feature_configuration.is_enabled("targets_windows") else "/dev/null"
+        )
 
     # The output from the LTO backend step is a native object file.
     build_variables["thinlto_output_object_file"] = object_file

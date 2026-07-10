@@ -24,3 +24,11 @@ label_flag(
     build_setting_default = ":default_apple_constraint",
     visibility = ["//visibility:public"],
 )
+
+filegroup(
+    name = "srcs",
+    srcs = glob([
+        "**/BUILD",
+    ]),
+    visibility = ["//visibility:public"],
+)

@@ -56,7 +56,10 @@ cc_nested_args(
 
 cc_nested_args(
     name = "start_lib_arg",
-    args = ["-Wl,--start-lib"],
+    args = select({
+        "@platforms//os:windows": ["-Wl,/start-lib"],
+        "//conditions:default": ["-Wl,--start-lib"],
+    }),
     requires_false = "//cc/toolchains/variables:libraries_to_link.is_whole_archive",
 )
 
@@ -69,7 +72,10 @@ cc_nested_args(
 
 cc_nested_args(
     name = "end_lib_arg",
-    args = ["-Wl,--end-lib"],
+    args = select({
+        "@platforms//os:windows": ["-Wl,/end-lib"],
+        "//conditions:default": ["-Wl,--end-lib"],
+    }),
     requires_false = "//cc/toolchains/variables:libraries_to_link.is_whole_archive",
 )
 

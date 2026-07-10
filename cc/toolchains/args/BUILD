@@ -59,5 +59,7 @@ cc_feature(
 
 filegroup(
     name = "srcs",
-    srcs = glob(["**"]),
+    srcs = glob(["**"]) + [
+        "//cc/toolchains/args/archiver_flags:srcs",
+    ],
 )

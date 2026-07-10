@@ -17,7 +17,6 @@ load("@bazel_skylib//lib:paths.bzl", "paths")
 load("//cc:build_settings.bzl", "cc")
 load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/common:cc_helper.bzl", "cc_helper")
-load("//cc/common:semantics.bzl", cc_semantics = "semantics")
 load(":objc_common.bzl", "objc_common")
 load(":objc_compilation_artifacts_info.bzl", "CompilationArtifactsInfo")
 load(":objc_intermediate_artifacts.bzl", "create_intermediate_artifacts")
@@ -172,10 +171,10 @@ def _compile(
     compilation_contexts = (
         objc_compilation_context.cc_compilation_contexts +
         cc_helper.get_compilation_contexts_from_deps(
-            cc_semantics.get_cc_runtimes(common_variables.ctx, True),
+            cc_helper.get_cc_runtimes(common_variables.ctx, True),
         )
     )
-    runtimes_copts = cc_semantics.get_cc_runtimes_copts(common_variables.ctx)
+    runtimes_copts = cc_helper.get_cc_runtimes_copts(common_variables.ctx)
 
     return cc_common.compile(
         actions = common_variables.ctx.actions,

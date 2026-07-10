@@ -169,10 +169,10 @@ def _collect_runfiles(ctx, feature_configuration, cc_toolchain, libraries, cc_li
 
     builder = builder.merge_all([
         _default_runfiles_function(ctx, runtime)
-        for runtime in semantics.get_cc_runtimes(ctx, _is_link_shared(ctx))
+        for runtime in cc_helper.get_cc_runtimes(ctx, _is_link_shared(ctx))
     ] + [
         ctx.runfiles(transitive_files = _runfiles_function(runtime, linking_mode != linker_mode.LINKING_DYNAMIC))
-        for runtime in semantics.get_cc_runtimes(ctx, _is_link_shared(ctx))
+        for runtime in cc_helper.get_cc_runtimes(ctx, _is_link_shared(ctx))
     ])
 
     return (builder.merge(ctx.runfiles(files = builder_artifacts, transitive_files = depset(builder_transitive_artifacts))), runtime_objects_for_coverage)
@@ -208,7 +208,7 @@ def _get_dynamic_libraries_for_runtime(link_statically, libraries):
     return dynamic_libraries_for_runtime
 
 def _get_providers(ctx):
-    all_deps = ctx.attr.deps + semantics.get_cc_runtimes(ctx, _is_link_shared(ctx))
+    all_deps = ctx.attr.deps + cc_helper.get_cc_runtimes(ctx, _is_link_shared(ctx))
     return [dep[CcInfo] for dep in all_deps if CcInfo in dep]
 
 def _filter_libraries_that_are_linked_dynamically(ctx, feature_configuration, cc_linking_context):
@@ -283,7 +283,7 @@ def _filter_libraries_that_are_linked_dynamically(ctx, feature_configuration, cc
     # Deps that came from cc_runtimes may have been filtered out above, so we need to re-add them.
     # For example, libc++/libstdc++ or malloc-like deps should still be linked in normally
     # even though they will also be a transitive dep of things in dynamic_deps.
-    cc_runtimes = semantics.get_cc_runtimes(ctx, _is_link_shared(ctx))
+    cc_runtimes = cc_helper.get_cc_runtimes(ctx, _is_link_shared(ctx))
     cc_runtimes_infos = [dep[CcInfo] for dep in cc_runtimes if CcInfo in dep]
 
     return cc_common.merge_cc_infos(direct_cc_infos = [
@@ -512,10 +512,10 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
 
     cc_helper.check_cpp_modules(ctx, feature_configuration)
 
-    all_deps = ctx.attr.deps + semantics.get_cc_runtimes(ctx, _is_link_shared(ctx))
+    all_deps = ctx.attr.deps + cc_helper.get_cc_runtimes(ctx, _is_link_shared(ctx))
     compilation_context_deps = [dep[CcInfo].compilation_context for dep in all_deps if CcInfo in dep]
 
-    runtimes_copts = semantics.get_cc_runtimes_copts(ctx)
+    runtimes_copts = cc_helper.get_cc_runtimes_copts(ctx)
 
     additional_make_variable_substitutions = cc_helper.get_toolchain_global_make_variables(cc_toolchain, feature_configuration)
     additional_make_variable_substitutions.update(cc_helper.get_cc_flags_make_variable(ctx, feature_configuration, cc_toolchain))

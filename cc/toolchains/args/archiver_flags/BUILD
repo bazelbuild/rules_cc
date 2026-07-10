@@ -7,6 +7,12 @@ load("//cc/toolchains:nested_args.bzl", "cc_nested_args")
 
 package(default_visibility = ["//visibility:private"])
 
+filegroup(
+    name = "srcs",
+    srcs = ["BUILD"],
+    visibility = ["//cc/toolchains/args:__pkg__"],
+)
+
 bool_flag(
     name = "use_libtool_on_macos",
     build_setting_default = True,
