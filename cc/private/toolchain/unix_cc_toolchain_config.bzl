@@ -15,6 +15,7 @@
 
 #buildifier: disable=bzl-visibility
 load("@bazel_features//private:util.bzl", "ge")
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@rules_cc//cc:action_names.bzl", "ACTION_NAMES")
 load(
     "@rules_cc//cc:cc_toolchain_config_lib.bzl",
