@@ -525,9 +525,9 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
         actions = ctx.actions,
         feature_configuration = feature_configuration,
         cc_toolchain = cc_toolchain,
-        user_compile_flags = runtimes_copts + cc_helper.get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "copts"),
-        conly_flags = cc_helper.get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "conlyopts"),
-        cxx_flags = cc_helper.get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "cxxopts"),
+        user_compile_flags = runtimes_copts + cc_helper.get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "copts", requested_features = features),
+        conly_flags = cc_helper.get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "conlyopts", requested_features = features),
+        cxx_flags = cc_helper.get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "cxxopts", requested_features = features),
         defines = cc_helper.defines(ctx, additional_make_variable_substitutions),
         local_defines = cc_helper.local_defines(ctx, additional_make_variable_substitutions) + cc_helper.get_local_defines_for_runfiles_lookup(ctx, ctx.attr.deps),
         includes = cc_helper.include_dirs(ctx, additional_make_variable_substitutions),
@@ -550,7 +550,7 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
     link_variables = {}
 
     # Allows the dynamic library generated for code of test targets to be linked separately.
-    link_compile_output_separately = ctx.attr._is_test and linking_mode == linker_mode.LINKING_DYNAMIC and cpp_config.dynamic_mode() == "DEFAULT" and ("dynamic_link_test_srcs" in ctx.features)
+    link_compile_output_separately = ctx.attr._is_test and linking_mode == linker_mode.LINKING_DYNAMIC and cpp_config.dynamic_mode() == "DEFAULT" and ("dynamic_link_test_srcs" in features)
 
     is_windows_enabled = cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "targets_windows")
 

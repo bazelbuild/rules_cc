@@ -30,10 +30,11 @@ def _cc_library_impl(ctx):
     cc_toolchain = find_cc_toolchain(ctx)
     cc_helper.report_invalid_options(cc_toolchain, ctx.fragments.cpp)
 
+    features = ctx.features
     feature_configuration = cc_common.configure_features(
         ctx = ctx,
         cc_toolchain = cc_toolchain,
-        requested_features = ctx.features,
+        requested_features = features,
         unsupported_features = ctx.disabled_features,
     )
 
@@ -58,9 +59,9 @@ def _cc_library_impl(ctx):
         name = ctx.label.name,
         cc_toolchain = cc_toolchain,
         feature_configuration = feature_configuration,
-        user_compile_flags = runtimes_copts + cc_helper.get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "copts"),
-        conly_flags = cc_helper.get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "conlyopts"),
-        cxx_flags = cc_helper.get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "cxxopts"),
+        user_compile_flags = runtimes_copts + cc_helper.get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "copts", requested_features = features),
+        conly_flags = cc_helper.get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "conlyopts", requested_features = features),
+        cxx_flags = cc_helper.get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "cxxopts", requested_features = features),
         defines = cc_helper.defines(ctx, additional_make_variable_substitutions),
         local_defines = cc_helper.local_defines(ctx, additional_make_variable_substitutions) + cc_helper.get_local_defines_for_runfiles_lookup(ctx, ctx.attr.deps + ctx.attr.implementation_deps),
         includes = cc_helper.include_dirs(ctx, additional_make_variable_substitutions),
