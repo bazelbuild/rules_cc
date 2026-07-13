@@ -330,6 +330,10 @@ alias(
             ),
     )
 
+    if hasattr(repo_ctx, "repo_metadata"):
+        return repo_ctx.repo_metadata(reproducible = False)
+    return None
+
 system_library = repository_rule(
     implementation = _system_library_impl,
     local = True,

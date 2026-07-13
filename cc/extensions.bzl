@@ -14,6 +14,8 @@
 """Module extension for cc auto configuration."""
 
 load("@bazel_features//:features.bzl", "bazel_features")
+
+#buildifier: disable=bzl-visibility
 load("@bazel_features//private:util.bzl", _bazel_version_ge = "ge")
 load("//cc/private/toolchain:cc_configure.bzl", "cc_autoconf", "cc_autoconf_toolchains")
 
@@ -167,6 +169,10 @@ new_objc_provider = apple_common.new_objc_provider
 CcSharedLibraryInfo = NativeCcSharedLibraryInfo
             """,
         )
+
+    if hasattr(rctx, "repo_metadata"):
+        return rctx.repo_metadata(reproducible = False)
+    return None
 
 _compatibility_proxy_repo_rule = repository_rule(
     _compatibility_proxy_repo_impl,
