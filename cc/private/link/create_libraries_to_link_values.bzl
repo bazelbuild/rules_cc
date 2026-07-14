@@ -14,6 +14,7 @@
 """Goes over LibraryToLinks and produces LibraryToLinkValue-s."""
 
 load("//cc/common:cc_helper_internal.bzl", "is_shared_library", "is_versioned_shared_library", "root_relative_path")
+load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 
 # Types of LibraryToLinkValues
 _TYPE = struct(
@@ -58,7 +59,7 @@ def add_object_files_to_link(object_files, libraries_to_link_values):
             libraries_to_link_values.append(
                 _ObjectFileGroupInfo(
                     type = _TYPE.OBJECT_FILE_GROUP,
-                    object_files = [object_file],
+                    object_files = _cc_internal.freeze([object_file]),
                     is_whole_archive = False,
                 ),
             )
@@ -225,7 +226,7 @@ def _add_static_library_to_link(
                     libraries_to_link_values.append(
                         _ObjectFileGroupInfo(
                             type = _TYPE.OBJECT_FILE_GROUP,
-                            object_files = [object],
+                            object_files = _cc_internal.freeze([object]),
                             is_whole_archive = True,
                         ),
                     )
@@ -244,7 +245,7 @@ def _add_static_library_to_link(
             libraries_to_link_values.append(
                 _ObjectFileGroupInfo(
                     type = _TYPE.OBJECT_FILE_GROUP,
-                    object_files = objects,
+                    object_files = _cc_internal.freeze(objects),
                     is_whole_archive = False,
                 ),
             )
