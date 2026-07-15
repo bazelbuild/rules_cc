@@ -879,7 +879,7 @@ def _include_dirs(ctx, additional_make_variable_substitutions, attr = "includes"
     for include in getattr(ctx.attr, attr):
         includes_attr = _expand(ctx, include, additional_make_variable_substitutions)
         if is_path_absolute(includes_attr):
-            continue
+            fail("The path '" + includes_attr + "' is absolute, but only relative paths are allowed.", attr = attr)
         includes_path = get_relative_path(package_exec_path, includes_attr)
         if not sibling_repository_layout and path_contains_up_level_references(includes_path):
             fail("Path references a path above the execution root.", attr = "includes")

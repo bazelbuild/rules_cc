@@ -80,10 +80,58 @@ def _test_cc_library_data_in_runfiles_impl(env, target):
     target.runfiles().not_contains_predicate(matching.str_endswith(".a"))
     target.data_runfiles().not_contains_predicate(matching.str_endswith(".a"))
 
+def _test_absolute_includes_fail(name):
+    util.helper_target(
+        cc_library,
+        name = name + "_lib",
+        hdrs = ["header.h"],
+        includes = ["/absolute/path"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_absolute_includes_fail_impl,
+        target = name + "_lib",
+        expect_failure = True,
+    )
+
+def _test_absolute_includes_fail_impl(env, target):
+    expected_msg = "The path '/absolute/path' is absolute, but only relative paths are allowed."
+    env.expect.that_target(target).failures().contains_predicate(
+        matching.custom(
+            "contains '{}'".format(expected_msg),
+            lambda s: expected_msg in s,
+        ),
+    )
+
+def _test_absolute_includes_windows_fail(name):
+    util.helper_target(
+        cc_library,
+        name = name + "_lib",
+        hdrs = ["header.h"],
+        includes = ["C:\\absolute\\path"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_absolute_includes_windows_fail_impl,
+        target = name + "_lib",
+        expect_failure = True,
+    )
+
+def _test_absolute_includes_windows_fail_impl(env, target):
+    expected_msg = "The path 'C:\\absolute\\path' is absolute, but only relative paths are allowed."
+    env.expect.that_target(target).failures().contains_predicate(
+        matching.custom(
+            "contains '{}'".format(expected_msg),
+            lambda s: expected_msg in s,
+        ),
+    )
+
 def cc_library_configured_target_tests(name):
     test_suite(
         name = name,
         tests = [
             _test_cc_library_data_in_runfiles,
+            _test_absolute_includes_fail,
+            _test_absolute_includes_windows_fail,
         ] if bazel_features.cc.cc_common_is_in_rules_cc else [],
     )
