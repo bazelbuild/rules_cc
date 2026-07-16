@@ -17,6 +17,7 @@ load(
     "//cc/common:cc_helper_internal.bzl",
     _CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES = "CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES",
     _PRIVATE_STARLARKIFICATION_ALLOWLIST = "PRIVATE_STARLARKIFICATION_ALLOWLIST",
+    _create_solib_symlink = "create_solib_symlink",
 )
 load("//cc/private:cc_info.bzl", "CcNativeLibraryInfo", "create_compilation_context", "create_debug_context", "create_linking_context", "create_module_map", "merge_cc_infos", "merge_compilation_contexts", "merge_debug_context", "merge_linking_contexts")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
@@ -714,11 +715,11 @@ def _cc_toolchain_features(*, toolchain_config_info, tools_directory):
 
 def _solib_symlink_action(*, ctx, artifact, solib_directory, runtime_solib_dir_base):
     _cc_internal.check_private_api(allowlist = _PRIVATE_STARLARKIFICATION_ALLOWLIST)
-    return _cc_internal.solib_symlink_action(
-        ctx = ctx,
-        artifact = artifact,
-        solib_directory = solib_directory,
-        runtime_solib_dir_base = runtime_solib_dir_base,
+    symlink_directory = runtime_solib_dir_base if runtime_solib_dir_base != None else solib_directory
+    return _create_solib_symlink(
+        ctx.actions,
+        artifact,
+        symlink_directory + "/" + artifact.basename,
     )
 
 def _cc_toolchain_variables(*, vars):

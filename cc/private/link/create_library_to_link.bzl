@@ -16,7 +16,7 @@ The cc_common.create_library_to_link function.
 """
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
-load("//cc/common:cc_helper_internal.bzl", "is_versioned_shared_library", "path_contains_up_level_references")
+load("//cc/common:cc_helper_internal.bzl", "create_solib_symlink", "is_versioned_shared_library", "path_contains_up_level_references")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private/compile:lto_compilation_context.bzl", _EMPTY_LTO = "EMPTY_LTO_COMPILATION_CONTEXT")
 load("//cc/private/link:lto_backends.bzl", "create_shared_non_lto_artifacts")
@@ -211,7 +211,11 @@ def create_library_to_link(
             if dynamic_library_symlink_path:
                 if dynamic_library.short_path.startswith("_solib_"):
                     fail("dynamic_library must not be a symbolic link in the solib directory. Got '%s'" % dynamic_library.short_path)
-                dynamic_library = _cc_internal.dynamic_library_symlink2(actions, dynamic_library, cc_toolchain._solib_dir, dynamic_library_symlink_path)
+                dynamic_library = create_solib_symlink(
+                    actions,
+                    dynamic_library,
+                    cc_toolchain._solib_dir + "/" + dynamic_library_symlink_path,
+                )
             else:
                 dynamic_library = _cc_internal.dynamic_library_symlink(actions, dynamic_library, cc_toolchain._solib_dir, True, True)
 
@@ -226,7 +230,11 @@ def create_library_to_link(
             if interface_library_symlink_path:
                 if interface_library.short_path.startswith("_solib_"):
                     fail("dynamic_library must not be a symbolic link in the solib directory. Got '%s'" % dynamic_library.short_path)
-                interface_library = _cc_internal.dynamic_library_symlink2(actions, interface_library, cc_toolchain._solib_dir, interface_library_symlink_path)
+                interface_library = create_solib_symlink(
+                    actions,
+                    interface_library,
+                    cc_toolchain._solib_dir + "/" + interface_library_symlink_path,
+                )
             else:
                 interface_library = _cc_internal.dynamic_library_symlink(actions, interface_library, cc_toolchain._solib_dir, True, True)
 
