@@ -13,6 +13,8 @@
 # limitations under the License.
 """A Starlark cc_toolchain configuration rule"""
 
+#buildifier: disable=bzl-visibility
+load("@bazel_features//private:util.bzl", "ge")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@rules_cc//cc:action_names.bzl", "ACTION_NAMES")
 load(
@@ -34,6 +36,12 @@ load(
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
 load("@rules_cc//cc/toolchains:feature_injection.bzl", "FeatureInfo", "convert_feature")
+
+def _cpp_module_extension(compiler):
+    """Returns the BMI/CMI file extension for cpp_module artifact_name_pattern."""
+    if compiler == "gcc" and ge("9.0.0"):
+        return ".gcm"
+    return ".pcm"
 
 def _target_os_version(ctx):
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
@@ -1891,7 +1899,7 @@ def _impl(ctx):
             artifact_name_pattern(
                 category_name = "cpp_module",
                 prefix = "",
-                extension = ".pcm",
+                extension = _cpp_module_extension(ctx.attr.compiler),
             ),
         ]
         features = [
