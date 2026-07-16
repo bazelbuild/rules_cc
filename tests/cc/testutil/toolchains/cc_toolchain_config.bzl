@@ -1205,6 +1205,25 @@ _runtime_library_search_directories_feature = feature(
     ],
 )
 
+_runtime_solib_name_feature = feature(
+    name = FEATURE_NAMES.runtime_solib_name,
+    flag_sets = [
+        flag_set(
+            actions = [
+                ACTION_NAMES.cpp_link_dynamic_library,
+                ACTION_NAMES.cpp_link_executable,
+                ACTION_NAMES.cpp_link_nodeps_dynamic_library,
+            ],
+            flag_groups = [
+                flag_group(
+                    expand_if_available = "runtime_solib_name",
+                    flags = ["--runtime_solib_name=%{runtime_solib_name}"],
+                ),
+            ],
+        ),
+    ],
+)
+
 _uses_ifso_variables_feature = feature(
     name = FEATURE_NAMES.uses_ifso_variables,
     enabled = True,
@@ -1518,6 +1537,7 @@ _feature_name_to_feature = {
     FEATURE_NAMES.check_additional_variables: _check_additional_variables_feature,
     FEATURE_NAMES.library_search_directories: _library_search_directories_feature,
     FEATURE_NAMES.runtime_library_search_directories: _runtime_library_search_directories_feature,
+    FEATURE_NAMES.runtime_solib_name: _runtime_solib_name_feature,
     FEATURE_NAMES.generate_submodules: _generate_submodules_feature,
     FEATURE_NAMES.uses_ifso_variables: _uses_ifso_variables_feature,
     FEATURE_NAMES.def_feature: _def_feature,

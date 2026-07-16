@@ -18,7 +18,6 @@ A module to create C/C++ link actions in a consistent way.
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
     "//cc/common:cc_helper_internal.bzl",
-    "root_relative_path",
     "wrap_with_check_private_api",
     _use_pic_for_binaries = "use_pic_for_binaries",
     _use_pic_for_dynamic_libs = "use_pic_for_dynamic_libs",
@@ -29,6 +28,7 @@ load("//cc/private/compile:cc_compilation_outputs.bzl", "EMPTY_COMPILATION_OUTPU
 load("//cc/private/link:cpp_link_action.bzl", "link_action")
 load("//cc/private/link:create_library_to_link.bzl", "make_library_to_link")
 load("//cc/private/link:lto_indexing_action.bzl", "create_lto_artifacts_and_lto_indexing_action")
+load("//cc/private/link:solib.bzl", "dynamic_library_soname")
 load("//cc/private/link:target_types.bzl", "LINKING_MODE", "LINK_TARGET_TYPE", "USE_ARCHIVER", "is_dynamic_library")
 
 # TODO(b/331164666): remove alwayslink
@@ -289,11 +289,9 @@ def _create_dynamic_link_actions(
 
         # TODO(b/28946988): Remove this hard-coded flag.
         if not feature_configuration.is_enabled("targets_windows") and not feature_configuration.is_enabled("set_soname"):
-            link_action_kwargs["linkopts"].append("-Wl,-soname=" + _cc_internal.dynamic_library_soname(
-                actions,
-                # Must match https://github.com/bazelbuild/bazel/blob/795af54db5c348af5ca8b2961a982b399206ea20/src/main/java/com/google/devtools/build/lib/rules/cpp/SolibSymlinkAction.java#L169.
-                root_relative_path(linker_output),
-                dynamic_link_type != LINK_TARGET_TYPE.NODEPS_DYNAMIC_LIBRARY,
+            link_action_kwargs["linkopts"].append("-Wl,-soname=" + dynamic_library_soname(
+                linker_output,
+                preserve_name = dynamic_link_type != LINK_TARGET_TYPE.NODEPS_DYNAMIC_LIBRARY,
             ))
 
     mnemonic = "ObjcLink" if dynamic_link_type == LINK_TARGET_TYPE.OBJC_EXECUTABLE else None

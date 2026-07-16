@@ -22,6 +22,21 @@ load("//cc/common:visibility.bzl", "PRIVATE_RULES_ALLOWLIST")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private:paths.bzl", "is_path_absolute")
 
+_PATH_ESCAPE_REPLACEMENTS = {
+    "_": "_U",
+    "/": "_S",
+    "\\": "_B",
+    ":": "_C",
+    "@": "_A",
+}
+
+def escape_path(path):
+    """Escapes a path for use as a filename."""
+    return "".join([
+        _PATH_ESCAPE_REPLACEMENTS.get(path[i], path[i])
+        for i in range(len(path))
+    ])
+
 def check_private_api():
     _cc_internal.check_private_api(allowlist = PRIVATE_STARLARKIFICATION_ALLOWLIST, depth = 2)
 
