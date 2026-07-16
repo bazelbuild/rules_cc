@@ -46,6 +46,17 @@ _UNBOUND = _UnboundValueProviderDoNotUse()
 
 _OLD_STARLARK_API_ALLOWLISTED_PACKAGES = [("", "tools/build_defs/cc"), ("_builtins", ""), ("", "third_party/gloop/tools/build_defs/cc")]
 
+def _ctx_from_ctx_or_actions(ctx, actions):
+    if ctx != None and actions != None:
+        fail("exactly one of ctx or actions must be specified")
+    if ctx == None:
+        if actions == None:
+            fail("exactly one of ctx or actions must be specified")
+        ctx = actions
+    if type(ctx) == "actions":
+        return _cc_internal.actions2ctx_cheat(ctx)
+    return ctx
+
 def _check_all_sources_contain_tuples_or_none_of_them(files):
     no_tuple = False
     has_tuple = False
@@ -63,7 +74,8 @@ def _check_all_sources_contain_tuples_or_none_of_them(files):
 
 def _link(
         *,
-        actions,
+        ctx = None,
+        actions = None,
         name,
         feature_configuration,
         cc_toolchain,
@@ -88,6 +100,8 @@ def _link(
         use_shareable_artifact_factory = _UNBOUND,
         build_config = _UNBOUND,
         emit_interface_shared_library = _UNBOUND):
+    ctx = _ctx_from_ctx_or_actions(ctx, actions)
+
     if output_type == "archive":
         _cc_internal.check_private_api(allowlist = _PRIVATE_STARLARKIFICATION_ALLOWLIST)
 
@@ -125,7 +139,7 @@ def _link(
         emit_interface_shared_library = False
 
     return link(
-        actions = actions,
+        ctx = ctx,
         name = name,
         feature_configuration = feature_configuration,
         cc_toolchain = cc_toolchain,
@@ -348,7 +362,8 @@ def _is_cc_toolchain_resolution_enabled_do_not_use(*, ctx):
 
 def _create_linking_context_from_compilation_outputs(
         *,
-        actions,
+        ctx = None,
+        actions = None,
         name,
         feature_configuration,
         cc_toolchain,
@@ -364,6 +379,8 @@ def _create_linking_context_from_compilation_outputs(
         stamp = _UNBOUND,
         linked_dll_name_suffix = _UNBOUND,
         test_only_target = _UNBOUND):
+    ctx = _ctx_from_ctx_or_actions(ctx, actions)
+
     if stamp != _UNBOUND or \
        linked_dll_name_suffix != _UNBOUND or \
        test_only_target != _UNBOUND:
@@ -377,7 +394,7 @@ def _create_linking_context_from_compilation_outputs(
         test_only_target = False
 
     return create_linking_context_from_compilation_outputs(
-        actions = actions,
+        ctx = ctx,
         name = name,
         feature_configuration = feature_configuration,
         cc_toolchain = cc_toolchain,
@@ -417,7 +434,8 @@ def _create_extra_link_time_library(*, build_library_func, **kwargs):
 
 def _register_linkstamp_compile_action(
         *,
-        actions,
+        ctx = None,
+        actions = None,
         cc_toolchain,
         feature_configuration,
         source_file,
@@ -428,6 +446,8 @@ def _register_linkstamp_compile_action(
         build_target = None,
         label_replacement = None,  # deprecated, use target_name
         output_replacement = None):  # deprecated, use build_target
+    ctx = _ctx_from_ctx_or_actions(ctx, actions)
+
     _cc_internal.check_private_api(allowlist = _PRIVATE_STARLARKIFICATION_ALLOWLIST)
 
     resolved_target_name = target_name if target_name != None else label_replacement
@@ -439,7 +459,7 @@ def _register_linkstamp_compile_action(
         fail("build_target must be specified.")
 
     return register_linkstamp_compile_action(
-        actions = actions,
+        ctx = ctx,
         cc_toolchain = cc_toolchain,
         feature_configuration = feature_configuration,
         source_file = source_file,
@@ -452,7 +472,8 @@ def _register_linkstamp_compile_action(
 
 def _compile(
         *,
-        actions,
+        ctx = None,
+        actions = None,
         feature_configuration,
         cc_toolchain,
         name,
@@ -492,6 +513,8 @@ def _compile(
         separate_module_headers = _UNBOUND,
         module_interfaces = _UNBOUND,
         non_compilation_additional_inputs = _UNBOUND):
+    ctx = _ctx_from_ctx_or_actions(ctx, actions)
+
     if module_map != _UNBOUND or \
        additional_module_maps != _UNBOUND or \
        additional_exported_hdrs != _UNBOUND or \
@@ -534,7 +557,7 @@ def _compile(
         _cc_internal.check_private_api(allowlist = _PRIVATE_STARLARKIFICATION_ALLOWLIST)
 
     return compile(
-        actions = actions,
+        ctx = ctx,
         feature_configuration = feature_configuration,
         cc_toolchain = cc_toolchain,
         name = name,

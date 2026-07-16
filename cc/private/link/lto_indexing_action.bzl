@@ -15,7 +15,6 @@
 
 load("@bazel_features//:features.bzl", "bazel_features")
 load("//cc/common:cc_helper_internal.bzl", "root_relative_path")
-load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private/compile:lto_compilation_context.bzl", "get_minimized_bitcode_or_self")
 load("//cc/private/link:finalize_link_action.bzl", "finalize_link_action")
 load("//cc/private/link:link_build_variables.bzl", "setup_lto_indexing_variables")
@@ -23,7 +22,8 @@ load("//cc/private/link:lto_backends.bzl", "create_lto_backends")
 load("//cc/private/link:target_types.bzl", "LINKING_MODE", "LINK_TARGET_TYPE", "is_dynamic_library")
 
 def create_lto_artifacts_and_lto_indexing_action(
-        actions,
+        ctx,
+        link_actions,
         link_type,
         linking_mode,
         use_pic,
@@ -52,7 +52,8 @@ def create_lto_artifacts_and_lto_indexing_action(
     Both of the files are later passed into C++ linking action.
 
     Args:
-        actions: (Actions) `actions` object.
+        ctx: The rule context.
+        link_actions: The wrapped action factory used to declare link artifacts.
         link_type: (LINK_TARGET_TYPE) Type of libraries to create.
         linking_mode: (LINKING_MODE) Linking mode used for dynamic libraries.
         use_pic: (bool) Whether to use PIC.
@@ -97,7 +98,7 @@ def create_lto_artifacts_and_lto_indexing_action(
     object_file_inputs = compilation_outputs.pic_objects if use_pic else compilation_outputs.objects
 
     all_lto_artifacts = create_lto_backends(
-        actions,
+        link_actions,
         lto_compilation_context,
         feature_configuration,
         cc_toolchain,
@@ -112,7 +113,8 @@ def create_lto_artifacts_and_lto_indexing_action(
     )
     if allow_lto_indexing:
         thinlto_param_file, thinlto_merged_object_file = _lto_indexing_action(
-            actions = actions,
+            ctx = ctx,
+            link_actions = link_actions,
             cc_toolchain = cc_toolchain,
             compilation_outputs = compilation_outputs,
             feature_configuration = feature_configuration,
@@ -137,7 +139,8 @@ def create_lto_artifacts_and_lto_indexing_action(
     return all_lto_artifacts, allow_lto_indexing, thinlto_param_file, thinlto_merged_object_file
 
 def _lto_indexing_action(
-        actions,
+        ctx,
+        link_actions,
         linking_mode,
         cc_toolchain,
         all_lto_artifacts,
@@ -218,12 +221,12 @@ def _lto_indexing_action(
     # replaced with the final output directory, so they will be the paths
     # of the native object files not the input bitcode files.
     thinlto_param_file = \
-        actions.declare_shareable_artifact(root_relative_path(output) + "-lto-final.params")
+        link_actions.declare_shareable_artifact(root_relative_path(output) + "-lto-final.params")
 
     # Create artifact for the merged object file, which is an object file that is created
     # during the LTO indexing step and needs to be passed to the final link.
     thinlto_merged_object_file = \
-        actions.declare_shareable_artifact(root_relative_path(output) + ".lto.merged.o")
+        link_actions.declare_shareable_artifact(root_relative_path(output) + ".lto.merged.o")
 
     action_outputs = \
         ([lto_artifact.imports for lto_artifact in all_lto_artifacts if lto_artifact.index] +
@@ -233,8 +236,7 @@ def _lto_indexing_action(
     build_variables = variables_extensions | setup_lto_indexing_variables(
         cc_toolchain,
         feature_configuration,
-        # TODO(b/338618120): remove cheat using the root of one of the created outputs
-        _cc_internal.actions2ctx_cheat(actions).bin_dir.path,
+        ctx.bin_dir.path,
         thinlto_param_file.path,
         thinlto_merged_object_file.path,
         lto_output_root_prefix,
@@ -257,7 +259,7 @@ def _lto_indexing_action(
         action_name = "lto-index-for-nodeps-dynamic-library"
 
     finalize_link_action(
-        actions,
+        ctx,
         "CppLTOIndexing",  # mnemonic
         action_name,
         link_type,

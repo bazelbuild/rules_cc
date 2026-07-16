@@ -24,7 +24,7 @@ load("//cc/private/link:target_types.bzl", "LINKING_MODE", "LINK_TARGET_TYPE", "
 load("//cc/private/rules_impl:native_cc_common.bzl", _cc_common_internal = "native_cc_common")
 
 def finalize_link_action(
-        actions,
+        ctx,
         mnemonic,
         action_name,
         link_type,
@@ -67,7 +67,7 @@ def finalize_link_action(
     Creates the action, producing the `output` and maybe `interface_output`.
 
     Args:
-        actions: (Actions) `actions` object.
+        ctx: The rule context.
         mnemonic: (str) The mnemonic used in the action.
         action_name: (str) action name.
         link_type: (LINK_TARGET_TYPE) Type of libraries to create.
@@ -182,8 +182,7 @@ def finalize_link_action(
         native_deps,
         solib_dir,
         toolchain_libraries_solib_dir,
-        # TODO(b/338618120): remove cheat using semantic or simplifying collect_libraries_to_link
-        _cc_internal.actions2ctx_cheat(actions).workspace_name,
+        ctx.workspace_name,
     )
 
     #  Add build variables necessary to template link args into the crosstool.
@@ -258,7 +257,7 @@ def finalize_link_action(
 
         for linkstamp, artifact in linkstamp_map.items():
             register_linkstamp_compile_action(
-                actions = actions,
+                ctx = ctx,
                 cc_toolchain = cc_toolchain,
                 feature_configuration = feature_configuration,
                 source_file = linkstamp.file(),
@@ -284,7 +283,7 @@ def finalize_link_action(
         )
 
     _create_action(
-        actions,
+        ctx,
         action_name,
         feature_configuration,
         cc_toolchain,
@@ -300,7 +299,7 @@ def finalize_link_action(
     )
 
 def _create_action(
-        actions,
+        ctx,
         action_name,
         feature_configuration,
         cc_toolchain,
@@ -317,7 +316,7 @@ def _create_action(
     Creates C++ linking or LTO indexing action.
 
     Args:
-      actions: (StarlarkActions) `actions` object
+      ctx: The rule context.
       action_name: (str) action name
       feature_configuration: (FeatureConfiguration) `feature_configuration` to be queried.
       cc_toolchain: (CcToolchainInfo) CcToolchainInfo provider to be used.
@@ -387,18 +386,16 @@ def _create_action(
     exec_group = None
     toolchain = None
 
-    if "cpp_link" in _cc_internal.actions2ctx_cheat(actions).exec_groups:
-        # TODO(b/338618120): ^ remove cheat, no idea how though, maybe always use cpp_link exec group?
+    if "cpp_link" in ctx.exec_groups:
         exec_group = "cpp_link"
-    elif "@@bazel_tools//tools/cpp:toolchain_type" in _cc_internal.actions2ctx_cheat(actions).toolchains:  # buildifier: disable=canonical-repository
-        # TODO(b/338618120): ^ remove cheat, needs depot cleanup, always use a toolchain
+    elif "@@bazel_tools//tools/cpp:toolchain_type" in ctx.toolchains:  # buildifier: disable=canonical-repository
         toolchain = semantics.toolchain
 
     execution_info = semantics.get_cc_link_memlimit(
         cc_toolchain._cpp_configuration.compilation_mode(),
         execution_info,
     )
-    actions.run(
+    ctx.actions.run(
         mnemonic = mnemonic,
         executable = tool_path,
         arguments = [link_args],

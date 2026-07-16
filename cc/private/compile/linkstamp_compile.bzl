@@ -32,7 +32,7 @@ load(
 
 def register_linkstamp_compile_action(
         *,
-        actions,
+        ctx,
         cc_toolchain,
         feature_configuration,
         source_file,
@@ -47,7 +47,7 @@ def register_linkstamp_compile_action(
     """Registers a C++ compile action for linkstamps.
 
     Args:
-        actions: `actions` object.
+        ctx: The rule context.
         cc_toolchain: `CcToolchainInfo` provider to be used.
         feature_configuration: `feature_configuration` to be queried.
         source_file: The linkstamp source file to be compiled.
@@ -60,8 +60,6 @@ def register_linkstamp_compile_action(
         stamping: Whether stamping is enabled. If None, it's computed based on configuration.
         additional_linkstamp_defines: A list of additional defines for linkstamp compilation.
     """
-    ctx = _cc_internal.actions2ctx_cheat(actions)
-
     if stamping == None:
         stamping = should_stamp(ctx)
 
