@@ -409,7 +409,10 @@ def _add_go_exec_groups_to_binary_rules():
 
 def _get_tool_requirement_for_action(*, feature_configuration, action_name):
     _cc_internal.check_private_api(allowlist = _PRIVATE_STARLARKIFICATION_ALLOWLIST)
-    return _cc_common_internal.get_tool_requirement_for_action(feature_configuration = feature_configuration, action_name = action_name)
+    return _get_execution_requirements(
+        feature_configuration = feature_configuration,
+        action_name = action_name,
+    )
 
 def _create_extra_link_time_library(*, build_library_func, **kwargs):
     _cc_internal.check_private_api(allowlist = _PRIVATE_STARLARKIFICATION_ALLOWLIST)
