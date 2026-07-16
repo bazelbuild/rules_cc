@@ -32,6 +32,7 @@ load("//cc/private/link:create_library_to_link.bzl", "create_library_to_link")
 load("//cc/private/link:create_linker_input.bzl", "create_linker_input")
 load("//cc/private/link:create_linking_context_from_compilation_outputs.bzl", "create_linking_context_from_compilation_outputs")
 load("//cc/private/link:create_linkstamp.bzl", "create_linkstamp")
+load("//cc/private/link:dynamic_library_symlink.bzl", "solib_symlink_action")
 load("//cc/private/link:link.bzl", "link")
 load("//cc/private/link:link_build_variables.bzl", "create_link_variables")
 load("//cc/private/link:lto_backends.bzl", "create_lto_backend_artifacts", "setup_common_lto_variables")
@@ -717,12 +718,7 @@ def _cc_toolchain_features(*, toolchain_config_info, tools_directory):
 
 def _solib_symlink_action(*, ctx, artifact, solib_directory, runtime_solib_dir_base):
     _cc_internal.check_private_api(allowlist = _PRIVATE_STARLARKIFICATION_ALLOWLIST)
-    return _cc_internal.solib_symlink_action(
-        ctx = ctx,
-        artifact = artifact,
-        solib_directory = solib_directory,
-        runtime_solib_dir_base = runtime_solib_dir_base,
-    )
+    return solib_symlink_action(ctx, artifact, solib_directory, runtime_solib_dir_base)
 
 def _cc_toolchain_variables(*, vars):
     _cc_internal.check_private_api(allowlist = _PRIVATE_STARLARKIFICATION_ALLOWLIST)

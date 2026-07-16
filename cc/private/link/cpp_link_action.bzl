@@ -15,7 +15,7 @@
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("//cc/common:cc_helper_internal.bzl", "root_relative_path", artifact_category = "artifact_category_names")
-load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
+load("//cc/private/link:dynamic_library_symlink.bzl", "dynamic_library_soname")
 load("//cc/private/link:finalize_link_action.bzl", "finalize_link_action")
 load("//cc/private/link:link_build_variables.bzl", "setup_linking_variables")
 load("//cc/private/link:lto_backends.bzl", "create_shared_non_lto_artifacts")
@@ -190,7 +190,7 @@ def link_action(
         cc_toolchain,
         feature_configuration,
         output,
-        _cc_internal.dynamic_library_soname(
+        dynamic_library_soname(
             actions,
             # Must match https://github.com/bazelbuild/bazel/blob/795af54db5c348af5ca8b2961a982b399206ea20/src/main/java/com/google/devtools/build/lib/rules/cpp/SolibSymlinkAction.java#L169.
             root_relative_path(output),

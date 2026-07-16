@@ -28,6 +28,11 @@ load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private/compile:cc_compilation_outputs.bzl", "EMPTY_COMPILATION_OUTPUTS")
 load("//cc/private/link:cpp_link_action.bzl", "link_action")
 load("//cc/private/link:create_library_to_link.bzl", "make_library_to_link")
+load(
+    "//cc/private/link:dynamic_library_symlink.bzl",
+    "dynamic_library_soname",
+    "dynamic_library_symlink",
+)
 load("//cc/private/link:lto_indexing_action.bzl", "create_lto_artifacts_and_lto_indexing_action")
 load("//cc/private/link:target_types.bzl", "LINKING_MODE", "LINK_TARGET_TYPE", "USE_ARCHIVER", "is_dynamic_library")
 
@@ -289,7 +294,7 @@ def _create_dynamic_link_actions(
 
         # TODO(b/28946988): Remove this hard-coded flag.
         if not feature_configuration.is_enabled("targets_windows") and not feature_configuration.is_enabled("set_soname"):
-            link_action_kwargs["linkopts"].append("-Wl,-soname=" + _cc_internal.dynamic_library_soname(
+            link_action_kwargs["linkopts"].append("-Wl,-soname=" + dynamic_library_soname(
                 actions,
                 # Must match https://github.com/bazelbuild/bazel/blob/795af54db5c348af5ca8b2961a982b399206ea20/src/main/java/com/google/devtools/build/lib/rules/cpp/SolibSymlinkAction.java#L169.
                 root_relative_path(linker_output),
@@ -335,7 +340,7 @@ def _create_dynamic_link_actions(
     impl_library_link_artifact = None
     if dynamic_link_type == LINK_TARGET_TYPE.DYNAMIC_LIBRARY and not neverlink and \
        not feature_configuration.is_enabled("copy_dynamic_libraries_to_binary"):
-        impl_library_link_artifact = _cc_internal.dynamic_library_symlink(
+        impl_library_link_artifact = dynamic_library_symlink(
             actions,
             linker_output,
             cc_toolchain._solib_dir,
