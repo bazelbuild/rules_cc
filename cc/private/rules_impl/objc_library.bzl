@@ -150,7 +150,7 @@ def _objc_library_impl(ctx):
         OutputGroupInfo(**output_groups),
     ]
 
-objc_library = rule(
+OBJC_LIBRARY_RULE_KWARGS = dict(
     implementation = _objc_library_impl,
     initializer = common_attrs.alwayslink_initializer,
     doc = """
@@ -173,7 +173,11 @@ in binary targets that depend on this library."""),
         common_attrs.SDK_FRAMEWORK_DEPENDER_RULE,
     ),
     fragments = ["objc", "cpp"],
-    cfg = semantics.apple_crosstool_transition,
     toolchains = use_cc_toolchain() + cc_semantics.get_runtimes_toolchain(),
     provides = [CcInfo],
+)
+
+objc_library = rule(
+    cfg = semantics.apple_crosstool_transition,
+    **OBJC_LIBRARY_RULE_KWARGS
 )
