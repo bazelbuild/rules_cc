@@ -498,6 +498,31 @@ def _test_shared_library_adds_rpath_entry_under_transition_impl(env, target):
         matching.str_matches("*/_solib*/*Sfoo___U*"),
     ]).in_order()
 
+def _test_textual_hdrs_in_compilation_context(name, **kwargs):
+    util.helper_target(
+        cc_import,
+        name = name + "/import_with_textual_hdrs",
+        hdrs = ["header.h"],
+        textual_hdrs = ["textual.h"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_textual_hdrs_in_compilation_context_impl,
+        target = name + "/import_with_textual_hdrs",
+        **kwargs
+    )
+
+def _test_textual_hdrs_in_compilation_context_impl(env, target):
+    compilation_context = cc_info_subject.from_target(env, target).compilation_context()
+    compilation_context.direct_public_headers().transform(
+        desc = "basename",
+        map_each = lambda file: file.basename,
+    ).contains_exactly(["header.h"])
+    compilation_context.direct_textual_headers().transform(
+        desc = "basename",
+        map_each = lambda file: file.basename,
+    ).contains_exactly(["textual.h"])
+
 def cc_import_configured_target_tests(name):
     tests = [
         _test_wrong_cc_import_definitions_fails,
@@ -520,6 +545,7 @@ def cc_import_configured_target_tests(name):
         tests.extend([
             _test_data_in_runfiles,
             _test_alwayslink_and_disable_whole_archive_error,
+            _test_textual_hdrs_in_compilation_context,
         ])
 
     test_suite(
