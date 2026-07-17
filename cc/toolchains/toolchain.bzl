@@ -52,6 +52,7 @@ def cc_toolchain(
         supports_param_files = False,
         compiler = "",
         cpu = "",
+        target_libc = None,
         target_system_name = None,
         **kwargs):
     """A C/C++ toolchain configuration.
@@ -148,6 +149,11 @@ def cc_toolchain(
             through the `target_cpu` attribute of the toolchain configuration. We
             should not add new readers of this value, but there are many existing
             ones in the wild.
+        target_libc: (str) The name of the C standard library targeted by this toolchain
+            (e.g. "glibc", "musl"), optionally followed by a version suffix (e.g.
+            "glibc-2.2.2"). The current toolchain's C standard library is exposed to
+            `select()` statements via the config settings in `@rules_cc//cc/libc`. If not provided,
+            a best effort default is selected.
         target_system_name: (str) The target system name for this toolchain. Bazel doesn't use this
             but starlark rules can read this value through `toolchain_info.target_gnu_system_name`.
             This string is commonly the target triple you would pass to `clang -target` (e.g. "x86_64-unknown-linux-gnu").
@@ -172,8 +178,13 @@ def cc_toolchain(
         "//conditions:default": "",
     })
 
-    target_libc = select({
-        Label("//cc/settings:apple_constraint"): "macosx",
+    target_libc = target_libc or select({
+        Label("//cc/toolchains/impl:darwin_aarch64"): "macosx",
+        Label("//cc/toolchains/impl:darwin_x86_64"): "macosx",
+        Label("//cc/toolchains/impl:linux_aarch64"): "glibc",
+        Label("//cc/toolchains/impl:linux_x86_64"): "glibc",
+        Label("//cc/toolchains/impl:windows_x86_32"): "ucrt",
+        Label("//cc/toolchains/impl:windows_x86_64"): "ucrt",
         "//conditions:default": "",
     })
 
