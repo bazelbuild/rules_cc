@@ -36,3 +36,21 @@ def local_includes_test(name):
         ],
         deps = [":" + name + "_lib"],
     )
+
+    cc_library(
+        name = name + "_implementation_deps_lib",
+        srcs = [
+            "binary.c",
+            "binary_helper.c",
+            "private/binary_helper.h",
+        ],
+        local_includes = [
+            "private",
+        ],
+        implementation_deps = [":" + name + "_lib"],
+    )
+
+    cc_test(
+        name = name + "_implementation_deps",
+        deps = [":" + name + "_implementation_deps_lib"],
+    )
