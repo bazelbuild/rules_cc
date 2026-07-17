@@ -49,6 +49,15 @@ alias(
     actual = "@bazel_tools//tools/cpp:toolchain_type",
 )
 
+# The toolchain type for C++ runtimes toolchains, which provide libraries
+# (such as the C++ standard library) that are implicitly depended on by all
+# C++ targets. Lives in rules_cc rather than @bazel_tools so that it is
+# available independently of the Bazel version.
+toolchain_type(
+    name = "cc_runtimes_toolchain_type",
+    visibility = ["//visibility:public"],
+)
+
 filegroup(
     name = "action_names_test_files",
     testonly = True,

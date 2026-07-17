@@ -43,7 +43,7 @@ def wrap_with_check_private_api(symbol):
 CPP_SOURCE_TYPE_HEADER = "HEADER"
 CPP_SOURCE_TYPE_SOURCE = "SOURCE"
 CPP_SOURCE_TYPE_CLIF_INPUT_PROTO = "CLIF_INPUT_PROTO"
-CC_RUNTIMES_TOOLCHAIN_TYPE = Label("@bazel_tools//tools/cpp:cc_runtimes_toolchain_type")
+CC_RUNTIMES_TOOLCHAIN_TYPE = Label("//cc:cc_runtimes_toolchain_type")
 
 def get_cc_runtimes(ctx, is_library):
     """Returns the list of C++ runtime dependency targets for the rule.
@@ -70,12 +70,13 @@ def get_cc_runtimes(ctx, is_library):
 
     cc_runtimes_toolchain = ctx.toolchains[CC_RUNTIMES_TOOLCHAIN_TYPE]
 
-    # All builds include the runtimes from the cc_runtimes_toolchain.
-    if cc_runtimes_toolchain:
-        runtimes += cc_runtimes_toolchain.cc_runtimes_info.runtimes
-    elif hasattr(ctx.attr, "tags") and "__CC_STL__" in ctx.attr.tags:
+    if hasattr(ctx.attr, "tags") and "__CC_STL__" in ctx.attr.tags:
+        # Targets that are part of the runtimes must not depend on them.
         # TODO(b/141613846): Remove this workaround.
         pass
+    elif cc_runtimes_toolchain:
+        # All other builds include the runtimes from the cc_runtimes_toolchain.
+        runtimes += cc_runtimes_toolchain.cc_runtimes_info.runtimes
     elif getattr(ctx.attr, "_stl", None) != None:
         runtimes.append(ctx.attr._stl)
 
