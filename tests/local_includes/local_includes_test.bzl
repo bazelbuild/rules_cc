@@ -5,6 +5,11 @@ load("//cc:cc_library.bzl", "cc_library")
 load("//cc:cc_test.bzl", "cc_test")
 
 def local_includes_test(name):
+    """Tests for the local_includes attribute.
+
+    Args:
+        name: The prefix of the test targets.
+    """
     if not bazel_features.cc.cc_common_is_in_rules_cc:
         return
 
