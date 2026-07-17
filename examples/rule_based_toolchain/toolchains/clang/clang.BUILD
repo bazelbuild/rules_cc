@@ -79,7 +79,7 @@ filegroup(
 filegroup(
     name = "multicall_support_files",
     srcs = glob(
-        ["bin/llvm"],
+        ["bin/llvm"],  # buildifier: disable=constant-glob
         allow_empty = True,
     ),
 )
