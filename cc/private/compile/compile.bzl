@@ -36,6 +36,7 @@ load(
     "create_cc_compilation_context_with_cpp20_modules",
     "create_compilation_context_with_extra_header_tokens",
     "create_separate_module_map",
+    "get_module_map_label",
 )
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private/compile:cc_compilation_helper.bzl", "cc_compilation_helper", "dotd_files_enabled", "serialized_diagnostics_file_enabled")
@@ -1153,7 +1154,7 @@ def _create_cc_compile_actions(
 
     if _should_provide_header_modules(feature_configuration, private_headers, public_headers):
         cpp_module_map = cc_compilation_context._module_map
-        module_map_label = Label(cpp_module_map.name)
+        module_map_label = get_module_map_label(cpp_module_map)
         modules = _create_module_action(
             action_construction_context = action_construction_context,
             cc_compilation_context = cc_compilation_context,
@@ -2109,7 +2110,7 @@ def _create_module_action(
         additional_include_scanning_roots,
         outputs,
         progress_message_prefix):
-    module_map_label = Label(cpp_module_map.name)
+    module_map_label = get_module_map_label(cpp_module_map)
     return _create_pic_nopic_compile_source_actions(
         action_construction_context = action_construction_context,
         cc_compilation_context = cc_compilation_context,

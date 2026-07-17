@@ -21,7 +21,7 @@ load(
     "repository_exec_path",
 )
 load("//cc/common:semantics.bzl", "STRIP_INCLUDE_PREFIX_APPLIES_TO_TEXTUAL_HEADERS", "USE_EXEC_ROOT_FOR_VIRTUAL_INCLUDES_SYMLINKS")
-load("//cc/private:cc_info.bzl", "create_compilation_context", "create_module_map")
+load("//cc/private:cc_info.bzl", "create_compilation_context", "create_module_map", "get_module_map_name")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 
 _VIRTUAL_INCLUDES_DIR = "_virtual_includes"
@@ -252,7 +252,8 @@ _ModuleMapInfo = provider(
 def _module_map_struct_to_module_map_content(parameters, tree_expander):
     lines = []
     module_map = parameters.module_map
-    lines.append("module \"%s\" {" % module_map.name)
+    module_name = get_module_map_name(module_map)
+    lines.append("module \"%s\" {" % module_name)
     lines.append("  export *")
 
     def expanded(artifacts):
@@ -324,10 +325,10 @@ def _module_map_struct_to_module_map_content(parameters, tree_expander):
 
     dependency_module_maps = parameters.dependency_module_maps.to_list()
     for dep in dependency_module_maps:
-        lines.append("  use \"" + dep.name + "\"")
+        lines.append("  use \"" + get_module_map_name(dep) + "\"")
 
     if parameters.separate_module_headers:
-        separate_name = module_map.name + ".sep"
+        separate_name = module_name + ".sep"
         lines.append("  use \"" + separate_name + "\"")
         lines.append("}")
         lines.append("module \"" + separate_name + "\" {")
@@ -341,14 +342,14 @@ def _module_map_struct_to_module_map_content(parameters, tree_expander):
             added_paths.add(header.path)
 
         for dep in dependency_module_maps:
-            lines.append("  use \"" + dep.name + "\"")
+            lines.append("  use \"" + get_module_map_name(dep) + "\"")
 
     lines.append("}")
 
     if parameters.extern_dependencies:
         for dep in dependency_module_maps:
             lines.append(
-                "extern module \"" + dep.name + "\" \"" +
+                "extern module \"" + get_module_map_name(dep) + "\" \"" +
                 parameters.leading_periods + dep.file.path + "\"",
             )
 
@@ -561,7 +562,6 @@ def _init_cc_compilation_context(
         if not module_map:
             module_map = create_module_map(
                 file = actions.declare_file(label.name + ".cppmap"),
-                name = label.workspace_name + "//" + label.package + ":" + label.name,
             )
 
         # There are different modes for module compilation:
