@@ -21,7 +21,7 @@ load(
     "repository_exec_path",
 )
 load("//cc/common:semantics.bzl", "STRIP_INCLUDE_PREFIX_APPLIES_TO_TEXTUAL_HEADERS", "USE_EXEC_ROOT_FOR_VIRTUAL_INCLUDES_SYMLINKS")
-load("//cc/private:cc_info.bzl", "create_compilation_context", "create_module_map", "get_module_map_name")
+load("//cc/private:cc_info.bzl", "create_compilation_context", "create_module_map", "get_module_map_name", "module_map_name_for_label")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 
 _VIRTUAL_INCLUDES_DIR = "_virtual_includes"
@@ -560,9 +560,14 @@ def _init_cc_compilation_context(
     header_module = None
     if _enabled(feature_configuration, "module_maps"):
         if not module_map:
-            module_map = create_module_map(
-                file = actions.declare_file(label.name + ".cppmap"),
-            )
+            file = actions.declare_file(label.name + ".cppmap")
+
+            # If compile() is called with a name that differs from the
+            # declaring target's name (e.g. by an aspect), the module name
+            # cannot be derived from the file's owner and has to be stored
+            # explicitly.
+            name = None if file.owner == label else module_map_name_for_label(label)
+            module_map = create_module_map(file = file, name = name)
 
         # There are different modes for module compilation:
         # 1. We create the module map and compile the module so that libraries depending on us can

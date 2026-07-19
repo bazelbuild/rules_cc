@@ -172,6 +172,26 @@ def create_module_map(*, file, name = None):
     check_private_api()
     return _ModuleMapInfo(file = file, name = name)
 
+def module_map_name_for_label(label):
+    """
+    Returns the module name for a module map named after the given label.
+
+    The name is the label's unambiguous canonical form, except that
+    main-repository labels do not carry the leading double-at prefix (see
+    get_module_map_name).
+
+    Args:
+        label: The Label the module is named after.
+    Returns:
+        The name of the module as a string.
+    """
+    label_string = str(label)
+
+    # buildifier: disable=canonical-repository
+    if label_string.startswith("@@//"):
+        return label_string[2:]
+    return label_string
+
 def get_module_map_name(module_map):
     """
     Returns the name of the module described by a module map struct.
@@ -190,12 +210,7 @@ def get_module_map_name(module_map):
     """
     if module_map.name != None:
         return module_map.name
-    label_string = str(module_map.file.owner)
-
-    # buildifier: disable=canonical-repository
-    if label_string.startswith("@@//"):
-        return label_string[2:]
-    return label_string
+    return module_map_name_for_label(module_map.file.owner)
 
 def get_module_map_label(module_map):
     """
