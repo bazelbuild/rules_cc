@@ -225,7 +225,7 @@ def compile(
     if additional_module_maps == None:
         additional_module_maps = []
 
-    label = _cc_internal.actions2ctx_cheat(actions).label.same_package_label(name)
+    label = ctx.label.same_package_label(name)
     fdo_context = cc_toolchain._fdo_context
 
     use_pic_for_dynamic_libraries = _use_pic_for_dynamic_libs(cpp_configuration, feature_configuration)
@@ -248,7 +248,6 @@ def compile(
     language_normalized = "c++" if language == None else language
     language_normalized = language_normalized.replace("+", "p").upper()
     source_category = SOURCE_CATEGORY_CC if language_normalized == "CPP" else SOURCE_CATEGORY_CC_AND_OBJC
-    ctx = _cc_internal.actions2ctx_cheat(actions)
     if type(includes) == "depset":
         includes = includes.to_list()
     textual_hdrs_list = textual_hdrs.to_list() if type(textual_hdrs) == "depset" else textual_hdrs
@@ -283,7 +282,7 @@ def compile(
     private_hdrs_artifacts = _to_file_list(private_hdrs)
 
     public_compilation_context, implementation_deps_context = cc_compilation_helper.init_cc_compilation_context(
-        ctx = ctx,
+        actions = actions,
         binfiles_dir = ctx.bin_dir.path,
         genfiles_dir = ctx.genfiles_dir.path,
         label = label,

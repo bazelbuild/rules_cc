@@ -121,10 +121,21 @@ def create_linking_context_from_compilation_outputs(
         linked_dll_name_suffix = linked_dll_name_suffix,
     )
 
+    library_to_link = cc_linking_outputs.library_to_link
+    if library_to_link:
+        # All library files are declared by the target calling this function, so their owner label
+        # is the label of that target and can be used to recover the package.
+        produced_file = (library_to_link.static_library or library_to_link.pic_static_library or
+                         library_to_link.dynamic_library or library_to_link.interface_library)
+        owner = produced_file.owner.same_package_label(name)
+    else:
+        # TODO(b/331164666): remove cheat; no file is produced only if both
+        # disallow_static_libraries and disallow_dynamic_library are set.
+        owner = _cc_internal.actions2ctx_cheat(actions).label.same_package_label(name)
+
     linker_input = create_linker_input(
-        # TODO(b/331164666): remove cheat, we always produce a file, file.owner gives us a label
-        owner = _cc_internal.actions2ctx_cheat(actions).label.same_package_label(name),
-        libraries = depset([cc_linking_outputs.library_to_link] if cc_linking_outputs.library_to_link else []),
+        owner = owner,
+        libraries = depset([library_to_link] if library_to_link else []),
         user_link_flags = user_link_flags,
         additional_inputs = additional_inputs,
     )

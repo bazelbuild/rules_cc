@@ -405,10 +405,7 @@ def _create_module_map_action(
     actions.write(module_map.file, content = content, is_executable = True, mnemonic = "CppModuleMap")
 
 def _init_cc_compilation_context(
-        # DO NOT use ctx, this is a temporary placeholder
-        # to avoid adding a new field to CcCompilationHelper.
-        # Once compile is in Starlark we can directly pass in actions here.
-        ctx,
+        actions,
         binfiles_dir,
         genfiles_dir,
         label,
@@ -438,9 +435,6 @@ def _init_cc_compilation_context(
         deps,
         implementation_deps,
         additional_cpp_module_maps):
-    # Single usage of ctx.
-    actions = ctx.actions
-
     # Setup the include path; local include directories come before those inherited from deps or
     # from the toolchain; in case of aliasing (same include file found on different entries),
     # prefer the local include rather than the inherited one.
