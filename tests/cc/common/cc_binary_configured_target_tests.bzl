@@ -1773,14 +1773,19 @@ def _test_coverage_support_always_provided(name, **kwargs):
     )
 
 def _test_coverage_support_always_provided_impl(env, target):
-    env.expect.that_bool(InstrumentedFilesInfo in target).equals(True)
-    info = target[InstrumentedFilesInfo]
-    env.expect.that_collection(info.metadata_files.to_list()).is_empty()
-    env.expect.that_collection(info.instrumented_files.to_list()).is_empty()
+    target_subject = env.expect.that_target(target)
+    target_subject.has_provider(InstrumentedFilesInfo)
+    info_subject = target_subject.provider(InstrumentedFilesInfo)
 
-    # TODO: pzembrod - Rerun presubmit once the attributes are available in Bazel at head.
+    info_subject.metadata_files().contains_exactly([])
+    info_subject.instrumented_files().contains_exactly([])
+
+    info = info_subject.actual
+
+    # TODO: Remove the hasattr conditions once all supported Bazel versions support these
+    # InstrumentedFilesInfoApi methods. Expected: Bazel 10, Bazel 9.3, maybe Bazel 8.8.
     if hasattr(info, "get_coverage_environment"):
-        coverage_env = subjects.dict(
+        coverage_env = env.expect.that_dict(
             info.get_coverage_environment(),
             meta = env.expect.meta.derive("coverage_environment"),
         )
@@ -1791,13 +1796,124 @@ def _test_coverage_support_always_provided_impl(env, target):
             "GENERATE_LLVM_LCOV": "0",
         })
     if hasattr(info, "get_coverage_support_files"):
-        support_files = subjects.collection(
+        support_files = env.expect.that_collection(
             info.get_coverage_support_files().to_list(),
-            meta = env.expect.meta.derive("coverage_support_files"),
+            expr = "coverage_support_files",
         )
         support_files.contains_predicate(
             matching.file_basename_equals("coverage-file"),
         )
+
+def _test_malloc_is_compile_time_dep(name, **kwargs):
+    util.helper_target(
+        cc_library,
+        name = name + "/malloc",
+        defines = ["foobar"],
+        linkstatic = 1,
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/foo",
+        srcs = ["foo.cc"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_malloc_is_compile_time_dep_impl,
+        target = name + "/foo",
+        config_settings = {
+            "//command_line_option:custom_malloc": Label("//tests/cc/common:" + name + "/malloc"),
+        },
+        **kwargs
+    )
+
+def _test_malloc_is_compile_time_dep_impl(env, target):
+    compilation_outputs = target[OutputGroupInfo].compilation_outputs.to_list()
+    env.expect.that_collection(compilation_outputs).has_size(1)
+    compile_action = env.expect.that_target(target).action_generating(compilation_outputs[0].short_path)
+    compile_action.argv().contains("-Dfoobar")
+
+def _test_custom_malloc_filegroup(name, **kwargs):
+    util.helper_target(
+        native.filegroup,
+        name = name + "/custom_malloc",
+        srcs = ["malloc.cc"],
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = ["binary.cc"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_custom_malloc_filegroup_impl,
+        target = name + "/bin",
+        config_settings = {
+            "//command_line_option:custom_malloc": Label("//tests/cc/common:" + name + "/custom_malloc"),
+        },
+        **kwargs
+    )
+
+def _test_custom_malloc_filegroup_impl(env, target):  # buildifier: disable=unused-variable
+    pass
+
+def _test_pic_and_no_pic_gcno_files(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/a",
+        srcs = ["a.cc"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_pic_and_no_pic_gcno_files_impl,
+        target = name + "/a",
+        test_features = [FEATURE_NAMES.supports_pic],
+        config_settings = {
+            "//command_line_option:collect_code_coverage": "true",
+            "//command_line_option:compilation_mode": "opt",
+        },
+        **kwargs
+    )
+
+def _test_pic_and_no_pic_gcno_files_impl(env, target):
+    target_subject = env.expect.that_target(target)
+    target_subject.has_provider(InstrumentedFilesInfo)
+    info_subject = target_subject.provider(InstrumentedFilesInfo)
+    info_subject.metadata_files().contains_at_least_predicates([
+        matching.file_basename_equals("a.gcno"),
+        matching.file_basename_equals("a.pic.gcno"),
+    ])
+
+def _test_cctoolchain_coverage_files(name, **kwargs):
+    util.helper_target(
+        cc_test,
+        name = name + "/a",
+        srcs = ["a.cc"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_cctoolchain_coverage_files_impl,
+        target = name + "/a",
+        config_settings = {
+            "//command_line_option:collect_code_coverage": "true",
+        },
+        **kwargs
+    )
+
+def _test_cctoolchain_coverage_files_impl(env, target):
+    target_subject = env.expect.that_target(target)
+    target_subject.has_provider(InstrumentedFilesInfo)
+    info_subject = target_subject.provider(InstrumentedFilesInfo)
+
+    # TODO: Remove the hasattr conditions once all supported Bazel versions support these
+    # InstrumentedFilesInfoApi methods. Expected: Bazel 10, Bazel 9.3, maybe Bazel 8.8.
+    if hasattr(info_subject.actual, "get_coverage_support_files"):
+        support_files = env.expect.that_collection(
+            info_subject.actual.get_coverage_support_files().to_list(),
+            expr = "coverage_support_files",
+        )
+        support_files.contains_exactly_predicates([
+            matching.file_basename_equals("coverage-file"),
+        ])
 
 def _test_thin_lto(name, **kwargs):
     util.helper_target(
@@ -1893,6 +2009,10 @@ def cc_binary_configured_target_tests(name):
         _test_link_shared_does_not_have_to_provide_extension,
         _test_pdb_files,
         _test_coverage_support_always_provided,
+        _test_malloc_is_compile_time_dep,
+        _test_custom_malloc_filegroup,
+        _test_pic_and_no_pic_gcno_files,
+        _test_cctoolchain_coverage_files,
         _test_thin_lto,
         _test_thin_lto_disabled,
     ]
