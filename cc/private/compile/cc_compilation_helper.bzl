@@ -514,8 +514,10 @@ def _init_cc_compilation_context(
         must_use_strip_prefix = False,
     )
     if textual_headers.virtual_include_path:
-        if external or feature_configuration.is_requested("system_include_paths"):
+        if external:
             external_include_dirs.append(textual_headers.virtual_include_path)
+        elif feature_configuration.is_requested("system_include_paths"):
+            system_include_dirs_for_context.append(textual_headers.virtual_include_path)
         else:
             include_dirs_for_context.append(textual_headers.virtual_include_path)
 
