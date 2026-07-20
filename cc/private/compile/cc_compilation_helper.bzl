@@ -460,13 +460,7 @@ def _init_cc_compilation_context(
     external_include_dirs = []
     declared_include_srcs = []
 
-    if not external and feature_configuration.is_requested("system_include_paths"):
-        system_include_dirs_for_context = system_include_dirs + include_dirs
-        include_dirs_for_context = []
-    elif not external:
-        system_include_dirs_for_context = list(system_include_dirs)
-        include_dirs_for_context = list(include_dirs)
-    else:
+    if external:
         # Do not add include dirs directly to the regular compilation context; all public search
         # paths for external repositories are reclassified as external includes.
         quote_include_dirs_for_context = []
@@ -479,6 +473,12 @@ def _init_cc_compilation_context(
         external_include_dirs.extend(quote_include_dirs)
         external_include_dirs.extend(system_include_dirs)
         external_include_dirs.extend(include_dirs)
+    elif feature_configuration.is_requested("system_include_paths"):
+        system_include_dirs_for_context = system_include_dirs + include_dirs
+        include_dirs_for_context = []
+    else:
+        system_include_dirs_for_context = list(system_include_dirs)
+        include_dirs_for_context = list(include_dirs)
 
     public_headers = _compute_public_headers(
         actions,
