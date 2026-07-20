@@ -53,7 +53,10 @@ VERSION_GATE = [] if bazel_features.cc.cc_common_is_in_rules_cc else ["@platform
 rules_cc_integration_test(
     name = "cc_static_library_failure_tests",
     tags = ["notap"],
-    target_compatible_with = VERSION_GATE,
+    target_compatible_with = select({
+        "@platforms//os:macos": ["@platforms//:incompatible"],
+        "//conditions:default": VERSION_GATE,
+    }),
     test_script = "cc_static_library_failure_tests.sh",
 )
 
