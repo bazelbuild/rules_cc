@@ -28,6 +28,7 @@ _WITH_FEATURES = str(Label("//tests/cc/testutil/toolchains:with_features"))
 
 mock_toolchain_action_command_line_test = make_action_command_line_test_rule(
     config_settings = {
+        "//command_line_option:collect_code_coverage": "false",
         "//command_line_option:compilation_mode": "fastbuild",
         "//command_line_option:extra_toolchains": ",".join(_MOCK_TOOLCHAINS),
         "//command_line_option:features": [FEATURE_NAMES.simple_compile_feature],
