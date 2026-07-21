@@ -46,8 +46,8 @@ subdirectory(
 filegroup(
     name = "builtin_headers",
     srcs = [
-        ":lib-gcc-include",
         ":include-x86_64-buildroot-linux-gnu",
+        ":lib-gcc-include",
     ],
 )
 
