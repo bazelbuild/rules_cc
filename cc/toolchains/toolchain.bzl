@@ -179,8 +179,7 @@ def cc_toolchain(
     })
 
     target_libc = target_libc or select({
-        Label("//cc/toolchains/impl:darwin_aarch64"): "macosx",
-        Label("//cc/toolchains/impl:darwin_x86_64"): "macosx",
+        Label("//cc/toolchains/impl:apple_constraint"): "macosx",
         Label("//cc/toolchains/impl:linux_aarch64"): "glibc",
         Label("//cc/toolchains/impl:linux_x86_64"): "glibc",
         Label("//cc/toolchains/impl:windows_x86_32"): "ucrt",
