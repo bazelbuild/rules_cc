@@ -33,6 +33,5 @@ cc_binary(
             "//cc/libc:ucrt": ["LIBC=ucrt"],
             "//conditions:default": [],
         },
-        no_match_error = "C standard library not detected by Bazel",
     ),
 )
