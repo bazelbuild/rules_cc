@@ -258,6 +258,7 @@ common_attrs = struct(
     union = _union,
     ALWAYSLINK_RULE = _ALWAYSLINK_RULE,
     alwayslink_initializer = _alwayslink_initializer,
+    APPLE_VENDOR = semantics.get_apple_vendor_attr(),
     COMPILING_RULE = _get_compiling_rule_attrs(),
     COMPILE_DEPENDENCY_RULE = _COMPILE_DEPENDENCY_RULE,
     COPTS_RULE = _COPTS_RULE,

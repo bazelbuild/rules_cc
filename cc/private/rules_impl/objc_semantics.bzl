@@ -36,6 +36,10 @@ def _check_toolchain_supports_objc_compile(ctx, cc_toolchain, requested_features
         fail("Compiling objc_library targets requires the Apple CC toolchain " +
              "which can be found here: https://github.com/bazelbuild/apple_support#toolchain-setup")
 
+def _get_apple_vendor_attr():
+    # TODO(b/528985527): Change to the apple vendor platform constraint if safe.
+    return {}
+
 def _get_licenses_attr():
     # TODO(b/182226065): Change to applicable_licenses
     return {}
@@ -45,6 +49,7 @@ def _get_repo():
 
 semantics = struct(
     check_toolchain_supports_objc_compile = _check_toolchain_supports_objc_compile,
+    get_apple_vendor_attr = _get_apple_vendor_attr,
     get_repo = _get_repo,
     get_licenses_attr = _get_licenses_attr,
     apple_crosstool_transition = None,

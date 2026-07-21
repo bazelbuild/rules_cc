@@ -165,6 +165,7 @@ transitive deps) are only used for compilation of this library, and not librarie
 depend on it. Libraries specified with <code>implementation_deps</code> are still linked
 in binary targets that depend on this library."""),
         },
+        common_attrs.APPLE_VENDOR,
         common_attrs.ALWAYSLINK_RULE,
         common_attrs.COMPILING_RULE,
         common_attrs.COMPILE_DEPENDENCY_RULE,
