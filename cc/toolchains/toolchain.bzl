@@ -180,10 +180,8 @@ def cc_toolchain(
 
     target_libc = target_libc or select({
         Label("//cc/settings:apple_constraint"): "macosx",
-        Label("//cc/toolchains/impl:linux_aarch64"): "glibc",
-        Label("//cc/toolchains/impl:linux_x86_64"): "glibc",
-        Label("//cc/toolchains/impl:windows_x86_32"): "ucrt",
-        Label("//cc/toolchains/impl:windows_x86_64"): "ucrt",
+        Label("@platforms//os:linux"): "glibc",
+        Label("@platforms//os:windows"): "ucrt",
         "//conditions:default": "",
     })
 
