@@ -34,7 +34,10 @@ cc_args(
 
 cc_args(
     name = "output_flags",
-    actions = ["//cc/toolchains/actions:compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:compile_actions",
+        "//cc/toolchains/actions:cpp20_module_actions",
+    ],
     args = [
         "-o",
         "{output_file}",
