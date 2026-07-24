@@ -15,6 +15,7 @@
 
 load(
     "//cc/common:cc_helper_internal.bzl",
+    "get_artifact_name_for_category",
     _CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES = "CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES",
     _PRIVATE_STARLARKIFICATION_ALLOWLIST = "PRIVATE_STARLARKIFICATION_ALLOWLIST",
 )
@@ -664,7 +665,7 @@ def _get_cc_native_library_info_provider():
 
 def _get_artifact_name_for_category(*, cc_toolchain, category, output_name):
     _cc_internal.check_private_api(allowlist = _PRIVATE_STARLARKIFICATION_ALLOWLIST)
-    return _cc_internal.get_artifact_name_for_category(
+    return get_artifact_name_for_category(
         cc_toolchain = cc_toolchain,
         category = category,
         output_name = output_name,
