@@ -153,6 +153,11 @@ def configure_features(
         else:
             all_features.append("nonhost")
 
+    if ctx.configuration.is_tool_configuration():
+        all_features.append("exec_cfg")
+    else:
+        all_features.append("non_exec_cfg")
+
     if ctx.configuration.coverage_enabled:
         all_features.extend(_get_coverage_features(cpp_configuration))
 
