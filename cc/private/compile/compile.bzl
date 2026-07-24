@@ -2080,6 +2080,7 @@ def _create_module_codegen_action(
         needs_include_validation = _starlark_cc_semantics.needs_include_validation(language),
         toolchain_type = _starlark_cc_semantics.toolchain,
         progress_message_prefix = progress_message_prefix,
+        use_pic = use_pic,
     )
     if use_pic:
         outputs["pic_objects"].append(object_file)
