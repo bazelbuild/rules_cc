@@ -536,6 +536,7 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
         public_hdrs = cc_helper.get_public_hdrs(ctx),
         srcs = cc_helper.get_srcs(ctx),
         module_interfaces = cc_helper.get_cpp_module_interfaces(ctx),
+        module_header_map_entries = cc_helper.get_module_header_map_entries(ctx),
         compilation_contexts = compilation_context_deps,
         code_coverage_enabled = cc_helper.is_code_coverage_enabled(ctx = ctx),
         additional_inputs = ctx.files.additional_compiler_inputs,

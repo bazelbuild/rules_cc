@@ -890,7 +890,9 @@ def _report_invalid_options(cc_toolchain, cpp_config):
         fail("The selected toolchain does not support setting --grte_top (it doesn't specify builtin_sysroot).")
 
 def _check_cpp_modules(ctx, feature_configuration):
-    if len(ctx.files.module_interfaces) == 0:
+    has_module_interfaces = len(ctx.files.module_interfaces) > 0
+    has_module_header_maps = hasattr(ctx.attr, "module_header_maps") and len(ctx.attr.module_header_maps) > 0
+    if not has_module_interfaces and not has_module_header_maps:
         return
     if not ctx.fragments.cpp.experimental_cpp_modules():
         fail("requires --experimental_cpp_modules", attr = "module_interfaces")
@@ -1006,6 +1008,28 @@ def _get_cpp_module_interfaces(ctx):
         return []
     artifact_label_map = _calculate_artifact_label_map(ctx.attr.module_interfaces, "module_interfaces")
     return _map_to_list(artifact_label_map)
+
+def _get_module_header_map_entries(ctx):
+    """Returns (module_name, map_file) tuples from module_header_maps."""
+    if not hasattr(ctx.attr, "module_header_maps"):
+        return []
+    entries = []
+    for name, map_label in ctx.attr.module_header_maps.items():
+        map_files = map_label.files.to_list()
+        if len(map_files) != 1:
+            fail(
+                "module_header_maps[%r]: label %s must provide exactly one .modulemap file, got %d" %
+                (name, map_label, len(map_files)),
+                attr = "module_header_maps",
+            )
+        map_file = map_files[0]
+        if not map_file.basename.endswith(".modulemap"):
+            fail(
+                "module_header_maps[%r]: expected a .modulemap file, got %s" % (name, map_file.basename),
+                attr = "module_header_maps",
+            )
+        entries.append((name, map_file))
+    return entries
 
 # Returns a list of (Artifact, Label) tuples. Each tuple represents an input source
 # file and the label of the rule that generates it (or the label of the source file itself if it
@@ -1147,6 +1171,7 @@ cc_helper = struct(
     local_defines = _local_defines,
     get_srcs = _get_srcs,
     get_cpp_module_interfaces = _get_cpp_module_interfaces,
+    get_module_header_map_entries = _get_module_header_map_entries,
     get_private_hdrs = _get_private_hdrs,
     get_public_hdrs = _get_public_hdrs,
     is_code_coverage_enabled = _is_code_coverage_enabled,
