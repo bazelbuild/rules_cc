@@ -1794,7 +1794,7 @@ cc_toolchain_config = rule(
         "toolchain_identifier": attr.string(default = "mock-llvm-toolchain-k8"),
         "host_system_name": attr.string(default = "local"),
         "target_system_name": attr.string(default = "local"),
-        "target_libc": attr.string(default = "local"),
+        "target_libc": attr.string(default = "unknown"),
         "abi_version": attr.string(default = "local"),
         "abi_libc_version": attr.string(default = "local"),
         "feature_names": attr.string_list(),

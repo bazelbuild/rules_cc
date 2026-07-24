@@ -296,7 +296,7 @@ cc_toolchain_config(
     feature_names = [],
     host_system_name = "local",
     make_variables = {},
-    target_libc = "local",
+    target_libc = "glibc",
     target_system_name = "local",
     tool_paths = {},
     toolchain_identifier = "mock-toolchain-k8",
