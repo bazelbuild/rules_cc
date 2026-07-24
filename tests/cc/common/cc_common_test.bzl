@@ -142,6 +142,20 @@ def _uses_virtual_includes_impl(env, target):
         )],
     )
 
+def _uses_system_virtual_includes_impl(env, target):
+    subject = cc_info_subject.from_target(env, target)
+    virtual_includes = matching.custom(
+        "contains '_virtual_includes'",
+        lambda s: "_virtual_includes" in s,
+    )
+
+    subject.compilation_context().system_include_dirs().contains_at_least_predicates([
+        virtual_includes,
+    ])
+    subject.compilation_context().external_include_dirs().contains_none_of([
+        virtual_includes,
+    ])
+
 def _test_strip_include_prefix_uses_virtual_includes_by_default(name):
     """Tests that strip_include_prefix uses _virtual_includes by default (skip_virtual_includes off)."""
     util.helper_target(
@@ -188,6 +202,40 @@ def _test_strip_include_prefix_with_include_prefix_uses_virtual_includes(name):
         impl = _uses_virtual_includes_impl,
         target = name + "/lib",
         test_features = ["skip_virtual_includes"],
+    )
+
+def _test_strip_include_prefix_for_public_headers_uses_system_include_paths(name):
+    util.helper_target(
+        cc_library,
+        name = name + "/lib",
+        hdrs = ["v1/foo.h"],
+        strip_include_prefix = "v1",
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _uses_system_virtual_includes_impl,
+        target = name + "/lib",
+        config_settings = {
+            "//command_line_option:features": ["system_include_paths"],
+        },
+    )
+
+def _test_strip_include_prefix_for_textual_headers_uses_system_include_paths(name):
+    util.helper_target(
+        cc_library,
+        name = name + "/lib",
+        strip_include_prefix = "v1",
+        textual_hdrs = ["v1/foo.h"],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _uses_system_virtual_includes_impl,
+        target = name + "/lib",
+        config_settings = {
+            "//command_line_option:features": ["system_include_paths"],
+        },
     )
 
 def _test_strip_include_prefix_error_not_under_prefix(name):
@@ -687,6 +735,8 @@ def cc_common_tests(name):
             _test_strip_include_prefix_uses_virtual_includes_by_default,
             _test_strip_include_prefix_no_virtual_includes_when_enabled,
             _test_strip_include_prefix_with_include_prefix_uses_virtual_includes,
+            _test_strip_include_prefix_for_public_headers_uses_system_include_paths,
+            _test_strip_include_prefix_for_textual_headers_uses_system_include_paths,
             _test_strip_include_prefix_error_not_under_prefix,
         ])
     test_suite(
