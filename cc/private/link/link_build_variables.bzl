@@ -258,15 +258,15 @@ def setup_common_linking_variables(
         vars[LINK_BUILD_VARIABLES.CS_FDO_INSTRUMENT_PATH] = cpp_config.cs_fdo_instrument()
 
     # For now, silently ignore linkopts if this is a static library
-    user_link_flags = user_link_flags if is_using_linker else []
-    if is_linking_dynamic_library:
+    user_link_flags = user_link_flags if (is_using_linker and user_link_flags) else ()
+    if is_linking_dynamic_library and user_link_flags:
         vars[LINK_BUILD_VARIABLES.USER_LINK_FLAGS] = _remove_pie(user_link_flags)
     else:
         vars[LINK_BUILD_VARIABLES.USER_LINK_FLAGS] = user_link_flags
     return vars
 
 def _remove_pie(flags):
-    return [flag for flag in flags if flag != "-pie" and flag != "-Wl,-pie"]
+    return tuple([flag for flag in flags if flag != "-pie" and flag != "-Wl,-pie"])
 
 _DONT_GENERATE_INTERFACE_LIBRARY = {
     LINK_BUILD_VARIABLES.GENERATE_INTERFACE_LIBRARY: "no",

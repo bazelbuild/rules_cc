@@ -229,7 +229,7 @@ def _setup_common_compile_build_variables_internal(
     result = {}
 
     if feature_configuration.is_enabled("use_header_modules"):
-        result[_VARS.MODULE_FILES] = []
+        result[_VARS.MODULE_FILES] = ()
     if feature_configuration.is_requested("system_include_paths"):
         result[_VARS.INCLUDE_PATHS] = include_dirs
         result[_VARS.SYSTEM_INCLUDE_PATHS] = depset(transitive = [system_include_dirs, local_includes])
