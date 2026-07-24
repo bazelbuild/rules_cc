@@ -100,7 +100,6 @@ cc_shared_library(
 EOF
 
   bazel build \
-    --noincompatible_remove_legacy_whole_archive \
     --experimental_cc_shared_library \
     //foo:foo_shared >& "${TEST_log}" || fail "Expected build to succeed"
 

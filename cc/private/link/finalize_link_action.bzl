@@ -101,13 +101,7 @@ def finalize_link_action(
     Returns:
       None
     """
-    need_whole_archive = whole_archive or _need_whole_archive(
-        feature_configuration,
-        linking_mode,
-        link_type,
-        user_link_flags,
-        cc_toolchain._cpp_configuration,
-    )
+    need_whole_archive = whole_archive
 
     must_keep_debug = any([lib._must_keep_debug for lib in libraries_to_link])
 
@@ -436,43 +430,6 @@ def _can_split_command_line(
         return feature_configuration.is_enabled("archive_param_file")
 
     # This should be unreachable:
-    return False
-
-def _need_whole_archive(feature_configuration, linking_mode, link_type, linkopts, cpp_config):
-    """The default heuristic on whether we need to use whole-archive for the link."""
-    shared_linkopts = is_dynamic_library(link_type) or "-shared" in linkopts or "-shared" in cpp_config.linkopts
-
-    # Fasten your seat belt, the logic below doesn't make perfect sense and it's full of obviously
-    # missed corner cases. The world still stands and depends on this behavior, so ¯\_(ツ)_/¯.
-    if not shared_linkopts:
-        # We are not producing shared library, there is no reason to use --whole-archive with
-        # executable (if the executable doesn't use the symbols, nobody else will, so --whole-archive
-        # is not needed).
-        return False
-
-    if feature_configuration.is_requested("force_no_whole_archive"):
-        return False
-
-    if cpp_config.incompatible_remove_legacy_whole_archive():
-        # --incompatible_remove_legacy_whole_archive has been flipped, no --whole-archive for the
-        # entire build.
-        return False
-
-    if linking_mode != LINKING_MODE.STATIC:
-        # legacy whole archive only applies to static linking mode.
-        return False
-
-    if feature_configuration.is_requested("legacy_whole_archive"):
-        # --incompatible_remove_legacy_whole_archive has not been flipped, and this target requested
-        # --whole-archive using features.
-        return True
-
-    if cpp_config.legacy_whole_archive():
-        # --incompatible_remove_legacy_whole_archive has not been flipped, so whether to
-        # use --whole-archive depends on --legacy_whole_archive.
-        return True
-
-    # Hopefully future default.
     return False
 
 def _quote_replacement(s):
