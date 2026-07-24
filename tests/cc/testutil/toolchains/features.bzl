@@ -101,4 +101,5 @@ FEATURE_NAMES = struct(
     llvm_profdata_env = "llvm_profdata_env",
     force_pic_flags = "force_pic_flags",
     libraries_to_link = "libraries_to_link",
+    dwp_env = "dwp_env",
 )
