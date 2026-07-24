@@ -310,7 +310,7 @@ def _module_map_struct_to_module_map_content(parameters, tree_expander):
         add_header(path = header.path, visibility = "", can_compile = False)
         added_paths.add(header.path)
 
-    for header in parameters.public_textual_headers:
+    for header in expanded(parameters.public_textual_headers):
         if header.path in added_paths:
             continue
         add_header(path = header.path, visibility = "", can_compile = False)
@@ -400,6 +400,7 @@ def _create_module_map_action(
     tree_artifacts = [h for h in private_headers if h.is_directory]
     tree_artifacts += [h for h in public_headers if h.is_directory]
     tree_artifacts += [h for h in textual_headers if h.is_directory]
+    tree_artifacts += [h for h in public_textual_headers if h.is_directory]
     content.add_all(tree_artifacts, map_each = lambda x: None, allow_closure = True)
 
     actions.write(module_map.file, content = content, is_executable = True, mnemonic = "CppModuleMap")
