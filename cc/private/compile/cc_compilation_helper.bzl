@@ -402,7 +402,13 @@ def _create_module_map_action(
     tree_artifacts += [h for h in textual_headers if h.is_directory]
     content.add_all(tree_artifacts, map_each = lambda x: None, allow_closure = True)
 
-    actions.write(module_map.file, content = content, is_executable = True, mnemonic = "CppModuleMap")
+    actions.write(
+        module_map.file,
+        content = content,
+        is_executable = True,
+        mnemonic = "CppModuleMap",
+        execution_requirements = {"supports-path-mapping": ""},
+    )
 
 def _init_cc_compilation_context(
         # DO NOT use ctx, this is a temporary placeholder
