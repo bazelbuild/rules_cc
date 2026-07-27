@@ -629,6 +629,9 @@ def _test_external_include_paths_reclassifies_external_quote_includes_impl(env, 
     env.expect.that_collection(system_include_paths).contains_predicate(
         matching.contains("googletest"),
     )
+    env.expect.that_collection(system_include_paths).contains_none_of([
+        "external/googletest+",
+    ])
     env.expect.that_collection(quote_include_paths).transform(
         filter = matching.contains("googletest"),
     ).contains_exactly([])
