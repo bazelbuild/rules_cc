@@ -63,6 +63,7 @@ def _test_cc_library_data_in_runfiles(name, **kwargs):
         name = name,
         impl = _test_cc_library_data_in_runfiles_impl,
         target = name + "_lib_with_data",
+        test_features = ["module_maps"],
         **kwargs
     )
 
