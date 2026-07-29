@@ -77,8 +77,10 @@ filegroup(
         "**/BUILD",
     ]) + [
         "//cc/common:srcs",
+        "//cc/compiler:srcs",
         "//cc/private:srcs",
         "//cc/proto:srcs",
+        "//cc/runfiles:srcs",
         "//cc/settings:srcs",
         "//cc/toolchains:srcs",
         "@bazel_skylib//:test_deps",

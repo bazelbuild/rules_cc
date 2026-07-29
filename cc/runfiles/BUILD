@@ -10,3 +10,14 @@ cc_library(
     strip_include_prefix = ".",
     visibility = ["//visibility:public"],
 )
+
+filegroup(
+    name = "srcs",
+    srcs = glob([
+        "*.cc",
+        "*.h",
+    ]) + [
+        "BUILD",
+    ],
+    visibility = ["//visibility:public"],
+)

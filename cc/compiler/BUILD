@@ -47,6 +47,11 @@ package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
 
+filegroup(
+    name = "srcs",
+    srcs = ["BUILD"],
+)
+
 compiler_flag(name = "compiler")
 
 config_setting(

@@ -34,6 +34,7 @@ filegroup(
         "**/BUILD",
         "*.bzl",
     ]) + [
+        "//cc/private/bazel7:BUILD",
         "//cc/private/compile:srcs",
         "//cc/private/coverage:srcs",
         "//cc/private/link:srcs",

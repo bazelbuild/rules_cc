@@ -55,6 +55,28 @@ scratch_workspace="$TEST_TMPDIR/scratch"
 mkdir -p "$scratch_workspace"
 cd "$scratch_workspace"
 
+
+
+# Extract the module version used in the default lock file.
+function get_version_from_default_lock_file() {
+  lockfile=$(rlocation rules_cc/MODULE.bazel.lock)
+  module=$1
+  local version=$(sed -n "s|.*modules/$module/\([^/]*\)/source\.json.*|\1|p" "$lockfile")
+  if [[ -z $version ]]; then
+      echo "Version not found for module $module in $lockfile"
+      exit 1
+  else
+      echo "$version"
+  fi
+}
+
+function add_bazel_dep() {
+  version=$(get_version_from_default_lock_file "$1")
+  cat >> "$2" <<EOF
+bazel_dep(name = "$1", version = "$version")
+EOF
+}
+
 # Make rules_cc available
 cat > MODULE.bazel << EOF
 module(name = "test_module")
@@ -65,6 +87,9 @@ local_path_override(
     path = "$rules_cc_dir"
 )
 EOF
+add_bazel_dep "rules_shell" MODULE.bazel
+
+
 
 test_runner_path="$(rlocation "$TEST_RUNNER")" || (echo >&2 "FAILED TO LOAD TEST RUNNER" && exit 1)
 test_runner_cmd=( "${test_runner_path}" )
