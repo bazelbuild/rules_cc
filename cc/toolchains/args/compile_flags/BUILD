@@ -37,7 +37,10 @@ cc_feature(
 
 cc_args(
     name = "user_compile_flags",
-    actions = ["//cc/toolchains/actions:compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:compile_actions",
+        "//cc/toolchains/actions:cpp20_module_actions",
+    ],
     args = ["{user_compile_flags}"],
     format = {"user_compile_flags": "//cc/toolchains/variables:user_compile_flags"},
     iterate_over = "//cc/toolchains/variables:user_compile_flags",

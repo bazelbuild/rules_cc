@@ -3,6 +3,22 @@ load("//cc/toolchains/impl:variables.bzl", "cc_builtin_variables", "cc_variable"
 package(default_visibility = ["//visibility:public"])
 
 cc_variable(
+    name = "cpp_module_modmap_file",
+    actions = [
+        "//cc/toolchains/actions:cpp_compile",
+        "//cc/toolchains/actions:cpp20_module_compile",
+        "//cc/toolchains/actions:cpp20_module_codegen",
+    ],
+    type = types.option(types.file),
+)
+
+cc_variable(
+    name = "cpp_module_output_file",
+    actions = ["//cc/toolchains/actions:cpp20_module_compile"],
+    type = types.option(types.file),
+)
+
+cc_variable(
     name = "cs_fdo_instrument_path",
     actions = [
         "//cc/toolchains/actions:link_actions",
@@ -19,7 +35,10 @@ cc_variable(
 
 cc_variable(
     name = "dependency_file",
-    actions = ["//cc/toolchains/actions:compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:compile_actions",
+        "//cc/toolchains/actions:cpp20_module_actions",
+    ],
     type = types.option(types.file),
 )
 
@@ -424,6 +443,7 @@ cc_variable(
     name = "output_file",
     actions = [
         "//cc/toolchains/actions:compile_actions",
+        "//cc/toolchains/actions:cpp20_module_actions",
         "//cc/toolchains/actions:strip",
     ],
     type = types.option(types.file),
@@ -485,7 +505,10 @@ cc_variable(
 
 cc_variable(
     name = "source_file",
-    actions = ["//cc/toolchains/actions:compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:compile_actions",
+        "//cc/toolchains/actions:cpp20_module_actions",
+    ],
     type = types.option(types.file),
 )
 
@@ -566,7 +589,10 @@ cc_variable(
 
 cc_variable(
     name = "user_compile_flags",
-    actions = ["//cc/toolchains/actions:compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:compile_actions",
+        "//cc/toolchains/actions:cpp20_module_actions",
+    ],
     type = types.option(types.list(types.string)),
 )
 
@@ -581,6 +607,8 @@ cc_builtin_variables(
     srcs = [
         ":attr_linkopts",
         ":cc_library_exec_paths",
+        ":cpp_module_modmap_file",
+        ":cpp_module_output_file",
         ":cs_fdo_instrument_path",
         ":def_file_path",
         ":dep_linkopts",

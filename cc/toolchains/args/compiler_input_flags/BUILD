@@ -13,7 +13,10 @@ cc_feature(
 
 cc_args(
     name = "flags",
-    actions = ["//cc/toolchains/actions:compile_actions_without_header_parsing"],
+    actions = [
+        "//cc/toolchains/actions:compile_actions_without_header_parsing",
+        "//cc/toolchains/actions:cpp20_module_actions",
+    ],
     args = [
         "-c",
         "{source_file}",

@@ -28,6 +28,9 @@ LEGACY_FILE_GROUPS = {
         Label("//cc/toolchains/actions:c_compile"),
         Label("//cc/toolchains/actions:cpp_compile"),
         Label("//cc/toolchains/actions:cpp_header_parsing"),
+        Label("//cc/toolchains/actions:cpp20_module_compile"),
+        Label("//cc/toolchains/actions:cpp20_module_codegen"),
+        Label("//cc/toolchains/actions:cpp_module_deps_scanning"),
     ],
     # There are no actions listed for coverage and objcopy in action_names.bzl.
     "coverage_files": [],
