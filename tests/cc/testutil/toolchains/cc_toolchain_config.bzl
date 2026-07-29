@@ -1240,6 +1240,69 @@ _uses_ifso_variables_feature = feature(
     ],
 )
 
+_uses_output_execpath_feature = feature(
+    name = FEATURE_NAMES.uses_output_execpath,
+    enabled = True,
+    flag_sets = [
+        flag_set(
+            actions = [
+                ACTION_NAMES.cpp_link_dynamic_library,
+                ACTION_NAMES.cpp_link_nodeps_dynamic_library,
+                ACTION_NAMES.cpp_link_executable,
+                "lto-index-for-executable",
+                "lto-index-for-dynamic-library",
+                "lto-index-for-nodeps-dynamic-library",
+            ],
+            flag_groups = [
+                flag_group(
+                    expand_if_available = "output_execpath",
+                    flags = ["--output-execpath=%{output_execpath}"],
+                ),
+            ],
+        ),
+    ],
+)
+
+_uses_is_cc_test_feature = feature(
+    name = FEATURE_NAMES.uses_is_cc_test,
+    enabled = True,
+    flag_sets = [
+        flag_set(
+            actions = [
+                ACTION_NAMES.cpp_link_executable,
+            ],
+            flag_groups = [
+                flag_group(
+                    expand_if_true = "is_cc_test",
+                    flags = ["--linkopt-is-cc-test"],
+                ),
+                flag_group(
+                    expand_if_false = "is_cc_test",
+                    flags = ["--linkopt-is-not-cc-test"],
+                ),
+            ],
+        ),
+    ],
+)
+
+_uses_strip_debug_symbols_feature = feature(
+    name = FEATURE_NAMES.uses_strip_debug_symbols,
+    enabled = True,
+    flag_sets = [
+        flag_set(
+            actions = [
+                ACTION_NAMES.cpp_link_executable,
+            ],
+            flag_groups = [
+                flag_group(
+                    expand_if_available = "strip_debug_symbols",
+                    flags = ["--strip-debug-symbols"],
+                ),
+            ],
+        ),
+    ],
+)
+
 _def_feature = feature(
     name = FEATURE_NAMES.def_feature,
     enabled = True,
@@ -1520,6 +1583,9 @@ _feature_name_to_feature = {
     FEATURE_NAMES.runtime_library_search_directories: _runtime_library_search_directories_feature,
     FEATURE_NAMES.generate_submodules: _generate_submodules_feature,
     FEATURE_NAMES.uses_ifso_variables: _uses_ifso_variables_feature,
+    FEATURE_NAMES.uses_output_execpath: _uses_output_execpath_feature,
+    FEATURE_NAMES.uses_is_cc_test: _uses_is_cc_test_feature,
+    FEATURE_NAMES.uses_strip_debug_symbols: _uses_strip_debug_symbols_feature,
     FEATURE_NAMES.def_feature: _def_feature,
     FEATURE_NAMES.strip_debug_symbols: _strip_debug_symbols_feature,
     FEATURE_NAMES.disable_pbh: _disable_pbh_feature,
