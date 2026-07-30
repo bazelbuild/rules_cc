@@ -1,3 +1,4 @@
+load(":cc_bad_dependencies_test.bzl", "cc_bad_dependencies_tests")
 load(":cc_binary_configured_target_tests.bzl", "cc_binary_configured_target_tests")
 load(":cc_binary_thin_lto_tests.bzl", "cc_binary_thin_lto_tests")
 load(":cc_common_test.bzl", "cc_common_tests")
@@ -31,3 +32,5 @@ cc_fdo_env_tests(name = "cc_fdo_env_tests")
 link_build_variables_tests(name = "link_build_variables_tests")
 
 cc_dwp_tests(name = "cc_dwp_tests")
+
+cc_bad_dependencies_tests(name = "cc_bad_dependencies_tests")
