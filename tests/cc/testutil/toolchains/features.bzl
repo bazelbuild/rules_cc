@@ -104,4 +104,5 @@ FEATURE_NAMES = struct(
     uses_output_execpath = "uses_output_execpath",
     uses_is_cc_test = "uses_is_cc_test",
     uses_strip_debug_symbols = "uses_strip_debug_symbols",
+    dwp_env = "dwp_env",
 )
