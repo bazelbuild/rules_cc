@@ -191,22 +191,19 @@ def _create_library_to_link(
         dynamic_library_symlink_path = "",
         interface_library_symlink_path = "",
         must_keep_debug = _UNBOUND):
-    if lto_compilation_context != _UNBOUND:
+    if lto_compilation_context != _UNBOUND or \
+       pic_lto_compilation_context != _UNBOUND or \
+       must_keep_debug != _UNBOUND or \
+       objects != _UNBOUND or \
+       pic_objects != _UNBOUND:
         _cc_internal.check_private_api(allowlist = _PRIVATE_STARLARKIFICATION_ALLOWLIST)
-    else:  # lto_compilation_context == _UNBOUND
+
+    if lto_compilation_context == _UNBOUND:
         lto_compilation_context = None
-    if pic_lto_compilation_context != _UNBOUND:
-        _cc_internal.check_private_api(allowlist = _PRIVATE_STARLARKIFICATION_ALLOWLIST)
-    else:  # pic_lto_compilation_context == _UNBOUND
+    if pic_lto_compilation_context == _UNBOUND:
         pic_lto_compilation_context = None
-    if must_keep_debug != _UNBOUND:
-        _cc_internal.check_private_api(allowlist = _PRIVATE_STARLARKIFICATION_ALLOWLIST)
-    else:
+    if must_keep_debug == _UNBOUND:
         must_keep_debug = False
-    if objects != _UNBOUND:
-        _cc_internal.check_private_api(allowlist = _PRIVATE_STARLARKIFICATION_ALLOWLIST)
-    if pic_objects != _UNBOUND:
-        _cc_internal.check_private_api(allowlist = _PRIVATE_STARLARKIFICATION_ALLOWLIST)
 
     # We cannot check if experimental_starlark_cc_import is set or not here,
     # since there is not ctx. So for a native code to perform the check
