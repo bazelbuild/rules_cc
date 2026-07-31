@@ -22,7 +22,6 @@ load(
 )
 load("//cc/common:semantics.bzl", "STRIP_INCLUDE_PREFIX_APPLIES_TO_TEXTUAL_HEADERS", "USE_EXEC_ROOT_FOR_VIRTUAL_INCLUDES_SYMLINKS")
 load("//cc/private:cc_info.bzl", "create_compilation_context", "create_module_map")
-load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 
 _VIRTUAL_INCLUDES_DIR = "_virtual_includes"
 
@@ -372,11 +371,11 @@ def _create_module_map_action(
     content.set_param_file_format("multiline")
     segments_to_exec_path = module_map.file.path.count("/")
     leading_periods = "" if module_map_home_is_cwd else "../" * segments_to_exec_path
-    public_headers = _cc_internal.freeze(public_headers)
-    private_headers = _cc_internal.freeze(private_headers)
-    public_textual_headers = _cc_internal.freeze(public_textual_headers)
-    additional_exported_headers = _cc_internal.freeze(additional_exported_headers)
-    separate_module_headers = _cc_internal.freeze(separate_module_headers)
+    public_headers = tuple(public_headers)
+    private_headers = tuple(private_headers)
+    public_textual_headers = tuple(public_textual_headers)
+    additional_exported_headers = tuple(additional_exported_headers)
+    separate_module_headers = tuple(separate_module_headers)
     data_struct = _ModuleMapInfo(
         module_map = module_map,
         public_headers = public_headers,
