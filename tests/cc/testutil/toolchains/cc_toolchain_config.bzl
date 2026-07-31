@@ -1318,6 +1318,90 @@ _uses_strip_debug_symbols_feature = feature(
     ],
 )
 
+_uses_is_using_fission_feature = feature(
+    name = FEATURE_NAMES.uses_is_using_fission,
+    enabled = True,
+    flag_sets = [
+        flag_set(
+            actions = [
+                ACTION_NAMES.cpp_link_executable,
+            ],
+            flag_groups = [
+                flag_group(
+                    expand_if_available = "is_using_fission",
+                    flags = ["--is-using-fission"],
+                ),
+            ],
+        ),
+    ],
+)
+
+_uses_sysroot_feature = feature(
+    name = FEATURE_NAMES.uses_sysroot,
+    enabled = True,
+    flag_sets = [
+        flag_set(
+            actions = [
+                ACTION_NAMES.cpp_link_executable,
+            ],
+            flag_groups = [
+                flag_group(
+                    expand_if_available = "sysroot",
+                    flags = ["--sysroot=%{sysroot}"],
+                ),
+            ],
+        ),
+    ],
+)
+
+_uses_user_link_flags_feature = feature(
+    name = FEATURE_NAMES.uses_user_link_flags,
+    enabled = True,
+    flag_sets = [
+        flag_set(
+            actions = [
+                ACTION_NAMES.cpp_link_executable,
+            ],
+            flag_groups = [
+                flag_group(
+                    iterate_over = "user_link_flags",
+                    expand_if_available = "user_link_flags",
+                    flags = ["%{user_link_flags}"],
+                ),
+            ],
+        ),
+    ],
+)
+
+_uses_whole_archive_feature = feature(
+    name = FEATURE_NAMES.uses_whole_archive,
+    enabled = True,
+    flag_sets = [
+        flag_set(
+            actions = [
+                ACTION_NAMES.cpp_link_executable,
+                ACTION_NAMES.cpp_link_dynamic_library,
+                ACTION_NAMES.cpp_link_nodeps_dynamic_library,
+            ],
+            flag_groups = [
+                flag_group(
+                    iterate_over = "libraries_to_link",
+                    flag_groups = [
+                        flag_group(
+                            expand_if_true = "libraries_to_link.is_whole_archive",
+                            flags = ["--whole-archive=%{libraries_to_link.name}"],
+                        ),
+                        flag_group(
+                            expand_if_false = "libraries_to_link.is_whole_archive",
+                            flags = ["--no-whole-archive=%{libraries_to_link.name}"],
+                        ),
+                    ],
+                ),
+            ],
+        ),
+    ],
+)
+
 _def_feature = feature(
     name = FEATURE_NAMES.def_feature,
     enabled = True,
@@ -1602,6 +1686,10 @@ _feature_name_to_feature = {
     FEATURE_NAMES.uses_output_execpath: _uses_output_execpath_feature,
     FEATURE_NAMES.uses_is_cc_test: _uses_is_cc_test_feature,
     FEATURE_NAMES.uses_strip_debug_symbols: _uses_strip_debug_symbols_feature,
+    FEATURE_NAMES.uses_is_using_fission: _uses_is_using_fission_feature,
+    FEATURE_NAMES.uses_sysroot: _uses_sysroot_feature,
+    FEATURE_NAMES.uses_user_link_flags: _uses_user_link_flags_feature,
+    FEATURE_NAMES.uses_whole_archive: _uses_whole_archive_feature,
     FEATURE_NAMES.def_feature: _def_feature,
     FEATURE_NAMES.strip_debug_symbols: _strip_debug_symbols_feature,
     FEATURE_NAMES.disable_pbh: _disable_pbh_feature,
@@ -1772,10 +1860,13 @@ def _impl(ctx):
         default_link_flags_feature,
         sanitize_pwd_feature,
     ]
-    cmdline_registered_features = [
-        _feature_name_to_feature[f]
-        for f in ctx.attr._with_features[BuildSettingInfo].value
-    ]
+    cmdline_registered_features = []
+    for f in ctx.attr._with_features[BuildSettingInfo].value:
+        feature_or_list = _feature_name_to_feature[f]
+        if type(feature_or_list) == type([]):
+            cmdline_registered_features.extend(feature_or_list)
+        else:
+            cmdline_registered_features.append(feature_or_list)
     features = hard_coded_default_features + cmdline_registered_features
 
     should_add_multiple_tools_action_config = False

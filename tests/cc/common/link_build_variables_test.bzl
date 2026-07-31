@@ -356,6 +356,133 @@ def _test_strip_never_fastbuild(name):
 def _test_strip_never_dbg(name):
     _strip_test_helper(name, "never", "dbg", False)
 
+def _test_is_using_fission_enabled(name):
+    _cc_binary_setup(name)
+    cc_analysis_test(
+        name = name,
+        impl = _test_is_using_fission_enabled_impl,
+        target = name + "_bin",
+        with_features = ["per_object_debug_info", "uses_is_using_fission"],
+        test_features = ["per_object_debug_info"],
+        config_settings = {
+            "//command_line_option:fission": "yes",
+        },
+    )
+
+def _test_is_using_fission_enabled_impl(env, target):
+    action = link_action_subject.from_target(env, target)
+    action.argv().contains("--is-using-fission")
+
+def _test_is_using_fission_disabled(name):
+    _cc_binary_setup(name)
+    cc_analysis_test(
+        name = name,
+        impl = _test_is_using_fission_disabled_impl,
+        target = name + "_bin",
+        with_features = ["per_object_debug_info", "uses_is_using_fission"],
+        test_features = ["per_object_debug_info"],
+        config_settings = {
+            "//command_line_option:fission": "no",
+        },
+    )
+
+def _test_is_using_fission_disabled_impl(env, target):
+    action = link_action_subject.from_target(env, target)
+    action.argv().not_contains("--is-using-fission")
+
+def _test_sysroot_variable(name):
+    _cc_binary_setup(name)
+    cc_analysis_test(
+        name = name,
+        impl = _test_sysroot_variable_impl,
+        target = name + "_bin",
+        with_features = ["uses_sysroot"],
+    )
+
+def _test_sysroot_variable_impl(env, target):
+    action = link_action_subject.from_target(env, target)
+    action.argv().contains("--sysroot=/usr/grte/v1")
+
+def _test_user_link_flags_with_linkopt_option(name):
+    util.helper_target(
+        cc_binary,
+        name = name + "_bin",
+        srcs = ["a.cc"],
+        linkopts = ["-foo"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_user_link_flags_with_linkopt_option_impl,
+        target = name + "_bin",
+        with_features = ["uses_user_link_flags"],
+        config_settings = {
+            "//command_line_option:linkopt": ["-bar"],
+        },
+    )
+
+def _test_user_link_flags_with_linkopt_option_impl(env, target):
+    action = link_action_subject.from_target(env, target)
+    action.argv().contains_at_least(["-foo", "-bar"]).in_order()
+
+def _test_linker_inputs_override_whole_archive(name):
+    a_target = name + "_a"
+    b_target = name + "_b"
+    c_target = name + "_c"
+
+    util.helper_target(
+        cc_library,
+        name = a_target,
+        srcs = ["a.cc"],
+        features = ["disable_whole_archive_for_static_lib"],
+    )
+    util.helper_target(
+        cc_library,
+        name = b_target,
+        srcs = ["b.cc"],
+        alwayslink = 1,
+    )
+    util.helper_target(
+        cc_binary,
+        name = c_target,
+        linkstatic = 1,
+        linkshared = 1,
+        deps = [":" + a_target, ":" + b_target],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_linker_inputs_override_whole_archive_impl,
+        target = ":" + c_target,
+        with_features = [
+            "disable_whole_archive_for_static_lib_configuration",
+            "uses_whole_archive",
+        ],
+    )
+
+def _test_linker_inputs_override_whole_archive_impl(env, target):
+    package = target.label.package
+    name = target.label.name
+    output_path = "{}/lib{}.so".format(package, name)
+    action_subject = env.expect.that_target(target).action_generating(output_path)
+    action = link_action_subject.new(action_subject.actual, action_subject.meta)
+    c_name = target.label.name
+    prefix = c_name[:-2]  # removing "_c"
+    a_lib_name = "lib" + prefix + "_a.a"
+    b_lib_name = "lib" + prefix + "_b.lo"
+
+    action.argv().contains_predicate(
+        matching.custom(
+            "ends with --no-whole-archive=..." + a_lib_name,
+            lambda s: s.startswith("--no-whole-archive=") and s.endswith(a_lib_name),
+        ),
+    )
+    action.argv().contains_predicate(
+        matching.custom(
+            "ends with --whole-archive=..." + b_lib_name,
+            lambda s: s.startswith("--whole-archive=") and s.endswith(b_lib_name),
+        ),
+    )
+
 def link_build_variables_tests(name):
     test_suite(
         name = name,
@@ -382,5 +509,10 @@ def link_build_variables_tests(name):
             _test_strip_never_opt,
             _test_strip_never_fastbuild,
             _test_strip_never_dbg,
+            _test_is_using_fission_enabled,
+            _test_is_using_fission_disabled,
+            _test_sysroot_variable,
+            _test_user_link_flags_with_linkopt_option,
+            _test_linker_inputs_override_whole_archive,
         ],
     )

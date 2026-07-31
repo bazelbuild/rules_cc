@@ -625,3 +625,5 @@ def _compute_all_linkstamp_defines(
         additional_linkstamp_defines = additional_linkstamp_defines,
     )
     return _stamps_to_defines(stamps)
+
+COMPILE_BUILD_VARIABLES = _VARS
