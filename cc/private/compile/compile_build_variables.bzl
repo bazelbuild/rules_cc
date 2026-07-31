@@ -253,7 +253,7 @@ def _setup_common_compile_build_variables_internal(
 
     for key, value in variables_extension.items():
         if type(value) == type([]):
-            result[key] = _cc_internal.intern_string_sequence_variable_value(value)
+            result[key] = _cc_internal.intern_string_sequence_variable_value(value) if value else ()
         elif type(value) == type(""):
             result[key] = value
         elif type(value) == type(depset()):

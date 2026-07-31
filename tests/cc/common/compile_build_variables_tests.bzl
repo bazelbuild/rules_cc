@@ -3,9 +3,47 @@
 load("@rules_testing//lib:analysis_test.bzl", "test_suite")
 load("@rules_testing//lib:truth.bzl", "matching", "subjects")
 load("@rules_testing//lib:util.bzl", "TestingAspectInfo", "util")
+load("//cc:action_names.bzl", "ACTION_NAMES")
 load("//cc:cc_binary.bzl", _actual_cc_binary = "cc_binary")
+load("//cc:find_cc_toolchain.bzl", "CC_TOOLCHAIN_ATTRS", "find_cpp_toolchain", "use_cc_toolchain")
+load("//cc/common:cc_common.bzl", "cc_common")
 load("//tests/cc/testutil:cc_analysis_test.bzl", "cc_analysis_test")
 load("//tests/cc/testutil:link_action_subject.bzl", "link_action_subject")
+load("//tests/cc/testutil/toolchains:features.bzl", "FEATURE_NAMES")
+
+_CompileVariablesInfo = provider(
+    "Compile command line created with custom variable extensions.",
+    fields = ["command_line"],
+)
+
+def _empty_list_variable_extension_impl(ctx):
+    cc_toolchain = find_cpp_toolchain(ctx)
+    feature_configuration = cc_common.configure_features(
+        ctx = ctx,
+        cc_toolchain = cc_toolchain,
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+    variables = cc_common.create_compile_variables(
+        cc_toolchain = cc_toolchain,
+        feature_configuration = feature_configuration,
+        variables_extension = {
+            "list_variable": [],
+            "string_variable": "present",
+        },
+    )
+    return [_CompileVariablesInfo(command_line = cc_common.get_memory_inefficient_command_line(
+        feature_configuration = feature_configuration,
+        action_name = ACTION_NAMES.cpp_compile,
+        variables = variables,
+    ))]
+
+_empty_list_variable_extension = rule(
+    implementation = _empty_list_variable_extension_impl,
+    attrs = CC_TOOLCHAIN_ATTRS,
+    fragments = ["cpp"],
+    toolchains = use_cc_toolchain(),
+)
 
 # Wrap cc_binary to mock out common dependencies.
 def cc_binary(name, **kwargs):
@@ -43,6 +81,27 @@ def _variable_list(action, name):
         filter = lambda arg: arg.startswith(prefix),
         map_each = lambda arg: arg[len(prefix):],
     )
+
+def _test_empty_list_variable_extension(name, **kwargs):
+    util.helper_target(
+        _empty_list_variable_extension,
+        name = name + "/variables",
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_empty_list_variable_extension_impl,
+        target = name + "/variables",
+        test_features = [FEATURE_NAMES.check_additional_variables],
+        **kwargs
+    )
+
+def _test_empty_list_variable_extension_impl(env, target):
+    command_line = env.expect.that_collection(target[_CompileVariablesInfo].command_line)
+    command_line.contains("--my_string=present")
+    command_line.transform(
+        desc = "arguments from the empty list variable extension",
+        filter = lambda arg: arg.startswith("--my_list_element="),
+    ).is_empty()
 
 def _test_presence_of_basic_variables(name, **kwargs):
     util.helper_target(
@@ -393,6 +452,7 @@ def compile_build_variables_tests(name):
     test_suite(
         name = name,
         tests = [
+            _test_empty_list_variable_extension,
             _test_presence_of_basic_variables,
             _test_presence_of_configuration_compile_flags,
             _test_presence_of_conly_flags,
