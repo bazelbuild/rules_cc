@@ -48,7 +48,7 @@ load(
     "get_specific_compile_build_variables",
     "setup_common_compile_build_variables",
 )
-load("//cc/private/compile:lto_compilation_context.bzl", "create_lto_compilation_context")
+load("//cc/private/compile:lto_compilation_context.bzl", "create_lto_compilation_context_internal")
 
 _VALID_CPP_SOURCE_TYPES = set([CPP_SOURCE_TYPE_SOURCE, CPP_SOURCE_TYPE_HEADER, CPP_SOURCE_TYPE_CLIF_INPUT_PROTO])
 
@@ -387,7 +387,7 @@ def compile(
         progress_message_prefix = progress_message_prefix,
     )
 
-    compilation_outputs_dict["lto_compilation_context"] = create_lto_compilation_context(
+    compilation_outputs_dict["lto_compilation_context"] = create_lto_compilation_context_internal(
         objects = compilation_outputs_dict["lto_compilation_context"],
     )
     compilation_outputs = create_compilation_outputs_internal(**compilation_outputs_dict)

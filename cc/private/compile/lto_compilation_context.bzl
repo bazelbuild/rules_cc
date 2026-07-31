@@ -50,6 +50,10 @@ def create_lto_compilation_context(*, objects = {}):
         An LtoCompilationContextInfo provider.
     """
     _cc_internal.check_private_api(allowlist = _PRIVATE_STARLARKIFICATION_ALLOWLIST)
+    return create_lto_compilation_context_internal(objects = objects)
+
+def create_lto_compilation_context_internal(*, objects = {}):
+    """Creates an LtoCompilationContextInfo provider for internal C++ callers."""
     bitcode_infos = {}
     for k, (minimized_bitcode, copts) in objects.items():
         if type(minimized_bitcode) != "File" and minimized_bitcode != None:
