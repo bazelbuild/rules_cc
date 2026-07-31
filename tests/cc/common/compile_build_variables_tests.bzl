@@ -283,6 +283,65 @@ def _test_target_sysroot_with_platforms_impl(env, target):
     compile_action = _compile_action(env, target, "bin")
     _variable(compile_action, "sysroot").equals(target.label.package)
 
+def _test_presence_of_is_using_fission_variable(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = ["bin.cc"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_presence_of_is_using_fission_variable_impl,
+        target = name + "/bin",
+        test_features = ["per_object_debug_info"],
+        config_settings = {
+            "//command_line_option:fission": ["yes"],
+        },
+        **kwargs
+    )
+
+def _test_presence_of_is_using_fission_variable_impl(env, target):
+    compile_action = _compile_action(env, target, "bin")
+    _variable_list(compile_action, "is_using_fission").has_size(1)
+
+def _test_presence_of_is_using_fission_and_per_debug_object_file_variables_with_thinlto(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = ["bin.cc"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_presence_of_is_using_fission_and_per_debug_object_file_variables_with_thinlto_impl,
+        target = name + "/bin",
+        test_features = [
+            "fission_flags_for_lto_backend",
+            "per_object_debug_info",
+            "supports_start_end_lib",
+            "thin_lto",
+            "supports_pic",
+        ],
+        config_settings = {
+            "//command_line_option:fission": ["yes"],
+            "//command_line_option:features": ["thin_lto"],
+        },
+        **kwargs
+    )
+
+def _test_presence_of_is_using_fission_and_per_debug_object_file_variables_with_thinlto_impl(env, target):
+    bitcode_action = env.expect.that_target(target).action_named("CppCompile")
+    backend_actions = [a for a in target[TestingAspectInfo].actions if a.mnemonic == "CcLtoBackendCompile"]
+    env.expect.that_int(len(backend_actions)).is_greater_than(0)
+    backend_action = env.expect.that_action(backend_actions[0])
+
+    # We don't pass per_object_debug_info_file to bitcode compiles
+    _variable_list(bitcode_action, "is_using_fission").has_size(1)
+    _variable_list(bitcode_action, "per_object_debug_info_file").is_empty()
+
+    # We do pass per_object_debug_info_file and is_using_fission to backend compiles
+    _variable_list(backend_action, "is_using_fission").has_size(1)
+    _variable_list(backend_action, "per_object_debug_info_file").has_size(1)
+
 def _test_presence_of_per_object_debug_file_build_variable(name, **kwargs):
     util.helper_target(
         cc_binary,
@@ -304,6 +363,27 @@ def _test_presence_of_per_object_debug_file_build_variable_impl(env, target):
     compile_action = _compile_action(env, target, "bin")
     _variable_list(compile_action, "per_object_debug_info_file").has_size(1)
 
+def _test_presence_of_min_os_version_build_variable(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = ["bin.cc"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_presence_of_min_os_version_build_variable_impl,
+        target = name + "/bin",
+        test_features = ["min_os_version_flag"],
+        config_settings = {
+            "//command_line_option:minimum_os_version": "6",
+        },
+        **kwargs
+    )
+
+def _test_presence_of_min_os_version_build_variable_impl(env, target):
+    compile_action = _compile_action(env, target, "bin")
+    _variable(compile_action, "minimum_os_version").equals("6")
+
 def compile_build_variables_tests(name):
     """Creates the test targets for compile build variables tests.
 
@@ -322,6 +402,9 @@ def compile_build_variables_tests(name):
             _test_presence_of_sysroot_build_variable,
             _test_target_sysroot_without_platforms,
             _test_target_sysroot_with_platforms,
+            _test_presence_of_is_using_fission_variable,
+            _test_presence_of_is_using_fission_and_per_debug_object_file_variables_with_thinlto,
             _test_presence_of_per_object_debug_file_build_variable,
+            _test_presence_of_min_os_version_build_variable,
         ],
     )
