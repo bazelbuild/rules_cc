@@ -1662,6 +1662,11 @@ _libraries_to_link_feature = feature(
     ],
 )
 
+_disable_cpp_link_path_mapping_feature = feature(
+    name = FEATURE_NAMES.disable_cpp_link_path_mapping,
+    enabled = False,
+)
+
 _feature_name_to_feature = {
     FEATURE_NAMES.force_pic_flags: _force_pic_flags_feature,
     FEATURE_NAMES.libraries_to_link: _libraries_to_link_feature,
@@ -1777,6 +1782,7 @@ _feature_name_to_feature = {
     FEATURE_NAMES.env_feature: _env_feature,
     FEATURE_NAMES.static_env_feature: _static_env_feature,
     FEATURE_NAMES.debug_variables: _debug_variables_feature,
+    FEATURE_NAMES.disable_cpp_link_path_mapping: _disable_cpp_link_path_mapping_feature,
 }
 
 _cc_flags_action_config_foo_bar_baz_config = action_config(

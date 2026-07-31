@@ -110,4 +110,5 @@ FEATURE_NAMES = struct(
     uses_user_link_flags = "uses_user_link_flags",
     uses_whole_archive = "uses_whole_archive",
     dwp_env = "dwp_env",
+    disable_cpp_link_path_mapping = "disable_cpp_link_path_mapping",
 )

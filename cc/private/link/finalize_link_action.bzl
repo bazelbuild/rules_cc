@@ -358,7 +358,10 @@ def _create_action(
     # CppLink does significantly different work for LTO and non-LTO builds and there is an argument
     # for using separate mnemonic for the two different activities, but that would require a lot
     # of updates to configurations and rules that reference the CppLink mnemonic.
-    if mnemonic == "CppLink" and not feature_configuration.is_enabled("thin_lto"):
+    # A target or toolchain may also be incompatible with path mapping.
+    if (mnemonic == "CppLink" and feature_configuration.is_requested("cpp_link_path_mapping") and
+        not feature_configuration.is_enabled("disable_cpp_link_path_mapping") and
+        not feature_configuration.is_enabled("thin_lto")):
         execution_info["supports-path-mapping"] = ""
 
     build_variables = _cc_internal.cc_toolchain_variables(vars = build_variables)
