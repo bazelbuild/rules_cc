@@ -26,6 +26,7 @@ def cc_analysis_test(name, with_features = None, test_features = [], with_action
 
     if with_features == None:
         with_features = test_features
+    with_features = list(with_features) + ["debug_variables"]
 
     # Mock these as Labels to bind to the rules_cc repo where the BUILD file lives. If we kept them
     # as strings, they'd get bound to rules_testing where analysis_test lives.

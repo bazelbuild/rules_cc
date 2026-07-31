@@ -1022,6 +1022,59 @@ _compile_header_modules_feature_configuration = [
     feature(name = "use_header_modules"),
 ]
 
+_debug_variables_feature = feature(
+    name = FEATURE_NAMES.debug_variables,
+    enabled = True,
+    flag_sets = [
+        flag_set(
+            actions = [
+                ACTION_NAMES.c_compile,
+                ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.assemble,
+                ACTION_NAMES.preprocess_assemble,
+                ACTION_NAMES.cpp_module_codegen,
+                ACTION_NAMES.lto_backend,
+            ],
+            flag_groups = [
+                flag_group(
+                    expand_if_available = "source_file",
+                    flags = ["--debug-var:source_file=%{source_file}"],
+                ),
+                flag_group(
+                    expand_if_available = "output_file",
+                    flags = ["--debug-var:output_file=%{output_file}"],
+                ),
+                flag_group(
+                    expand_if_available = "minimum_os_version",
+                    flags = ["--debug-var:minimum_os_version=%{minimum_os_version}"],
+                ),
+                flag_group(
+                    expand_if_available = "sysroot",
+                    flags = ["--debug-var:sysroot=%{sysroot}"],
+                ),
+                flag_group(
+                    expand_if_available = "is_using_fission",
+                    flags = ["--debug-var:is_using_fission=%{is_using_fission}"],
+                ),
+                flag_group(
+                    expand_if_available = "per_object_debug_info_file",
+                    flags = ["--debug-var:per_object_debug_info_file=%{per_object_debug_info_file}"],
+                ),
+                flag_group(
+                    iterate_over = "user_compile_flags",
+                    expand_if_available = "user_compile_flags",
+                    flags = ["--debug-var:user_compile_flags=%{user_compile_flags}"],
+                ),
+                flag_group(
+                    iterate_over = "legacy_compile_flags",
+                    expand_if_available = "legacy_compile_flags",
+                    flags = ["--debug-var:legacy_compile_flags=%{legacy_compile_flags}"],
+                ),
+            ],
+        ),
+    ],
+)
+
 _fission_flags_for_lto_backend_feature = feature(
     name = FEATURE_NAMES.fission_flags_for_lto_backend,
     enabled = True,
@@ -1718,6 +1771,7 @@ _feature_name_to_feature = {
     "layering_check_module_maps_header_modules_simple_features": _layering_check_module_maps_header_modules_simple_features,
     FEATURE_NAMES.env_feature: _env_feature,
     FEATURE_NAMES.static_env_feature: _static_env_feature,
+    FEATURE_NAMES.debug_variables: _debug_variables_feature,
 }
 
 _cc_flags_action_config_foo_bar_baz_config = action_config(
