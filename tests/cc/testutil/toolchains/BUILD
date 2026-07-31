@@ -33,13 +33,23 @@ cc_toolchain_alias(name = "current_cc_toolchain")
 # See features.bzl for values.
 string_list_flag(
     name = "with_features",
-    build_setting_default = [],
+    build_setting_default = ["debug_variables"],
 )
 
 # Sets the mock toolchain's action configs.
 string_list_flag(
     name = "with_action_configs",
     build_setting_default = [],
+)
+
+# "everything" is a filegroup that the implementation of --grte_top (more specifically, the
+# LibcTopLabelConverter in
+# third_party/bazel/src/main/java/com/google/devtools/build/lib/rules/cpp/CppOptions.java)
+# requires to be present in the package pointed to by --grte_top.
+# The following mock "everything" makes this package work as mock grte_top for tests in
+# compile_build_variables_tests.bzl.
+filegroup(
+    name = "everything",
 )
 
 filegroup(
