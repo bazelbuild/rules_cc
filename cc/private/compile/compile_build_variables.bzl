@@ -248,7 +248,7 @@ def _setup_common_compile_build_variables_internal(
     all_defines = defines.to_list() + local_defines.to_list() + (
         ["BUILD_FDO_TYPE=\"" + fdo_build_stamp + "\""] if fdo_build_stamp else []
     )
-    result[_VARS.PREPROCESSOR_DEFINES] = _cc_internal.intern_string_sequence_variable_value(all_defines)
+    result[_VARS.PREPROCESSOR_DEFINES] = _cc_internal.intern_string_sequence_variable_value(all_defines) if all_defines else ()
     result = result | additional_build_variables
 
     for key, value in variables_extension.items():
