@@ -1070,6 +1070,11 @@ _debug_variables_feature = feature(
                     expand_if_available = "legacy_compile_flags",
                     flags = ["--debug-var:legacy_compile_flags=%{legacy_compile_flags}"],
                 ),
+                flag_group(
+                    iterate_over = "external_include_paths",
+                    expand_if_available = "external_include_paths",
+                    flags = ["--debug-var:external_include_paths=%{external_include_paths}"],
+                ),
             ],
         ),
     ],

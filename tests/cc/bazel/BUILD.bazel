@@ -1,0 +1,6 @@
+load(":compile_build_variables_tests.bzl", "compile_build_variables_tests")
+load(":cpp_modules_test.bzl", "cpp_modules_tests")
+
+compile_build_variables_tests(name = "compile_build_variables_tests")
+
+cpp_modules_tests(name = "cpp_modules_tests")
