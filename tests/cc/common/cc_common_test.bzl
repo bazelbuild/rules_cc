@@ -236,6 +236,11 @@ def _test_empty_library_impl(env, target):
     linker_inputs = target[CcInfo].linking_context.linker_inputs.to_list()
     for input in linker_inputs:
         for lib in input.libraries:
+            if bazel_features.cc.cc_common_is_in_rules_cc:
+                for backends in (lib._shared_non_lto_backends, lib._pic_shared_non_lto_backends):
+                    if backends != None:
+                        env.expect.that_str(type(backends)).equals("dict")
+                        env.expect.that_collection(backends.keys()).contains_exactly([])
             if lib.dynamic_library != None:
                 env.expect.meta.add_failure(
                     "expected no dynamic library for empty library at runtime",

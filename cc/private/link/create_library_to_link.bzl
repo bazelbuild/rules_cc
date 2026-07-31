@@ -22,6 +22,8 @@ load("//cc/private/compile:lto_compilation_context.bzl", _EMPTY_LTO = "EMPTY_LTO
 load("//cc/private/link:dynamic_library_symlink.bzl", "dynamic_library_symlink", "dynamic_library_symlink2")
 load("//cc/private/link:lto_backends.bzl", "create_shared_non_lto_artifacts")
 
+_EMPTY_SHARED_NON_LTO_BACKENDS = {}
+
 _warning = """ Don't use this field. It's intended for internal use and will be changed or removed
     without warning."""
 
@@ -111,8 +113,12 @@ def make_library_to_link(
         _disable_whole_archive = _disable_whole_archive,
         _lto_compilation_context = _lto_compilation_context,
         _pic_lto_compilation_context = _pic_lto_compilation_context,
-        _shared_non_lto_backends = _cc_internal.freeze(_shared_non_lto_backends),
-        _pic_shared_non_lto_backends = _cc_internal.freeze(_pic_shared_non_lto_backends),
+        _shared_non_lto_backends = (
+            _EMPTY_SHARED_NON_LTO_BACKENDS if _shared_non_lto_backends == {} else _cc_internal.freeze(_shared_non_lto_backends)
+        ),
+        _pic_shared_non_lto_backends = (
+            _EMPTY_SHARED_NON_LTO_BACKENDS if _pic_shared_non_lto_backends == {} else _cc_internal.freeze(_pic_shared_non_lto_backends)
+        ),
     )
 
 def create_library_to_link(
