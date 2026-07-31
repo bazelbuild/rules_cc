@@ -17,6 +17,8 @@ load(
     "//cc/common:cc_helper_internal.bzl",
     _CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES = "CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES",
     _PRIVATE_STARLARKIFICATION_ALLOWLIST = "PRIVATE_STARLARKIFICATION_ALLOWLIST",
+    _expand = "expand",
+    _tokenize = "tokenize",
 )
 load("//cc/private:cc_info.bzl", "CcNativeLibraryInfo", "create_compilation_context", "create_debug_context", "create_linking_context", "create_module_map", "merge_cc_infos", "merge_compilation_contexts", "merge_debug_context", "merge_linking_contexts")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
@@ -679,9 +681,21 @@ def _absolute_symlink(*, ctx, output, target_path, progress_message):
         progress_message = progress_message,
     )
 
-def _objc_expand_and_tokenize(**kwargs):
+# buildifier: disable=unused-variable
+def _objc_expand_and_tokenize(*, ctx, attr, flags = []):
     _cc_internal.check_private_api(allowlist = _PRIVATE_STARLARKIFICATION_ALLOWLIST)
-    return _cc_internal.expand_and_tokenize(**kwargs)
+    if not flags:
+        return flags
+
+    targets = []
+    for attribute in ["srcs", "non_arc_srcs", "hdrs", "data", "additional_linker_inputs"]:
+        targets.extend(getattr(ctx.attr, attribute, []))
+
+    expanded_flags = []
+    for flag in flags:
+        expanded_flag = _expand(ctx, flag, {}, targets = targets)
+        _tokenize(expanded_flags, expanded_flag)
+    return expanded_flags
 
 def _create_linkstamp(linkstamp, headers):
     _cc_internal.check_private_api(allowlist = _PRIVATE_STARLARKIFICATION_ALLOWLIST)
