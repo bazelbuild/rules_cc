@@ -89,10 +89,8 @@ def _link(
         use_shareable_artifact_factory = _UNBOUND,
         build_config = _UNBOUND,
         emit_interface_shared_library = _UNBOUND):
-    if output_type == "archive":
-        _cc_internal.check_private_api(allowlist = _PRIVATE_STARLARKIFICATION_ALLOWLIST)
-
-    if use_test_only_flags != _UNBOUND or \
+    if output_type == "archive" or \
+       use_test_only_flags != _UNBOUND or \
        never_link != _UNBOUND or \
        test_only_target != _UNBOUND or \
        native_deps != _UNBOUND or \
