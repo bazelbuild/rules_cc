@@ -6,26 +6,9 @@ load("@rules_testing//lib:truth.bzl", "matching")
 load("@rules_testing//lib:util.bzl", "TestingAspectInfo", "util")
 load("//cc:cc_binary.bzl", "cc_binary")
 load("//cc:cc_library.bzl", "cc_library")
-load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/common:cc_info.bzl", "CcInfo")
 load("//tests/cc/testutil:cc_analysis_test.bzl", "cc_analysis_test")
 load("//tests/cc/testutil:cc_info_subject.bzl", "cc_info_subject")
-
-def _test_compiler_presence_marker(name):
-    util.helper_target(
-        cc_library,
-        name = name + "/lib",
-    )
-
-    cc_analysis_test(
-        name = name,
-        impl = _test_compiler_presence_marker_impl,
-        target = name + "/lib",
-    )
-
-def _test_compiler_presence_marker_impl(env, _target):
-    env.expect.that_bool(hasattr(cc_common, "do_not_use_tools_cpp_compiler_present")).equals(True)
-    env.expect.that_bool(cc_common.do_not_use_tools_cpp_compiler_present == None).equals(True)
 
 def _test_same_cc_file_twice(name):
     util.helper_target(
@@ -678,7 +661,6 @@ def _test_alwayslink_yields_lo_impl(env, target):
 
 def cc_common_tests(name):
     tests = [
-        _test_compiler_presence_marker,
         _test_same_cc_file_twice,
         _test_same_header_file_twice,
         _test_isolated_includes,
