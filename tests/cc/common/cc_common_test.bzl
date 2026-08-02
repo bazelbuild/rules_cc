@@ -750,11 +750,11 @@ def cc_common_tests(name):
         _test_temps_for_c_without_pic,
         _test_library_in_hdrs,
         _test_alwayslink_yields_lo,
-        _test_top_level_extra_link_time_library,
-        _test_nested_extra_link_time_library,
     ]
     if bazel_features.cc.cc_common_is_in_rules_cc:
         tests.extend([
+            _test_top_level_extra_link_time_library,
+            _test_nested_extra_link_time_library,
             _test_strip_include_prefix_uses_virtual_includes_by_default,
             _test_strip_include_prefix_no_virtual_includes_when_enabled,
             _test_strip_include_prefix_with_include_prefix_uses_virtual_includes,
