@@ -50,6 +50,14 @@ cpp_file_types = struct(
 artifact_category = _artifact_category
 extensions = _extensions
 
+_SHARED_LIBRARY_SUFFIXES = tuple(extensions.SHARED_LIBRARY)
+_OBJECT_FILE_EXTENSIONS = tuple(extensions.OBJECT_FILE)
+_PIC_OBJECT_FILE_EXTENSIONS = tuple(extensions.PIC_OBJECT_FILE)
+_PIC_ARCHIVE_EXTENSIONS = tuple(extensions.PIC_ARCHIVE)
+_ARCHIVE_EXTENSIONS = tuple(extensions.ARCHIVE)
+_ALWAYSLINK_PIC_LIBRARY_EXTENSIONS = tuple(extensions.ALWAYSLINK_PIC_LIBRARY)
+_ALWAYSLINK_LIBRARY_EXTENSIONS = tuple(extensions.ALWAYSLINK_LIBRARY)
+
 def _rule_error(msg):
     fail(msg)
 
@@ -65,7 +73,7 @@ def _libraries_from_linking_context(linking_context):
 # NOTE: Prefer _is_valid_shared_library_artifact() when a File is available because
 # it checks File.extension directly.
 def _is_valid_shared_library_name(shared_library_name):
-    return shared_library_name.endswith(extensions.SHARED_LIBRARY) or \
+    return shared_library_name.endswith(_SHARED_LIBRARY_SUFFIXES) or \
            is_versioned_shared_library_extension_valid(shared_library_name)
 
 def _replace_name(name, new_name):
@@ -318,21 +326,21 @@ def _build_precompiled_files(ctx):
         # end with ".nopic.o". (The ".nopic.o" extension is an undocumented
         # feature to give users at least some control over this.) Note that
         # some target platforms do not require shared library code to be PIC.
-        if short_path.endswith(extensions.OBJECT_FILE):
+        if short_path.endswith(_OBJECT_FILE_EXTENSIONS):
             objects.append(src)
             if not short_path.endswith(".nopic.o"):
                 pic_objects.append(src)
 
-            if short_path.endswith(extensions.PIC_OBJECT_FILE):
+            if short_path.endswith(_PIC_OBJECT_FILE_EXTENSIONS):
                 pic_objects.append(src)
 
-        elif short_path.endswith(extensions.PIC_ARCHIVE):
+        elif short_path.endswith(_PIC_ARCHIVE_EXTENSIONS):
             pic_static_libraries.append(src)
-        elif short_path.endswith(extensions.ARCHIVE):
+        elif short_path.endswith(_ARCHIVE_EXTENSIONS):
             static_libraries.append(src)
-        elif short_path.endswith(extensions.ALWAYSLINK_PIC_LIBRARY):
+        elif short_path.endswith(_ALWAYSLINK_PIC_LIBRARY_EXTENSIONS):
             pic_alwayslink_static_libraries.append(src)
-        elif short_path.endswith(extensions.ALWAYSLINK_LIBRARY):
+        elif short_path.endswith(_ALWAYSLINK_LIBRARY_EXTENSIONS):
             alwayslink_static_libraries.append(src)
         elif _is_valid_shared_library_artifact(src):
             shared_libraries.append(src)

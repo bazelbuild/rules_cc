@@ -22,14 +22,14 @@ load("//cc/private/compile:lto_compilation_context.bzl", _EMPTY_LTO = "EMPTY_LTO
 load("//cc/private/link:dynamic_library_symlink.bzl", "dynamic_library_symlink", "dynamic_library_symlink2")
 load("//cc/private/link:lto_backends.bzl", "create_shared_non_lto_artifacts")
 
-_DYNAMIC_LIBRARY_EXTENSIONS = (".so", ".dylib", ".dll", ".pyd", ".wasm", ".tgt", ".vpi")
-_INTERFACE_LIBRARY_EXTENSIONS = (".ifso", ".tbd", ".lib", ".dll.a")
-_INTERFACE_OR_DYNAMIC_LIBRARY_EXTENSIONS = _INTERFACE_LIBRARY_EXTENSIONS + (".so", ".dylib")
-_STATIC_LIBRARY_EXTENSIONS = (".a", ".lib", ".rlib")
-_ALWAYSLINK_STATIC_LIBRARY_EXTENSIONS = _STATIC_LIBRARY_EXTENSIONS + (".lo",)
-_STATIC_LIBRARY_EXCLUDED_EXTENSIONS = (".lo.lib", ".if.lib")
-_ALWAYSLINK_STATIC_LIBRARY_EXCLUDED_EXTENSIONS = (".pic.lo", ".if.lib")
-_PIC_ALWAYSLINK_STATIC_LIBRARY_EXCLUDED_EXTENSIONS = (".if.lib",)
+_DYNAMIC_LIBRARY_EXTENSIONS = [".so", ".dylib", ".dll", ".pyd", ".wasm", ".tgt", ".vpi"]
+_INTERFACE_LIBRARY_EXTENSIONS = [".ifso", ".tbd", ".lib", ".dll.a"]
+_INTERFACE_OR_DYNAMIC_LIBRARY_EXTENSIONS = _INTERFACE_LIBRARY_EXTENSIONS + [".so", ".dylib"]
+_STATIC_LIBRARY_EXTENSIONS = [".a", ".lib", ".rlib"]
+_ALWAYSLINK_STATIC_LIBRARY_EXTENSIONS = _STATIC_LIBRARY_EXTENSIONS + [".lo"]
+_STATIC_LIBRARY_EXCLUDED_EXTENSIONS = [".lo.lib", ".if.lib"]
+_ALWAYSLINK_STATIC_LIBRARY_EXCLUDED_EXTENSIONS = [".pic.lo", ".if.lib"]
+_PIC_ALWAYSLINK_STATIC_LIBRARY_EXCLUDED_EXTENSIONS = [".if.lib"]
 
 _warning = """ Don't use this field. It's intended for internal use and will be changed or removed
     without warning."""
@@ -308,13 +308,15 @@ def _validate_symlink_path(attr, path):
     if not path or paths.is_absolute(path) or path_contains_up_level_references(path):
         fail("%s must be a relative file path. Got '%s" % (attr, path))
 
-def _validate_extension(path, extensions, func = None, not_ext = (), fail = fail, empty_ext = False):
+def _validate_extension(path, extensions, func = None, not_ext = [], fail = fail, empty_ext = False):
     path = getattr(path, "basename", path)  # Handle str|File
     path_lower = path.lower()
-    if path_lower.endswith(not_ext):
-        fail("'%s' does not have any of the allowed extensions %s" % (path, ", ".join(extensions)))
-    if path_lower.endswith(extensions):
-        return
+    for ext in not_ext:
+        if path_lower.endswith(ext.lower()):
+            fail("'%s' does not have any of the allowed extensions %s" % (path, ", ".join(extensions)))
+    for ext in extensions:
+        if path_lower.endswith(ext.lower()):
+            return
     if empty_ext:
         _, actual_ext = paths.split_extension(path)
         if actual_ext == "":

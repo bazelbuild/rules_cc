@@ -32,8 +32,9 @@ _CcLauncherInfo = getattr(cc_common, "launcher_provider", None)
 _EXECUTABLE = "executable"
 _DYNAMIC_LIBRARY = "dynamic_library"
 
-_ALWAYSLINK_LIBRARY_EXTENSIONS = cc_helper.extensions.ALWAYSLINK_LIBRARY + (".lo.lib",)
-_STATIC_LIBRARY_EXTENSIONS = cc_helper.extensions.ARCHIVE + (".rlib",)
+_INTERFACE_SHARED_LIBRARY_EXTENSIONS = tuple(cc_helper.extensions.INTERFACE_SHARED_LIBRARY)
+_ALWAYSLINK_LIBRARY_EXTENSIONS = tuple(cc_helper.extensions.ALWAYSLINK_LIBRARY + [".lo.lib"])
+_STATIC_LIBRARY_EXTENSIONS = tuple(cc_helper.extensions.ARCHIVE + [".rlib"])
 
 _IOS_SIMULATOR_TARGET_CPUS = ["ios_x86_64", "ios_i386", "ios_sim_arm64"]
 _IOS_DEVICE_TARGET_CPUS = ["ios_armv6", "ios_arm64", "ios_armv7", "ios_armv7s", "ios_arm64e"]
@@ -335,7 +336,7 @@ def _create_transitive_linking_actions(
     # entries during linking process.
     for libs in precompiled_files[:]:
         for artifact in libs:
-            if (artifact.basename.endswith(cc_helper.extensions.INTERFACE_SHARED_LIBRARY) or
+            if (artifact.basename.endswith(_INTERFACE_SHARED_LIBRARY_EXTENSIONS) or
                 cc_helper.is_valid_shared_library_artifact(artifact)):
                 library_to_link = cc_common.create_library_to_link(
                     actions = ctx.actions,
