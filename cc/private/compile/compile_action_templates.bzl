@@ -201,9 +201,8 @@ def _create_compile_action_template(
         cc_toolchain = cc_toolchain,
         configuration = configuration,
         feature_configuration = feature_configuration,
-        compile_build_variables = _cc_internal.combine_cc_toolchain_variables(
-            common_compile_build_variables,
-            specific_compile_build_variables,
+        compile_build_variables = _cc_internal.cc_toolchain_variables(
+            vars = common_compile_build_variables | specific_compile_build_variables,
         ),
         source = source_dir,
         additional_compilation_inputs = additional_compilation_inputs,
