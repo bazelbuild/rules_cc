@@ -63,7 +63,7 @@ def _test_libraries_to_link_are_exported_impl(env, target):
     action.argv().contains_predicate(
         matching.custom(
             "contains a.o or a.pic.o",
-            lambda s: s.startswith("--library-to-link=") and any([s.endswith(ext) for ext in ["a.o", "a.pic.o", "a.obj", "a.pic.obj"]]),
+            lambda s: s.startswith("--library-to-link=") and s.endswith(("a.o", "a.pic.o", "a.obj", "a.pic.obj")),
         ),
     )
 

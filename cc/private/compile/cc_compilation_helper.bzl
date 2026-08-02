@@ -40,7 +40,7 @@ def _repo_relative_path(artifact):
     else:
         relative_path = paths.relativize(relative_path, artifact.root.path)
 
-    if (artifact.owner.workspace_root.startswith("external/") or artifact.owner.workspace_root.startswith("../")) and \
+    if artifact.owner.workspace_root.startswith(("external/", "../")) and \
        relative_path.startswith("external/"):
         relative_path = "/".join(relative_path.split("/")[2:])
 

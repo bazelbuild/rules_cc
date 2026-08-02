@@ -27,10 +27,8 @@ def _escaped_path(path):
 def _label_to_string(label):
     """Java and Starlark convert label to string slightly differently. Match Java's behavior."""
     s = str(label)
-    if s.startswith("@@//"):  # buildifier: disable=canonical-repository
-        return s[2:]
-    if s.startswith("@//"):
-        return s[1:]
+    if s.startswith(("@@//", "@//")):  # buildifier: disable=canonical-repository
+        return s.lstrip("@")
     return s
 
 def _is_shared_library_filetype(basename):

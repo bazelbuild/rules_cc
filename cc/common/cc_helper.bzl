@@ -62,19 +62,11 @@ def _libraries_from_linking_context(linking_context):
         libraries.extend(linker_input.libraries)
     return depset(libraries, order = "topological")
 
-# NOTE: Prefer to use _is_valid_shared_library_artifact() instead of this method since
-# it has better performance (checking for extension in a short list rather than multiple
-# string.endswith() checks)
+# NOTE: Prefer _is_valid_shared_library_artifact() when a File is available because
+# it checks File.extension directly.
 def _is_valid_shared_library_name(shared_library_name):
-    if (shared_library_name.endswith(".so") or
-        shared_library_name.endswith(".dll") or
-        shared_library_name.endswith(".dylib") or
-        shared_library_name.endswith(".pyd") or
-        shared_library_name.endswith(".wasm") or
-        shared_library_name.endswith(".xll")):
-        return True
-
-    return is_versioned_shared_library_extension_valid(shared_library_name)
+    return shared_library_name.endswith(tuple(extensions.SHARED_LIBRARY)) or \
+           is_versioned_shared_library_extension_valid(shared_library_name)
 
 def _replace_name(name, new_name):
     last_slash = name.rfind("/")
@@ -326,21 +318,21 @@ def _build_precompiled_files(ctx):
         # end with ".nopic.o". (The ".nopic.o" extension is an undocumented
         # feature to give users at least some control over this.) Note that
         # some target platforms do not require shared library code to be PIC.
-        if _matches_extension(short_path, extensions.OBJECT_FILE):
+        if short_path.endswith(tuple(extensions.OBJECT_FILE)):
             objects.append(src)
             if not short_path.endswith(".nopic.o"):
                 pic_objects.append(src)
 
-            if _matches_extension(short_path, extensions.PIC_OBJECT_FILE):
+            if short_path.endswith(tuple(extensions.PIC_OBJECT_FILE)):
                 pic_objects.append(src)
 
-        elif _matches_extension(short_path, extensions.PIC_ARCHIVE):
+        elif short_path.endswith(tuple(extensions.PIC_ARCHIVE)):
             pic_static_libraries.append(src)
-        elif _matches_extension(short_path, extensions.ARCHIVE):
+        elif short_path.endswith(tuple(extensions.ARCHIVE)):
             static_libraries.append(src)
-        elif _matches_extension(short_path, extensions.ALWAYSLINK_PIC_LIBRARY):
+        elif short_path.endswith(tuple(extensions.ALWAYSLINK_PIC_LIBRARY)):
             pic_alwayslink_static_libraries.append(src)
-        elif _matches_extension(short_path, extensions.ALWAYSLINK_LIBRARY):
+        elif short_path.endswith(tuple(extensions.ALWAYSLINK_LIBRARY)):
             alwayslink_static_libraries.append(src)
         elif _is_valid_shared_library_artifact(src):
             shared_libraries.append(src)
@@ -356,9 +348,8 @@ def _build_precompiled_files(ctx):
 
 def _check_file_extension(file, allowed_extensions, allow_versioned_shared_libraries):
     extension = "." + file.extension
-    if _matches_extension(extension, allowed_extensions) or (allow_versioned_shared_libraries and is_versioned_shared_library_extension_valid(file.path)):
-        return True
-    return False
+    return extension.endswith(tuple(allowed_extensions)) or \
+           (allow_versioned_shared_libraries and is_versioned_shared_library_extension_valid(file.path))
 
 def _check_file_extensions(attr_values, allowed_extensions, attr_name, label, rule_name, allow_versioned_shared_libraries):
     for attr_value in attr_values:
@@ -383,12 +374,6 @@ def _check_file_extensions(attr_values, allowed_extensions, attr_name, label, ru
 
 def _check_srcs_extensions(ctx, allowed_extensions, rule_name, allow_versioned_shared_libraries):
     _check_file_extensions(ctx.attr.srcs, allowed_extensions, "srcs", ctx.label, rule_name, allow_versioned_shared_libraries)
-
-def _matches_extension(extension, patterns):
-    for pattern in patterns:
-        if extension.endswith(pattern):
-            return True
-    return False
 
 def _gen_empty_def_file(ctx):
     trivial_def_file = ctx.actions.declare_file(ctx.label.name + ".gen.empty.def")

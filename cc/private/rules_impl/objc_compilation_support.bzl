@@ -432,7 +432,7 @@ def _get_object_files(ctx):
     pic_objects = []
     for src in ctx.files.srcs:
         path = src.path
-        if path.endswith(".pic.o") or path.endswith(".o") and not path.endswith(".nopic.o"):
+        if path.endswith(".o") and not path.endswith(".nopic.o"):
             pic_objects.append(src)
 
     objects = []

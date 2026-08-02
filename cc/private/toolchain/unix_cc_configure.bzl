@@ -279,7 +279,7 @@ def _is_gcc(repository_ctx, cc):
     # GCC's version output uses the basename of argv[0] as the program name:
     # https://gcc.gnu.org/git/?p=gcc.git;a=blob;f=gcc/gcc.cc;h=158461167951c1b9540322fb19be6a89d6da07fc;hb=HEAD#l8728
     cc_stdout = repository_ctx.execute([cc, "--version"]).stdout
-    if cc_stdout.startswith("gcc ") or cc_stdout.startswith("gcc-"):
+    if cc_stdout.startswith(("gcc ", "gcc-")):
         return True
 
     # As a fallback, also check specs output in case argv[0] was a symlink.
