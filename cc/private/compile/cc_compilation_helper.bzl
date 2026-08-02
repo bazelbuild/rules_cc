@@ -32,6 +32,8 @@ def _include_dir(directory, repo_path, sibling_repo_layout):
     else:
         return get_relative_path(directory, repo_path)
 
+_EXTERNAL_REPOSITORY_PREFIXES = ("external/", "../")
+
 def _repo_relative_path(artifact):
     relative_path = artifact.path
     if artifact.is_source:
@@ -40,7 +42,7 @@ def _repo_relative_path(artifact):
     else:
         relative_path = paths.relativize(relative_path, artifact.root.path)
 
-    if artifact.owner.workspace_root.startswith(("external/", "../")) and \
+    if artifact.owner.workspace_root.startswith(_EXTERNAL_REPOSITORY_PREFIXES) and \
        relative_path.startswith("external/"):
         relative_path = "/".join(relative_path.split("/")[2:])
 

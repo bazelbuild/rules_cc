@@ -460,9 +460,11 @@ def _build_map_identifier_to_artifact(artifacts):
         libraries[identifier] = artifact
     return libraries
 
+_ARTIFACT_IDENTIFIER_COMPOUND_SUFFIXES = (".pic.a", ".nopic.a", ".pic.lo")
+
 def _identifier_of_artifact(artifact):
     name = artifact.short_path
-    if name.endswith((".pic.a", ".nopic.a", ".pic.lo")):
+    if name.endswith(_ARTIFACT_IDENTIFIER_COMPOUND_SUFFIXES):
         return name.rsplit(".", 2)[0]
 
     return name[:len(name) - len(artifact.extension) - 1]

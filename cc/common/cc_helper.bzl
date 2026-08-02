@@ -65,7 +65,7 @@ def _libraries_from_linking_context(linking_context):
 # NOTE: Prefer _is_valid_shared_library_artifact() when a File is available because
 # it checks File.extension directly.
 def _is_valid_shared_library_name(shared_library_name):
-    return shared_library_name.endswith(tuple(extensions.SHARED_LIBRARY)) or \
+    return shared_library_name.endswith(extensions.SHARED_LIBRARY) or \
            is_versioned_shared_library_extension_valid(shared_library_name)
 
 def _replace_name(name, new_name):
@@ -318,21 +318,21 @@ def _build_precompiled_files(ctx):
         # end with ".nopic.o". (The ".nopic.o" extension is an undocumented
         # feature to give users at least some control over this.) Note that
         # some target platforms do not require shared library code to be PIC.
-        if short_path.endswith(tuple(extensions.OBJECT_FILE)):
+        if short_path.endswith(extensions.OBJECT_FILE):
             objects.append(src)
             if not short_path.endswith(".nopic.o"):
                 pic_objects.append(src)
 
-            if short_path.endswith(tuple(extensions.PIC_OBJECT_FILE)):
+            if short_path.endswith(extensions.PIC_OBJECT_FILE):
                 pic_objects.append(src)
 
-        elif short_path.endswith(tuple(extensions.PIC_ARCHIVE)):
+        elif short_path.endswith(extensions.PIC_ARCHIVE):
             pic_static_libraries.append(src)
-        elif short_path.endswith(tuple(extensions.ARCHIVE)):
+        elif short_path.endswith(extensions.ARCHIVE):
             static_libraries.append(src)
-        elif short_path.endswith(tuple(extensions.ALWAYSLINK_PIC_LIBRARY)):
+        elif short_path.endswith(extensions.ALWAYSLINK_PIC_LIBRARY):
             pic_alwayslink_static_libraries.append(src)
-        elif short_path.endswith(tuple(extensions.ALWAYSLINK_LIBRARY)):
+        elif short_path.endswith(extensions.ALWAYSLINK_LIBRARY):
             alwayslink_static_libraries.append(src)
         elif _is_valid_shared_library_artifact(src):
             shared_libraries.append(src)
@@ -348,7 +348,7 @@ def _build_precompiled_files(ctx):
 
 def _check_file_extension(file, allowed_extensions, allow_versioned_shared_libraries):
     extension = "." + file.extension
-    return extension.endswith(tuple(allowed_extensions)) or \
+    return extension in allowed_extensions or \
            (allow_versioned_shared_libraries and is_versioned_shared_library_extension_valid(file.path))
 
 def _check_file_extensions(attr_values, allowed_extensions, attr_name, label, rule_name, allow_versioned_shared_libraries):

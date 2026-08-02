@@ -146,12 +146,14 @@ def _validate_static_library(*, name, actions, cc_toolchain, feature_configurati
 
     return validation_output
 
+_MAIN_REPOSITORY_LABEL_PREFIXES = ("@@//", "@//")  # buildifier: disable=canonical-repository
+
 def _pretty_label(label):
     s = str(label)
 
     # Emit main repo labels (both with and without --enable_bzlmod) without a
     # repo prefix.
-    if s.startswith(("@@//", "@//")):  # buildifier: disable=canonical-repository
+    if s.startswith(_MAIN_REPOSITORY_LABEL_PREFIXES):
         return s.lstrip("@")
     return s
 
