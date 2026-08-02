@@ -343,7 +343,7 @@ def create_lto_backend_artifacts(
     build_variables = _cc_internal.combine_cc_toolchain_variables(
         build_variables,
         _cc_internal.cc_toolchain_variables(vars = {
-            "user_compile_flags": _cc_internal.intern_string_sequence_variable_value(argv),
+            "user_compile_flags": tuple(argv),
         }),
     )
 

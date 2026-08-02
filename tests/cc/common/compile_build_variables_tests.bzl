@@ -1,9 +1,12 @@
 """Tests for compile build variables."""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@rules_testing//lib:analysis_test.bzl", "test_suite")
 load("@rules_testing//lib:truth.bzl", "matching", "subjects")
 load("@rules_testing//lib:util.bzl", "TestingAspectInfo", "util")
 load("//cc:cc_binary.bzl", _actual_cc_binary = "cc_binary")
+load("//cc:find_cc_toolchain.bzl", "CC_TOOLCHAIN_ATTRS", "find_cc_toolchain", "use_cc_toolchain")
+load("//cc/common:cc_common.bzl", "cc_common")
 load("//tests/cc/testutil:cc_analysis_test.bzl", "cc_analysis_test")
 load("//tests/cc/testutil:link_action_subject.bzl", "link_action_subject")
 
@@ -92,6 +95,66 @@ def _test_presence_of_configuration_compile_flags(name, **kwargs):
 def _test_presence_of_configuration_compile_flags_impl(env, target):
     compile_action = _compile_action(env, target, "bin")
     _variable_list(compile_action, "user_compile_flags").contains_at_least(["-foo", "-bar"]).in_order()
+
+def _test_duplicate_compile_flags(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = ["bin.cc"],
+        copts = ["-duplicate", "-middle", "-duplicate"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_duplicate_compile_flags_impl,
+        target = name + "/bin",
+        **kwargs
+    )
+
+def _test_duplicate_compile_flags_impl(env, target):
+    compile_action = _compile_action(env, target, "bin")
+    _variable_list(compile_action, "user_compile_flags").contains_at_least([
+        "-duplicate",
+        "-middle",
+        "-duplicate",
+    ]).in_order()
+
+def _invalid_variables_extension_impl(ctx):
+    cc_toolchain = find_cc_toolchain(ctx)
+    feature_configuration = cc_common.configure_features(
+        ctx = ctx,
+        cc_toolchain = cc_toolchain,
+    )
+    cc_common.create_compile_variables(
+        cc_toolchain = cc_toolchain,
+        feature_configuration = feature_configuration,
+        variables_extension = {"invalid": ["valid", 42]},
+    )
+    return []
+
+_invalid_variables_extension = rule(
+    implementation = _invalid_variables_extension_impl,
+    attrs = CC_TOOLCHAIN_ATTRS,
+    fragments = ["cpp"],
+    toolchains = use_cc_toolchain(),
+)
+
+def _test_invalid_variables_extension(name, **kwargs):
+    util.helper_target(
+        _invalid_variables_extension,
+        name = name + "/invalid",
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_invalid_variables_extension_impl,
+        target = name + "/invalid",
+        expect_failure = True,
+        **kwargs
+    )
+
+def _test_invalid_variables_extension_impl(env, target):
+    env.expect.that_target(target).failures().contains_predicate(
+        matching.contains("at index 1 of string_sequence, got element of type int, want string"),
+    )
 
 def _test_presence_of_conly_flags(name, **kwargs):
     target_label = "//tests/cc/common:" + name + "/bin"
@@ -406,5 +469,8 @@ def compile_build_variables_tests(name):
             _test_presence_of_is_using_fission_and_per_debug_object_file_variables_with_thinlto,
             _test_presence_of_per_object_debug_file_build_variable,
             _test_presence_of_min_os_version_build_variable,
-        ],
+        ] + ([
+            _test_duplicate_compile_flags,
+            _test_invalid_variables_extension,
+        ] if bazel_features.cc.cc_common_is_in_rules_cc else []),
     )

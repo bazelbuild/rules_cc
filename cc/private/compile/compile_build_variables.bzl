@@ -210,6 +210,12 @@ def setup_common_compile_build_variables(
     )
     return _cc_internal.combine_cc_toolchain_variables(cc_toolchain._build_variables, common_vars)
 
+def _string_sequence_variable_value(values):
+    for index, value in enumerate(values):
+        if type(value) != "string":
+            fail("at index %d of string_sequence, got element of type %s, want string" % (index, type(value)))
+    return tuple(values)
+
 def _setup_common_compile_build_variables_internal(
         *,
         feature_configuration,
@@ -238,7 +244,7 @@ def _setup_common_compile_build_variables_internal(
         result[_VARS.SYSTEM_INCLUDE_PATHS] = system_include_dirs
     result[_VARS.QUOTE_INCLUDE_PATHS] = quote_include_dirs
     if includes:
-        result[_VARS.INCLUDES] = _cc_internal.intern_string_sequence_variable_value(includes)
+        result[_VARS.INCLUDES] = _string_sequence_variable_value(includes)
     result[_VARS.FRAMEWORK_PATHS] = framework_include_dirs
 
     if is_using_memprof:
@@ -248,12 +254,12 @@ def _setup_common_compile_build_variables_internal(
     all_defines = defines.to_list() + local_defines.to_list() + (
         ["BUILD_FDO_TYPE=\"" + fdo_build_stamp + "\""] if fdo_build_stamp else []
     )
-    result[_VARS.PREPROCESSOR_DEFINES] = _cc_internal.intern_string_sequence_variable_value(all_defines)
+    result[_VARS.PREPROCESSOR_DEFINES] = _string_sequence_variable_value(all_defines)
     result = result | additional_build_variables
 
     for key, value in variables_extension.items():
         if type(value) == type([]):
-            result[key] = _cc_internal.intern_string_sequence_variable_value(value)
+            result[key] = _string_sequence_variable_value(value)
         elif type(value) == type(""):
             result[key] = value
         elif type(value) == type(depset()):
@@ -323,7 +329,7 @@ def get_specific_compile_build_variables(
         result[_VARS.MODULE_MAP_FILE] = cpp_module_map.file
         result[_VARS.DEPENDENT_MODULE_MAP_FILES] = direct_module_maps
 
-    result[_VARS.USER_COMPILE_FLAGS] = _cc_internal.intern_string_sequence_variable_value(user_compile_flags)
+    result[_VARS.USER_COMPILE_FLAGS] = _string_sequence_variable_value(user_compile_flags)
     if source_file:
         result[_VARS.SOURCE_FILE] = source_file
     if output_file:
