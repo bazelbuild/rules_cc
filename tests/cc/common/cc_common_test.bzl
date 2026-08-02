@@ -7,6 +7,7 @@ load("@rules_testing//lib:util.bzl", "TestingAspectInfo", "util")
 load("//cc:cc_binary.bzl", "cc_binary")
 load("//cc:cc_library.bzl", "cc_library")
 load("//cc/common:cc_info.bzl", "CcInfo")
+load("//cc/private/link:create_extra_link_time_library.bzl", "build_libraries", "create_extra_link_time_library")
 load("//tests/cc/testutil:cc_analysis_test.bzl", "cc_analysis_test")
 load("//tests/cc/testutil:cc_info_subject.bzl", "cc_info_subject")
 
@@ -659,6 +660,74 @@ def _test_alwayslink_yields_lo_impl(env, target):
     files = [f.basename for f in target[DefaultInfo].files.to_list()]
     env.expect.that_collection(files).contains("libalways_link.lo")
 
+def _build_extra_link_time_library(_ctx, _static_mode, _for_dynamic_library):
+    return struct(
+        linker_input = depset(),
+        runtime_library = depset(),
+    )
+
+def _top_level_extra_link_time_library_impl(ctx):
+    library = create_extra_link_time_library(
+        build_library_func = _build_extra_link_time_library,
+    )
+    build_libraries([library], ctx, False, False)
+    return []
+
+_top_level_extra_link_time_library = rule(
+    implementation = _top_level_extra_link_time_library_impl,
+)
+
+def _nested_extra_link_time_library_impl(ctx):
+    def nested_build_library(_ctx, _static_mode, _for_dynamic_library):
+        return struct(
+            linker_input = depset(),
+            runtime_library = depset(),
+        )
+
+    library = create_extra_link_time_library(
+        build_library_func = nested_build_library,
+    )
+    build_libraries([library], ctx, False, False)
+    return []
+
+_nested_extra_link_time_library = rule(
+    implementation = _nested_extra_link_time_library_impl,
+)
+
+def _test_top_level_extra_link_time_library(name):
+    util.helper_target(
+        _top_level_extra_link_time_library,
+        name = name + "/library",
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_top_level_extra_link_time_library_impl,
+        target = name + "/library",
+    )
+
+def _test_top_level_extra_link_time_library_impl(env, target):
+    env.expect.that_target(target).failures().contains_exactly([])
+
+def _test_nested_extra_link_time_library(name):
+    util.helper_target(
+        _nested_extra_link_time_library,
+        name = name + "/library",
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_nested_extra_link_time_library_impl,
+        target = name + "/library",
+        expect_failure = True,
+    )
+
+def _test_nested_extra_link_time_library_impl(env, target):
+    env.expect.that_target(target).failures().contains_predicate(
+        matching.custom(
+            "contains 'must be declared by a top-level def statement'",
+            lambda message: "must be declared by a top-level def statement" in message,
+        ),
+    )
+
 def cc_common_tests(name):
     tests = [
         _test_same_cc_file_twice,
@@ -681,6 +750,8 @@ def cc_common_tests(name):
         _test_temps_for_c_without_pic,
         _test_library_in_hdrs,
         _test_alwayslink_yields_lo,
+        _test_top_level_extra_link_time_library,
+        _test_nested_extra_link_time_library,
     ]
     if bazel_features.cc.cc_common_is_in_rules_cc:
         tests.extend([
