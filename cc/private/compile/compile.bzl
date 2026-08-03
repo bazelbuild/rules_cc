@@ -673,6 +673,16 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
     direct_module_files = []
     source_to_module_file_map = {}
     source_to_ddi_file_map = {}
+    # The modules info file must be distinct between PIC and non-PIC builds,
+    # otherwise the PIC and non-PIC aggregate-ddi actions would both write to
+    # the same output, causing a conflicting-actions error.
+    modules_info_output_name = label.name
+    if use_pic:
+        modules_info_output_name = _cc_internal.get_artifact_name_for_category(
+            cc_toolchain = cc_toolchain,
+            category = artifact_category.PIC_FILE,
+            output_name = modules_info_output_name,
+        )
     modules_info_file = _get_compile_output_file(
         action_construction_context,
         label,
@@ -680,7 +690,7 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
         output_name = _cc_internal.get_artifact_name_for_category(
             cc_toolchain = cc_toolchain,
             category = artifact_category.CPP_MODULES_INFO,
-            output_name = label.name,
+            output_name = modules_info_output_name,
         ),
     )
     if use_pic:
