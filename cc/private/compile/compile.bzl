@@ -1595,6 +1595,7 @@ def _create_compile_source_action(
         configuration = configuration,
         enable_coverage = enable_coverage,
     )
+
     # Assembly files do not support -ftime-trace; skip trace output
     _is_assembly = "." + source_artifact.extension in (extensions.ASSEMBLER + extensions.ASSEMBLER_WITH_C_PREPROCESSOR)
     trace_file = _maybe_declare_trace_file(
