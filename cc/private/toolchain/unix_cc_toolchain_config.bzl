@@ -781,6 +781,7 @@ def _impl(ctx):
                     ACTION_NAMES.cpp_compile,
                     ACTION_NAMES.cpp_module_codegen,
                     ACTION_NAMES.cpp20_module_codegen,
+                    ACTION_NAMES.lto_backend,
                 ],
                 flag_groups = [
                     flag_group(

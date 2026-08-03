@@ -25,11 +25,9 @@ def _fission_on_lto_backend_test_impl(env, target):
     ]
     env.expect.that_collection(dwo_outputs).has_size(1)
 
-    # BUG: the backend action is the one that emits the object file, so it is
-    # the action that has to be told to split the debug info out of it -- but
-    # per_object_debug_info does not cover ACTION_NAMES.lto_backend, so the
-    # flag is absent and the .dwo declared above can never be written.
-    env.expect.that_collection(action.argv).not_contains("-gsplit-dwarf")
+    # The backend action is the one that emits the object file, so it is the
+    # action that has to be told to split the debug info out of it.
+    env.expect.that_collection(action.argv).contains("-gsplit-dwarf")
 
 def unix_fission_tests(name, target):
     analysis_test(
