@@ -307,9 +307,9 @@ EOF
 }
 
 function test_cc_rule_cc_with_tree_artifacts() {
-  if is_darwin; then
-    # The default linker on Mac does not support --start-lib --end-lib which this test requires
-    echo "Skipping incompatible test on Mac"
+  local -r cc="${CC:-gcc}"
+  if ! linker_supports_start_end_lib "$cc"; then
+    echo "Linker does not support --start-lib/--end-lib. Skipping test."
     return 0;
   fi
   mkdir -p foo
