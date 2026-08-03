@@ -37,13 +37,13 @@ rules_shell_dependencies()
 
 rules_shell_toolchains()
 
-# Required commit 26a0b7d "Add CollectionSubject.contains_no_duplicates"
-# TODO: pzembrod - Change to a released version again when the commit is in a release.
+# Require added functions to assertion subjects that are not yet released."
+# TODO: pzembrod - Change to a released version again when a new version has been released.
 http_archive(
     name = "rules_testing",
-    integrity = "sha256-Fv1hcAnEWf4QxN9MhAcL9MBowNFqYdeFhZAApqdaY6w=",
-    strip_prefix = "rules_testing-26a0b7d0b21c21338bb2f5ce693eac14aa24e323",
-    url = "https://github.com/bazelbuild/rules_testing/archive/26a0b7d0b21c21338bb2f5ce693eac14aa24e323.tar.gz",
+    integrity = "sha256-HZ2uo9F7Q+jhIqCE4pYHfPpTnFZsq94rwgOZdKPe6Ho=",
+    strip_prefix = "rules_testing-04e7b12731358a8fa7e42ee7cd255aa034455a8d",
+    url = "https://github.com/bazelbuild/rules_testing/archive/04e7b12731358a8fa7e42ee7cd255aa034455a8d.tar.gz",
 )
 
 http_archive(

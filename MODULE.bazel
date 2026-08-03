@@ -35,14 +35,14 @@ local_path_override(
     path = "tests/builtins_bzl/cc/cc_shared_library/test2",
 )
 
-# Required commit 2c30bc1e "Add is_empty() and is_not_empty() assertions to CollectionSubject"
-# TODO: pzembrod - Change to a released version again when the commit is in a release.
+# Require added functions to assertion subjects that are not yet released."
+# TODO: pzembrod - Change to a released version again when a new version has been released.
 bazel_dep(name = "rules_testing", dev_dependency = True)
 archive_override(
     module_name = "rules_testing",
-    integrity = "sha256-cr6LqrpM60hzy/jr8j3Q3V286Cl4fEhrHnRokSYGjtU=",
-    strip_prefix = "rules_testing-c30bc1eda772d837997d03515d30ac3f6b70c3bf",
-    urls = ["https://github.com/bazelbuild/rules_testing/archive/c30bc1eda772d837997d03515d30ac3f6b70c3bf.tar.gz"],
+    integrity = "sha256-HZ2uo9F7Q+jhIqCE4pYHfPpTnFZsq94rwgOZdKPe6Ho=",
+    strip_prefix = "rules_testing-04e7b12731358a8fa7e42ee7cd255aa034455a8d",
+    urls = ["https://github.com/bazelbuild/rules_testing/archive/04e7b12731358a8fa7e42ee7cd255aa034455a8d.tar.gz"],
 )
 
 bazel_dep(name = "stardoc", version = "0.8.0", dev_dependency = True)
