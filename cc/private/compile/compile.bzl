@@ -673,6 +673,7 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
     direct_module_files = []
     source_to_module_file_map = {}
     source_to_ddi_file_map = {}
+
     # The modules info file must be distinct between PIC and non-PIC builds,
     # otherwise the PIC and non-PIC aggregate-ddi actions would both write to
     # the same output, causing a conflicting-actions error.
