@@ -264,6 +264,18 @@ def _is_vs_2017_or_newer(repository_ctx, vc_path):
     # For VS 2017 and later, a `Tools` directory should exist under `BAZEL_VC`
     return repository_ctx.path(vc_path).get_child("Tools").exists
 
+def _is_vs_2026_or_newer(repository_ctx, vc_path):
+    """Check if the installed VS version is Visual Studio 2026 or newer."""
+
+    if not _is_vs_2017_or_newer(repository_ctx, vc_path):
+        return False
+
+    full_version = _get_vc_full_version(repository_ctx, vc_path)
+
+    # 14.50.0 is the first version of VS 2026.
+    # See: https://learn.microsoft.com/en-us/cpp/overview/compiler-versions?view=msvc-170
+    return [int(i) for i in full_version.split(".")] >= [14, 50, 0]
+
 def _is_msbuildtools(vc_path):
     """Check if the installed VC version is from MSBuildTools."""
 
@@ -747,6 +759,13 @@ Header pruning has been disabled since Bazel failed to recognize the output of /
 This can result in unnecessary recompilation.
 Fix this by installing the English language pack for the Visual Studio installation at {} and run 'bazel sync --configure'.""".format(vc_path))
 
+    # /DEBUG:FASTLINK was removed in VS 2026.
+    # See: https://learn.microsoft.com/en-us/cpp/build/reference/debug-generate-debug-info?view=msvc-170
+    if _is_vs_2026_or_newer(repository_ctx, vc_path):
+        fastbuild_mode_debug_flag = "/DEBUG:FULL"
+    else:
+        fastbuild_mode_debug_flag = "/DEBUG:FASTLINK"
+
     msvc_vars = {
         "%{msvc_env_tmp_" + target_arch + "}": escaped_tmp_dir,
         "%{msvc_env_include_" + target_arch + "}": escaped_include_paths,
@@ -760,7 +779,7 @@ Fix this by installing the English language pack for the Visual Studio installat
         "%{msvc_dumpbin_path_" + target_arch + "}": build_tools["DUMPBIN"],
         "%{msvc_parse_showincludes_" + target_arch + "}": repr(support_parse_showincludes),
         "%{dbg_mode_debug_flag_" + target_arch + "}": "/DEBUG:FULL" if support_debug_fastlink else "/DEBUG",
-        "%{fastbuild_mode_debug_flag_" + target_arch + "}": "/DEBUG:FASTLINK" if support_debug_fastlink else "/DEBUG",
+        "%{fastbuild_mode_debug_flag_" + target_arch + "}": fastbuild_mode_debug_flag if support_debug_fastlink else "/DEBUG",
     }
     return msvc_vars
 
