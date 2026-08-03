@@ -52,9 +52,6 @@ load("//cc/private/compile:lto_compilation_context.bzl", "create_lto_compilation
 
 _VALID_CPP_SOURCE_TYPES = set([CPP_SOURCE_TYPE_SOURCE, CPP_SOURCE_TYPE_HEADER, CPP_SOURCE_TYPE_CLIF_INPUT_PROTO])
 
-def _clang_trace_enabled(feature_configuration):
-    return feature_configuration.is_enabled("clang_trace")
-
 def _cpp_source_init(*, label, source, type):
     if type not in _VALID_CPP_SOURCE_TYPES:
         fail("invalid type of cpp source, got:", type, "expected one of:", _VALID_CPP_SOURCE_TYPES)
@@ -843,7 +840,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
             cpp_module_map = cc_compilation_context._module_map,
             add_object = True,
             enable_coverage = is_code_coverage_enabled,
-            enable_trace = _clang_trace_enabled(feature_configuration),
             generate_dwo = should_create_per_object_debug_info(feature_configuration, cpp_configuration),
             bitcode_output = bitcode_output,
             fdo_context = fdo_context,
@@ -992,7 +988,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
             cpp_module_map = cc_compilation_context._module_map,
             add_object = True,
             enable_coverage = is_code_coverage_enabled,
-            enable_trace = _clang_trace_enabled(feature_configuration),
             generate_dwo = should_create_per_object_debug_info(feature_configuration, cpp_configuration),
             bitcode_output = bitcode_output,
             fdo_context = fdo_context,
@@ -1276,7 +1271,6 @@ def _create_cc_compile_actions(
                 cpp_module_map = cc_compilation_context._module_map,
                 add_object = True,
                 enable_coverage = is_code_coverage_enabled,
-                enable_trace = _clang_trace_enabled(feature_configuration),
                 generate_dwo = should_create_per_object_debug_info(feature_configuration, cpp_configuration),
                 bitcode_output = bitcode_output,
                 fdo_context = fdo_context,
@@ -1429,7 +1423,6 @@ def _create_pic_nopic_compile_source_actions(
         cpp_module_map,
         add_object,
         enable_coverage,
-        enable_trace,
         generate_dwo,
         bitcode_output,
         fdo_context,
@@ -1464,7 +1457,6 @@ def _create_pic_nopic_compile_source_actions(
             cpp_module_map = cpp_module_map,
             add_object = add_object,
             enable_coverage = enable_coverage,
-            enable_trace = enable_trace,
             generate_dwo = generate_dwo,
             bitcode_output = bitcode_output,
             fdo_context = fdo_context,
@@ -1502,7 +1494,6 @@ def _create_pic_nopic_compile_source_actions(
             cpp_module_map = cpp_module_map,
             add_object = add_object,
             enable_coverage = enable_coverage,
-            enable_trace = enable_trace,
             generate_dwo = generate_dwo,
             bitcode_output = bitcode_output,
             fdo_context = fdo_context,
@@ -1541,7 +1532,6 @@ def _create_compile_source_action(
         cpp_module_map,
         add_object,
         enable_coverage,
-        enable_trace,
         generate_dwo,
         bitcode_output,
         fdo_context,
@@ -1607,7 +1597,7 @@ def _create_compile_source_action(
     )
     trace_file = _maybe_declare_trace_file(
         ctx = action_construction_context,
-        enable_trace = enable_trace,
+        enable_trace = feature_configuration.is_enabled("clang_trace"),
         object_file = object_file,
     )
 
@@ -2166,7 +2156,6 @@ def _create_module_action(
         cpp_module_map = cpp_module_map,
         add_object = False,
         enable_coverage = False,
-        enable_trace = False,
         generate_dwo = False,
         bitcode_output = False,
         additional_compilation_inputs = additional_compilation_inputs,
