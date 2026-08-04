@@ -28,7 +28,7 @@ load("//cc/private/compile:compile_build_variables.bzl", "create_compile_variabl
 load("//cc/private/compile:linkstamp_compile.bzl", "register_linkstamp_compile_action")
 load("//cc/private/compile:lto_compilation_context.bzl", "create_lto_compilation_context")
 load("//cc/private/link:create_extra_link_time_library.bzl", "build_libraries", "create_extra_link_time_library")
-load("//cc/private/link:create_library_to_link.bzl", "create_library_to_link")
+load("//cc/private/link:create_library_to_link.bzl", "copy_library_to_link", "create_library_to_link")
 load("//cc/private/link:create_linker_input.bzl", "create_linker_input")
 load("//cc/private/link:create_linking_context_from_compilation_outputs.bzl", "create_linking_context_from_compilation_outputs")
 load("//cc/private/link:create_linkstamp.bzl", "create_linkstamp")
@@ -742,6 +742,7 @@ cc_common = struct(
     create_link_variables = create_link_variables,
     empty_variables = _empty_variables,
     create_library_to_link = _create_library_to_link,
+    copy_library_to_link = copy_library_to_link,
     create_linker_input = create_linker_input,
     create_linking_context = _create_linking_context,
     merge_cc_infos = merge_cc_infos,
