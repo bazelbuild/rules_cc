@@ -1839,6 +1839,17 @@ def _get_features_for_configuration(name):
     else:
         return [f]
 
+def _flatten_nested_lists(elements):
+    # Sometimes a feature list may contain lists of features.
+    # Use this to flatten it into a single list of features.
+    result = []
+    for element in elements:
+        if type(element) == type([]):
+            result.extend(element)
+        else:
+            result.append(element)
+    return result
+
 def _get_action_config(name, path):
     return action_config(
         action_name = name,
@@ -2012,6 +2023,7 @@ def _impl(ctx):
 
     out = ctx.actions.declare_file(ctx.label.name)
     ctx.actions.write(out, "Fake executable")
+    features = _flatten_nested_lists(features)
     return [
         cc_common.create_cc_toolchain_config_info(
             ctx = ctx,
