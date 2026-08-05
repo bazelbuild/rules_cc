@@ -41,9 +41,9 @@ rules_shell_toolchains()
 # TODO: pzembrod - Change to a released version again when a new version has been released.
 http_archive(
     name = "rules_testing",
-    integrity = "sha256-HZ2uo9F7Q+jhIqCE4pYHfPpTnFZsq94rwgOZdKPe6Ho=",
-    strip_prefix = "rules_testing-04e7b12731358a8fa7e42ee7cd255aa034455a8d",
-    url = "https://github.com/bazelbuild/rules_testing/archive/04e7b12731358a8fa7e42ee7cd255aa034455a8d.tar.gz",
+    integrity = "sha256-rmg720edQlN+fg3IAWxQD6Ml5BrxK4C2GISJUvxEHng=",
+    strip_prefix = "rules_testing-8ea02d6b890c54cbe2d5e78cefa626bc7d53571a",
+    url = "https://github.com/bazelbuild/rules_testing/archive/8ea02d6b890c54cbe2d5e78cefa626bc7d53571a.tar.gz",
 )
 
 http_archive(
