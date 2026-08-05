@@ -67,7 +67,10 @@ def _get_def_parser():
     )
 
 def _get_grep_includes():
-    return attr.label()
+    return attr.label(
+        allow_single_file = True,
+        cfg = "exec",
+    )
 
 def _get_runtimes_toolchain():
     return [
