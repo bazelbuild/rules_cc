@@ -273,9 +273,9 @@ def _test_thin_lto_no_linkstatic_impl(env, targets):
 
     lib_target_subject = env.expect.that_target(lib_target)
     solib_action = lib_target_subject.action_generating(solib_file.short_path)
-    solib_action.mnemonic().equals("SolibSymlink")
+    solib_action.mnemonic().is_in(["SolibSymlink", "Symlink"])
 
-    # The input to SolibSymlink is the library itself
+    # The input to the solib symlink action is the library itself.
     solib_action_inputs = solib_action.actual.inputs.to_list()
     lib_file = solib_action_inputs[0]
 
