@@ -87,7 +87,6 @@ rules_cc_integration_test(
 
 rules_cc_integration_test(
     name = "ftime_trace_tests",
-    timeout = "long",
     target_compatible_with = select({
         "@platforms//os:macos": ["@platforms//:incompatible"],
         "@platforms//os:windows": ["@platforms//:incompatible"],
