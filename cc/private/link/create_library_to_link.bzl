@@ -275,6 +275,48 @@ def create_library_to_link(
         _contains_objects = bool(objects) or bool(pic_objects),
     )
 
+# buildifier: disable=name-conventions
+_UnboundValueProviderDoNotUse = provider("This provider is used as default value for optional function parameters.", fields = [])
+_UNBOUND = _UnboundValueProviderDoNotUse()
+
+def copy_library_to_link(
+        library,
+        *,
+        static_library = _UNBOUND,
+        pic_static_library = _UNBOUND,
+        dynamic_library = _UNBOUND,
+        interface_library = _UNBOUND,
+        objects = _UNBOUND,
+        pic_objects = _UNBOUND,
+        alwayslink = _UNBOUND,
+        lto_compilation_context = _UNBOUND,
+        pic_lto_compilation_context = _UNBOUND,
+        must_keep_debug = _UNBOUND,
+        resolved_symlink_dynamic_library = _UNBOUND,
+        resolved_symlink_interface_library = _UNBOUND):
+    """Creates a copy of an existing `LibraryToLink` with optional overrides."""
+    new_objects = objects if objects != _UNBOUND else library.objects
+    new_pic_objects = pic_objects if pic_objects != _UNBOUND else library.pic_objects
+    return make_library_to_link(
+        static_library = static_library if static_library != _UNBOUND else library.static_library,
+        pic_static_library = pic_static_library if pic_static_library != _UNBOUND else library.pic_static_library,
+        dynamic_library = dynamic_library if dynamic_library != _UNBOUND else library.dynamic_library,
+        interface_library = interface_library if interface_library != _UNBOUND else library.interface_library,
+        resolved_symlink_dynamic_library = resolved_symlink_dynamic_library if resolved_symlink_dynamic_library != _UNBOUND else library.resolved_symlink_dynamic_library,
+        resolved_symlink_interface_library = resolved_symlink_interface_library if resolved_symlink_interface_library != _UNBOUND else library.resolved_symlink_interface_library,
+        objects = new_objects,
+        pic_objects = new_pic_objects,
+        alwayslink = alwayslink if alwayslink != _UNBOUND else library.alwayslink,
+        _library_identifier = library._library_identifier,
+        _contains_objects = bool(new_objects) or bool(new_pic_objects),
+        _disable_whole_archive = library._disable_whole_archive,
+        _must_keep_debug = must_keep_debug if must_keep_debug != _UNBOUND else library._must_keep_debug,
+        _lto_compilation_context = lto_compilation_context if lto_compilation_context != _UNBOUND else library._lto_compilation_context,
+        _pic_lto_compilation_context = pic_lto_compilation_context if pic_lto_compilation_context != _UNBOUND else library._pic_lto_compilation_context,
+        _shared_non_lto_backends = getattr(library, "_shared_non_lto_backends", {}),
+        _pic_shared_non_lto_backends = getattr(library, "_pic_shared_non_lto_backends", {}),
+    )
+
 def _validate_symlink_path(attr, path):
     if not path or paths.is_absolute(path) or path_contains_up_level_references(path):
         fail("%s must be a relative file path. Got '%s" % (attr, path))

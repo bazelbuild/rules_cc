@@ -7,6 +7,7 @@ load("@rules_testing//lib:util.bzl", "TestingAspectInfo", "util")
 load("//cc:cc_binary.bzl", _actual_cc_binary = "cc_binary")
 load("//cc:cc_library.bzl", "cc_library")
 load("//cc:cc_test.bzl", _actual_cc_test = "cc_test")
+load("//cc/toolchains:fdo_profile.bzl", "fdo_profile")
 load("//tests/cc/testutil:cc_analysis_test.bzl", "cc_analysis_test")
 load("//tests/cc/testutil:cc_binary_target_subject.bzl", "cc_binary_target_subject")
 
@@ -273,9 +274,9 @@ def _test_thin_lto_no_linkstatic_impl(env, targets):
 
     lib_target_subject = env.expect.that_target(lib_target)
     solib_action = lib_target_subject.action_generating(solib_file.short_path)
-    solib_action.mnemonic().equals("SolibSymlink")
+    solib_action.mnemonic().is_in(["SolibSymlink", "Symlink"])
 
-    # The input to SolibSymlink is the library itself
+    # The input to the solib symlink action is the library itself.
     solib_action_inputs = solib_action.actual.inputs.to_list()
     lib_file = solib_action_inputs[0]
 
@@ -1566,6 +1567,199 @@ def _test_fdo_implicit_thin_lto_disabled_package(name, **kwargs):
         **kwargs
     )
 
+def _test_xbinary_fdo_no_implicit_thin_lto(name, **kwargs):
+    """Tests that ThinLTO is not enabled for XFDO with LLVM without --features=xbinaryfdo_implicit_thinlto."""
+    fdo_profile(
+        name = name + "/out.xfdo",
+        profile = "profiles.xfdo",
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = ["binfile.cc"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _make_lto_backend_disabled_test_impl("binfile.o"),
+        target = name + "/bin",
+        with_features = ["thin_lto", "xbinaryfdo", "enable_xbinaryfdo_thinlto", "xbinaryfdo_implicit_thinlto", "supports_start_end_lib"],
+        test_features = [],
+        config_settings = {
+            "//command_line_option:xbinary_fdo": Label(":" + name + "/out.xfdo"),
+            "//command_line_option:compilation_mode": "opt",
+        },
+        **kwargs
+    )
+
+def _test_xbinary_fdo_implicit_thin_lto(name, **kwargs):
+    """Tests that --features=xbinaryfdo_implicit_thinlto enables ThinLTO for XFDO with LLVM."""
+    fdo_profile(
+        name = name + "/out.xfdo",
+        profile = "profiles.xfdo",
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = ["binfile.cc"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_xbinary_fdo_implicit_thin_lto_impl,
+        target = name + "/bin",
+        with_features = ["thin_lto", "xbinaryfdo", "enable_xbinaryfdo_thinlto", "xbinaryfdo_implicit_thinlto", "supports_start_end_lib"],
+        test_features = ["xbinaryfdo_implicit_thinlto"],
+        config_settings = {
+            "//command_line_option:xbinary_fdo": Label(":" + name + "/out.xfdo"),
+            "//command_line_option:compilation_mode": "opt",
+        },
+        **kwargs
+    )
+
+def _test_xbinary_fdo_implicit_thin_lto_impl(env, target):
+    binary_obj_path = "{package}/{name}.lto/{bindir}/{package}/_objs/{name}/binfile.o".format(
+        package = target.label.package,
+        name = target.label.name,
+        bindir = target[TestingAspectInfo].bin_path,
+    )
+
+    backend_action = env.expect.that_target(target).action_generating(binary_obj_path)
+    backend_action.mnemonic().equals("CcLtoBackendCompile")
+
+def _test_xbinary_fdo_implicit_thin_lto_disabled_option(name, **kwargs):
+    """Tests that --features=-thin_lto overrides --features=xbinaryfdo_implicit_thinlto and prevents enabling ThinLTO for XFDO with LLVM."""
+    fdo_profile(
+        name = name + "/out.xfdo",
+        profile = "profiles.xfdo",
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = ["binfile.cc"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _make_lto_backend_disabled_test_impl("binfile.o"),
+        target = name + "/bin",
+        with_features = ["thin_lto", "xbinaryfdo", "enable_xbinaryfdo_thinlto", "xbinaryfdo_implicit_thinlto", "supports_start_end_lib"],
+        test_features = ["xbinaryfdo_implicit_thinlto", "-thin_lto"],
+        config_settings = {
+            "//command_line_option:xbinary_fdo": Label(":" + name + "/out.xfdo"),
+            "//command_line_option:compilation_mode": "opt",
+        },
+        **kwargs
+    )
+
+def _test_xbinary_fdo_implicit_thin_lto_disabled_rule(name, **kwargs):
+    """Tests that features=[-thin_lto] in the build rule overrides --features=xbinaryfdo_implicit_thinlto and prevents enabling ThinLTO for XFDO with LLVM."""
+    fdo_profile(
+        name = name + "/out.xfdo",
+        profile = "profiles.xfdo",
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = ["binfile.cc"],
+        features = ["-thin_lto"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _make_lto_backend_disabled_test_impl("binfile.o"),
+        target = name + "/bin",
+        with_features = ["thin_lto", "xbinaryfdo", "enable_xbinaryfdo_thinlto", "xbinaryfdo_implicit_thinlto", "supports_start_end_lib"],
+        test_features = ["xbinaryfdo_implicit_thinlto"],
+        config_settings = {
+            "//command_line_option:xbinary_fdo": Label(":" + name + "/out.xfdo"),
+            "//command_line_option:compilation_mode": "opt",
+        },
+        **kwargs
+    )
+
+def _test_xbinary_fdo_implicit_thin_lto_disabled_package(name, **kwargs):
+    """Tests that features=[-thin_lto] in the package overrides --features=xbinaryfdo_implicit_thinlto and prevents enabling ThinLTO for XFDO with LLVM."""
+    cc_analysis_test(
+        name = name,
+        impl = _make_lto_backend_disabled_test_impl("empty.o"),
+        target = "//tests/cc/common/disabled_package_xfdo:bin",
+        with_features = ["thin_lto", "xbinaryfdo", "enable_xbinaryfdo_thinlto", "xbinaryfdo_implicit_thinlto", "supports_start_end_lib"],
+        test_features = ["xbinaryfdo_implicit_thinlto"],
+        config_settings = {
+            "//command_line_option:xbinary_fdo": Label("//tests/cc/common/disabled_package_xfdo:out.xfdo"),
+            "//command_line_option:compilation_mode": "opt",
+        },
+        **kwargs
+    )
+
+def _test_xbinary_fdo(name, **kwargs):
+    """Tests that -fauto-profile is added to the LtoBackendAction when xbinary_fdo is enabled."""
+    fdo_profile(
+        name = name + "/out.xfdo",
+        profile = "profiles.xfdo",
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = ["binfile.cc"],
+        features = ["thin_lto"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_xbinary_fdo_impl,
+        target = name + "/bin",
+        with_features = ["thin_lto", "xbinaryfdo", "enable_xbinaryfdo_thinlto", "xbinaryfdo_implicit_thinlto", "supports_start_end_lib"],
+        test_features = ["thin_lto"],
+        config_settings = {
+            "//command_line_option:xbinary_fdo": Label(":" + name + "/out.xfdo"),
+            "//command_line_option:compilation_mode": "opt",
+        },
+        **kwargs
+    )
+
+def _test_xbinary_fdo_impl(env, target):
+    binary_obj_path = "{package}/{name}.lto/{bindir}/{package}/_objs/{name}/binfile.o".format(
+        package = target.label.package,
+        name = target.label.name,
+        bindir = target[TestingAspectInfo].bin_path,
+    )
+
+    backend_action = env.expect.that_target(target).action_generating(binary_obj_path)
+    backend_action.mnemonic().equals("CcLtoBackendCompile")
+    backend_action.argv().contains_predicate(matching.str_matches("-fauto-profile=*profiles.xfdo"))
+    backend_action.inputs().contains_predicate(matching.file_basename_equals("profiles.xfdo"))
+
+def _test_xbinary_fdo_no_autofdo_or_fdo_implicit_thin_lto(name, **kwargs):
+    """Tests that ThinLTO is not enabled for XBINARYFDO with --features=autofdo_implicit_thinlto and --features=fdo_implicit_thinlto."""
+    fdo_profile(
+        name = name + "/out.xfdo",
+        profile = "profiles.xfdo",
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = ["binfile.cc"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _make_lto_backend_disabled_test_impl("binfile.o"),
+        target = name + "/bin",
+        with_features = [
+            "thin_lto",
+            "fdo_optimize",
+            "enable_fdo_thinlto",
+            "fdo_implicit_thinlto",
+            "autofdo",
+            "enable_afdo_thinlto",
+            "autofdo_implicit_thinlto",
+            "xbinaryfdo",
+            "supports_start_end_lib",
+        ],
+        test_features = ["autofdo_implicit_thinlto", "fdo_implicit_thinlto"],
+        config_settings = {
+            "//command_line_option:xbinary_fdo": Label(":" + name + "/out.xfdo"),
+            "//command_line_option:compilation_mode": "opt",
+        },
+        **kwargs
+    )
+
 def cc_binary_thin_lto_tests(name):
     """TestSuite for cc_binary with ThinLTO.
 
@@ -1598,6 +1792,13 @@ def cc_binary_thin_lto_tests(name):
     tests.append(_test_fdo_implicit_thin_lto_disabled_option)
     tests.append(_test_fdo_implicit_thin_lto_disabled_rule)
     tests.append(_test_fdo_implicit_thin_lto_disabled_package)
+    tests.append(_test_xbinary_fdo_no_implicit_thin_lto)
+    tests.append(_test_xbinary_fdo_implicit_thin_lto)
+    tests.append(_test_xbinary_fdo_implicit_thin_lto_disabled_option)
+    tests.append(_test_xbinary_fdo_implicit_thin_lto_disabled_rule)
+    tests.append(_test_xbinary_fdo_implicit_thin_lto_disabled_package)
+    tests.append(_test_xbinary_fdo)
+    tests.append(_test_xbinary_fdo_no_autofdo_or_fdo_implicit_thin_lto)
 
     # These tests fail on Bazel 7 and 8, run only for Bazel 9+.
     if bazel_features.cc.cc_common_is_in_rules_cc:

@@ -1492,10 +1492,14 @@ _strip_debug_symbols_feature = feature(
     ],
 )
 
+_proto_disable_services_feature = feature(name = "proto_disable_services")
+_proto_force_lite_runtime_feature = feature(name = "proto_force_lite_runtime", implies = ["proto_disable_services"])
+_proto_one_output_per_message_feature = feature(name = "proto_one_output_per_message", implies = ["proto_force_lite_runtime"])
+
 _portable_overrides_configuration = [
-    feature(name = "proto_force_lite_runtime", implies = ["proto_disable_services"]),
-    feature(name = "proto_disable_services"),
-    feature(name = "proto_one_output_per_message", implies = ["proto_force_lite_runtime"]),
+    _proto_force_lite_runtime_feature,
+    _proto_disable_services_feature,
+    _proto_one_output_per_message_feature,
     feature(
         name = "proto_enable_portable_overrides",
         implies = [
@@ -1774,6 +1778,9 @@ _feature_name_to_feature = {
     "simple_module_maps": _simple_module_maps_feature,
     "simple_header_modules": _simple_header_modules_feature,
     "portable_overrides_configuration": _portable_overrides_configuration,
+    "proto_force_lite_runtime": _proto_force_lite_runtime_feature,
+    "proto_disable_services": _proto_disable_services_feature,
+    "proto_one_output_per_message": _proto_one_output_per_message_feature,
     "disable_whole_archive_for_static_lib_configuration": _disable_whole_archive_for_static_lib_configuration,
     "same_symbol_provided_configuration": _same_symbol_provided_configuration,
     "simple_thin_lto": _simple_thin_lto_feature,
@@ -1831,6 +1838,17 @@ def _get_features_for_configuration(name):
         return f
     else:
         return [f]
+
+def _flatten_nested_lists(elements):
+    # Sometimes a feature list may contain lists of features.
+    # Use this to flatten it into a single list of features.
+    result = []
+    for element in elements:
+        if type(element) == type([]):
+            result.extend(element)
+        else:
+            result.append(element)
+    return result
 
 def _get_action_config(name, path):
     return action_config(
@@ -1945,6 +1963,12 @@ def _impl(ctx):
 
         features.extend(_get_features_for_configuration(name))
 
+    unique_features = []
+    for f in features:
+        if f not in unique_features:
+            unique_features.append(f)
+    features = unique_features
+
     cxx_builtin_include_directories = ["/usr/lib/gcc/", "/usr/local/include", "/usr/include"]
 
     for directory in ctx.attr.cxx_builtin_include_directories:
@@ -1999,6 +2023,7 @@ def _impl(ctx):
 
     out = ctx.actions.declare_file(ctx.label.name)
     ctx.actions.write(out, "Fake executable")
+    features = _flatten_nested_lists(features)
     return [
         cc_common.create_cc_toolchain_config_info(
             ctx = ctx,

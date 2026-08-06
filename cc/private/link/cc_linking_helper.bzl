@@ -491,7 +491,7 @@ def _construct_dynamic_library_to_link(
 
         else:
             if dynamic_link_type == LINK_TARGET_TYPE.NODEPS_DYNAMIC_LIBRARY:
-                impl_library_link_artifact = _cc_internal.dynamic_library_symlink(
+                impl_library_link_artifact = dynamic_library_symlink(
                     actions,
                     dynamic_library.file,
                     cc_toolchain._solib_dir,
@@ -502,7 +502,7 @@ def _construct_dynamic_library_to_link(
             library_to_link["resolved_symlink_dynamic_library"] = dynamic_library.file
 
             if interface_library:
-                library_link_artifact = _cc_internal.dynamic_library_symlink(
+                library_link_artifact = dynamic_library_symlink(
                     actions,
                     interface_library.file,
                     cc_toolchain._solib_dir,
