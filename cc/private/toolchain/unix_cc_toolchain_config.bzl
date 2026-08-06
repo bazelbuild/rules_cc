@@ -2109,10 +2109,9 @@ This is only offered as a migration bridge for projects transitioning to rule-ba
         "_use_libtool_on_macos": attr.label(
             default = "@rules_cc//cc/toolchains/args/archiver_flags:use_libtool_on_macos",
         ),
-        "_xcode_config": attr.label(default = configuration_field(
-            fragment = "apple",
-            name = "xcode_config_label",
-        )),
+        "_xcode_config": attr.label(
+            default = "@apple_support//xcode:version_config",
+        ),
     },
     fragments = ["cpp"],
     provides = [CcToolchainConfigInfo],
