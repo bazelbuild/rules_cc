@@ -26,7 +26,7 @@ and formatting different types of libraries. For an example specification,
 see `unix_cc_toolchain_config.bzl`
 """
 
-load("//cc/common:cc_helper_internal.bzl", "get_relative_path", "should_create_per_object_debug_info", artifact_category = "artifact_category_names")
+load("//cc/common:cc_helper_internal.bzl", "get_artifact_name_extension_for_category", "get_relative_path", "should_create_per_object_debug_info", artifact_category = "artifact_category_names")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 
 # Enum covering all build variables we create for all various C++ linking actions
@@ -377,9 +377,9 @@ def setup_lto_indexing_variables(
         )
 
     if not feature_configuration.is_enabled("no_use_lto_indexing_bitcode_file"):
-        object_file_extension = _cc_internal.get_artifact_name_extension_for_category(
-            cc_toolchain,
-            artifact_category.OBJECT_FILE,
+        object_file_extension = get_artifact_name_extension_for_category(
+            cc_toolchain = cc_toolchain,
+            category = artifact_category.OBJECT_FILE,
         )
 
         # TODO(b/338618120): ".indexing.o" should be coming from Starlark definitions of CppFileTypes
