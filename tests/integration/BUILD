@@ -84,3 +84,13 @@ rules_cc_integration_test(
     }),
     test_script = "cc_shared_library_toolchain_tests.sh",
 )
+
+rules_cc_integration_test(
+    name = "ftime_trace_tests",
+    target_compatible_with = select({
+        "@platforms//os:macos": ["@platforms//:incompatible"],
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+    test_script = "ftime_trace_tests.sh",
+)
