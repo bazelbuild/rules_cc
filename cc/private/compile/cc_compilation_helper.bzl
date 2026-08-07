@@ -13,6 +13,7 @@
 # limitations under the License.
 """Compilation helper for C++ rules."""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
     "//cc/common:cc_helper_internal.bzl",
@@ -402,7 +403,17 @@ def _create_module_map_action(
     tree_artifacts += [h for h in textual_headers if h.is_directory]
     content.add_all(tree_artifacts, map_each = lambda x: None, allow_closure = True)
 
-    actions.write(module_map.file, content = content, is_executable = True, mnemonic = "CppModuleMap")
+    write_kwargs = {}
+    if bazel_features.rules.write_action_has_execution_requirements:
+        write_kwargs["execution_requirements"] = {"supports-path-mapping": ""}
+
+    actions.write(
+        module_map.file,
+        content = content,
+        is_executable = True,
+        mnemonic = "CppModuleMap",
+        **write_kwargs
+    )
 
 def _init_cc_compilation_context(
         # DO NOT use ctx, this is a temporary placeholder
