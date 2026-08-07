@@ -33,6 +33,8 @@ CcCompilationOutputsInfo = provider(
         "_pic_dwo_files": "(list[File]) All .pic.dwo files built by the target, corresponding to .pic.o outputs.",
         "_gcno_files": "(list[File]) All .gcno files built by the target, corresponding to .o outputs.",
         "_pic_gcno_files": "(list[File]) All .pic.gcno files built by the target, corresponding to .pic.gcno outputs.",
+        "_su_files": "(list[File]) All .su files built by the target, corresponding to .o outputs.",
+        "_pic_su_files": "(list[File]) All .pic.su files built by the target, corresponding to .pic.o outputs.",
         "temps": '(() -> depset[File]) All artifacts that are created if "--save_temps" is true.',
         "_header_tokens": "(list[File]) All token .h.processed files created when preprocessing or parsing headers.",
         "_module_files": "(list[File]) All .pcm files built by the target.",
@@ -52,6 +54,8 @@ def create_compilation_outputs_internal(
         pic_dwo_files = [],
         gcno_files = [],
         pic_gcno_files = [],
+        su_files = [],
+        pic_su_files = [],
         temps = [],
         header_tokens = [],
         module_files = [],
@@ -69,6 +73,8 @@ def create_compilation_outputs_internal(
         pic_dwo_files: A list of PIC dwo files.
         gcno_files: A list of gcno files.
         pic_gcno_files: A list of PIC gcno files.
+        su_files: A list of stack usage files.
+        pic_su_files: A list of PIC stack usage files.
         temps: A depset of temporary files.
         header_tokens: A list of header tokens.
         module_files: A list of module files.
@@ -91,6 +97,8 @@ def create_compilation_outputs_internal(
         _lto_compilation_context = lto_compilation_context,
         _gcno_files = _cc_internal.freeze(gcno_files),
         _pic_gcno_files = _cc_internal.freeze(pic_gcno_files),
+        _su_files = _cc_internal.freeze(su_files),
+        _pic_su_files = _cc_internal.freeze(pic_su_files),
         _dwo_files = _cc_internal.freeze(dwo_files),
         _pic_dwo_files = _cc_internal.freeze(pic_dwo_files),
         cpp_module_files = _cc_internal.freeze(cpp_module_files),
@@ -194,6 +202,8 @@ def merge_compilation_outputs(*, compilation_outputs):
     pic_dwo_files = []
     gcno_files = []
     pic_gcno_files = []
+    su_files = []
+    pic_su_files = []
     lto_compilation_contexts = []
     transitive_temps = []
     header_tokens = []
@@ -206,6 +216,8 @@ def merge_compilation_outputs(*, compilation_outputs):
         pic_dwo_files.extend(co._pic_dwo_files)
         gcno_files.extend(co._gcno_files)
         pic_gcno_files.extend(co._pic_gcno_files)
+        su_files.extend(co._su_files)
+        pic_su_files.extend(co._pic_su_files)
         transitive_temps.append(co.temps())
         header_tokens.extend(co._header_tokens)
         module_files.extend(co._module_files)
@@ -220,6 +232,8 @@ def merge_compilation_outputs(*, compilation_outputs):
         _pic_dwo_files = pic_dwo_files,
         _gcno_files = gcno_files,
         _pic_gcno_files = pic_gcno_files,
+        _su_files = su_files,
+        _pic_su_files = pic_su_files,
         temps = wrap_with_check_private_api(depset(transitive = transitive_temps)),
         _header_tokens = header_tokens,
         _module_files = module_files,
