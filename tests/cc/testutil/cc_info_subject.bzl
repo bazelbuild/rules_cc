@@ -52,6 +52,10 @@ def _new_cc_compilation_context_subject(cc_compilation_context, meta):
             self.actual.direct_public_headers,
             self.meta.derive("direct_public_headers"),
         ),
+        direct_textual_headers = lambda: subjects.collection(
+            self.actual.direct_textual_headers,
+            self.meta.derive("direct_textual_headers"),
+        ),
         headers = lambda: subjects.depset_file(
             self.actual.headers,
             meta = self.meta.derive("headers"),
