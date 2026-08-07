@@ -44,6 +44,7 @@ def cc_toolchain(
         legacy_tools = [],
         known_features = [],
         enabled_features = [],
+        grep_includes = None,
         libc_top = None,
         module_map = None,
         dynamic_runtime_lib = None,
@@ -114,6 +115,8 @@ def cc_toolchain(
             [features](https://bazel.build/docs/cc-toolchain-config-reference#features)
             to be disabled over the course of a build through other mechanisms. See the
             documentation for `cc_feature` for more information.
+        grep_includes: (Label) Executable used to extract include directives from C/C++ source
+            files.
         libc_top: (Label) A collection of artifacts for libc passed as inputs to compile/linking
             actions. See
             [`cc_toolchain.libc_top`](https://bazel.build/reference/be/c-cpp#cc_toolchain.libc_top)
@@ -187,6 +190,7 @@ def cc_toolchain(
             legacy_tools = legacy_tools,
             known_features = known_features,
             enabled_features = enabled_features,
+            grep_includes = grep_includes,
             compiler = compiler,
             target_libc = target_libc,
             cpu = cpu or _CPU,
