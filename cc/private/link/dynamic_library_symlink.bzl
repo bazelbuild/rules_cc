@@ -24,13 +24,13 @@ USE_STARLARK_SOLIB_SYMLINK = True
 def _escaped_path(path):
     return path.replace("_", "_U").replace("/", "_S").replace("\\", "_B").replace(":", "_C").replace("@", "_A")
 
+_MAIN_REPOSITORY_LABEL_PREFIXES = ("@@//", "@//")  # buildifier: disable=canonical-repository
+
 def _label_to_string(label):
     """Java and Starlark convert label to string slightly differently. Match Java's behavior."""
     s = str(label)
-    if s.startswith("@@//"):  # buildifier: disable=canonical-repository
-        return s[2:]
-    if s.startswith("@//"):
-        return s[1:]
+    if s.startswith(_MAIN_REPOSITORY_LABEL_PREFIXES):
+        return s.lstrip("@")
     return s
 
 def _is_shared_library_filetype(basename):

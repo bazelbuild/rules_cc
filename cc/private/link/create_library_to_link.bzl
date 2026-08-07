@@ -22,6 +22,15 @@ load("//cc/private/compile:lto_compilation_context.bzl", _EMPTY_LTO = "EMPTY_LTO
 load("//cc/private/link:dynamic_library_symlink.bzl", "dynamic_library_symlink", "dynamic_library_symlink2")
 load("//cc/private/link:lto_backends.bzl", "create_shared_non_lto_artifacts")
 
+_DYNAMIC_LIBRARY_EXTENSIONS = (".so", ".dylib", ".dll", ".pyd", ".wasm", ".tgt", ".vpi")
+_INTERFACE_LIBRARY_EXTENSIONS = (".ifso", ".tbd", ".lib", ".dll.a")
+_INTERFACE_OR_DYNAMIC_LIBRARY_EXTENSIONS = _INTERFACE_LIBRARY_EXTENSIONS + (".so", ".dylib")
+_STATIC_LIBRARY_EXTENSIONS = (".a", ".lib", ".rlib")
+_ALWAYSLINK_STATIC_LIBRARY_EXTENSIONS = _STATIC_LIBRARY_EXTENSIONS + (".lo",)
+_STATIC_LIBRARY_EXCLUDED_EXTENSIONS = (".lo.lib", ".if.lib")
+_ALWAYSLINK_STATIC_LIBRARY_EXCLUDED_EXTENSIONS = (".pic.lo", ".if.lib")
+_PIC_ALWAYSLINK_STATIC_LIBRARY_EXCLUDED_EXTENSIONS = (".if.lib",)
+
 _warning = """ Don't use this field. It's intended for internal use and will be changed or removed
     without warning."""
 
@@ -169,34 +178,54 @@ def create_library_to_link(
         _validate_symlink_path("dynamic_library_symlink_path", dynamic_library_symlink_path)
         _validate_ext(
             dynamic_library_symlink_path,
-            [".so", ".dylib", ".dll", ".pyd", ".wasm", ".tgt", ".vpi"],
+            _DYNAMIC_LIBRARY_EXTENSIONS,
             is_versioned_shared_library,
             empty_ext = True,
         )
 
     if interface_library_symlink_path:
         _validate_symlink_path("interface_library_symlink_path", interface_library_symlink_path)
-        _validate_ext(interface_library_symlink_path, [".ifso", ".tbd", ".lib", ".dll.a"])
+        _validate_ext(interface_library_symlink_path, _INTERFACE_LIBRARY_EXTENSIONS)
 
     if static_library:
         if alwayslink:
-            _validate_ext(static_library, [".a", ".lib", ".rlib"] + [".lo"], not_ext = [".pic.lo", ".if.lib"], empty_ext = True)
+            _validate_ext(
+                static_library,
+                _ALWAYSLINK_STATIC_LIBRARY_EXTENSIONS,
+                not_ext = _ALWAYSLINK_STATIC_LIBRARY_EXCLUDED_EXTENSIONS,
+                empty_ext = True,
+            )
         else:
-            _validate_ext(static_library, [".a", ".lib", ".rlib"], not_ext = [".lo.lib", ".if.lib"], empty_ext = True)
+            _validate_ext(
+                static_library,
+                _STATIC_LIBRARY_EXTENSIONS,
+                not_ext = _STATIC_LIBRARY_EXCLUDED_EXTENSIONS,
+                empty_ext = True,
+            )
 
     if pic_static_library:
         if alwayslink:
             # Ideally we'd allow only `.pic.lo` instead of `.lo`, `.pic.a` instead of `.a`, `.lo.lib` instead of `.lib`
             # but in reality pic libs are often called same as no-pic.
-            _validate_ext(pic_static_library, [".a", ".lib", ".rlib"] + [".lo"], not_ext = [".if.lib"], empty_ext = True)
+            _validate_ext(
+                pic_static_library,
+                _ALWAYSLINK_STATIC_LIBRARY_EXTENSIONS,
+                not_ext = _PIC_ALWAYSLINK_STATIC_LIBRARY_EXCLUDED_EXTENSIONS,
+                empty_ext = True,
+            )
         else:
-            _validate_ext(pic_static_library, [".a", ".lib", ".rlib"], not_ext = [".lo.lib", ".if.lib"], empty_ext = True)
+            _validate_ext(
+                pic_static_library,
+                _STATIC_LIBRARY_EXTENSIONS,
+                not_ext = _STATIC_LIBRARY_EXCLUDED_EXTENSIONS,
+                empty_ext = True,
+            )
 
     if dynamic_library:
-        _validate_ext(dynamic_library, [".so", ".dylib", ".dll", ".pyd", ".wasm", ".tgt", ".vpi"], is_versioned_shared_library, empty_ext = True)
+        _validate_ext(dynamic_library, _DYNAMIC_LIBRARY_EXTENSIONS, is_versioned_shared_library, empty_ext = True)
 
     if interface_library:
-        _validate_ext(interface_library, [".ifso", ".tbd", ".lib", ".dll.a", ".so", ".dylib"])
+        _validate_ext(interface_library, _INTERFACE_OR_DYNAMIC_LIBRARY_EXTENSIONS)
 
     if errors:
         fail("\n".join(errors))
@@ -321,15 +350,13 @@ def _validate_symlink_path(attr, path):
     if not path or paths.is_absolute(path) or path_contains_up_level_references(path):
         fail("%s must be a relative file path. Got '%s" % (attr, path))
 
-def _validate_extension(path, extensions, func = None, not_ext = [], fail = fail, empty_ext = False):
+def _validate_extension(path, extensions, func = None, not_ext = (), fail = fail, empty_ext = False):
     path = getattr(path, "basename", path)  # Handle str|File
     path_lower = path.lower()
-    for ext in not_ext:
-        if path_lower.endswith(ext.lower()):
-            fail("'%s' does not have any of the allowed extensions %s" % (path, ", ".join(extensions)))
-    for ext in extensions:
-        if path_lower.endswith(ext.lower()):
-            return
+    if path_lower.endswith(not_ext):
+        fail("'%s' does not have any of the allowed extensions %s" % (path, ", ".join(extensions)))
+    if path_lower.endswith(extensions):
+        return
     if empty_ext:
         _, actual_ext = paths.split_extension(path)
         if actual_ext == "":

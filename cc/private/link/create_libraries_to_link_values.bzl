@@ -259,6 +259,8 @@ def _add_static_library_to_link(
         )
         expanded_linker_inputs.append(library_file)
 
+_DYNAMIC_LIBRARY_SUFFIXES = (".so", ".dylib", ".dll", ".pyd")
+
 def _add_dynamic_library_to_link(
         library,
         windows_with_interface_shared_libraries,
@@ -284,11 +286,7 @@ def _add_dynamic_library_to_link(
     # -lfoo -> libfoo.so
     # -l:foo -> foo.so
     # -l:libfoo.so.1 -> libfoo.so.1
-    has_compatible_name = (
-        name.startswith("lib") or
-        (not name.endswith(".so") and not name.endswith(".dylib") and
-         not name.endswith(".dll") and not name.endswith(".pyd"))
-    )
+    has_compatible_name = name.startswith("lib") or not name.endswith(_DYNAMIC_LIBRARY_SUFFIXES)
     if shared_library and has_compatible_name:
         lib_name = name.removeprefix("lib").removesuffix(".so").removesuffix(".dylib") \
             .removesuffix(".dll").removesuffix(".pyd")

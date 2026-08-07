@@ -58,12 +58,14 @@ def _test_libraries_to_link_are_exported(name):
         with_features = ["supports_dynamic_linker", "libraries_to_link"],
     )
 
+_OBJECT_FILE_SUFFIXES = ("a.o", "a.pic.o", "a.obj", "a.pic.obj")
+
 def _test_libraries_to_link_are_exported_impl(env, target):
     action = _cc_library_nodeps_dynamic_library_action(env, target)
     action.argv().contains_predicate(
         matching.custom(
             "contains a.o or a.pic.o",
-            lambda s: s.startswith("--library-to-link=") and any([s.endswith(ext) for ext in ["a.o", "a.pic.o", "a.obj", "a.pic.obj"]]),
+            lambda s: s.startswith("--library-to-link=") and s.endswith(_OBJECT_FILE_SUFFIXES),
         ),
     )
 
