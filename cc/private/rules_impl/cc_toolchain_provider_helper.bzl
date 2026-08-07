@@ -158,7 +158,7 @@ def get_cc_toolchain_provider(ctx, attributes):
     # we fall back to below so the guard in tool_path returns true
     # when those action_configs are declared.
     feature_configuration = toolchain_features.configure_features(
-        requested_features = toolchain_features.default_features_and_action_configs() + [
+        requested_features = toolchain_config_info._default_features_and_action_configs + [
             ACTION_NAMES.c_compile,
             ACTION_NAMES.cpp_link_static_library,
             ACTION_NAMES.cpp_link_executable,
