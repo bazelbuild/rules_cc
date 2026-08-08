@@ -294,6 +294,222 @@ def _get_compiler_name(repository_ctx, cc):
         return "gcc"
     return "compiler"
 
+def _find_std_module_via_modules_json(repository_ctx, cc, modules_json_name):
+    """Find std library modules via the compiler's modules.json manifest.
+
+    Modern GCC (14+) and Clang ship a <stdlib>.modules.json manifest listing
+    available C++23 standard library modules (e.g. "std" and "std.compat").
+    Query it with `cc -print-file-name=<name>` and parse each module with
+    is-std-library == true.
+
+    Args:
+      repository_ctx: The repository context.
+      cc: The compiler to query for the manifest.
+      modules_json_name: "libstdc++.modules.json" or "libc++.modules.json".
+
+    Returns a list of structs, one per module (logical_name "std" first, then
+    "std.compat" if present). Each struct has: logical_name, target_name (a
+    bazel-safe label name with "." replaced by "_"), path, name (basename),
+    extra_symlinks, hdrs_glob, deps (list of target_names this module depends
+    on, e.g. std.compat depends on std). Returns None when no manifest is
+    found.
+    """
+    result = repository_ctx.execute([cc, "-print-file-name=" + modules_json_name])
+    if result.return_code != 0:
+        return None
+    printed = result.stdout.strip()
+    if not printed or printed == modules_json_name:
+        # -print-file-name returns the bare name when the file is not found.
+        return None
+    json_path = repository_ctx.path(printed)
+    if not json_path.exists:
+        return None
+    manifest = json.decode(repository_ctx.read(json_path))
+    modules = []
+    for module in manifest.get("modules", []):
+        if not module.get("is-std-library", False):
+            continue
+        logical_name = module.get("logical-name")
+        if not logical_name:
+            continue
+        source_path = module.get("source-path")
+        if not source_path:
+            continue
+        # source-path may be absolute (libstdc++) or relative to the
+        # modules.json directory (libc++).
+        if not source_path.startswith("/"):
+            source_path = str(json_path.dirname.get_child(source_path))
+        source = repository_ctx.path(source_path)
+        if not source.exists:
+            continue
+        local_args = module.get("local-arguments", {})
+        include_dirs = local_args.get("system-include-directories", [])
+        extra_symlinks = {}
+        hdrs_glob = ""
+        for inc in include_dirs:
+            inc_path = inc if inc.startswith("/") else str(json_path.dirname.get_child(inc))
+            inc_root = repository_ctx.path(inc_path)
+            # libc++ ships <logical-name>/*.inc next to the .cppm file (e.g.
+            # std/algorithm.inc for std.cppm, std.compat/cassert.inc for
+            # std.compat.cppm); symlink the sibling directory and declare its
+            # .inc files as hdrs so they enter the sandbox. libstdc++ uses
+            # angle-bracket includes and has no sibling directory.
+            sibling_dir = inc_root.get_child(logical_name)
+            if sibling_dir.exists:
+                extra_symlinks[logical_name] = str(sibling_dir)
+                hdrs_glob = "%s/**/*.inc" % logical_name
+        modules.append({
+            "logical_name": logical_name,
+            "target_name": logical_name.replace(".", "_"),
+            "path": str(source),
+            "name": source.basename,
+            "extra_symlinks": extra_symlinks,
+            "hdrs_glob": hdrs_glob,
+        })
+    if not modules:
+        return None
+    # std.compat does `export import std;` so it depends on the std module.
+    # Order: std first, then std.compat, so deps can reference earlier targets.
+    std_target_names = [m["target_name"] for m in modules if m["logical_name"] == "std"]
+    result = []
+    for m in modules:
+        deps = [] if m["logical_name"] == "std" else std_target_names
+        result.append(struct(
+            logical_name = m["logical_name"],
+            target_name = m["target_name"],
+            path = m["path"],
+            name = m["name"],
+            extra_symlinks = m["extra_symlinks"],
+            hdrs_glob = m["hdrs_glob"],
+            deps = deps,
+        ))
+    return result
+
+def _find_libstdcxx_std_module(repository_ctx, cc, builtin_include_directories):
+    """libstdc++ (GCC 14+, or clang using libstdc++): <inc_dir>/bits/std.cc.
+
+    Falls back to scanning builtin include directories when the compiler does
+    not ship libstdc++.modules.json (e.g. GCC 13). Returns a list of structs
+    (see _find_std_module_via_modules_json for the element shape).
+    """
+    via_json = _find_std_module_via_modules_json(
+        repository_ctx,
+        cc,
+        "libstdc++.modules.json",
+    )
+    if via_json:
+        return via_json
+
+    # Fallback: scan builtin include directories for bits/std.cc.
+    for inc_dir in builtin_include_directories:
+        candidate = repository_ctx.path(inc_dir).get_child("bits/std.cc")
+        if candidate.exists:
+            return [struct(
+                logical_name = "std",
+                target_name = "std",
+                path = str(candidate),
+                name = "std.cc",
+                extra_symlinks = {},
+                hdrs_glob = "",
+                deps = [],
+            )]
+    return None
+
+def _find_libcxx_std_module(repository_ctx, cc):
+    """libc++ (clang): <llvm-prefix>/share/libc++/v1/std.cppm.
+
+    Falls back to deriving the path from clang -print-resource-dir when the
+    compiler does not ship libc++.modules.json. Returns a list of structs (see
+    _find_std_module_via_modules_json for the element shape).
+    """
+    via_json = _find_std_module_via_modules_json(
+        repository_ctx,
+        cc,
+        "libc++.modules.json",
+    )
+    if via_json:
+        return via_json
+
+    # Fallback: <resource-dir>/../../share/libc++/v1/std.cppm
+    result = repository_ctx.execute([cc, "-print-resource-dir"])
+    if result.return_code != 0:
+        return None
+    resource_dir = result.stdout.strip()
+    if not resource_dir:
+        return None
+    p = repository_ctx.path(resource_dir)
+    for _ in range(3):
+        p = p.dirname
+    candidate = p.get_child("share/libc++/v1/std.cppm")
+    if not candidate.exists:
+        return None
+    std_dir = p.get_child("share/libc++/v1/std")
+    extra_symlinks = {}
+    hdrs_glob = ""
+    if std_dir.exists:
+        extra_symlinks = {"std": str(std_dir)}
+        hdrs_glob = "std/**/*.inc"
+    return [struct(
+        logical_name = "std",
+        target_name = "std",
+        path = str(candidate),
+        name = "std.cppm",
+        extra_symlinks = extra_symlinks,
+        hdrs_glob = hdrs_glob,
+        deps = [],
+    )]
+
+def _linklibs_has_token(linklibs_str, token):
+    """Return True if token appears as a :-separated element of linklibs_str.
+
+    BAZEL_LINKLIBS is :-separated (e.g. "-lc++:-lm" or
+    "-Wl,--push-state,-as-needed,-lc++,-Wl,--pop-state:-lm"). A substring check
+    would false-positive on "-lc++fs" or miss edge cases inside
+    comma-joined linker flags; token matching is precise.
+    """
+    return token in split_escaped(linklibs_str, ":")
+
+def _find_std_module_interface(repository_ctx, cc, builtin_include_directories, is_clang):
+    """Detect the C++ standard library's std module interface files.
+
+    Selection is driven by BAZEL_LINKLIBS (the same env var that selects the
+    linker's standard library):
+      - has "-lc++" token (and not "-lstdc++"): libc++ std.cppm (clang only)
+      - has "-lstdc++" token (and not "-lc++"): libstdc++ bits/std.cc
+      - otherwise (e.g. macOS/BSD where use_libcpp defaults true, or unset):
+        libstdc++ first, then libc++ as fallback
+
+    Discovery uses the compiler's modules.json manifest
+    (-print-file-name=libstdc++.modules.json / libc++.modules.json) when
+    available, falling back to scanning builtin include directories (libstdc++)
+    or deriving from -print-resource-dir (libc++) for older compilers.
+
+    Returns a list of structs (one per module: std, and std.compat if present),
+    or None when no std module interface is available (e.g. GCC 13 or older,
+    or a compiler without shipped C++23 module support). Each struct has:
+    logical_name, target_name, path, name, extra_symlinks, hdrs_glob, deps.
+
+    The returned module interface is compiled with the toolchain's existing
+    cxx_flags; callers are responsible for passing -stdlib=libc++ via
+    BAZEL_CXXOPTS when BAZEL_LINKLIBS selects libc++.
+    """
+    linklibs = repository_ctx.os.environ.get("BAZEL_LINKLIBS", "")
+    has_libcpp = _linklibs_has_token(linklibs, "-lc++")
+    has_libstdcxx = _linklibs_has_token(linklibs, "-lstdc++")
+    if has_libcpp and not has_libstdcxx:
+        if is_clang:
+            return _find_libcxx_std_module(repository_ctx, cc)
+        return None
+    if has_libstdcxx and not has_libcpp:
+        return _find_libstdcxx_std_module(repository_ctx, cc, builtin_include_directories)
+
+    libstdcxx = _find_libstdcxx_std_module(repository_ctx, cc, builtin_include_directories)
+    if libstdcxx:
+        return libstdcxx
+    if is_clang:
+        return _find_libcxx_std_module(repository_ctx, cc)
+    return None
+
 def _find_generic(repository_ctx, name, env_name, overridden_tools, warn = False, silent = False):
     """Find a generic C++ toolchain tool. Doesn't %-escape the result."""
 
@@ -628,6 +844,62 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
             extra_flags_per_feature["use_module_maps"] = ["-Xclang", "-fno-cxx-modules"]
 
     write_builtin_include_directory_paths(repository_ctx, cc, builtin_include_directories)
+
+    std_modules = _find_std_module_interface(
+        repository_ctx,
+        cc,
+        builtin_include_directories,
+        is_clang,
+    )
+    # Known std module target names. Always emit no-op fallbacks so that
+    # deps = ["@local_config_cc//:std"] and deps = ["@local_config_cc//:std_compat"]
+    # resolve even when the toolchain doesn't provide the module interface (e.g.
+    # GCC 13 has no modules.json; some toolchains ship std but not std.compat).
+    # The actual module availability is checked at compile time.
+    std_target_names = ["std", "std_compat"]
+    generated_targets = {}
+    if std_modules:
+        # Build a cc_library target per module (std, and std.compat if present).
+        # std.compat does `export import std;` so it depends on the std target.
+        symlinked = {}
+        for m in std_modules:
+            if m.name not in symlinked:
+                repository_ctx.symlink(m.path, m.name)
+                symlinked[m.name] = True
+            for link_name, target in m.extra_symlinks.items():
+                if link_name not in symlinked:
+                    repository_ctx.symlink(target, link_name)
+                    symlinked[link_name] = True
+            hdrs_attr = ""
+            if m.hdrs_glob:
+                hdrs_attr = '    hdrs = glob(["%s"]),\n' % m.hdrs_glob
+            deps_attr = ""
+            if m.deps:
+                deps_attr = '    deps = [%s],\n' % ", ".join(
+                    ['":%s"' % d for d in m.deps]
+                )
+            # -Wno-reserved-module-identifier is clang-only; GCC doesn't
+            # recognize it and warns about the unknown option.
+            copts_attr = ""
+            if is_clang:
+                copts_attr = '    copts = ["-Wno-reserved-module-identifier"],\n'
+            generated_targets[m.target_name] = (
+                '\ncc_library(\n' +
+                '    name = "%s",\n' % m.target_name +
+                '    module_interfaces = [":%s"],\n' % m.name +
+                hdrs_attr +
+                deps_attr +
+                copts_attr +
+                '    features = ["cpp_modules"],\n' +
+                ')\n'
+            )
+    std_module_targets = ""
+    for name in std_target_names:
+        if name in generated_targets:
+            std_module_targets += generated_targets[name]
+        else:
+            std_module_targets += '\ncc_library(\n    name = "%s",\n)\n' % name
+
     repository_ctx.template(
         "BUILD",
         paths["@rules_cc//cc/private/toolchain:BUILD.tpl"],
@@ -720,6 +992,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
             ) + link_opts),
             "%{link_libs}": get_starlark_list(link_libs),
             "%{modulemap}": ("\":module.modulemap\"" if generate_modulemap else "None"),
+            "%{std_module_targets}": std_module_targets,
             "%{name}": cpu_value,
             "%{opt_compile_flags}": get_starlark_list(
                 [

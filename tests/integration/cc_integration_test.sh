@@ -2474,6 +2474,180 @@ EOF
   expect_log "17 disk cache hit"
 }
 
+# Test that @local_config_cc//:std and @local_config_cc//:std_compat are
+# auto-detected from the compiler's libstdc++.modules.json. Uses clang with
+# libstdc++ (the default on Linux) to avoid GCC-specific -fmodules-ts quirks.
+# Verifies `import std;` and `import std.compat;` compile and link against the
+# toolchain-provided std module interface.
+function test_std_module_libstdcxx() {
+  # macOS default toolchain is clang+libc++; skip on macOS.
+  is_darwin && return 0
+
+  type -P clang >/dev/null 2>&1 || return 0
+
+  # Skip if clang doesn't ship libstdc++.modules.json (e.g. macOS or a clang
+  # build without libstdc++ module support).
+  local manifest
+  manifest=$(clang -print-file-name=libstdc++.modules.json 2>/dev/null || true)
+  [[ -z "$manifest" || "$manifest" == "libstdc++.modules.json" ]] && return 0
+
+  cat >> MODULE.bazel <<'EOF'
+cc_configure = use_extension("@rules_cc//cc:extensions.bzl", "cc_configure_extension")
+use_repo(cc_configure, "local_config_cc")
+EOF
+
+  cat > BUILD <<'EOF'
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+cc_binary(
+    name = "std_compat_test",
+    srcs = ["std_compat_test.cc"],
+    deps = [
+        "@local_config_cc//:std",
+        "@local_config_cc//:std_compat",
+    ],
+    features = ["cpp_modules"],
+)
+EOF
+
+  cat > std_compat_test.cc <<'EOF'
+import std;
+import std.compat;
+
+int main() {
+    std::cout << "import std.compat works" << std::endl;
+    return 0;
+}
+EOF
+
+  bazel build //:std_compat_test \
+      --experimental_cpp_modules \
+      --repo_env=CC=clang \
+      --copt=-std=c++26 \
+      >& "$TEST_log" || fail "Build with import std; import std.compat; failed"
+
+  bazel-bin/std_compat_test >> "$TEST_log"
+  expect_log "import std.compat works"
+}
+
+# Test that @local_config_cc//:std and @local_config_cc//:std_compat are
+# auto-detected from libc++.modules.json when BAZEL_LINKLIBS selects libc++
+# (clang only). Verifies `import std;` and `import std.compat;` compile and
+# link against the libc++ std.cppm module interface.
+function test_std_module_libcxx() {
+  type -P clang >/dev/null 2>&1 || return 0
+
+  # libc++ std modules require clang 17+ (modules.json shipped).
+  local clang_version
+  clang_version=$(clang --version | head -n1 | grep -oE '[0-9]+\.[0-9]+' | head -n1)
+  if [[ -n "$clang_version" ]]; then
+    local major_version
+    major_version=$(echo "$clang_version" | cut -d. -f1)
+    [[ "$major_version" -lt 17 ]] && return 0
+  fi
+
+  # Skip if libc++.modules.json is not shipped (clang without libc++ module
+  # support).
+  local manifest
+  manifest=$(clang -print-file-name=libc++.modules.json 2>/dev/null || true)
+  [[ -z "$manifest" || "$manifest" == "libc++.modules.json" ]] && return 0
+
+  cat >> MODULE.bazel <<'EOF'
+cc_configure = use_extension("@rules_cc//cc:extensions.bzl", "cc_configure_extension")
+use_repo(cc_configure, "local_config_cc")
+EOF
+
+  cat > BUILD <<'EOF'
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+cc_binary(
+    name = "std_compat_test",
+    srcs = ["std_compat_test.cc"],
+    deps = [
+        "@local_config_cc//:std",
+        "@local_config_cc//:std_compat",
+    ],
+    features = ["cpp_modules"],
+)
+EOF
+
+  cat > std_compat_test.cc <<'EOF'
+import std;
+import std.compat;
+
+int main() {
+    std::cout << "import std.compat works" << std::endl;
+    return 0;
+}
+EOF
+
+  bazel build //:std_compat_test \
+      --experimental_cpp_modules \
+      --repo_env=CC=clang \
+      --repo_env=BAZEL_CXXOPTS=-std=c++26:-stdlib=libc++ \
+      --repo_env=BAZEL_LINKLIBS=-lc++:-lm \
+      >& "$TEST_log" || fail "Build with import std; import std.compat; (libc++) failed"
+
+  bazel-bin/std_compat_test >> "$TEST_log"
+  expect_log "import std.compat works"
+}
+
+# Test that @local_config_cc//:std and @local_config_cc//:std_compat resolve
+# as no-op cc_library targets when the compiler has no std module support
+# (e.g. GCC 13 without libstdc++.modules.json). deps referencing these labels
+# must still analyze, even though import std; would fail to compile.
+function test_std_module_noop_fallback() {
+  # Find a GCC without libstdc++.modules.json (GCC 13 or earlier).
+  local cc=""
+  for candidate in gcc-13 gcc-12 gcc-11 gcc; do
+    if type -P "$candidate" >/dev/null 2>&1; then
+      manifest=$( "$candidate" -print-file-name=libstdc++.modules.json 2>/dev/null || true )
+      if [[ -z "$manifest" || "$manifest" == "libstdc++.modules.json" ]]; then
+        cc="$candidate"
+        break
+      fi
+    fi
+  done
+  [[ -z "$cc" ]] && return 0
+
+  cat >> MODULE.bazel <<'EOF'
+cc_configure = use_extension("@rules_cc//cc:extensions.bzl", "cc_configure_extension")
+use_repo(cc_configure, "local_config_cc")
+EOF
+
+  # A cc_binary that deps on @local_config_cc//:std and @local_config_cc//:std_compat
+  # must analyze even when no std module is available. We do not import std; here
+  # (that would fail to compile without the module); we only verify the labels
+  # resolve as no-op cc_library targets.
+  cat > BUILD <<'EOF'
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+cc_binary(
+    name = "noop_test",
+    srcs = ["noop_test.cc"],
+    deps = [
+        "@local_config_cc//:std",
+        "@local_config_cc//:std_compat",
+    ],
+)
+EOF
+
+  cat > noop_test.cc <<'EOF'
+#include <iostream>
+
+int main() {
+    std::cout << "no-op std target resolves" << std::endl;
+    return 0;
+}
+EOF
+
+  bazel build //:noop_test --repo_env=CC="$cc" >& "$TEST_log" || \
+      fail "Build with no-op @local_config_cc//:std / //:std_compat failed"
+
+  bazel-bin/noop_test >> "$TEST_log"
+  expect_log "no-op std target resolves"
+}
+
 function test_external_repo_lto() {
   is_bazel || return 0
   
