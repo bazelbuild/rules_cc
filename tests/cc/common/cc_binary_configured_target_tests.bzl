@@ -497,9 +497,12 @@ def _test_sanitize_pwd_macos_no_pwd_impl(env, target):
 
 def _include_paths_from_argv(argv, flag):
     include_paths = []
-    for i in range(len(argv) - 1):
+    for i in range(len(argv)):
         if argv[i] == flag:
-            include_paths.append(argv[i + 1])
+            if i + 1 < len(argv):
+                include_paths.append(argv[i + 1])
+        elif argv[i].startswith(flag):
+            include_paths.append(argv[i][len(flag):])
     return include_paths
 
 def _system_include_paths_from_argv(argv):
@@ -621,6 +624,7 @@ def _test_external_include_paths_reclassifies_external_quote_includes_impl(env, 
 
     env.expect.that_collection(hello_obj_files).has_size(1)
     compile_action = env.expect.that_target(target).action_generating(hello_obj_files[0].short_path)
+    include_paths = _include_paths_from_argv(compile_action.actual.argv, "-I")
     quote_include_paths = _include_paths_from_argv(compile_action.actual.argv, "-iquote")
     system_include_paths = _system_include_paths_from_argv(compile_action.actual.argv)
 
@@ -629,9 +633,15 @@ def _test_external_include_paths_reclassifies_external_quote_includes_impl(env, 
     env.expect.that_collection(system_include_paths).contains_predicate(
         matching.contains("googletest"),
     )
-    env.expect.that_collection(quote_include_paths).transform(
+    env.expect.that_collection(system_include_paths).contains_none_of([
+        "external/googletest+",
+    ])
+    env.expect.that_collection(include_paths).transform(
         filter = matching.contains("googletest"),
     ).contains_exactly([])
+    env.expect.that_collection(quote_include_paths).transform(
+        filter = matching.contains("googletest"),
+    ).contains_exactly(["external/googletest+"])
 
 def _test_linkopts_diamond(name, **kwargs):
     util.helper_target(
