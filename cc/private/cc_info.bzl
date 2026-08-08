@@ -152,22 +152,90 @@ _ModuleMapInfo = provider(
     "ModuleMapInfo",
     fields = {
         "file": "The module map file.",
-        "name": "The name of the module.",
+        "name": "The name of the module or None if the module is named after the label of the target that generated the module map file (see get_module_map_name).",
     },
 )
 
-def create_module_map(*, file, name):
+def create_module_map(*, file, name = None):
     """
     Creates a module map struct.
 
     Args:
         file: The module map file.
-        name: The name of the module.
+        name: The name of the module. If None (the default), the module is
+          named after the label of the target that generated the module map
+          file. Prefer the default: it avoids retaining a name string per
+          module map as the name is derived on demand from `file.owner`.
     Returns:
         A module map struct.
     """
     check_private_api()
     return _ModuleMapInfo(file = file, name = name)
+
+def module_map_name_for_label(label):
+    """
+    Returns the module name for a module map named after the given label.
+
+    The name is the label's unambiguous canonical form, except that
+    main-repository labels do not carry the leading double-at prefix (see
+    get_module_map_name).
+
+    Args:
+        label: The Label the module is named after.
+    Returns:
+        The name of the module as a string.
+    """
+    label_string = str(label)
+
+    # buildifier: disable=canonical-repository
+    if label_string.startswith("@@//"):
+        return label_string[2:]
+    return label_string
+
+def get_module_map_name(module_map):
+    """
+    Returns the name of the module described by a module map struct.
+
+    Module maps generated for a target are named after the target's label,
+    rendered in its unambiguous canonical form, except that main-repository
+    labels do not carry the leading double-at prefix (for example "//pkg:lib"
+    for a main-repository target). Names of targets in external repositories
+    are thus valid label strings, while main-repository names match the
+    traditional module name format.
+
+    Args:
+        module_map: The module map struct.
+    Returns:
+        The name of the module as a string.
+    """
+    if module_map.name != None:
+        return module_map.name
+    return module_map_name_for_label(module_map.file.owner)
+
+def get_module_map_label(module_map):
+    """
+    Returns the label a module map struct is named after.
+
+    This is only valid for module maps whose name is (derived from) a label,
+    which is the case for all module maps generated for a target, including
+    separate module maps. It is not valid for module maps with special names
+    such as the crosstool module map.
+
+    Args:
+        module_map: The module map struct.
+    Returns:
+        The Label the module's name refers to.
+    """
+    if module_map.name == None:
+        return module_map.file.owner
+
+    # Module map names of main-repository targets lack the leading "@@" (see
+    # get_module_map_name), which has to be restored for parsing to ensure
+    # that the name is not resolved relative to this file's repository.
+    name = module_map.name
+
+    # buildifier: disable=canonical-repository
+    return Label(name if name.startswith("@") else "@@" + name)
 
 def create_separate_module_map(module_map):
     """
@@ -178,7 +246,7 @@ def create_separate_module_map(module_map):
     Returns:
         A module map struct.
     """
-    return _ModuleMapInfo(file = module_map.file, name = module_map.name + ".sep")
+    return _ModuleMapInfo(file = module_map.file, name = get_module_map_name(module_map) + ".sep")
 
 def create_linking_context(
         *,
