@@ -67,6 +67,19 @@ all_cpp_compile_actions = [
     ACTION_NAMES.clif_match,
 ]
 
+# Actions that must carry the MSVC runtime library flag (/MT or /MD). Module
+# interface compiles (cpp*_module_compile/codegen) must receive the same CRT
+# flag as importing TUs; otherwise cl.exe falls back to the static CRT for the
+# module unit, and importing TUs get C5050 while the linker gets LNK4098.
+msvcrt_compile_actions = [
+    ACTION_NAMES.c_compile,
+    ACTION_NAMES.cpp_compile,
+    ACTION_NAMES.cpp_module_compile,
+    ACTION_NAMES.cpp_module_codegen,
+    ACTION_NAMES.cpp20_module_compile,
+    ACTION_NAMES.cpp20_module_codegen,
+]
+
 preprocessor_compile_actions = [
     ACTION_NAMES.c_compile,
     ACTION_NAMES.cpp_compile,
@@ -139,6 +152,11 @@ def _impl(ctx):
                 category_name = "interface_library",
                 prefix = "",
                 extension = ".if.lib",
+            ),
+            artifact_name_pattern(
+                category_name = "cpp_module",
+                prefix = "",
+                extension = ".ifc",
             ),
         ]
     else:
@@ -662,12 +680,12 @@ def _impl(ctx):
             name = "static_link_msvcrt",
             flag_sets = [
                 flag_set(
-                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                    actions = msvcrt_compile_actions,
                     flag_groups = [flag_group(flags = ["/MT"])],
                     with_features = [with_feature_set(not_features = ["dbg"])],
                 ),
                 flag_set(
-                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                    actions = msvcrt_compile_actions,
                     flag_groups = [flag_group(flags = ["/MTd"])],
                     with_features = [with_feature_set(features = ["dbg"])],
                 ),
@@ -689,12 +707,12 @@ def _impl(ctx):
             enabled = True,
             flag_sets = [
                 flag_set(
-                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                    actions = msvcrt_compile_actions,
                     flag_groups = [flag_group(flags = ["/MD"])],
                     with_features = [with_feature_set(not_features = ["dbg", "static_link_msvcrt"])],
                 ),
                 flag_set(
-                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                    actions = msvcrt_compile_actions,
                     flag_groups = [flag_group(flags = ["/MDd"])],
                     with_features = [with_feature_set(features = ["dbg"], not_features = ["static_link_msvcrt"])],
                 ),
@@ -1048,6 +1066,10 @@ def _impl(ctx):
                         ACTION_NAMES.cpp_compile,
                         ACTION_NAMES.cpp_header_parsing,
                         ACTION_NAMES.cpp_module_compile,
+                        ACTION_NAMES.cpp_module_codegen,
+                        ACTION_NAMES.cpp_module_deps_scanning,
+                        ACTION_NAMES.cpp20_module_compile,
+                        ACTION_NAMES.cpp20_module_codegen,
                     ],
                     flag_groups = [
                         flag_group(
@@ -1198,6 +1220,20 @@ def _impl(ctx):
                                     expand_if_available = "output_preprocess_file",
                                 ),
                             ],
+                            expand_if_available = "output_file",
+                        ),
+                    ],
+                ),
+            ],
+            env_sets = [
+                env_set(
+                    actions = [
+                        ACTION_NAMES.cpp_module_deps_scanning,
+                    ],
+                    env_entries = [
+                        env_entry(
+                            key = "DEPS_SCANNER_OUTPUT_FILE",
+                            value = "%{output_file}",
                             expand_if_available = "output_file",
                         ),
                     ],
