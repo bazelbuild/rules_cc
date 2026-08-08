@@ -1,11 +1,47 @@
 """Tests for compile build variables."""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@rules_testing//lib:analysis_test.bzl", "test_suite")
 load("@rules_testing//lib:truth.bzl", "matching", "subjects")
 load("@rules_testing//lib:util.bzl", "TestingAspectInfo", "util")
+load("//cc:action_names.bzl", "ACTION_NAMES")
 load("//cc:cc_binary.bzl", _actual_cc_binary = "cc_binary")
+load("//cc:find_cc_toolchain.bzl", "CC_TOOLCHAIN_ATTRS", "find_cpp_toolchain", "use_cc_toolchain")
+load("//cc/common:cc_common.bzl", "cc_common")
 load("//tests/cc/testutil:cc_analysis_test.bzl", "cc_analysis_test")
 load("//tests/cc/testutil:link_action_subject.bzl", "link_action_subject")
+
+_CompileVariablesInfo = provider(
+    doc = "Arguments expanded from cc_common.create_compile_variables.",
+    fields = ["arguments"],
+)
+
+def _compile_variables_test_rule_impl(ctx):
+    cc_toolchain = find_cpp_toolchain(ctx)
+    feature_configuration = cc_common.configure_features(
+        ctx = ctx,
+        cc_toolchain = cc_toolchain,
+        requested_features = ["debug_variables"],
+    )
+    variables = cc_common.create_compile_variables(
+        cc_toolchain = cc_toolchain,
+        feature_configuration = feature_configuration,
+        source_file = "test.cc",
+        output_file = "test.o",
+        variables_extension = ctx.attr.variables_extension,
+    )
+    return [_CompileVariablesInfo(arguments = cc_common.get_memory_inefficient_command_line(
+        feature_configuration = feature_configuration,
+        action_name = ACTION_NAMES.cpp_compile,
+        variables = variables,
+    ))]
+
+_compile_variables_test_rule = rule(
+    implementation = _compile_variables_test_rule_impl,
+    attrs = CC_TOOLCHAIN_ATTRS | {"variables_extension": attr.string_dict()},
+    fragments = ["cpp"],
+    toolchains = use_cc_toolchain(),
+)
 
 # Wrap cc_binary to mock out common dependencies.
 def cc_binary(name, **kwargs):
@@ -232,6 +268,51 @@ def _test_presence_of_sysroot_build_variable_impl(env, target):
     compile_action = _compile_action(env, target, "bin")
     _variable(compile_action, "sysroot").equals("/usr/grte/v1")
 
+def _test_compile_variables_extension_overrides_toolchain_variable(name, **kwargs):
+    util.helper_target(
+        _compile_variables_test_rule,
+        name = name + "/variables",
+        variables_extension = {"sysroot": "/overridden/sysroot"},
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_compile_variables_extension_overrides_toolchain_variable_impl,
+        target = name + "/variables",
+        **kwargs
+    )
+
+def _test_compile_variables_extension_overrides_toolchain_variable_impl(env, target):
+    env.expect.that_collection(target[_CompileVariablesInfo].arguments).contains(
+        "--debug-var:sysroot=/overridden/sysroot",
+    )
+
+def _test_compile_variables_extension_rejects_duplicate_variables(name, **kwargs):
+    util.helper_target(
+        _compile_variables_test_rule,
+        name = name + "/variables",
+        variables_extension = {
+            "user_compile_flags": "duplicate flags",
+            "output_file": "duplicate output",
+            "source_file": "duplicate source",
+        },
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_compile_variables_extension_rejects_duplicate_variables_impl,
+        target = name + "/variables",
+        expect_failure = True,
+        **kwargs
+    )
+
+def _test_compile_variables_extension_rejects_duplicate_variables_impl(env, target):
+    expected_error = "Cannot overwrite existing variables: [output_file, source_file, user_compile_flags]"
+    env.expect.that_target(target).failures().contains_predicate(
+        matching.custom(
+            "contains '{}'".format(expected_error),
+            lambda actual: expected_error in actual,
+        ),
+    )
+
 def _test_target_sysroot_without_platforms(name, **kwargs):
     util.helper_target(
         cc_binary,
@@ -390,21 +471,27 @@ def compile_build_variables_tests(name):
     Args:
         name: The name of the test suite.
     """
+    tests = [
+        _test_presence_of_basic_variables,
+        _test_presence_of_configuration_compile_flags,
+        _test_presence_of_conly_flags,
+        _test_cxx_flags_order,
+        _test_per_file_copts_are_in_user_compile_flags,
+        _test_host_per_file_copts_are_in_user_compile_flags,
+        _test_presence_of_sysroot_build_variable,
+        _test_target_sysroot_without_platforms,
+        _test_target_sysroot_with_platforms,
+        _test_presence_of_is_using_fission_variable,
+        _test_presence_of_is_using_fission_and_per_debug_object_file_variables_with_thinlto,
+        _test_presence_of_per_object_debug_file_build_variable,
+        _test_presence_of_min_os_version_build_variable,
+    ]
+    if bazel_features.cc.cc_common_is_in_rules_cc:
+        tests.extend([
+            _test_compile_variables_extension_overrides_toolchain_variable,
+            _test_compile_variables_extension_rejects_duplicate_variables,
+        ])
     test_suite(
         name = name,
-        tests = [
-            _test_presence_of_basic_variables,
-            _test_presence_of_configuration_compile_flags,
-            _test_presence_of_conly_flags,
-            _test_cxx_flags_order,
-            _test_per_file_copts_are_in_user_compile_flags,
-            _test_host_per_file_copts_are_in_user_compile_flags,
-            _test_presence_of_sysroot_build_variable,
-            _test_target_sysroot_without_platforms,
-            _test_target_sysroot_with_platforms,
-            _test_presence_of_is_using_fission_variable,
-            _test_presence_of_is_using_fission_and_per_debug_object_file_variables_with_thinlto,
-            _test_presence_of_per_object_debug_file_build_variable,
-            _test_presence_of_min_os_version_build_variable,
-        ],
+        tests = tests,
     )
