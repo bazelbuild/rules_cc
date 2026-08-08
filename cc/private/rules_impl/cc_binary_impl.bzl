@@ -453,12 +453,6 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
     semantics.validate(ctx, "cc_binary")
     cc_helper.check_srcs_extensions(ctx, ALLOWED_SRC_FILES, "cc_binary", True)
 
-    if len(ctx.attr.dynamic_deps) > 0:
-        cc_common.check_experimental_cc_shared_library()
-        # TODO(b/198254254): Add a check if linkshared value is explicitly specified.
-        # if ctx.attr.linkshared:
-        #     fail("Do not use 'linkshared' to build a shared library. Use cc_shared_library instead.")
-
     # TODO(b/198254254): Fill empty providers if needed.
     cc_toolchain = find_cc_toolchain(ctx)
     cpp_config = ctx.fragments.cpp
