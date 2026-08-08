@@ -135,6 +135,7 @@ def compile(
         purpose = None,
         separate_module_headers = [],
         module_interfaces = [],
+        module_header_map_entries = [],
         non_compilation_additional_inputs = [],
         progress_message_prefix = None):
     """Should be used for C++ compilation.
@@ -385,6 +386,7 @@ def compile(
         auxiliary_fdo_inputs = auxiliary_fdo_inputs,
         fdo_build_variables = fdo_build_variables,
         progress_message_prefix = progress_message_prefix,
+        module_header_map_entries = module_header_map_entries,
     )
 
     compilation_outputs_dict["lto_compilation_context"] = create_lto_compilation_context(
@@ -638,6 +640,77 @@ def _create_gen_modmap_action(
         toolchain = None,
     )
 
+def _create_header_map_modmap_actions(
+        *,
+        actions,
+        action_construction_context,
+        cc_toolchain,
+        configuration,
+        label,
+        use_pic,
+        module_header_map_entries,
+        modules_info_file):
+    """Creates a shared modmap for all module_header_maps on this target."""
+    if use_pic:
+        output_name_base_for_modmap = _cc_internal.get_artifact_name_for_category(
+            cc_toolchain = cc_toolchain,
+            category = artifact_category.PIC_FILE,
+            output_name = label.name,
+        )
+    else:
+        output_name_base_for_modmap = label.name
+    modmap_output_name = output_name_base_for_modmap + "_header_maps"
+    modmap_file = _get_compile_output_file(
+        action_construction_context,
+        label,
+        configuration = configuration,
+        output_name = _cc_internal.get_artifact_name_for_category(
+            cc_toolchain = cc_toolchain,
+            category = artifact_category.CPP_MODULES_MODMAP,
+            output_name = modmap_output_name,
+        ),
+    )
+    modmap_input_file = _get_compile_output_file(
+        action_construction_context,
+        label,
+        configuration = configuration,
+        output_name = _cc_internal.get_artifact_name_for_category(
+            cc_toolchain = cc_toolchain,
+            category = artifact_category.CPP_MODULES_MODMAP_INPUT,
+            output_name = modmap_output_name,
+        ),
+    )
+    ddi_file = _get_compile_output_file(
+        action_construction_context,
+        label,
+        configuration = configuration,
+        output_name = _cc_internal.get_artifact_name_for_category(
+            cc_toolchain = cc_toolchain,
+            category = artifact_category.CPP_MODULES_DDI,
+            output_name = modmap_output_name,
+        ),
+    )
+    actions.write(
+        ddi_file,
+        json.encode({
+            "rules": [{
+                "requires": [
+                    {"logical-name": name}
+                    for name, _ in module_header_map_entries
+                ],
+            }],
+        }),
+    )
+    _create_gen_modmap_action(
+        actions = actions,
+        cc_toolchain = cc_toolchain,
+        ddi_file = ddi_file,
+        modules_info_file = modules_info_file,
+        modmap_file = modmap_file,
+        modmap_input_file = modmap_input_file,
+    )
+    return modmap_file, modmap_input_file
+
 # buildifier: disable=unused-variable
 def _create_cc_compile_actions_with_cpp20_module_helper(
         *,
@@ -669,7 +742,8 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
         use_pic,
         enable_dotd_files,
         output_name_map,
-        progress_message_prefix):
+        progress_message_prefix,
+        module_header_map_entries = []):
     direct_module_files = []
     source_to_module_file_map = {}
     source_to_ddi_file_map = {}
@@ -753,6 +827,10 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
         )
         source_to_ddi_file_map[source_artifact] = ddi_file
 
+    shared_header_map_modmap_file = None
+    shared_header_map_modmap_input_file = None
+    header_map_input_files = []
+
     _create_aggregate_ddi_action(
         actions = actions,
         cc_toolchain = cc_toolchain,
@@ -761,6 +839,18 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
         transitive_modules_info_files = cc_compilation_context._pic_modules_info_files if use_pic else cc_compilation_context._modules_info_files,
         modules_info_file = modules_info_file,
     )
+    if module_header_map_entries:
+        header_map_input_files = [map_file for _, map_file in module_header_map_entries]
+        shared_header_map_modmap_file, shared_header_map_modmap_input_file = _create_header_map_modmap_actions(
+            actions = actions,
+            action_construction_context = action_construction_context,
+            cc_toolchain = cc_toolchain,
+            configuration = configuration,
+            label = label,
+            use_pic = use_pic,
+            module_header_map_entries = module_header_map_entries,
+            modules_info_file = modules_info_file,
+        )
     compiled_basenames = set()
     transitive_module_files = cc_compilation_context._pic_module_files if use_pic else cc_compilation_context._module_files
     for cpp_source in module_interfaces_sources.values():
@@ -877,9 +967,17 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
         additional_build_variables = {}
         modmap_file = None
         modmap_input_file = None
+        source_additional_compilation_inputs = additional_compilation_inputs
 
+        is_cc_source = "." + source_artifact.extension in extensions.CC_SOURCE
         # Only C++ compilation unit will be compiled with C++20 Modules.
-        if "." + source_artifact.extension in extensions.CC_SOURCE:
+        if is_cc_source and shared_header_map_modmap_file != None:
+            modmap_file = shared_header_map_modmap_file
+            modmap_input_file = shared_header_map_modmap_input_file
+            additional_build_variables["cpp_module_modmap_file"] = modmap_file
+            additional_build_variables["cpp_module_header_map_files"] = header_map_input_files
+            source_additional_compilation_inputs = additional_compilation_inputs + header_map_input_files
+        elif is_cc_source:
             modmap_file = _get_compile_output_file(
                 action_construction_context,
                 label,
@@ -934,26 +1032,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
                 ddi_output_name = ddi_output_name,
                 progress_message_prefix = progress_message_prefix,
             )
-            modmap_file = _get_compile_output_file(
-                action_construction_context,
-                label,
-                configuration = configuration,
-                output_name = _cc_internal.get_artifact_name_for_category(
-                    cc_toolchain = cc_toolchain,
-                    category = artifact_category.CPP_MODULES_MODMAP,
-                    output_name = output_name_base,
-                ),
-            )
-            modmap_input_file = _get_compile_output_file(
-                action_construction_context,
-                label,
-                configuration = configuration,
-                output_name = _cc_internal.get_artifact_name_for_category(
-                    cc_toolchain = cc_toolchain,
-                    category = artifact_category.CPP_MODULES_MODMAP_INPUT,
-                    output_name = output_name_base,
-                ),
-            )
             additional_build_variables["cpp_module_modmap_file"] = modmap_file
             _create_gen_modmap_action(
                 actions = actions,
@@ -990,7 +1068,7 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
             bitcode_output = bitcode_output,
             fdo_context = fdo_context,
             auxiliary_fdo_inputs = auxiliary_fdo_inputs,
-            additional_compilation_inputs = additional_compilation_inputs,
+            additional_compilation_inputs = source_additional_compilation_inputs,
             additional_include_scanning_roots = additional_include_scanning_roots,
             use_pic = use_pic,
             enable_dotd_files = enable_dotd_files,
@@ -1031,7 +1109,8 @@ def _create_cc_compile_actions_with_cpp20_module(
         auxiliary_fdo_inputs,
         fdo_build_variables,
         enable_dotd_files,
-        progress_message_prefix):
+        progress_message_prefix,
+        module_header_map_entries = []):
     """Constructs the C++ compiler actions with C++20 modules support.
     """
     output_name_prefix_dir = _compute_output_name_prefix_dir(purpose)
@@ -1072,6 +1151,7 @@ def _create_cc_compile_actions_with_cpp20_module(
             enable_dotd_files = enable_dotd_files,
             output_name_map = output_name_map,
             progress_message_prefix = progress_message_prefix,
+            module_header_map_entries = module_header_map_entries,
         )
 
 def _create_cc_compile_actions(
@@ -1104,7 +1184,8 @@ def _create_cc_compile_actions(
         common_compile_build_variables,
         auxiliary_fdo_inputs,
         fdo_build_variables,
-        progress_message_prefix):
+        progress_message_prefix,
+        module_header_map_entries = []):
     """Constructs the C++ compiler actions.
 
     It generally creates one action for every specified source
@@ -1149,6 +1230,7 @@ def _create_cc_compile_actions(
             fdo_build_variables = fdo_build_variables,
             enable_dotd_files = enable_dotd_files,
             progress_message_prefix = progress_message_prefix,
+            module_header_map_entries = module_header_map_entries,
         )
         return
 
