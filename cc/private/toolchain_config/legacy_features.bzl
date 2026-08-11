@@ -971,14 +971,14 @@ def get_legacy_features(ctx, platform, existing_feature_names, linker_tool_path)
             )],
         ))
 
+    if "coverage_enabled" not in existing_feature_names:
+        result.append(feature(name = "coverage_enabled"))
+    if "coverage_instrumented" not in existing_feature_names:
+        result.append(feature(name = "coverage_instrumented"))
+
     if "coverage" not in existing_feature_names:
         result.extend([
             feature(name = "coverage"),
-            # Declared so that toolchains can refer to them in `with_features`. The legacy map
-            # format features below instrument every target, which `coverage_instrumented` allows
-            # toolchains to avoid.
-            feature(name = "coverage_enabled"),
-            feature(name = "coverage_instrumented"),
             feature(
                 name = "llvm_coverage_map_format",
                 provides = ["profile"],
