@@ -344,8 +344,8 @@ def get_specific_compile_build_variables(
     if gcno_file:
         result[_VARS.GCOV_GCNO_FILE] = gcno_file
     elif code_coverage_enabled:
-        # TODO: Blaze currently uses `gcov_gcno_file` to detect if code coverage
-        # is enabled. It should use a different signal.
+        # TODO: Blaze currently uses `gcov_gcno_file` to detect if the current target is
+        # instrumented for coverage. It should use the `coverage_instrumented` feature instead.
         result[_VARS.GCOV_GCNO_FILE] = ""
     if dwo_file:
         result[_VARS.PER_OBJECT_DEBUG_INFO_FILE] = dwo_file
