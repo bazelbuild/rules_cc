@@ -283,6 +283,20 @@ def create_library_to_link(
         )
     else:
         shared_non_lto_backends = None
+
+    if pic_lto_compilation_context and pic_static_library and pic_objects != None:
+        pic_shared_non_lto_backends = create_shared_non_lto_artifacts(
+            actions,
+            pic_lto_compilation_context,
+            False,
+            feature_configuration,
+            cc_toolchain,
+            True,
+            pic_objects,
+        )
+    else:
+        pic_shared_non_lto_backends = None
+
     lto_compilation_context = lto_compilation_context or _EMPTY_LTO
     pic_lto_compilation_context = pic_lto_compilation_context or _EMPTY_LTO
 
@@ -301,6 +315,7 @@ def create_library_to_link(
         _lto_compilation_context = lto_compilation_context,
         _pic_lto_compilation_context = pic_lto_compilation_context,
         _shared_non_lto_backends = shared_non_lto_backends,
+        _pic_shared_non_lto_backends = pic_shared_non_lto_backends,
         _contains_objects = bool(objects) or bool(pic_objects),
     )
 
