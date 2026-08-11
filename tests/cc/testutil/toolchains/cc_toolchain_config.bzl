@@ -1671,9 +1671,41 @@ _disable_cpp_link_path_mapping_feature = feature(
     enabled = False,
 )
 
+_propeller_optimize_feature = feature(
+    name = FEATURE_NAMES.propeller_optimize,
+    flag_sets = [
+        flag_set(
+            actions = [
+                ACTION_NAMES.c_compile,
+                ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.lto_backend,
+            ],
+            flag_groups = [flag_group(
+                expand_if_available = "propeller_optimize_cc_path",
+                flags = [
+                    "-fbasic-block-sections=list=%{propeller_optimize_cc_path}",
+                    "-DBUILD_PROPELLER_ENABLED=1",
+                ],
+            )],
+        ),
+        flag_set(
+            actions = [ACTION_NAMES.cpp_link_executable],
+            flag_groups = [flag_group(
+                expand_if_true = "propeller_optimize_ld_path",
+                flags = ["-Wl,--symbol-ordering-file=%{propeller_optimize_ld_path}"],
+            )],
+        ),
+    ],
+)
+
+_propeller_optimize_thinlto_compile_actions_feature = feature(
+    name = FEATURE_NAMES.propeller_optimize_thinlto_compile_actions,
+)
 _feature_name_to_feature = {
     FEATURE_NAMES.force_pic_flags: _force_pic_flags_feature,
     FEATURE_NAMES.libraries_to_link: _libraries_to_link_feature,
+    FEATURE_NAMES.propeller_optimize: _propeller_optimize_feature,
+    FEATURE_NAMES.propeller_optimize_thinlto_compile_actions: _propeller_optimize_thinlto_compile_actions_feature,
     FEATURE_NAMES.cpp_modules: _cpp_modules_feature,
     FEATURE_NAMES.no_legacy_features: _no_legacy_features_feature,
     FEATURE_NAMES.do_not_split_linking_cmdline: _do_not_split_linking_cmdline_feature,

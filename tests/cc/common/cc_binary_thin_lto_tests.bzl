@@ -8,6 +8,7 @@ load("//cc:cc_binary.bzl", _actual_cc_binary = "cc_binary")
 load("//cc:cc_library.bzl", "cc_library")
 load("//cc:cc_test.bzl", _actual_cc_test = "cc_test")
 load("//cc/toolchains:fdo_profile.bzl", "fdo_profile")
+load("//cc/toolchains:propeller_optimize.bzl", "propeller_optimize")
 load("//tests/cc/testutil:cc_analysis_test.bzl", "cc_analysis_test")
 load("//tests/cc/testutil:cc_binary_target_subject.bzl", "cc_binary_target_subject")
 
@@ -1760,6 +1761,348 @@ def _test_xbinary_fdo_no_autofdo_or_fdo_implicit_thin_lto(name, **kwargs):
         **kwargs
     )
 
+def _test_pic_backend_order(name, **kwargs):
+    _create_thin_lto_basic_targets(name)
+    cc_analysis_test(
+        name = name,
+        impl = _test_pic_backend_order_impl,
+        target = name + "/bin",
+        test_features = ["thin_lto", "supports_pic", "supports_start_end_lib"],
+        config_settings = {
+            "//command_line_option:copt": ["-fno-PIE"],
+        },
+        **kwargs
+    )
+
+def _test_pic_backend_order_impl(env, target):
+    backend_action = env.expect.that_target(target).action_generating(
+        "{package}/{name}.lto/{bindir}/{package}/_objs/{name}/binfile.pic.o",
+    )
+    backend_action.mnemonic().equals("CcLtoBackendCompile")
+    backend_action.argv().contains_at_least(["-fno-PIE", "-fPIC"]).in_order()
+
+def _test_propeller_optimize_absolute_options(name, **kwargs):
+    _create_thin_lto_basic_targets(name)
+    cc_analysis_test(
+        name = name,
+        impl = _test_propeller_optimize_absolute_options_impl,
+        target = name + "/bin",
+        with_features = ["thin_lto", "autofdo", "supports_start_end_lib", "propeller_optimize"],
+        test_features = ["thin_lto", "supports_start_end_lib", "propeller_optimize"],
+        config_settings = {
+            "//command_line_option:propeller_optimize_absolute_cc_profile": "/tmp/cc_profile.txt",
+            "//command_line_option:propeller_optimize_absolute_ld_profile": "/tmp/ld_profile.txt",
+            "//command_line_option:compilation_mode": "opt",
+        },
+        **kwargs
+    )
+
+def _test_propeller_optimize_absolute_options_impl(env, target):
+    binary_target = cc_binary_target_subject.from_target(env, target)
+    link_action = binary_target.action_generating("{package}/{name}{binary_extension}")
+
+    link_action.outputs().has_size(1)
+
+    link_action.inputs().contains_predicate(matching.file_basename_equals("ld_profile.txt"))
+    link_action.argv().contains_predicate(matching.str_matches("-Wl,--symbol-ordering-file=*/ld_profile.txt"))
+
+    backend_action = env.expect.that_target(target).action_generating(
+        "{package}/{name}.lto/{bindir}/{package}/_objs/{name}/binfile.o",
+    )
+    backend_action.mnemonic().equals("CcLtoBackendCompile")
+
+    backend_action.argv().contains_predicate(matching.str_matches("-fbasic-block-sections=list=*/cc_profile.txt"))
+    backend_action.argv().contains("-DBUILD_PROPELLER_ENABLED=1")
+    backend_action.inputs().contains_predicate(matching.file_basename_equals("cc_profile.txt"))
+
+    index_action = env.expect.that_target(target).action_generating(
+        "{package}/{name}.lto/{bindir}/{package}/_objs/{name}/binfile.o.thinlto.bc",
+    )
+    index_action.inputs().not_contains_predicate(matching.file_basename_equals("ld_profile.txt"))
+
+def _test_propeller_cc_compile(name, **kwargs):
+    _create_thin_lto_basic_targets(name)
+    cc_analysis_test(
+        name = name,
+        impl = _test_propeller_cc_compile_impl,
+        target = name + "/bin",
+        with_features = ["thin_lto", "autofdo", "supports_start_end_lib", "propeller_optimize"],
+        test_features = ["thin_lto", "supports_start_end_lib", "propeller_optimize"],
+        config_settings = {
+            "//command_line_option:propeller_optimize_absolute_cc_profile": "/tmp/cc_profile.txt",
+            "//command_line_option:propeller_optimize_absolute_ld_profile": "/tmp/ld_profile.txt",
+            "//command_line_option:compilation_mode": "opt",
+        },
+        **kwargs
+    )
+
+def _test_propeller_cc_compile_impl(env, target):
+    # We need to find bitcodeAction (CppCompile generating binfile.indexing.o)
+    # It is input to indexAction.
+    # indexAction output is obj_path + ".thinlto.bc"
+    index_action = env.expect.that_target(target).action_generating(
+        "{package}/{name}.lto/{bindir}/{package}/_objs/{name}/binfile.o.thinlto.bc",
+    )
+
+    index_action.inputs().contains("{package}/_objs/{name}/binfile.indexing.o")
+
+    bitcode_action = env.expect.that_target(target).action_generating("{package}/_objs/{name}/binfile.indexing.o")
+    bitcode_action.mnemonic().equals("CppCompile")
+
+    bitcode_action.inputs().not_contains_predicate(matching.file_basename_equals("cc_profile.txt"))
+    bitcode_action.argv().not_contains_predicate(matching.str_startswith("-fbasic-block-sections="))
+
+# Check that the temporary opt-out from disabling Propeller profiles for ThinLTO compile actions
+# works.
+#
+# TODO(b/182804945): Remove after making sure that the rollout of the new Propeller profile
+# passing logic didn't break anything.
+def _test_propeller_cc_compile_with_propeller_optimize_thin_lto_compile_actions(name, **kwargs):
+    _create_thin_lto_basic_targets(name)
+    cc_analysis_test(
+        name = name,
+        impl = _test_propeller_cc_compile_with_propeller_optimize_thin_lto_compile_actions_impl,
+        target = name + "/bin",
+        with_features = [
+            "thin_lto",
+            "autofdo",
+            "supports_start_end_lib",
+            "propeller_optimize",
+            "propeller_optimize_thinlto_compile_actions",
+        ],
+        test_features = [
+            "thin_lto",
+            "supports_start_end_lib",
+            "propeller_optimize",
+            "propeller_optimize_thinlto_compile_actions",
+        ],
+        config_settings = {
+            "//command_line_option:propeller_optimize_absolute_cc_profile": "/tmp/cc_profile.txt",
+            "//command_line_option:propeller_optimize_absolute_ld_profile": "/tmp/ld_profile.txt",
+            "//command_line_option:compilation_mode": "opt",
+        },
+        **kwargs
+    )
+
+def _test_propeller_cc_compile_with_propeller_optimize_thin_lto_compile_actions_impl(env, target):
+    lib_name = target.label.name.removesuffix("/bin") + "/lib"
+
+    index_action = env.expect.that_target(target).action_generating(
+        "{package}/{name}.lto/{bindir}/{package}/_objs/{name}/binfile.o.thinlto.bc",
+    )
+
+    index_action.inputs().contains("{package}/_objs/{name}/binfile.indexing.o")
+    index_action.inputs().contains("{package}/_objs/" + lib_name + "/libfile.indexing.o")
+
+    bitcode_action = env.expect.that_target(target).action_generating("{package}/_objs/{name}/binfile.indexing.o")
+    bitcode_action.mnemonic().equals("CppCompile")
+
+    bitcode_action.inputs().contains_predicate(matching.file_basename_equals("cc_profile.txt"))
+    bitcode_action.argv().contains_predicate(matching.str_matches("-fbasic-block-sections=list=*/cc_profile.txt"))
+
+def _propagating_testing_aspect_impl(target, ctx):
+    return [TestingAspectInfo(
+        attrs = ctx.rule.attr,
+        actions = target.actions,
+        vars = ctx.var,
+        bin_path = ctx.bin_dir.path,
+        required_aspects = ctx.aspect_ids[:-1],
+    )]
+
+_propagating_testing_aspect = aspect(
+    implementation = _propagating_testing_aspect_impl,
+    attr_aspects = ["*"],
+)
+
+def _find_target_in_attr_by_suffix(env, target, attr_name, name_suffix):
+    targets = [
+        dep
+        for dep in getattr(target[TestingAspectInfo].attrs, attr_name)
+        if dep.label.name.endswith(name_suffix)
+    ]
+    env.expect.that_collection(targets).has_size(1)
+    return targets[0]
+
+def _test_propeller_cc_compile_with_thin_lto_disabled(name, **kwargs):
+    util.helper_target(
+        cc_library,
+        name = name + "/lib",
+        srcs = ["libfile.cc"],
+        hdrs = ["libfile.h"],
+        linkstamp = "linkstamp.cc",
+        features = ["-thin_lto"],
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = ["binfile.cc"],
+        deps = [":" + name + "/lib"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_propeller_cc_compile_with_thin_lto_disabled_impl,
+        target = name + "/bin",
+        with_features = ["thin_lto", "autofdo", "supports_start_end_lib", "propeller_optimize"],
+        test_features = ["thin_lto", "supports_start_end_lib", "propeller_optimize"],
+        testing_aspect = _propagating_testing_aspect,
+        config_settings = {
+            "//command_line_option:propeller_optimize_absolute_cc_profile": "/tmp/cc_profile.txt",
+            "//command_line_option:propeller_optimize_absolute_ld_profile": "/tmp/ld_profile.txt",
+            "//command_line_option:compilation_mode": "opt",
+        },
+        **kwargs
+    )
+
+def _test_propeller_cc_compile_with_thin_lto_disabled_impl(env, target):
+    lib_target = _find_target_in_attr_by_suffix(env, target, attr_name = "deps", name_suffix = "/lib")
+    test_name = target.label.name.split("/")[0]
+
+    obj_path = "{package}/_objs/{lib_target_name}/libfile.o".format(
+        package = target.label.package,
+        lib_target_name = test_name + "/lib",
+    )
+
+    compile_action = env.expect.that_target(lib_target).action_generating(obj_path)
+    compile_action.mnemonic().equals("CppCompile")
+
+    compile_action.inputs().contains_predicate(matching.file_basename_equals("cc_profile.txt"))
+    compile_action.argv().contains_predicate(matching.str_matches("-fbasic-block-sections=list=*/cc_profile.txt"))
+
+def _test_propeller_host_builds(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/gen_lib",
+        srcs = [name + "/gen_lib.cc"],
+    )
+    util.helper_target(
+        native.genrule,
+        name = name + "/lib_genrule",
+        srcs = [],
+        outs = [name + "/libfile.cc"],
+        cmd = "$(location :" + name + "/gen_lib) > \"$@\"",
+        tools = [":" + name + "/gen_lib"],
+    )
+    util.helper_target(
+        cc_library,
+        name = name + "/lib",
+        srcs = [":" + name + "/lib_genrule"],
+        hdrs = [name + "/libfile.h"],
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = [name + "/binfile.cc"],
+        deps = [":" + name + "/lib"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_propeller_host_builds_impl,
+        target = name + "/bin",
+        with_features = ["thin_lto", "autofdo", "supports_start_end_lib", "propeller_optimize"],
+        test_features = ["thin_lto", "supports_start_end_lib", "propeller_optimize"],
+        testing_aspect = _propagating_testing_aspect,
+        config_settings = {
+            "//command_line_option:propeller_optimize_absolute_cc_profile": "/tmp/cc_profile.txt",
+            "//command_line_option:propeller_optimize_absolute_ld_profile": "/tmp/ld_profile.txt",
+            "//command_line_option:compilation_mode": "opt",
+        },
+        **kwargs
+    )
+
+def _test_propeller_host_builds_impl(env, target):
+    package = target.label.package
+    name = target.label.name
+    bindir = target[TestingAspectInfo].bin_path
+
+    # Sanity check: Verify Propeller IS active on the target binary backend action
+    target_backend_action = env.expect.that_target(target).action_generating(
+        "{package}/{name}.lto/{bindir}/{package}/_objs/{name}/binfile.o".format(
+            package = package,
+            name = name,
+            bindir = bindir,
+        ),
+    )
+    target_backend_action.mnemonic().equals("CcLtoBackendCompile")
+    target_backend_action.argv().contains_predicate(matching.str_matches("-fbasic-block-sections=list=*cc_profile.txt"))
+
+    lib_target = _find_target_in_attr_by_suffix(
+        env,
+        target,
+        attr_name = "deps",
+        name_suffix = "/lib",
+    )
+    lib_genrule_target = _find_target_in_attr_by_suffix(
+        env,
+        lib_target,
+        attr_name = "srcs",
+        name_suffix = "/lib_genrule",
+    )
+    gen_lib_target = _find_target_in_attr_by_suffix(
+        env,
+        lib_genrule_target,
+        attr_name = "tools",
+        name_suffix = "/gen_lib",
+    )
+
+    gen_lib_executable = gen_lib_target[DefaultInfo].files_to_run.executable
+    host_link_action = env.expect.that_target(gen_lib_target).action_generating(gen_lib_executable.short_path)
+    host_link_action.mnemonic().equals("CppLink")
+
+    host_link_action.inputs().not_contains_predicate(matching.file_basename_equals("ld_profile.txt"))
+    host_link_action.argv().not_contains_predicate(matching.str_startswith("-Wl,--symbol-ordering-file="))
+
+    host_compile_action = env.expect.that_target(gen_lib_target).action_generating("{package}/_objs/{name}/gen_lib.o")
+    host_compile_action.mnemonic().equals("CppCompile")
+
+    host_compile_action.inputs().not_contains_predicate(matching.file_basename_equals("cc_profile.txt"))
+    host_compile_action.argv().not_contains_predicate(matching.str_startswith("-fbasic-block-sections="))
+
+def _test_propeller_optimize_option_from_label(name, **kwargs):
+    cc_profile = name + "/cc_profile.txt"
+    ld_profile = name + "/ld_profile.txt"
+
+    util.helper_target(
+        propeller_optimize,
+        name = name + "/test_propeller_optimize",
+        cc_profile = cc_profile,
+        ld_profile = ld_profile,
+    )
+
+    _create_thin_lto_basic_targets(name)
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_propeller_optimize_option_from_label_impl,
+        target = name + "/bin",
+        with_features = ["thin_lto", "autofdo", "supports_start_end_lib", "propeller_optimize"],
+        test_features = ["thin_lto", "supports_start_end_lib", "propeller_optimize"],
+        config_settings = {
+            "//command_line_option:propeller_optimize": Label(":" + name + "/test_propeller_optimize"),
+            "//command_line_option:compilation_mode": "opt",
+        },
+        **kwargs
+    )
+
+def _test_propeller_optimize_option_from_label_impl(env, target):
+    binary_target = cc_binary_target_subject.from_target(env, target)
+    link_action = binary_target.action_generating("{package}/{name}{binary_extension}")
+
+    link_action.outputs().has_size(1)
+
+    link_action.inputs().contains_predicate(matching.file_basename_equals("ld_profile.txt"))
+    link_action.argv().contains_predicate(matching.str_matches("-Wl,--symbol-ordering-file=*ld_profile.txt"))
+
+    backend_action = env.expect.that_target(target).action_generating(
+        "{package}/{name}.lto/{bindir}/{package}/_objs/{name}/binfile.o",
+    )
+    backend_action.mnemonic().equals("CcLtoBackendCompile")
+
+    backend_action.argv().contains_predicate(matching.str_matches("-fbasic-block-sections=list=*cc_profile.txt"))
+    backend_action.argv().contains("-DBUILD_PROPELLER_ENABLED=1")
+
+    backend_action.inputs().contains_predicate(matching.file_basename_equals("cc_profile.txt"))
+    backend_action.inputs().contains_predicate(matching.file_basename_equals("ld_profile.txt"))
+
 def cc_binary_thin_lto_tests(name):
     """TestSuite for cc_binary with ThinLTO.
 
@@ -1799,6 +2142,12 @@ def cc_binary_thin_lto_tests(name):
     tests.append(_test_xbinary_fdo_implicit_thin_lto_disabled_package)
     tests.append(_test_xbinary_fdo)
     tests.append(_test_xbinary_fdo_no_autofdo_or_fdo_implicit_thin_lto)
+    tests.append(_test_pic_backend_order)
+    tests.append(_test_propeller_optimize_absolute_options)
+    tests.append(_test_propeller_cc_compile)
+    tests.append(_test_propeller_cc_compile_with_propeller_optimize_thin_lto_compile_actions)
+    tests.append(_test_propeller_cc_compile_with_thin_lto_disabled)
+    tests.append(_test_propeller_host_builds)
 
     # These tests fail on Bazel 7 and 8, run only for Bazel 9+.
     if bazel_features.cc.cc_common_is_in_rules_cc:
@@ -1810,6 +2159,7 @@ def cc_binary_thin_lto_tests(name):
         tests.append(_test_lto_standalone_command_lines)
         tests.append(_test_lto_backend_opt)
         tests.append(_test_link_opt)
+        tests.append(_test_propeller_optimize_option_from_label)
 
     test_suite(
         name = name,
