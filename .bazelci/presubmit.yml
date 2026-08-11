@@ -78,6 +78,8 @@ tasks:
     platform: ubuntu2004
     build_targets: *build_targets
     test_targets: *test_targets
+    coverage_flags: *common_coverage_flags
+    coverage_targets: *coverage_targets
   macos_intel_head:
     name: MacOS Intel (Bazel HEAD)
     bazel: last_green
@@ -88,6 +90,8 @@ tasks:
     build_targets: *build_targets
     test_targets: *test_targets
     test_flags: *macos_test_flags
+    coverage_flags: *common_coverage_flags
+    coverage_targets: *coverage_targets
   macos_head:
     name: MacOS (Bazel HEAD)
     bazel: last_green
@@ -95,6 +99,8 @@ tasks:
     build_targets: *build_targets
     test_targets: *test_targets
     test_flags: *macos_test_flags
+    coverage_flags: *common_coverage_flags
+    coverage_targets: *coverage_targets
   windows_head:
     name: Windows (Bazel HEAD)
     bazel: last_green
@@ -102,6 +108,8 @@ tasks:
     build_targets: *build_targets
     test_targets: *test_targets
     test_flags: *windows_test_flags
+    coverage_flags: *common_coverage_flags
+    coverage_targets: *coverage_targets
 
   # Bazel@rolling
   ubuntu2004_rolling:
