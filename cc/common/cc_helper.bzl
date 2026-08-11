@@ -305,16 +305,6 @@ def _is_compilation_outputs_empty(compilation_outputs):
     return (len(compilation_outputs.pic_objects) == 0 and
             len(compilation_outputs.objects) == 0)
 
-def _is_code_coverage_enabled(ctx):
-    if ctx.coverage_instrumented():
-        return True
-    if hasattr(ctx.attr, "deps"):
-        for dep in ctx.attr.deps:
-            if CcInfo in dep:
-                if ctx.coverage_instrumented(dep):
-                    return True
-    return False
-
 def _build_precompiled_files(ctx):
     objects = []
     pic_objects = []
@@ -1140,7 +1130,6 @@ cc_helper = struct(
     get_cpp_module_interfaces = _get_cpp_module_interfaces,
     get_private_hdrs = _get_private_hdrs,
     get_public_hdrs = _get_public_hdrs,
-    is_code_coverage_enabled = _is_code_coverage_enabled,
     is_compilation_outputs_empty = _is_compilation_outputs_empty,
     get_linking_contexts_from_deps = _get_linking_contexts_from_deps,
     dll_hash_suffix = _dll_hash_suffix,

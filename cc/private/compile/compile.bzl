@@ -129,7 +129,6 @@ def compile(
         module_map = None,
         additional_module_maps = [],
         do_not_generate_module_map = False,
-        code_coverage_enabled = False,
         # TODO(b/396122076): seems unused; double-check and remove
         hdrs_checking_mode = None,  # buildifier: disable=unused-variable
         variables_extension = None,
@@ -199,7 +198,6 @@ def compile(
         module_map: undocumented
         additional_module_maps: undocumented
         do_not_generate_module_map: undocumented
-        code_coverage_enabled: undocumented
         hdrs_checking_mode: undocumented
         variables_extension: undocumented
         language: undocumented
@@ -377,7 +375,10 @@ def compile(
         feature_configuration = feature_configuration,
         generate_no_pic_action = generate_no_pic_action,
         generate_pic_action = generate_pic_action,
-        is_code_coverage_enabled = code_coverage_enabled,
+        # Requested by cc_common.configure_features if the target is instrumented for coverage.
+        # This is checked instead of the feature being enabled so that toolchains that don't
+        # define it still get gcno files generated for instrumented targets.
+        is_code_coverage_enabled = feature_configuration.is_requested("coverage_instrumented"),
         label = label,
         private_headers = private_hdrs_artifacts,
         public_headers = public_hdrs_artifacts,
