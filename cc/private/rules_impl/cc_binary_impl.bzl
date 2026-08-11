@@ -32,6 +32,10 @@ _CcLauncherInfo = getattr(cc_common, "launcher_provider", None)
 _EXECUTABLE = "executable"
 _DYNAMIC_LIBRARY = "dynamic_library"
 
+_INTERFACE_SHARED_LIBRARY_EXTENSIONS = tuple(cc_helper.extensions.INTERFACE_SHARED_LIBRARY)
+_ALWAYSLINK_LIBRARY_EXTENSIONS = tuple(cc_helper.extensions.ALWAYSLINK_LIBRARY + [".lo.lib"])
+_STATIC_LIBRARY_EXTENSIONS = tuple(cc_helper.extensions.ARCHIVE + [".rlib"])
+
 _IOS_SIMULATOR_TARGET_CPUS = ["ios_x86_64", "ios_i386", "ios_sim_arm64"]
 _IOS_DEVICE_TARGET_CPUS = ["ios_armv6", "ios_arm64", "ios_armv7", "ios_armv7s", "ios_arm64e"]
 _VISIONOS_SIMULATOR_TARGET_CPUS = ["visionos_sim_arm64"]
@@ -332,7 +336,7 @@ def _create_transitive_linking_actions(
     # entries during linking process.
     for libs in precompiled_files[:]:
         for artifact in libs:
-            if (_matches([".so", ".dylib", ".dll", ".pyd", ".ifso", ".tbd", ".lib", ".dll.a"], artifact.basename) or
+            if (artifact.basename.endswith(_INTERFACE_SHARED_LIBRARY_EXTENSIONS) or
                 cc_helper.is_valid_shared_library_artifact(artifact)):
                 library_to_link = cc_common.create_library_to_link(
                     actions = ctx.actions,
@@ -341,7 +345,7 @@ def _create_transitive_linking_actions(
                     dynamic_library = artifact,
                 )
                 libraries_for_current_cc_linking_context.append(library_to_link)
-            elif _matches([".pic.lo", ".lo", ".lo.lib"], artifact.basename):
+            elif artifact.basename.endswith(_ALWAYSLINK_LIBRARY_EXTENSIONS):
                 library_to_link = cc_common.create_library_to_link(
                     actions = ctx.actions,
                     feature_configuration = feature_configuration,
@@ -350,7 +354,7 @@ def _create_transitive_linking_actions(
                     alwayslink = True,
                 )
                 libraries_for_current_cc_linking_context.append(library_to_link)
-            elif _matches([".a", ".lib", ".pic.a", ".rlib"], artifact.basename) and not _matches([".if.lib"], artifact.basename):
+            elif artifact.basename.endswith(_STATIC_LIBRARY_EXTENSIONS) and not artifact.basename.endswith(".if.lib"):
                 library_to_link = cc_common.create_library_to_link(
                     actions = ctx.actions,
                     feature_configuration = feature_configuration,
@@ -423,12 +427,6 @@ def _get_link_staticness(ctx, cpp_config, force_linkstatic, _is_dbg_build):
     else:
         return linker_mode.LINKING_DYNAMIC
 
-def _matches(extensions, target):
-    for extension in extensions:
-        if target.endswith(extension):
-            return True
-    return False
-
 def _is_link_shared(ctx):
     return hasattr(ctx.attr, "linkshared") and ctx.attr.linkshared
 
@@ -479,9 +477,7 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
     # the target name.
     # This is no longer necessary, the toolchain can figure out the correct file extensions.
     target_name = ctx.label.name
-    has_legacy_link_shared_name = (_is_link_shared(ctx) and
-                                   (_matches([".so", ".dylib", ".dll", ".pyd"], target_name) or
-                                    cc_helper.is_valid_shared_library_name(target_name)))
+    has_legacy_link_shared_name = _is_link_shared(ctx) and cc_helper.is_valid_shared_library_name(target_name)
     binary = None
     is_dbg_build = (cc_toolchain._cpp_configuration.compilation_mode() == "dbg")
     if has_legacy_link_shared_name:
