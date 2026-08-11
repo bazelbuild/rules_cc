@@ -108,7 +108,7 @@ tasks:
     build_targets: *build_targets
     test_targets: *test_targets
     test_flags: *windows_test_flags
-    coverage_flags: *common_coverage_flags
+    coverage_flags: *windows_coverage_flags
     coverage_targets: *coverage_targets
 
 # Bazel 7
