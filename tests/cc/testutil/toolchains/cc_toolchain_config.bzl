@@ -1701,9 +1701,31 @@ _propeller_optimize_feature = feature(
 _propeller_optimize_thinlto_compile_actions_feature = feature(
     name = FEATURE_NAMES.propeller_optimize_thinlto_compile_actions,
 )
+_fdo_prefetch_hints_feature = feature(
+    name = FEATURE_NAMES.fdo_prefetch_hints,
+    flag_sets = [
+        flag_set(
+            actions = [
+                ACTION_NAMES.c_compile,
+                ACTION_NAMES.cpp_compile,
+                ACTION_NAMES.lto_backend,
+            ],
+            flag_groups = [
+                flag_group(
+                    flags = [
+                        "-mllvm",
+                        "-prefetch-hints-file=%{fdo_prefetch_hints_path}",
+                    ],
+                    expand_if_available = "fdo_prefetch_hints_path",
+                ),
+            ],
+        ),
+    ],
+)
 _feature_name_to_feature = {
     FEATURE_NAMES.force_pic_flags: _force_pic_flags_feature,
     FEATURE_NAMES.libraries_to_link: _libraries_to_link_feature,
+    FEATURE_NAMES.fdo_prefetch_hints: _fdo_prefetch_hints_feature,
     FEATURE_NAMES.propeller_optimize: _propeller_optimize_feature,
     FEATURE_NAMES.propeller_optimize_thinlto_compile_actions: _propeller_optimize_thinlto_compile_actions_feature,
     FEATURE_NAMES.cpp_modules: _cpp_modules_feature,

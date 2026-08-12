@@ -7,6 +7,7 @@ load("@rules_testing//lib:util.bzl", "TestingAspectInfo", "util")
 load("//cc:cc_binary.bzl", _actual_cc_binary = "cc_binary")
 load("//cc:cc_library.bzl", "cc_library")
 load("//cc:cc_test.bzl", _actual_cc_test = "cc_test")
+load("//cc/toolchains:fdo_prefetch_hints.bzl", "fdo_prefetch_hints")
 load("//cc/toolchains:fdo_profile.bzl", "fdo_profile")
 load("//cc/toolchains:propeller_optimize.bzl", "propeller_optimize")
 load("//tests/cc/testutil:cc_analysis_test.bzl", "cc_analysis_test")
@@ -2103,6 +2104,117 @@ def _test_propeller_optimize_option_from_label_impl(env, target):
     backend_action.inputs().contains_predicate(matching.file_basename_equals("cc_profile.txt"))
     backend_action.inputs().contains_predicate(matching.file_basename_equals("ld_profile.txt"))
 
+def _test_no_use_lto_indexing_bitcode_file(name, **kwargs):
+    _create_thin_lto_basic_targets(name)
+    cc_analysis_test(
+        name = name,
+        impl = _test_no_use_lto_indexing_bitcode_file_impl,
+        target = name + "/bin",
+        test_features = [
+            "thin_lto",
+            "supports_pic",
+            "supports_start_end_lib",
+            "no_use_lto_indexing_bitcode_file",
+        ],
+        **kwargs
+    )
+
+def _test_no_use_lto_indexing_bitcode_file_impl(env, target):
+    test_name = target.label.name.split("/")[0]
+    lib_name = test_name + "/lib"
+
+    binary_obj_path = "{package}/{name}.lto/{bindir}/{package}/_objs/{name}/binfile.pic.o".format(
+        package = target.label.package,
+        name = target.label.name,
+        bindir = target[TestingAspectInfo].bin_path,
+    )
+
+    backend_action = env.expect.that_target(target).action_generating(binary_obj_path)
+    backend_action.mnemonic().equals("CcLtoBackendCompile")
+
+    index_action = env.expect.that_target(target).action_generating(binary_obj_path + ".thinlto.bc")
+    index_action.mnemonic().equals("CppLTOIndexing")
+
+    index_action.argv().not_contains("object_suffix_replace")
+
+    binary_normal_obj = "{package}/_objs/{name}/binfile.pic.o".format(
+        package = target.label.package,
+        name = target.label.name,
+    )
+    lib_normal_obj = "{package}/_objs/{lib_name}/libfile.pic.o".format(
+        package = target.label.package,
+        lib_name = lib_name,
+    )
+    index_action.inputs().contains(binary_normal_obj)
+    index_action.inputs().contains(lib_normal_obj)
+
+    bitcode_action = env.expect.that_target(target).action_generating(binary_normal_obj)
+    bitcode_action.mnemonic().equals("CppCompile")
+    bitcode_action.argv().not_contains("lto_indexing_bitcode=")
+
+def _test_fdo_cache_prefetch_llvm_options_to_backend_base(name, extra_config_settings, **kwargs):
+    util.helper_target(
+        fdo_prefetch_hints,
+        name = name + "/test_profile",
+        profile = "prefetch.afdo",
+    )
+    _create_thin_lto_basic_targets(name)
+    config_settings = {
+        "//command_line_option:fdo_prefetch_hints": Label(":" + name + "/test_profile"),
+        "//command_line_option:compilation_mode": "opt",
+    }
+    config_settings.update(extra_config_settings)
+    cc_analysis_test(
+        name = name,
+        impl = _test_fdo_cache_prefetch_llvm_options_to_backend_impl,
+        target = name + "/bin",
+        with_features = ["thin_lto", "autofdo", "supports_start_end_lib", "fdo_prefetch_hints"],
+        test_features = ["thin_lto", "supports_start_end_lib", "fdo_prefetch_hints"],
+        config_settings = config_settings,
+        **kwargs
+    )
+
+def _test_fdo_cache_prefetch_llvm_options_to_backend_impl(env, target):
+    obj_path = "{package}/{name}.lto/{bindir}/{package}/_objs/{name}/binfile.o".format(
+        package = target.label.package,
+        name = target.label.name,
+        bindir = target[TestingAspectInfo].bin_path,
+    )
+
+    backend_action = env.expect.that_target(target).action_generating(obj_path)
+    backend_action.mnemonic().equals("CcLtoBackendCompile")
+
+    backend_action.argv().contains("-mllvm")
+    backend_action.argv().contains_predicate(matching.str_matches("*-prefetch-hints-file=*/prefetch.afdo"))
+    backend_action.inputs().contains_predicate(matching.file_basename_equals("prefetch.afdo"))
+
+def _test_fdo_cache_prefetch_llvm_options_to_backend_from_label(name, **kwargs):
+    _test_fdo_cache_prefetch_llvm_options_to_backend_base(name, [], **kwargs)
+
+def _test_fdo_cache_prefetch_and_fdo_llvm_options_to_backend_from_label(name, **kwargs):
+    _test_fdo_cache_prefetch_llvm_options_to_backend_base(
+        name,
+        [("//command_line_option:fdo_optimize", "/profile.zip")],
+        **kwargs
+    )
+
+def _test_thin_lto_without_supports_start_end_lib_error(name, **kwargs):
+    _create_thin_lto_basic_targets(name)
+    cc_analysis_test(
+        name = name,
+        impl = _test_thin_lto_without_supports_start_end_lib_error_impl,
+        target = name + "/bin",
+        with_features = ["thin_lto"],
+        test_features = ["thin_lto"],
+        expect_failure = True,
+        **kwargs
+    )
+
+def _test_thin_lto_without_supports_start_end_lib_error_impl(env, target):
+    env.expect.that_target(target).failures().contains_predicate(
+        matching.contains("The feature supports_start_end_lib must be enabled."),
+    )
+
 def cc_binary_thin_lto_tests(name):
     """TestSuite for cc_binary with ThinLTO.
 
@@ -2148,6 +2260,10 @@ def cc_binary_thin_lto_tests(name):
     tests.append(_test_propeller_cc_compile_with_propeller_optimize_thin_lto_compile_actions)
     tests.append(_test_propeller_cc_compile_with_thin_lto_disabled)
     tests.append(_test_propeller_host_builds)
+    tests.append(_test_no_use_lto_indexing_bitcode_file)
+    tests.append(_test_fdo_cache_prefetch_llvm_options_to_backend_from_label)
+    tests.append(_test_fdo_cache_prefetch_and_fdo_llvm_options_to_backend_from_label)
+    tests.append(_test_thin_lto_without_supports_start_end_lib_error)
 
     # These tests fail on Bazel 7 and 8, run only for Bazel 9+.
     if bazel_features.cc.cc_common_is_in_rules_cc:

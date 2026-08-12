@@ -103,6 +103,7 @@ FEATURE_NAMES = struct(
     libraries_to_link = "libraries_to_link",
     propeller_optimize = "propeller_optimize",
     propeller_optimize_thinlto_compile_actions = "propeller_optimize_thinlto_compile_actions",
+    fdo_prefetch_hints = "fdo_prefetch_hints",
     uses_output_execpath = "uses_output_execpath",
     uses_is_cc_test = "uses_is_cc_test",
     uses_strip_debug_symbols = "uses_strip_debug_symbols",
