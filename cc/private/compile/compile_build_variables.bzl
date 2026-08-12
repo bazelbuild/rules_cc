@@ -15,7 +15,7 @@
 All build variables we create for various `CppCompileAction`s
 """
 
-load("//cc/common:cc_helper_internal.bzl", "extensions", "get_fdo_build_stamp", "get_linkstamp_stamps", _PRIVATE_STARLARKIFICATION_ALLOWLIST = "PRIVATE_STARLARKIFICATION_ALLOWLIST")
+load("//cc/common:cc_helper_internal.bzl", "extensions", "get_fdo_build_stamp", "get_linkstamp_stamps", "validate_variables_extension", _PRIVATE_STARLARKIFICATION_ALLOWLIST = "PRIVATE_STARLARKIFICATION_ALLOWLIST")
 load("//cc/private:cc_info.bzl", "get_module_map_name")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private/rules_impl:native_cc_common.bzl", _cc_common_internal = "native_cc_common")
@@ -259,19 +259,7 @@ def _setup_common_compile_build_variables_internal(
     )
     result[_VARS.PREPROCESSOR_DEFINES] = _cc_internal.intern_string_sequence_variable_value(all_defines)
     result = result | additional_build_variables
-
-    for key, value in variables_extension.items():
-        if type(value) == type([]):
-            result[key] = _cc_internal.intern_string_sequence_variable_value(value)
-        elif type(value) == type(""):
-            result[key] = value
-        elif type(value) == type(depset()):
-            for e in value.to_list():
-                if type(e) != type(""):
-                    fail("for string_sequence_variables_extension, got element of type " + type(e) + ", want string")
-            result[key] = value
-        else:
-            fail("for variable extension key:" + key + ", got element of type " + type(value) + ", want string")
+    result = result | validate_variables_extension(variables_extension)
 
     if external_include_dirs:
         result[_VARS.EXTERNAL_INCLUDE_PATHS] = external_include_dirs
