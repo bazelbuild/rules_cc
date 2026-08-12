@@ -347,6 +347,8 @@ def compile(
         "lto_compilation_context": {},
         "gcno_files": [],
         "pic_gcno_files": [],
+        "trace_files": [],
+        "pic_trace_files": [],
         "dwo_files": [],
         "pic_dwo_files": [],
         "cpp_module_files": [],
@@ -1605,6 +1607,14 @@ def _create_compile_source_action(
         enable_coverage = enable_coverage,
     )
 
+    # Assembly files do not support -ftime-trace; skip trace output
+    _is_assembly = "." + source_artifact.extension in (extensions.ASSEMBLER + extensions.ASSEMBLER_WITH_C_PREPROCESSOR)
+    trace_file = _maybe_declare_trace_file(
+        ctx = action_construction_context,
+        enable_trace = feature_configuration.is_enabled("clang_trace") and not _is_assembly,
+        object_file = object_file,
+    )
+
     dwo_file = None
     if generate_dwo and not bitcode_output:
         dwo_file_name = paths.replace_extension(paths.basename(object_file.path), ".dwo")
@@ -1692,14 +1702,20 @@ def _create_compile_source_action(
     if add_object and fdo_context_has_artifacts:
         additional_inputs = additional_compilation_inputs + auxiliary_fdo_inputs.to_list()
 
+    all_additional_outputs = list(additional_outputs)
+    if trace_file:
+        all_additional_outputs.append(trace_file)
+
     # Provide these args conditionally as they require a recent version of Bazel.
     if modmap_file:
         module_args = {
-            "additional_outputs": additional_outputs,
+            "additional_outputs": all_additional_outputs,
             "module_files": module_files,
             "modmap_file": modmap_file,
             "modmap_input_file": modmap_input_file,
         }
+    elif all_additional_outputs:
+        module_args = {"additional_outputs": all_additional_outputs}
     else:
         module_args = {}
 
@@ -1748,6 +1764,11 @@ def _create_compile_source_action(
             outputs["pic_gcno_files"].append(gcno_file)
         else:
             outputs["gcno_files"].append(gcno_file)
+    if trace_file:
+        if use_pic:
+            outputs["pic_trace_files"].append(trace_file)
+        else:
+            outputs["trace_files"].append(trace_file)
     return object_file
 
 def _create_temps_action(
@@ -2316,6 +2337,18 @@ def _maybe_declare_gcno_file(
             ),
         )
     return gcno_file
+
+def _maybe_declare_trace_file(
+        ctx,
+        enable_trace,
+        object_file):
+    if not enable_trace:
+        return None
+    return _cc_internal.declare_other_output_file(
+        ctx = ctx,
+        output_name = paths.replace_extension(paths.basename(object_file.path), ".json"),
+        object_file = object_file,
+    )
 
 def _create_compile_action(
         *,
