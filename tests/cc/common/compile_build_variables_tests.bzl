@@ -5,7 +5,6 @@ load("@rules_testing//lib:truth.bzl", "matching", "subjects")
 load("@rules_testing//lib:util.bzl", "TestingAspectInfo", "util")
 load("//cc:cc_binary.bzl", _actual_cc_binary = "cc_binary")
 load("//tests/cc/testutil:cc_analysis_test.bzl", "cc_analysis_test")
-load("//tests/cc/testutil:link_action_subject.bzl", "link_action_subject")
 
 # Wrap cc_binary to mock out common dependencies.
 def cc_binary(name, **kwargs):
@@ -16,18 +15,10 @@ def cc_binary(name, **kwargs):
         **kwargs
     )
 
-def _obj_file(env, target, src_base_name):
-    link_action = link_action_subject.from_target(env, target)
-    obj_files = link_action.inputs().transform(
-        desc = "object files matching " + src_base_name,
-        filter = lambda f: f.basename.startswith(src_base_name + ".") and f.extension == "o",
-    )
-    obj_files.has_size(1)
-    return obj_files.offset(0, subjects.file)
-
 def _compile_action(env, target, src_base_name):
-    obj_file_subject = _obj_file(env, target, src_base_name)
-    compile_action = env.expect.that_target(target).action_generating(obj_file_subject.actual.short_path)
+    compile_action = env.expect.that_target(target).action_generating(
+        "{package}/_objs/{name}/" + src_base_name + ".o",
+    )
     compile_action.mnemonic().equals("CppCompile")
     return compile_action
 
@@ -63,7 +54,6 @@ def _test_presence_of_basic_variables_impl(env, target):
     _variable_list(_compile_action(env, target, "bin"), "source_file").contains_exactly(["{package}/bin.cc"])
 
     # make sure compile action's output matches OUTPUT_FILE
-    _obj_file(env, target, "bin").short_path_equals("{package}/_objs/{name}/bin.o")
     output_name_end = "{package}/_objs/{name}/bin.o".format(
         package = target.label.package,
         name = target.label.name,

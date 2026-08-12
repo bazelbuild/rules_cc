@@ -76,10 +76,9 @@ def _test_headers_not_passed_to_linking_action(name, **kwargs):
     )
 
 def _test_headers_not_passed_to_linking_action_impl(env, target):
-    link_action_subject.from_target(env, target).inputs().transform(
-        desc = "extensions",
-        map_each = lambda f: f.extension,
-    ).contains_none_of(["h", "hpp", "hxx"])
+    link_action_subject.from_target(env, target).inputs().not_contains_predicate(
+        matching.file_extension_in(["h", "hpp", "hxx"]),
+    )
 
 def _test_no_duplicate_linkopts(name, **kwargs):
     # Regression test for b/943558: linkopts duplicated in linker invocation
@@ -128,27 +127,24 @@ def _test_action_graph_impl(env, target):
     executable = target[DefaultInfo].files_to_run.executable
     link_action = link_action_subject.from_target(env, target)
 
+    object_file = "{package}/_objs/{name}/hello.o"
+
     # link.inputs = { hello.o }
-    hello_obj_files = link_action.inputs().transform(
-        desc = "hello object files",
-        filter = lambda f: f.basename.startswith("hello.") and f.extension in ["o", "obj"],
-    )
-    hello_obj_files.has_size(1)
-    obj_file = hello_obj_files.offset(0, subjects.file).actual
+    link_action.inputs().contains(object_file)
 
     # link.outputs = { hello }
-    link_action.outputs().contains_exactly([executable])
+    link_action.outputs().contains_exactly([executable.short_path])
 
-    compile_action = env.expect.that_target(target).action_generating(obj_file.short_path)
+    compile_action = env.expect.that_target(target).action_generating(object_file)
     compile_action.mnemonic().equals("CppCompile")
 
     # compile.inputs = { hello_cc }
     compile_action.inputs().contains("{package}/hello.cc")
 
     # compile.outputs = { hello.o } (mock toolchain doesn't generate .d)
-    compile_outputs = compile_action.actual.outputs.to_list()
-    env.expect.that_collection(compile_outputs).has_size(1)
-    env.expect.that_collection(compile_outputs).contains(obj_file)
+    compile_action.outputs().contains_exactly([
+        object_file,
+    ])
 
     # TODO: Test stripped action
 
@@ -278,10 +274,9 @@ def _test_pic(name, **kwargs):
 
 def _test_pic_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    link_action.inputs().transform(
-        desc = "hello pic object files",
-        filter = lambda f: f.basename.startswith("hello.pic.") and f.extension in ["o", "obj"],
-    ).has_size(1)
+    link_action.inputs().contains_predicate(
+        matching.file_basename_equals("hello.pic.o"),
+    )
 
 def _generated_def_file_test(name, impl, with_action_configs = None, **kwargs):
     if with_action_configs == None:
@@ -743,26 +738,17 @@ def _test_linkopts_fake_diamond_impl(env, target):
         "core",
     ]).in_order()
 
-def _input_basenames(link_action):
-    return link_action.inputs().transform(
-        desc = "input basenames",
-        map_each = lambda f: f.basename,
-    )
-
 def _is_shared_library(f):
     return f.extension in ["so", "dylib", "dll", "ifso"] or ".so" in f.basename or ".dylib" in f.basename
 
 def _assert_link_staticness(env, target, expected_static):
     link_action = link_action_subject.from_target(env, target)
-    shared_libs = link_action.inputs().transform(
-        desc = "shared libraries",
-        filter = _is_shared_library,
-    )
+    shared_library_matcher = matching.custom("is shared library", _is_shared_library)
 
     if expected_static:
-        shared_libs.is_empty()
+        link_action.inputs().not_contains_predicate(shared_library_matcher)
     else:
-        shared_libs.is_not_empty()
+        link_action.inputs().contains_predicate(shared_library_matcher)
 
 def _create_dep_tree(name, use_actual_cc_binary = False):
     binary_rule = _actual_cc_binary if use_actual_cc_binary else cc_binary
@@ -892,13 +878,13 @@ def _test_cc_runtimes_added_to_libraries(name, **kwargs):
 
 def _test_cc_runtimes_added_to_libraries_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    _input_basenames(link_action).contains_at_least([
-        "app.pic.o",
-        "libmiddleware1.a",
-        "libinfrastructure1.a",
-        "liblink_extra_lib.a",
-        "libruntime.a",
-        "linkstamp.o",
+    link_action.inputs().contains_at_least_predicates([
+        matching.file_basename_equals("app.pic.o"),
+        matching.file_basename_equals("libmiddleware1.a"),
+        matching.file_basename_equals("libinfrastructure1.a"),
+        matching.file_basename_equals("liblink_extra_lib.a"),
+        matching.file_basename_equals("libruntime.a"),
+        matching.file_basename_equals("linkstamp.o"),
     ])
 
 def _test_ignore_custom_malloc(name, **kwargs):
@@ -916,9 +902,8 @@ def _test_ignore_custom_malloc(name, **kwargs):
 
 def _test_ignore_custom_malloc_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    basenames = _input_basenames(link_action)
-    basenames.contains("libsystem_malloc.a")
-    basenames.not_contains("libmock_malloc.a")
+    link_action.inputs().contains_predicate(matching.file_basename_equals("libsystem_malloc.a"))
+    link_action.inputs().not_contains_predicate(matching.file_basename_equals("libmock_malloc.a"))
 
 def _test_custom_malloc(name, **kwargs):
     _create_dep_tree(name, use_actual_cc_binary = True)
@@ -936,9 +921,8 @@ def _test_custom_malloc(name, **kwargs):
 
 def _test_custom_malloc_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    basenames = _input_basenames(link_action)
-    basenames.contains("libmymalloc.a")
-    basenames.not_contains("libmock_malloc.a")
+    link_action.inputs().contains_predicate(matching.file_basename_equals("libmymalloc.a"))
+    link_action.inputs().not_contains_predicate(matching.file_basename_equals("libmock_malloc.a"))
 
 def _test_app_linking_static(name, **kwargs):
     _create_dep_tree(name)
@@ -956,18 +940,19 @@ def _test_app_linking_static(name, **kwargs):
 
 def _test_app_linking_static_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    basenames = _input_basenames(link_action)
 
     # Assert inputs
-    basenames.contains("app.pic.o")
-    basenames.contains("libmiddleware1.a")
-    basenames.contains("libinfrastructure1.a")
-    basenames.contains("linkstamp.o")
+    link_action.inputs().contains_at_least_predicates([
+        matching.file_basename_equals("app.pic.o"),
+        matching.file_basename_equals("libmiddleware1.a"),
+        matching.file_basename_equals("libinfrastructure1.a"),
+        matching.file_basename_equals("linkstamp.o"),
+    ])
 
     # Assert NOT inputs
-    basenames.not_contains("libinfrastructure2.a")
-    basenames.not_contains("libmiddleware2.so")
-    basenames.not_contains("libmiddleware3.so.1")
+    link_action.inputs().not_contains_predicate(matching.file_basename_equals("libinfrastructure2.a"))
+    link_action.inputs().not_contains_predicate(matching.file_basename_equals("libmiddleware2.so"))
+    link_action.inputs().not_contains_predicate(matching.file_basename_equals("libmiddleware3.so.1"))
 
     # Assert linkopts
     link_action.argv().contains_at_least([
@@ -996,21 +981,22 @@ def _test_app_linking_dynamic(name, **kwargs):
 
 def _test_app_linking_dynamic_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    basenames = _input_basenames(link_action)
 
     # Assert inputs
-    basenames.contains("app.pic.o")
-    basenames.contains("libinfrastructure1.a")
-    basenames.contains("linkstamp.o")
+    link_action.inputs().contains_at_least_predicates([
+        matching.file_basename_equals("app.pic.o"),
+        matching.file_basename_equals("libinfrastructure1.a"),
+        matching.file_basename_equals("linkstamp.o"),
+    ])
 
     # Assert dynamic library symlink (mangled)
-    basenames.contains_predicate(
-        matching.str_endswith("_Slibmiddleware1.ifso"),
+    link_action.inputs().contains_predicate(
+        matching.custom("basename ends with _Slibmiddleware1.ifso", lambda f: f.basename.endswith("_Slibmiddleware1.ifso")),
     )
 
     # Assert NOT inputs
-    basenames.not_contains("libmiddleware1.a")
-    basenames.not_contains("libinfrastructure2.a")
+    link_action.inputs().not_contains_predicate(matching.file_basename_equals("libmiddleware1.a"))
+    link_action.inputs().not_contains_predicate(matching.file_basename_equals("libinfrastructure2.a"))
 
     # Assert linkopts
     link_action.argv().contains_at_least([
@@ -1082,13 +1068,11 @@ def _test_transitive_libs_are_collected(name, **kwargs):
 
 def _test_transitive_libs_are_collected_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    input_basenames = _input_basenames(link_action)
-
-    input_basenames.contains_at_least([
-        "foo.pic.o",
-        "libbar.a",
-        "libbaz.a",
-        "linkstamp.o",
+    link_action.inputs().contains_at_least_predicates([
+        matching.file_basename_equals("foo.pic.o"),
+        matching.file_basename_equals("libbar.a"),
+        matching.file_basename_equals("libbaz.a"),
+        matching.file_basename_equals("linkstamp.o"),
     ])
 
 def _test_transitive_linkstamps_are_collected(name, **kwargs):
@@ -1102,10 +1086,8 @@ def _test_transitive_linkstamps_are_collected(name, **kwargs):
 
 def _test_transitive_linkstamps_are_collected_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    input_basenames = _input_basenames(link_action)
-
-    input_basenames.contains("linkstamp.o")
-    input_basenames.not_contains("linkstamp.cc")
+    link_action.inputs().contains_predicate(matching.file_basename_equals("linkstamp.o"))
+    link_action.inputs().not_contains_predicate(matching.file_basename_equals("linkstamp.cc"))
 
 def _test_linker_toolchain_feature(name, **kwargs):
     util.helper_target(
@@ -1185,8 +1167,7 @@ def _test_additional_linker_inputs_impl(env, target):
             lambda arg: arg.startswith("--option=") and arg.endswith("main.extra_file"),
         ),
     )
-    input_basenames = _input_basenames(link_action)
-    input_basenames.contains("main.extra_file")
+    link_action.inputs().contains_predicate(matching.file_basename_equals("main.extra_file"))
 
 # Regression test for b/193125967
 def _test_conflicting_linkstamps(name, **kwargs):
@@ -1303,9 +1284,8 @@ def _test_pic_mode_prefers_pic_libs_force_pic_disabled(name, **kwargs):
 
 def _test_pic_mode_prefers_pic_libs_force_pic_disabled_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    basenames = _input_basenames(link_action)
-    basenames.contains("dep.nopic.a")
-    basenames.not_contains("dep.pic.a")
+    link_action.inputs().contains_predicate(matching.file_basename_equals("dep.nopic.a"))
+    link_action.inputs().not_contains_predicate(matching.file_basename_equals("dep.pic.a"))
 
 def _test_pic_mode_prefers_pic_libs_force_pic_enabled(name, **kwargs):
     _create_prefers_pic_libs_dep_tree(name)
@@ -1322,9 +1302,8 @@ def _test_pic_mode_prefers_pic_libs_force_pic_enabled(name, **kwargs):
 
 def _test_pic_mode_prefers_pic_libs_force_pic_enabled_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    basenames = _input_basenames(link_action)
-    basenames.contains("dep.pic.a")
-    basenames.not_contains("dep.nopic.a")
+    link_action.inputs().contains_predicate(matching.file_basename_equals("dep.pic.a"))
+    link_action.inputs().not_contains_predicate(matching.file_basename_equals("dep.nopic.a"))
 
 def _test_pic_mode_uses_pic_libs(name, **kwargs):
     util.helper_target(
@@ -1354,7 +1333,7 @@ def _test_pic_mode_uses_pic_libs(name, **kwargs):
 
 def _test_pic_mode_uses_pic_libs_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    _input_basenames(link_action).contains("dep.pic.o")
+    link_action.inputs().contains_predicate(matching.file_basename_equals("dep.pic.o"))
 
 def _create_does_not_use_nopic_library_dep_tree(name):
     util.helper_target(
@@ -1384,9 +1363,8 @@ def _test_pic_mode_does_not_use_nopic_library_force_pic_disabled(name, **kwargs)
 
 def _test_pic_mode_does_not_use_nopic_library_force_pic_disabled_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    basenames = _input_basenames(link_action)
-    basenames.contains("mybinary.pic.o")
-    basenames.not_contains("dep.nopic.o")
+    link_action.inputs().contains_predicate(matching.file_basename_equals("mybinary.pic.o"))
+    link_action.inputs().not_contains_predicate(matching.file_basename_equals("dep.nopic.o"))
 
 def _test_pic_mode_does_not_use_nopic_library_force_pic_enabled(name, **kwargs):
     _create_does_not_use_nopic_library_dep_tree(name)
@@ -1403,7 +1381,7 @@ def _test_pic_mode_does_not_use_nopic_library_force_pic_enabled(name, **kwargs):
 
 def _test_pic_mode_does_not_use_nopic_library_force_pic_enabled_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    _input_basenames(link_action).not_contains("dep.nopic.o")
+    link_action.inputs().not_contains_predicate(matching.file_basename_equals("dep.nopic.o"))
 
 def _test_pic_mode_does_not_use_nopic_binary(name, **kwargs):
     util.helper_target(
@@ -1421,7 +1399,7 @@ def _test_pic_mode_does_not_use_nopic_binary(name, **kwargs):
 
 def _test_pic_mode_does_not_use_nopic_binary_impl(env, target):
     link_action = link_action_subject.from_target(env, target)
-    _input_basenames(link_action).not_contains("xyz.nopic.o")
+    link_action.inputs().not_contains_predicate(matching.file_basename_equals("xyz.nopic.o"))
 
 def _setup_cc_runtimes_mock():
     util.helper_target(

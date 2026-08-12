@@ -7,8 +7,8 @@ def _link_action_subject_new(actual, meta):
     return struct(
         actual = actual,
         meta = meta,
-        inputs = lambda: subjects.collection(actual.inputs.to_list(), meta = meta.derive("inputs")),
-        outputs = lambda: subjects.collection(actual.outputs.to_list(), meta = meta.derive("outputs")),
+        inputs = lambda: subjects.depset_file(actual.inputs, meta = meta.derive("inputs")),
+        outputs = lambda: subjects.depset_file(actual.outputs, meta = meta.derive("outputs")),
         argv = lambda: subjects.collection(actual.argv, sortable = False, meta = meta.derive("argv")),
         env = lambda: subjects.dict(actual.env, meta = meta.derive("env")),
         execution_info = lambda: subjects.dict(actual.execution_info, meta = meta.derive("execution_info")),
