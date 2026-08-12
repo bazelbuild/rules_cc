@@ -987,6 +987,40 @@ def _test_assembler_source_impl(env, targets):
     link_action = binary_target.action_generating("{package}/{name}{binary_extension}")
     link_action.inputs().contains(obj_path)
 
+def _test_assembler_source_with_shared_nonlto_backends(name, **kwargs):
+    # The assembler source (.S file) is compiled to a native object, not bitcode.
+    # This forces the library to contain at least one non-bitcode object, which
+    # triggers the LTO indexing code path for non-bitcode objects when
+    # include_link_static_in_lto_indexing is false.
+    s_file = util.empty_file(name + "_tracing.S")
+    util.helper_target(
+        cc_library,
+        name = name + "/lib",
+        srcs = ["bye.cc", s_file],
+        hdrs = ["bye.h"],
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = ["hello.cc"],
+        deps = [":" + name + "/lib"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_assembler_source_impl,
+        targets = {
+            "bin": name + "/bin",
+            "lib": name + "/lib",
+        },
+        test_features = [
+            "thin_lto",
+            "supports_pic",
+            "supports_start_end_lib",
+            "thin_lto_all_linkstatic_use_shared_nonlto_backends",
+        ],
+        **kwargs
+    )
+
 # Make sure we don't choke on a cc_library without sources and therefore, without bitcode files.
 def _test_no_source_files(name, **kwargs):
     a_file = util.empty_file(name + "_static.a")
@@ -2276,6 +2310,7 @@ def cc_binary_thin_lto_tests(name):
         tests.append(_test_lto_backend_opt)
         tests.append(_test_link_opt)
         tests.append(_test_propeller_optimize_option_from_label)
+        tests.append(_test_assembler_source_with_shared_nonlto_backends)
 
     test_suite(
         name = name,
