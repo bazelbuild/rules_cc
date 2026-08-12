@@ -939,11 +939,13 @@ def _test_use_shared_all_linkstatic_impl(env, target):
     backend_action.argv().not_contains("alinkopt")
 
 def _test_assembler_source(name, **kwargs):
-    s_file = util.empty_file(name + "_tracing.S")
     util.helper_target(
         cc_library,
         name = name + "/lib",
-        srcs = ["bye.cc", s_file],
+        srcs = [
+            "bye.cc",
+            name + "_tracing.S",
+        ],
         hdrs = ["bye.h"],
     )
     util.helper_target(
@@ -1023,11 +1025,10 @@ def _test_assembler_source_with_shared_nonlto_backends(name, **kwargs):
 
 # Make sure we don't choke on a cc_library without sources and therefore, without bitcode files.
 def _test_no_source_files(name, **kwargs):
-    a_file = util.empty_file(name + "_static.a")
     util.helper_target(
         cc_library,
         name = name + "/lib",
-        srcs = [a_file],
+        srcs = [name + "_static.a"],
     )
     util.helper_target(
         cc_binary,
@@ -2045,20 +2046,16 @@ def _test_propeller_host_builds(name, **kwargs):
     )
 
 def _test_propeller_host_builds_impl(env, target):
-    package = target.label.package
-    name = target.label.name
-    bindir = target[TestingAspectInfo].bin_path
-
     # Sanity check: Verify Propeller IS active on the target binary backend action
     target_backend_action = env.expect.that_target(target).action_generating(
         "{package}/{name}.lto/{bindir}/{package}/_objs/{name}/binfile.o".format(
-            package = package,
-            name = name,
-            bindir = bindir,
+            package = target.label.package,
+            name = target.label.name,
+            bindir = target[TestingAspectInfo].bin_path,
         ),
     )
     target_backend_action.mnemonic().equals("CcLtoBackendCompile")
-    target_backend_action.argv().contains_predicate(matching.str_matches("-fbasic-block-sections=list=*cc_profile.txt"))
+    target_backend_action.argv().contains_predicate(matching.str_matches("-fbasic-block-sections=list=*/cc_profile.txt"))
 
     lib_target = _find_target_in_attr_by_suffix(
         env,
@@ -2125,14 +2122,14 @@ def _test_propeller_optimize_option_from_label_impl(env, target):
     link_action.outputs().has_size(1)
 
     link_action.inputs().contains_predicate(matching.file_basename_equals("ld_profile.txt"))
-    link_action.argv().contains_predicate(matching.str_matches("-Wl,--symbol-ordering-file=*ld_profile.txt"))
+    link_action.argv().contains_predicate(matching.str_matches("-Wl,--symbol-ordering-file=*/ld_profile.txt"))
 
     backend_action = env.expect.that_target(target).action_generating(
         "{package}/{name}.lto/{bindir}/{package}/_objs/{name}/binfile.o",
     )
     backend_action.mnemonic().equals("CcLtoBackendCompile")
 
-    backend_action.argv().contains_predicate(matching.str_matches("-fbasic-block-sections=list=*cc_profile.txt"))
+    backend_action.argv().contains_predicate(matching.str_matches("-fbasic-block-sections=list=*/cc_profile.txt"))
     backend_action.argv().contains("-DBUILD_PROPELLER_ENABLED=1")
 
     backend_action.inputs().contains_predicate(matching.file_basename_equals("cc_profile.txt"))
