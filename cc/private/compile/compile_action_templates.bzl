@@ -170,12 +170,9 @@ def _create_compile_action_template(
         use_pic = use_pic,
     )
     specific_compile_build_variables = get_specific_compile_build_variables(
-        feature_configuration,
         use_pic = use_pic,
         source_file = source_dir,
         output_file = output_dir,
-        cpp_module_map = cc_compilation_context._module_map,
-        direct_module_maps = cc_compilation_context._direct_module_maps,
         user_compile_flags = all_copts,
     )
     dotd_tree_artifact = _maybe_declare_dotd_tree_artifact(

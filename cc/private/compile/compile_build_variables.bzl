@@ -174,7 +174,6 @@ def create_compile_variables(
         additional_build_variables["input_file"] = input_file
 
     variables = get_specific_compile_build_variables(
-        feature_configuration,
         use_pic = use_pic,
         source_file = source_file,
         output_file = output_file,
@@ -208,6 +207,8 @@ def setup_common_compile_build_variables(
         defines = cc_compilation_context.defines,
         local_defines = cc_compilation_context.local_defines,
         external_include_dirs = cc_compilation_context.external_includes,
+        cpp_module_map = cc_compilation_context._module_map if feature_configuration.is_enabled("module_maps") else None,
+        direct_module_maps = cc_compilation_context._direct_module_maps,
     )
     return _cc_internal.combine_cc_toolchain_variables(cc_toolchain._build_variables, common_vars)
 
@@ -226,8 +227,15 @@ def _setup_common_compile_build_variables_internal(
         framework_include_dirs = depset(),
         defines = depset(),
         local_defines = depset(),
-        external_include_dirs = depset()):
+        external_include_dirs = depset(),
+        cpp_module_map = None,
+        direct_module_maps = depset()):
     result = {}
+
+    if cpp_module_map:
+        result[_VARS.MODULE_NAME] = get_module_map_name(cpp_module_map)
+        result[_VARS.MODULE_MAP_FILE] = cpp_module_map.file
+        result[_VARS.DEPENDENT_MODULE_MAP_FILES] = direct_module_maps
 
     if feature_configuration.is_enabled("use_header_modules"):
         result[_VARS.MODULE_FILES] = ()
@@ -272,7 +280,6 @@ def _setup_common_compile_build_variables_internal(
 # Note: this method is side-effect free, callers should add fdo inputs to
 # cc_compile_action_builder themselves
 def get_specific_compile_build_variables(
-        feature_configuration,
         use_pic,
         source_file = None,
         output_file = None,
@@ -286,15 +293,13 @@ def get_specific_compile_build_variables(
         thinlto_output_object_file = None,
         using_fission = False,
         code_coverage_enabled = False,
-        cpp_module_map = None,
-        direct_module_maps = depset(),
+        module_name = None,
         user_compile_flags = [],
         additional_build_variables = {},
         fdo_build_variables = {}):
     """Creates a CcToolchainVariables instance
 
     Args:
-        feature_configuration: (FeatureConfiguration)
         use_pic: (bool)
         source_file: (File)
         output_file: (File)
@@ -308,8 +313,8 @@ def get_specific_compile_build_variables(
         thinlto_output_object_file: (File)
         using_fission: (bool)
         code_coverage_enabled: (bool)
-        cpp_module_map: (File)
-        direct_module_maps: (depset[File])
+        module_name: (str) Overrides the module name set by
+            setup_common_compile_build_variables.
         user_compile_flags: (list[str])
         additional_build_variables: (dict{str,str})
         fdo_build_variables: (dict{str,str})
@@ -319,10 +324,8 @@ def get_specific_compile_build_variables(
     """
     result = {}
 
-    if feature_configuration.is_enabled("module_maps") and cpp_module_map:
-        result[_VARS.MODULE_NAME] = get_module_map_name(cpp_module_map)
-        result[_VARS.MODULE_MAP_FILE] = cpp_module_map.file
-        result[_VARS.DEPENDENT_MODULE_MAP_FILES] = direct_module_maps
+    if module_name:
+        result[_VARS.MODULE_NAME] = module_name
 
     result[_VARS.USER_COMPILE_FLAGS] = _cc_internal.intern_string_sequence_variable_value(user_compile_flags)
     if source_file:
