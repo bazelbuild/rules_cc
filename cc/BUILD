@@ -214,6 +214,15 @@ bzl_library(
     ],
 )
 
+bzl_library(
+    name = "cc_rules_extension_support",
+    srcs = ["cc_rules_extension_support.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@cc_compatibility_proxy//:proxy_bzl",
+    ],
+)
+
 cc_toolchain_alias(name = "current_cc_toolchain")
 
 # Use alias, because it doesn't build on Bazel 6.

@@ -1,0 +1,3 @@
+load(":extension_support_tests.bzl", "extension_support_tests")
+
+extension_support_tests(name = "extension_support_tests")
