@@ -8,6 +8,7 @@ load(":cc_fdo_env_test.bzl", "cc_fdo_env_tests")
 load(":cc_import_configured_target_tests.bzl", "cc_import_configured_target_tests")
 load(":cc_library_configured_target_tests.bzl", "cc_library_configured_target_tests")
 load(":cc_link_action_test.bzl", "cc_link_action_tests")
+load(":cc_linkstamp_compile_test.bzl", "cc_linkstamp_compile_tests")
 load(":cc_objc_library_configured_target_tests.bzl", "cc_objc_library_configured_target_tests")
 load(":cc_output_groups_test.bzl", "cc_output_groups_tests")
 load(":compile_build_variables_tests.bzl", "compile_build_variables_tests")
@@ -46,3 +47,5 @@ cc_output_groups_tests(name = "cc_output_groups_tests")
 cc_binary_split_functions_tests(name = "cc_binary_split_functions_tests")
 
 cc_link_action_tests(name = "cc_link_action_tests")
+
+cc_linkstamp_compile_tests(name = "cc_linkstamp_compile_tests")

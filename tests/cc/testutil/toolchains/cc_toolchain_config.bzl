@@ -565,6 +565,17 @@ _memprof_optimize_feature = feature(
                 ),
             ],
         ),
+        flag_set(
+            actions = [
+                ACTION_NAMES.linkstamp_compile,
+            ],
+            flag_groups = [
+                flag_group(
+                    expand_if_available = "is_using_memprof",
+                    flags = ["-DBUILD_PGHO_TYPE=\"opt\""],
+                ),
+            ],
+        ),
     ],
 )
 
