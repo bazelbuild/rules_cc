@@ -1,5 +1,6 @@
 load(":cc_bad_dependencies_test.bzl", "cc_bad_dependencies_tests")
 load(":cc_binary_configured_target_tests.bzl", "cc_binary_configured_target_tests")
+load(":cc_binary_fdo_test.bzl", "cc_binary_fdo_tests")
 load(":cc_binary_split_functions_test.bzl", "cc_binary_split_functions_tests")
 load(":cc_binary_thin_lto_tests.bzl", "cc_binary_thin_lto_tests")
 load(":cc_common_test.bzl", "cc_common_tests")
@@ -49,3 +50,5 @@ cc_binary_split_functions_tests(name = "cc_binary_split_functions_tests")
 cc_link_action_tests(name = "cc_link_action_tests")
 
 cc_linkstamp_compile_tests(name = "cc_linkstamp_compile_tests")
+
+cc_binary_fdo_tests(name = "cc_binary_fdo_tests")
