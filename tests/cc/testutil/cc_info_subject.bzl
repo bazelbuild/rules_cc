@@ -23,8 +23,9 @@ def _new_cc_info_subject(cc_info, meta):
     return public
 
 def _new_cc_info_subject_from_target(env, target):
-    env.expect.that_target(target).has_provider(CcInfo)
-    return _new_cc_info_subject(target[CcInfo], env.expect.meta)
+    assert_target = env.expect.that_target(target)
+    assert_target.has_provider(CcInfo)
+    return _new_cc_info_subject(target[CcInfo], assert_target.meta)
 
 def _new_cc_compilation_context_subject(cc_compilation_context, meta):
     self = struct(
@@ -72,6 +73,11 @@ def _new_cc_info_linking_context_subject(cc_info, meta):
         equals = lambda other: _cc_info_linking_context_equals(self.actual, other, self.meta),
         library_files = lambda: _new_library_files_subject(self.actual, self.meta),
         static_library_files = lambda: _new_static_library_files_subject(self.actual, self.meta),
+        dynamic_library_files = lambda: _new_dynamic_library_files_subject(self.actual, self.meta),
+        interface_library_files = lambda: _new_interface_library_files_subject(self.actual, self.meta),
+        resolved_symlink_dynamic_library_files = lambda: _new_resolved_symlink_dynamic_library_files_subject(self.actual, self.meta),
+        resolved_symlink_interface_library_files = lambda: _new_resolved_symlink_interface_library_files_subject(self.actual, self.meta),
+        libraries_to_link = lambda: _new_libraries_to_link_subject_from_linking_context(self.actual, self.meta),
     )
     return public
 
@@ -104,6 +110,56 @@ def _new_static_library_files_subject(linking_context, meta):
         meta = meta.derive("static_library_files"),
     )
 
+def _new_dynamic_library_files_subject(linking_context, meta):
+    dynamic_libraries = []
+    for linker_input in linking_context.linker_inputs.to_list():
+        for lib in linker_input.libraries:
+            if lib.dynamic_library:
+                dynamic_libraries.append(lib.dynamic_library)
+    return subjects.depset_file(
+        depset(dynamic_libraries),
+        meta = meta.derive("dynamic_library_files"),
+    )
+
+def _new_interface_library_files_subject(linking_context, meta):
+    interface_libraries = []
+    for linker_input in linking_context.linker_inputs.to_list():
+        for lib in linker_input.libraries:
+            if lib.interface_library:
+                interface_libraries.append(lib.interface_library)
+    return subjects.depset_file(
+        depset(interface_libraries),
+        meta = meta.derive("interface_library_files"),
+    )
+
+def _new_resolved_symlink_dynamic_library_files_subject(linking_context, meta):
+    libs = []
+    for linker_input in linking_context.linker_inputs.to_list():
+        for lib in linker_input.libraries:
+            if lib.resolved_symlink_dynamic_library:
+                libs.append(lib.resolved_symlink_dynamic_library)
+    return subjects.depset_file(
+        depset(libs),
+        meta = meta.derive("resolved_symlink_dynamic_library_files"),
+    )
+
+def _new_resolved_symlink_interface_library_files_subject(linking_context, meta):
+    libs = []
+    for linker_input in linking_context.linker_inputs.to_list():
+        for lib in linker_input.libraries:
+            if lib.resolved_symlink_interface_library:
+                libs.append(lib.resolved_symlink_interface_library)
+    return subjects.depset_file(
+        depset(libs),
+        meta = meta.derive("resolved_symlink_interface_library_files"),
+    )
+
+def _new_libraries_to_link_subject_from_linking_context(linking_context, meta):
+    libs = []
+    for linker_input in linking_context.linker_inputs.to_list():
+        libs.extend(linker_input.libraries)
+    return _new_cc_info_libraries_to_link_subject(libs, meta)
+
 def _cc_info_linking_context_equals(actual, expected, meta):
     if actual == expected:
         return
@@ -128,6 +184,7 @@ def _new_cc_info_libraries_to_link_subject(libraries_to_link, meta):
 def _new_library_to_link_subject(library_to_link, meta):
     public = struct(
         dynamic_library = lambda: subjects.file(library_to_link.dynamic_library, meta.derive("dynamic_library")),
+        alwayslink = lambda: subjects.bool(library_to_link.alwayslink, meta.derive("alwayslink")),
     )
     return public
 
