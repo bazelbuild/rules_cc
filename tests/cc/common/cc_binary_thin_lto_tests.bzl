@@ -1023,6 +1023,53 @@ def _test_assembler_source_with_shared_nonlto_backends(name, **kwargs):
         **kwargs
     )
 
+def _test_duplicated_static_libraries_in_lto(name, **kwargs):
+    # The static library file (.a) is precompiled.
+    lib_file = util.empty_file(name + "_static.a")
+
+    util.helper_target(
+        cc_library,
+        name = name + "/lib1",
+        srcs = [lib_file],
+    )
+    util.helper_target(
+        cc_library,
+        name = name + "/lib2",
+        srcs = [lib_file],
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = ["hello.cc"],
+        deps = [
+            ":" + name + "/lib1",
+            ":" + name + "/lib2",
+        ],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_duplicated_static_libraries_in_lto_impl,
+        target = name + "/bin",
+        test_features = ["thin_lto", "supports_pic", "supports_start_end_lib"],
+        **kwargs
+    )
+
+def _test_duplicated_static_libraries_in_lto_impl(env, target):
+    package = target.label.package
+    name = target.label.name
+
+    test_name = name.split("/")[0]
+    lib_file_path = "{package}/{test_name}_static.a".format(
+        package = package,
+        test_name = test_name,
+    )
+
+    binary_target = cc_binary_target_subject.from_target(env, target)
+    link_action = binary_target.action_generating("{package}/{name}{binary_extension}")
+
+    # Verify that the static library is an input to the link action.
+    link_action.inputs().contains(lib_file_path)
+
 # Make sure we don't choke on a cc_library without sources and therefore, without bitcode files.
 def _test_no_source_files(name, **kwargs):
     util.helper_target(
@@ -2308,6 +2355,7 @@ def cc_binary_thin_lto_tests(name):
         tests.append(_test_link_opt)
         tests.append(_test_propeller_optimize_option_from_label)
         tests.append(_test_assembler_source_with_shared_nonlto_backends)
+        tests.append(_test_duplicated_static_libraries_in_lto)
 
     test_suite(
         name = name,
