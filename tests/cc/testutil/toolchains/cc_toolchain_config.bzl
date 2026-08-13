@@ -1443,15 +1443,22 @@ _uses_whole_archive_feature = feature(
             ],
             flag_groups = [
                 flag_group(
-                    iterate_over = "libraries_to_link",
                     flag_groups = [
                         flag_group(
                             expand_if_true = "libraries_to_link.is_whole_archive",
-                            flags = ["--whole-archive=%{libraries_to_link.name}"],
+                            flags = ["-Wl,-whole-archive"],
                         ),
                         flag_group(
-                            expand_if_false = "libraries_to_link.is_whole_archive",
-                            flags = ["--no-whole-archive=%{libraries_to_link.name}"],
+                            flags = ["%{libraries_to_link.object_files}"],
+                            iterate_over = "libraries_to_link.object_files",
+                            expand_if_equal = variable_with_value(
+                                name = "libraries_to_link.type",
+                                value = "static_library",
+                            ),
+                        ),
+                        flag_group(
+                            expand_if_true = "libraries_to_link.is_whole_archive",
+                            flags = ["-Wl,-nowhole-archive"],
                         ),
                     ],
                 ),

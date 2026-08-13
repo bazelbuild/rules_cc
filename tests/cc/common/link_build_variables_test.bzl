@@ -459,6 +459,9 @@ def _test_linker_inputs_override_whole_archive(name):
             "disable_whole_archive_for_static_lib_configuration",
             "uses_whole_archive",
         ],
+        attrs = {
+            "_is_macos": attr.label(default = "@platforms//os:macos"),
+        },
     )
 
 def _test_linker_inputs_override_whole_archive_impl(env, target):
@@ -467,23 +470,24 @@ def _test_linker_inputs_override_whole_archive_impl(env, target):
     output_path = "{}/lib{}.so".format(package, name)
     action_subject = env.expect.that_target(target).action_generating(output_path)
     action = link_action_subject.new(action_subject.actual, action_subject.meta)
-    c_name = target.label.name
-    prefix = c_name[:-2]  # removing "_c"
-    a_lib_name = "lib" + prefix + "_a.a"
-    b_lib_name = "lib" + prefix + "_b.lo"
 
-    action.argv().contains_predicate(
-        matching.custom(
-            "ends with --no-whole-archive=..." + a_lib_name,
-            lambda s: s.startswith("--no-whole-archive=") and s.endswith(a_lib_name),
-        ),
-    )
-    action.argv().contains_predicate(
-        matching.custom(
-            "ends with --whole-archive=..." + b_lib_name,
-            lambda s: s.startswith("--whole-archive=") and s.endswith(b_lib_name),
-        ),
-    )
+    is_macos = env.ctx.target_platform_has_constraint(env.ctx.attr._is_macos[platform_common.ConstraintValueInfo])
+    if is_macos:
+        action.argv().contains(
+            "-Wl,-force_load,{bindir}/{package}/lib{test_name}_b.lo",
+        )
+        action.argv().not_contains_predicate(
+            matching.str_matches("-Wl,-force_load,*_a.lo"),
+        )
+    else:
+        action.argv().contains_at_least([
+            "-Wl,-whole-archive",
+            "{bindir}/{package}/lib{test_name}_b.lo",
+            "-Wl,-no-whole-archive",
+        ]).in_order()
+        action.argv().not_contains(
+            "{bindir}/{package}/lib{test_name}_a.lo",
+        )
 
 def link_build_variables_tests(name):
     test_suite(
