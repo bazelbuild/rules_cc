@@ -17,6 +17,7 @@
 load("@bazel_features//:features.bzl", "bazel_features")
 load("@rules_testing//lib:analysis_test.bzl", "test_suite")
 load("@rules_testing//lib:util.bzl", "util")
+load("//cc:cc_binary.bzl", "cc_binary")
 load("//cc:cc_library.bzl", "cc_library")
 load("//tests/cc/testutil:cc_analysis_test.bzl", "cc_analysis_test")
 
@@ -141,6 +142,51 @@ def _test_module_output_groups_impl(env, target):
         "{package}/_objs/{test_name}/lib/lib.pcm",
     ])
 
+def _test_compilation_outputs_group(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/foo",
+        srcs = [
+            "foo.cc",
+            name + "/gen",
+        ],
+        deps = [name + "/bar"],
+    )
+
+    util.helper_target(
+        cc_library,
+        name = name + "/bar",
+        srcs = ["bar.cc"],
+    )
+
+    util.helper_target(
+        native.genrule,
+        name = name + "/gen",
+        outs = [
+            name + "/gen.cc",
+            name + "/gen.h",
+        ],
+        cmd = "touch $(OUTS)",
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_compilation_outputs_group_impl,
+        target = name + "/foo",
+        test_features = [
+            "supports_pic",
+        ],
+        **kwargs
+    )
+
+def _test_compilation_outputs_group_impl(env, target):
+    # Artifacts from deps and the final linking output should not be in this group
+    # Only the direct compilation outputs should be present.
+    env.expect.that_target(target).output_group("compilation_outputs").contains_exactly([
+        "{package}/_objs/{test_name}/foo/foo.pic.o",
+        "{package}/_objs/{test_name}/foo/gen.pic.o",
+    ])
+
 def cc_output_groups_tests(name):
     tests = []
     if bazel_features.cc.cc_common_is_in_rules_cc:
@@ -150,6 +196,7 @@ def cc_output_groups_tests(name):
             _test_static_and_dynamic_library_output_groups,
             _test_shared_and_dynamic_library_output_groups,
             _test_module_output_groups,
+            _test_compilation_outputs_group,
         ]
 
     test_suite(
