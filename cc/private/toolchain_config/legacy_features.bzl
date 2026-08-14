@@ -158,6 +158,7 @@ def get_legacy_features(ctx, platform, existing_feature_names, linker_tool_path)
                     ACTION_NAMES.c_compile,
                     ACTION_NAMES.cpp_compile,
                     ACTION_NAMES.cpp_module_codegen,
+                    ACTION_NAMES.lto_backend,
                     ACTION_NAMES.preprocess_assemble,
                 ],
                 flag_groups = [flag_group(
