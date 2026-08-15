@@ -85,10 +85,6 @@ def _single_file(ctx, attr_name):
     return None
 
 def _attributes(ctx):
-    grep_includes = None
-    if not semantics.is_bazel:
-        grep_includes = _single_file(ctx, "_grep_includes")
-
     latebound_libc = _latebound_libc(ctx, "libc_top", "_libc_top")
 
     if ctx.attr.toolchain_config:
@@ -146,7 +142,7 @@ def _attributes(ctx):
         supports_header_parsing = ctx.attr.supports_header_parsing,
         all_files = all_files,
         link_dynamic_library_tool = ctx.file._link_dynamic_library_tool,
-        grep_includes = grep_includes,
+        grep_includes = _single_file(ctx, "grep_includes"),
         aggregate_ddi = _single_file(ctx, "_aggregate_ddi"),
         generate_modmap = _single_file(ctx, "_generate_modmap"),
         module_map = ctx.attr.module_map,
@@ -308,6 +304,7 @@ Collection of all cc_toolchain artifacts required for dwp actions.""",
 Collection of all cc_toolchain artifacts required for coverage actions. If not specified,
 all_files are used.""",
         ),
+        "grep_includes": semantics.get_grep_includes(),
         "libc_top": attr.label(
             # TODO(b/78578234): Make this the default and remove the late-bound versions.
             allow_files = False,
@@ -358,7 +355,6 @@ The label of the rule providing <code>cc_toolchain_config_info</code>.""",
         "_libc_top": attr.label(
             default = configuration_field(fragment = "cpp", name = "libc_top"),
         ),
-        "_grep_includes": semantics.get_grep_includes(),
         "_interface_library_builder": attr.label(
             default = "@bazel_tools//tools/cpp:interface_library_builder",
             allow_single_file = True,
