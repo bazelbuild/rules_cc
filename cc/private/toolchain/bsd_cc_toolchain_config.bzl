@@ -62,7 +62,7 @@ def _impl(ctx):
     toolchain_identifier = "local_{}".format(cpu) if is_bsd else "stub_armeabi-v7a"
     host_system_name = "local" if is_bsd else "armeabi-v7a"
     target_system_name = "local" if is_bsd else "armeabi-v7a"
-    target_libc = "local" if is_bsd else "armeabi-v7a"
+    target_libc = cpu if is_bsd else "unknown"
     abi_version = "local" if is_bsd else "armeabi-v7a"
     abi_libc_version = "local" if is_bsd else "armeabi-v7a"
 

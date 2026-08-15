@@ -26,7 +26,7 @@ def _impl(ctx):
             host_system_name = "local",
             target_system_name = "local",
             target_cpu = "local",
-            target_libc = "local",
+            target_libc = "unknown",
             compiler = "compiler",
             abi_version = "local",
             abi_libc_version = "local",
