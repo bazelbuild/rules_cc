@@ -24,12 +24,10 @@ def _cc_binary_setup(name):
     )
 
 def _cc_library_nodeps_dynamic_library_action(env, target):
-    action_subject = env.expect.that_target(target).action_generating("{package}/lib{name}.so")
-    return link_action_subject.new(action_subject.actual, action_subject.meta)
+    return env.expect.that_target(target).action_generating("{package}/lib{name}.so")
 
 def _cc_library_static_library_action(env, target):
-    action_subject = env.expect.that_target(target).action_generating("{package}/lib{name}.a")
-    return link_action_subject.new(action_subject.actual, action_subject.meta)
+    return env.expect.that_target(target).action_generating("{package}/lib{name}.a")
 
 def _test_force_pic_build_variable(name):
     _cc_binary_setup(name)
@@ -217,10 +215,9 @@ def _test_no_ifso_building_when_thin_lto_indexing(name):
     )
 
 def _test_no_ifso_building_when_thin_lto_indexing_impl(env, target):
-    action_subject = env.expect.that_target(target).action_generating(
+    action = env.expect.that_target(target).action_generating(
         "{package}/lib{name}.so-lto-final.params",
     )
-    action = link_action_subject.new(action_subject.actual, action_subject.meta)
     action.argv().contains("--generate-interface-library=no")
     action.argv().contains("--interface-library-input=ignored")
     action.argv().contains("--interface-library-output=ignored")
@@ -268,10 +265,9 @@ def _test_output_execpath_is_not_exposed_when_thin_lto_indexing(name):
 
 def _test_output_execpath_is_not_exposed_when_thin_lto_indexing_impl(env, target):
     # TODO(b/525692821): Consider using build graph traversal once available to find the LTO backend action.
-    action_subject = env.expect.that_target(target).action_generating(
+    action = env.expect.that_target(target).action_generating(
         "{package}/lib{name}.so-lto-final.params",
     )
-    action = link_action_subject.new(action_subject.actual, action_subject.meta)
     action.argv().not_contains_predicate(
         matching.custom(
             "starts with --output-execpath=",
@@ -468,8 +464,7 @@ def _test_linker_inputs_override_whole_archive_impl(env, target):
     package = target.label.package
     name = target.label.name
     output_path = "{}/lib{}.so".format(package, name)
-    action_subject = env.expect.that_target(target).action_generating(output_path)
-    action = link_action_subject.new(action_subject.actual, action_subject.meta)
+    action = env.expect.that_target(target).action_generating(output_path)
 
     is_macos = env.ctx.target_platform_has_constraint(env.ctx.attr._is_macos[platform_common.ConstraintValueInfo])
     if is_macos:
