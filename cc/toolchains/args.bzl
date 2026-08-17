@@ -43,6 +43,8 @@ visibility("public")
 
 def _cc_args_impl(ctx):
     actions = collect_action_types(ctx.attr.actions)
+    actions_list = actions.to_list()
+    variables = ctx.attr._variables[BuiltinVariablesInfo].variables
 
     format_targets = {k: v for v, k in ctx.attr.format.items()}
     formatted_env, used_format_vars = format_dict_values(
@@ -74,9 +76,9 @@ def _cc_args_impl(ctx):
         # errors if they go unused during the argument formatting.
         nested = nested_args_provider_from_ctx(ctx, used_format_vars)
         validate_nested_args(
-            variables = ctx.attr._variables[BuiltinVariablesInfo].variables,
+            variables = variables,
             nested_args = nested,
-            actions = actions.to_list(),
+            actions = actions_list,
             label = ctx.label,
         )
         files = nested.files
@@ -91,9 +93,9 @@ def _cc_args_impl(ctx):
         requires_not_none = ctx.attr.requires_not_none[VariableInfo].name if ctx.attr.requires_not_none else None,
     )
     validate_env_variables(
-        actions = actions.to_list(),
+        actions = actions_list,
         env = env,
-        variables = ctx.attr._variables[BuiltinVariablesInfo].variables,
+        variables = variables,
         used_format_vars = used_env_variables,
     )
 
@@ -111,16 +113,17 @@ def _cc_args_impl(ctx):
             direct = ctx.attr.allowlist_absolute_include_directories,
         ),
     )
+    args_tuple = (args,)
 
     return [
         args,
         ArgsListInfo(
             label = ctx.label,
-            args = tuple([args]),
+            args = args_tuple,
             files = files,
             by_action = tuple([
-                struct(action = action, args = tuple([args]), files = files)
-                for action in actions.to_list()
+                struct(action = action, args = args_tuple, files = files)
+                for action in actions_list
             ]),
             allowlist_include_directories = args.allowlist_include_directories,
             allowlist_absolute_include_directories = args.allowlist_absolute_include_directories,
