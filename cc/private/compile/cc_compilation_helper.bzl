@@ -457,7 +457,8 @@ def _init_cc_compilation_context(
     repo_path = repository_exec_path(repo_name, sibling_repo_layout)
     gen_include_dir = _include_dir(genfiles_dir, repo_path, sibling_repo_layout)
     bin_include_dir = _include_dir(binfiles_dir, repo_path, sibling_repo_layout)
-    quote_include_dirs_for_context = [repo_path, gen_include_dir, bin_include_dir] + quote_include_dirs
+    repo_include_dirs = [] if feature_configuration.is_requested("disable_repo_root_include_path") else [repo_path]
+    quote_include_dirs_for_context = repo_include_dirs + [gen_include_dir, bin_include_dir] + quote_include_dirs
     external = repo_name != "" and _enabled(feature_configuration, "external_include_paths")
     shorten_virtual_includes = _enabled(feature_configuration, "shorten_virtual_includes")
     skip_virtual_includes = _enabled(feature_configuration, "skip_virtual_includes")
@@ -477,7 +478,7 @@ def _init_cc_compilation_context(
         system_include_dirs_for_context = []
         include_dirs_for_context = []
 
-        external_include_dirs.append(repo_path)
+        external_include_dirs.extend(repo_include_dirs)
         external_include_dirs.append(gen_include_dir)
         external_include_dirs.append(bin_include_dir)
         external_include_dirs.extend(quote_include_dirs)
