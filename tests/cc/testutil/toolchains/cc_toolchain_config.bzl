@@ -157,7 +157,8 @@ _simple_header_modules_feature = feature(
 
 _header_modules_feature = feature(
     name = FEATURE_NAMES.header_modules,
-    implies = ["use_header_modules", "header_module_compile"],
+    implies = ["header_module_compile"],
+    requires = [feature_set(features = ["use_header_modules"])],
 )
 
 _header_module_compile_feature = feature(
@@ -216,6 +217,7 @@ _module_maps_feature = feature(
 
 _use_header_modules_feature = feature(
     name = FEATURE_NAMES.use_header_modules,
+    enabled = True,
     flag_sets = [
         flag_set(
             actions = [
@@ -1798,6 +1800,7 @@ _feature_name_to_feature = {
     FEATURE_NAMES.compiler_param_file: _compiler_param_file_feature,
     FEATURE_NAMES.gcc_quoting_for_param_files: _gcc_quoting_for_param_files_feature,
     FEATURE_NAMES.module_maps: _module_maps_feature,
+    FEATURE_NAMES.use_header_modules: _use_header_modules_feature,
     FEATURE_NAMES.static_link_cpp_runtimes: _static_link_cpp_runtimes_feature,
     FEATURE_NAMES.simple_compile_feature: _simple_compile_feature,
     FEATURE_NAMES.simple_link_feature: _simple_link_feature,
