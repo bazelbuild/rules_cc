@@ -1,5 +1,6 @@
 """Tests for C++ linking action."""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@rules_testing//lib:analysis_test.bzl", "test_suite")
 load("@rules_testing//lib:truth.bzl", "matching", "subjects")
 load("@rules_testing//lib:util.bzl", "util")
@@ -400,6 +401,100 @@ def _test_linkstamp_objects_exposed_impl(env, target):
         "{package}/{test_name}/_objs/foo/{package}/linkstamp.o",
     )
 
+def _test_linkopts_for_generated_library(name, **kwargs):
+    util.helper_target(
+        native.genrule,
+        name = name + "/genlib",
+        outs = [name + "/genlib.a"],
+        cmd = "touch $@",
+    )
+
+    util.helper_target(
+        cc_library,
+        name = name + "/bar",
+        srcs = [name + "/genlib"],
+        linkstatic = True,
+    )
+
+    util.helper_target(
+        cc_binary,
+        name = name + "/foo.so",
+        deps = [name + "/bar"],
+        linkstatic = True,
+        linkshared = True,
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_linkopts_for_generated_library_impl,
+        target = name + "/foo.so",
+        config_settings = {
+            "//command_line_option:incompatible_remove_legacy_whole_archive": False,
+            "//command_line_option:legacy_whole_archive": True,
+        },
+        test_features = [
+            "supports_dynamic_linker",
+        ],
+        attrs = {
+            "_is_macos": attr.label(default = "@platforms//os:macos"),
+        },
+        **kwargs
+    )
+
+def _test_linkopts_for_generated_library_impl(env, target):
+    is_macos = _has_constraint(env, env.ctx.attr._is_macos)
+    assert_link_action = env.expect.that_target(target).action_generating(
+        "{package}/{test_name}/foo.so",
+    )
+    link_argv_predicates = [
+        matching.equals_wrapper("-shared"),
+        matching.equals_wrapper("-o"),
+        matching.str_matches("-out/*/foo.so"),
+    ]
+    if is_macos:
+        link_argv_predicates.extend([
+            matching.str_matches("-Wl,-force_load*/genlib.a"),
+        ])
+    else:
+        link_argv_predicates.extend([
+            matching.equals_wrapper("-Wl,-whole-archive"),
+            matching.str_matches("-out/*/genlib.a"),
+            matching.equals_wrapper("-Wl,-no-whole-archive"),
+        ])
+    assert_link_action.argv().contains_at_least_predicates(link_argv_predicates).in_order()
+
+def _test_cc_library_linkopts_in_shared_library(name, **kwargs):
+    util.helper_target(
+        cc_library,
+        name = name + "/foo",
+        srcs = ["foo.cc"],
+        linkopts = ["-Lfoo_opt1", "-lfoo_opt2"],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_cc_library_linkopts_in_shared_library_impl,
+        target = name + "/foo",
+        test_features = ["supports_dynamic_linker"],
+        **kwargs
+    )
+
+def _test_cc_library_linkopts_in_shared_library_impl(env, target):
+    # Verify the specified linkopts are used in the link action for the
+    # shared library but not in the link action for the archive.
+    linkopts = ["-Lfoo_opt1", "-lfoo_opt2"]
+    assert_archive_link_action = env.expect.that_target(target).action_generating(
+        "{package}/{test_name}/libfoo.a",
+    )
+    assert_archive_link_action.mnemonic().equals("CppArchive")
+    assert_archive_link_action.argv().contains_none_of(linkopts)
+
+    assert_so_link_action = env.expect.that_target(target).action_generating(
+        "{package}/{test_name}/libfoo.so",
+    )
+    assert_so_link_action.mnemonic().equals("CppLink")
+    assert_so_link_action.argv().contains_at_least(linkopts)
+
 def cc_link_action_tests(name):
     tests = [
         _test_linkopts_and_lib_srcs_order,
@@ -411,7 +506,11 @@ def cc_link_action_tests(name):
         _test_pie_option_kept_for_executables,
         _test_linkopts_come_after_linker_inputs,
         _test_linkstamp_objects_exposed,
+        _test_cc_library_linkopts_in_shared_library,
     ]
+    if bazel_features.rules.analysis_tests_can_transition_on_experimental_incompatible_flags:
+        tests.append(_test_linkopts_for_generated_library)
+
     test_suite(
         name = name,
         tests = tests,
