@@ -624,9 +624,55 @@ def _test_external_include_paths_reclassifies_external_quote_includes_impl(env, 
     env.expect.that_collection(system_include_paths).contains_predicate(
         matching.contains("googletest"),
     )
+    env.expect.that_collection(system_include_paths).contains_at_least([
+        "external/googletest+",
+    ])
+    env.expect.that_collection(quote_include_paths).contains_at_least(["."])
     env.expect.that_collection(quote_include_paths).transform(
         filter = matching.contains("googletest"),
     ).contains_exactly([])
+
+# buildifier: disable=unused-variable
+def _test_disable_repo_root_include_path(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/hello",
+        srcs = ["hello.cc"],
+        deps = ["@googletest//:gtest"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_disable_repo_root_include_path_impl,
+        target = name + "/hello",
+        test_features = [
+            FEATURE_NAMES.external_include_paths,
+            "disable_repo_root_include_path",
+        ],
+        with_features = [FEATURE_NAMES.external_include_paths],
+        **kwargs
+    )
+
+def _test_disable_repo_root_include_path_impl(env, target):
+    executable = target[DefaultInfo].files_to_run.executable
+    link_action = env.expect.that_target(target).action_generating(executable.short_path)
+    hello_obj_files = [
+        f
+        for f in link_action.actual.inputs.to_list()
+        if f.basename.startswith("hello.") and f.extension in ["o", "obj"]
+    ]
+
+    env.expect.that_collection(hello_obj_files).has_size(1)
+    compile_action = env.expect.that_target(target).action_generating(hello_obj_files[0].short_path)
+    quote_include_paths = _include_paths_from_argv(compile_action.actual.argv, "-iquote")
+    system_include_paths = _system_include_paths_from_argv(compile_action.actual.argv)
+
+    env.expect.that_collection(quote_include_paths).contains_none_of(["."])
+    env.expect.that_collection(system_include_paths).contains_predicate(
+        matching.contains("googletest"),
+    )
+    env.expect.that_collection(system_include_paths).contains_none_of([
+        "external/googletest+",
+    ])
 
 def _test_linkopts_diamond(name, **kwargs):
     util.helper_target(
@@ -2002,6 +2048,7 @@ def cc_binary_configured_target_tests(name):
             _test_sanitize_pwd_feature_enabled,
             _test_sanitize_pwd_feature_disabled,
             _test_sanitize_pwd_macos_no_pwd,
+            _test_disable_repo_root_include_path,
             _test_external_include_paths_reclassifies_external_quote_includes,  # copybara-uncomment-this-please
             _test_system_include_paths_reclassifies_local_includes_after_includes,
             _test_system_include_paths_reclassifies_local_includes_without_propagation,
