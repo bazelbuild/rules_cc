@@ -129,7 +129,6 @@ def compile(
         module_map = None,
         additional_module_maps = [],
         do_not_generate_module_map = False,
-        code_coverage_enabled = False,
         # TODO(b/396122076): seems unused; double-check and remove
         hdrs_checking_mode = None,  # buildifier: disable=unused-variable
         variables_extension = None,
@@ -199,7 +198,6 @@ def compile(
         module_map: undocumented
         additional_module_maps: undocumented
         do_not_generate_module_map: undocumented
-        code_coverage_enabled: undocumented
         hdrs_checking_mode: undocumented
         variables_extension: undocumented
         language: undocumented
@@ -377,7 +375,6 @@ def compile(
         feature_configuration = feature_configuration,
         generate_no_pic_action = generate_no_pic_action,
         generate_pic_action = generate_pic_action,
-        is_code_coverage_enabled = code_coverage_enabled,
         label = label,
         private_headers = private_hdrs_artifacts,
         public_headers = public_hdrs_artifacts,
@@ -657,7 +654,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
         cxxopts,
         fdo_context,
         feature_configuration,
-        is_code_coverage_enabled,
         label,
         private_headers,  # buildifier: disable=unused-variable
         public_headers,  # buildifier: disable=unused-variable
@@ -848,7 +844,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
             fdo_build_variables = fdo_build_variables,
             output_category = artifact_category.CLIF_OUTPUT_PROTO if cpp_source.type == CPP_SOURCE_TYPE_CLIF_INPUT_PROTO else artifact_category.OBJECT_FILE,
             add_object = True,
-            enable_coverage = is_code_coverage_enabled,
             generate_dwo = should_create_per_object_debug_info(feature_configuration, cpp_configuration),
             bitcode_output = bitcode_output,
             fdo_context = fdo_context,
@@ -995,7 +990,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
             fdo_build_variables = fdo_build_variables,
             output_category = artifact_category.CLIF_OUTPUT_PROTO if cpp_source.type == CPP_SOURCE_TYPE_CLIF_INPUT_PROTO else artifact_category.OBJECT_FILE,
             add_object = True,
-            enable_coverage = is_code_coverage_enabled,
             generate_dwo = should_create_per_object_debug_info(feature_configuration, cpp_configuration),
             bitcode_output = bitcode_output,
             fdo_context = fdo_context,
@@ -1030,7 +1024,6 @@ def _create_cc_compile_actions_with_cpp20_module(
         feature_configuration,
         generate_no_pic_action,
         generate_pic_action,
-        is_code_coverage_enabled,
         label,
         private_headers,
         public_headers,
@@ -1068,7 +1061,6 @@ def _create_cc_compile_actions_with_cpp20_module(
             cxxopts = cxxopts,
             fdo_context = fdo_context,
             feature_configuration = feature_configuration,
-            is_code_coverage_enabled = is_code_coverage_enabled,
             label = label,
             private_headers = private_headers,
             public_headers = public_headers,
@@ -1103,7 +1095,6 @@ def _create_cc_compile_actions(
         feature_configuration,
         generate_no_pic_action,
         generate_pic_action,
-        is_code_coverage_enabled,
         label,
         private_headers,
         public_headers,
@@ -1147,7 +1138,6 @@ def _create_cc_compile_actions(
             feature_configuration = feature_configuration,
             generate_no_pic_action = generate_no_pic_action,
             generate_pic_action = generate_pic_action,
-            is_code_coverage_enabled = is_code_coverage_enabled,
             label = label,
             private_headers = private_headers,
             public_headers = public_headers,
@@ -1231,7 +1221,6 @@ def _create_cc_compile_actions(
                     fdo_context = fdo_context,
                     auxiliary_fdo_inputs = auxiliary_fdo_inputs,
                     feature_configuration = feature_configuration,
-                    is_code_coverage_enabled = is_code_coverage_enabled,
                     label = label,
                     common_toolchain_variables = common_compile_build_variables,
                     fdo_build_variables = fdo_build_variables,
@@ -1278,7 +1267,6 @@ def _create_cc_compile_actions(
                 fdo_build_variables = fdo_build_variables,
                 output_category = (artifact_category.CLIF_OUTPUT_PROTO if source_type == CPP_SOURCE_TYPE_CLIF_INPUT_PROTO else artifact_category.OBJECT_FILE),
                 add_object = True,
-                enable_coverage = is_code_coverage_enabled,
                 generate_dwo = should_create_per_object_debug_info(feature_configuration, cpp_configuration),
                 bitcode_output = bitcode_output,
                 fdo_context = fdo_context,
@@ -1426,7 +1414,6 @@ def _create_pic_nopic_compile_source_actions(
         fdo_build_variables,
         output_category,
         add_object,
-        enable_coverage,
         generate_dwo,
         bitcode_output,
         fdo_context,
@@ -1461,7 +1448,6 @@ def _create_pic_nopic_compile_source_actions(
             output_category = output_category,
             module_name = module_name,
             add_object = add_object,
-            enable_coverage = enable_coverage,
             generate_dwo = generate_dwo,
             bitcode_output = bitcode_output,
             fdo_context = fdo_context,
@@ -1498,7 +1484,6 @@ def _create_pic_nopic_compile_source_actions(
             output_category = output_category,
             module_name = module_name,
             add_object = add_object,
-            enable_coverage = enable_coverage,
             generate_dwo = generate_dwo,
             bitcode_output = bitcode_output,
             fdo_context = fdo_context,
@@ -1535,7 +1520,6 @@ def _create_compile_source_action(
         fdo_build_variables,
         output_category,
         add_object,
-        enable_coverage,
         generate_dwo,
         bitcode_output,
         fdo_context,
@@ -1598,7 +1582,7 @@ def _create_compile_source_action(
         cc_toolchain = cc_toolchain,
         cpp_configuration = cpp_configuration,
         configuration = configuration,
-        enable_coverage = enable_coverage,
+        feature_configuration = feature_configuration,
     )
 
     # Assembly files do not support -ftime-trace; skip trace output
@@ -1646,7 +1630,7 @@ def _create_compile_source_action(
     compile_variables = get_specific_compile_build_variables(
         source_file = source_artifact,
         output_file = object_file,
-        code_coverage_enabled = enable_coverage,
+        code_coverage_enabled = feature_configuration.is_requested("coverage_instrumented"),
         gcno_file = gcno_file,
         dwo_file = dwo_file,
         using_fission = generate_dwo,
@@ -1868,7 +1852,6 @@ def _create_temps_action(
     preprocess_compile_variables = get_specific_compile_build_variables(
         source_file = source_artifact,
         output_file = preprocess_object_file,
-        code_coverage_enabled = False,
         gcno_file = None,
         dwo_file = None,
         using_fission = False,
@@ -1884,7 +1867,6 @@ def _create_temps_action(
     assembly_compile_variables = get_specific_compile_build_variables(
         source_file = source_artifact,
         output_file = assembly_object_file,
-        code_coverage_enabled = False,
         gcno_file = None,
         dwo_file = None,
         using_fission = False,
@@ -1954,7 +1936,6 @@ def _create_module_codegen_action(
         fdo_context,
         auxiliary_fdo_inputs,
         feature_configuration,
-        is_code_coverage_enabled,
         label,
         common_toolchain_variables,
         fdo_build_variables,
@@ -1966,18 +1947,15 @@ def _create_module_codegen_action(
     use_pic = ".pic" in module.basename
     output_name = paths.basename(module.basename)
 
-    gcno_file = None
-    if is_code_coverage_enabled and not cpp_configuration.use_llvm_coverage_map_format():
-        gcno_file = _get_compile_output_file(
-            ctx = action_construction_context,
-            label = label,
-            configuration = configuration,
-            output_name = _cc_internal.get_artifact_name_for_category(
-                cc_toolchain = cc_toolchain,
-                category = artifact_category.COVERAGE_DATA_FILE,
-                output_name = output_name,
-            ),
-        )
+    gcno_file = _maybe_declare_gcno_file(
+        ctx = action_construction_context,
+        label = label,
+        output_name = output_name,
+        cc_toolchain = cc_toolchain,
+        cpp_configuration = cpp_configuration,
+        configuration = configuration,
+        feature_configuration = feature_configuration,
+    )
 
     bitcode_output = (feature_configuration.is_enabled("thin_lto") and
                       paths.split_extension(module.basename)[-1] in LTO_SOURCE_EXTENSIONS)
@@ -2046,7 +2024,7 @@ def _create_module_codegen_action(
     specific_compile_build_variables = get_specific_compile_build_variables(
         source_file = module,
         output_file = object_file,
-        code_coverage_enabled = is_code_coverage_enabled,
+        code_coverage_enabled = feature_configuration.is_requested("coverage_instrumented"),
         gcno_file = gcno_file,
         dwo_file = dwo_file,
         using_fission = generate_dwo,
@@ -2153,7 +2131,6 @@ def _create_module_action(
         output_category = artifact_category.CPP_MODULE,
         module_name = module_name,
         add_object = False,
-        enable_coverage = False,
         generate_dwo = False,
         bitcode_output = False,
         additional_compilation_inputs = additional_compilation_inputs,
@@ -2307,9 +2284,10 @@ def _maybe_declare_gcno_file(
         cc_toolchain,
         cpp_configuration,
         configuration,
-        enable_coverage):
+        feature_configuration):
     gcno_file = None
-    if enable_coverage and not cpp_configuration.use_llvm_coverage_map_format():
+    if (feature_configuration.is_requested("coverage_instrumented") and
+        not cpp_configuration.use_llvm_coverage_map_format()):
         gcno_file = _get_compile_output_file(
             ctx = ctx,
             label = label,

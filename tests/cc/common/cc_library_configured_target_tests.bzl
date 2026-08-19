@@ -126,6 +126,98 @@ def _test_absolute_includes_windows_fail_impl(env, target):
         ),
     )
 
+# Only targets whose label ends in "/instrumented" are matched by the instrumentation filter below.
+_COVERAGE_CONFIG_SETTINGS = {
+    "//command_line_option:collect_code_coverage": "true",
+    "//command_line_option:instrumentation_filter": "/instrumented$",
+}
+
+def _declare_instrumented_lib(name):
+    util.empty_file(name + "/instrumented.cc")
+    util.helper_target(
+        cc_library,
+        name = name + "/instrumented",
+        srcs = [name + "/instrumented.cc"],
+        hdrs = ["header.h"],
+    )
+    return name + "/instrumented"
+
+# A target that is matched by the instrumentation filter is instrumented, which shows up as the
+# .gcno files it declares as coverage metadata.
+def _test_coverage_matching_target_is_instrumented(name, **kwargs):
+    cc_analysis_test(
+        name = name,
+        impl = _test_coverage_target_is_instrumented_impl,
+        target = _declare_instrumented_lib(name),
+        config_settings = _COVERAGE_CONFIG_SETTINGS,
+        **kwargs
+    )
+
+# A target that isn't matched by the instrumentation filter itself still has to be instrumented if
+# it may include headers from an instrumented dependency.
+def _test_coverage_dep_makes_target_instrumented(name, **kwargs):
+    util.empty_file(name + "/dep_user.cc")
+    util.helper_target(
+        cc_library,
+        name = name + "/dep_user",
+        srcs = [name + "/dep_user.cc"],
+        deps = [_declare_instrumented_lib(name)],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_coverage_target_is_instrumented_impl,
+        target = name + "/dep_user",
+        config_settings = _COVERAGE_CONFIG_SETTINGS,
+        **kwargs
+    )
+
+def _test_coverage_implementation_dep_makes_target_instrumented(name, **kwargs):
+    util.empty_file(name + "/impl_dep_user.cc")
+    util.helper_target(
+        cc_library,
+        name = name + "/impl_dep_user",
+        srcs = [name + "/impl_dep_user.cc"],
+        implementation_deps = [_declare_instrumented_lib(name)],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_coverage_target_is_instrumented_impl,
+        target = name + "/impl_dep_user",
+        config_settings = _COVERAGE_CONFIG_SETTINGS,
+        **kwargs
+    )
+
+# metadata_files is transitive, so it isn't sufficient to assert that it is non-empty: the .gcno
+# file of the target's own source has to be in there.
+def _test_coverage_target_is_instrumented_impl(env, target):
+    own_gcno = target.label.name.split("/")[-1] + ".gcno"
+    env.expect.that_target(target).provider(
+        InstrumentedFilesInfo,
+    ).metadata_files().contains_predicate(matching.file_basename_equals(own_gcno))
+
+# A target that is neither matched by the instrumentation filter nor depends on an instrumented
+# target isn't instrumented, even though coverage is enabled for the build.
+def _test_coverage_unmatched_target_is_not_instrumented(name, **kwargs):
+    util.empty_file(name + "/unrelated.cc")
+    util.helper_target(
+        cc_library,
+        name = name + "/unrelated",
+        srcs = [name + "/unrelated.cc"],
+        hdrs = ["header.h"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_coverage_unmatched_target_is_not_instrumented_impl,
+        target = name + "/unrelated",
+        config_settings = _COVERAGE_CONFIG_SETTINGS,
+        **kwargs
+    )
+
+def _test_coverage_unmatched_target_is_not_instrumented_impl(env, target):
+    env.expect.that_target(target).provider(
+        InstrumentedFilesInfo,
+    ).metadata_files().is_empty()
+
 def cc_library_configured_target_tests(name):
     test_suite(
         name = name,
@@ -133,5 +225,9 @@ def cc_library_configured_target_tests(name):
             _test_cc_library_data_in_runfiles,
             _test_absolute_includes_fail,
             _test_absolute_includes_windows_fail,
+            _test_coverage_matching_target_is_instrumented,
+            _test_coverage_dep_makes_target_instrumented,
+            _test_coverage_implementation_dep_makes_target_instrumented,
+            _test_coverage_unmatched_target_is_not_instrumented,
         ] if bazel_features.cc.cc_common_is_in_rules_cc else [],
     )

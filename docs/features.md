@@ -155,6 +155,28 @@ linker flags to produce the instrumented binaries.
 These features are all off by default. Toolchains should make the format
 features dependent on `coverage` being enabled.
 
+### `coverage_enabled` / `coverage_instrumented`
+
+`coverage_enabled` is requested whenever `coverage` is, that is, whenever
+coverage collection is generally enabled for the build.
+`coverage_instrumented` is requested in addition to it, but only for those
+targets that are actually instrumented for coverage, either because they
+match
+[`--instrumentation_filter`](https://bazel.build/reference/command-line-reference#flag--instrumentation_filter)
+themselves or because one of their direct `deps` or `implementation_deps`
+does and may thus provide instrumented headers.
+
+Toolchains should use these features instead of `coverage` to restrict
+instrumentation flags to the compile actions that actually need them, which
+is considerably cheaper than instrumenting every target in the build. Link
+actions still need the coverage runtime whenever `coverage_enabled` is
+requested, as an uninstrumented binary can link in instrumented libraries.
+
+These features are off by default and requested as described above. Older
+versions of Bazel and `rules_cc` only request `coverage`, so toolchains
+that support those as well should keep their `coverage` flag sets and guard
+them with `with_feature_set(not_features = ["coverage_enabled"])`.
+
 ### `cpp_modules`
 
 A marker feature for enabling C++20 modules. This also depends on

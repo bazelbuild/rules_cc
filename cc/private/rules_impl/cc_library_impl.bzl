@@ -71,7 +71,6 @@ def _cc_library_impl(ctx):
         module_interfaces = cc_helper.get_cpp_module_interfaces(ctx),
         private_hdrs = cc_helper.get_private_hdrs(ctx),
         public_hdrs = cc_helper.get_public_hdrs(ctx),
-        code_coverage_enabled = cc_helper.is_code_coverage_enabled(ctx),
         compilation_contexts = compilation_contexts,
         implementation_compilation_contexts = implementation_compilation_contexts,
         textual_hdrs = ctx.files.textual_hdrs,
