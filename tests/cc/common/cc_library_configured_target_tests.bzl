@@ -191,9 +191,9 @@ def _test_coverage_implementation_dep_makes_target_instrumented(name, **kwargs):
 # file of the target's own source has to be in there.
 def _test_coverage_target_is_instrumented_impl(env, target):
     own_gcno = target.label.name.split("/")[-1] + ".gcno"
-    env.expect.that_collection(
-        [f.basename for f in target[InstrumentedFilesInfo].metadata_files.to_list()],
-    ).contains(own_gcno)
+    env.expect.that_target(target).provider(
+        InstrumentedFilesInfo,
+    ).metadata_files().contains_predicate(matching.file_basename_equals(own_gcno))
 
 # A target that is neither matched by the instrumentation filter nor depends on an instrumented
 # target isn't instrumented, even though coverage is enabled for the build.
@@ -214,9 +214,9 @@ def _test_coverage_unmatched_target_is_not_instrumented(name, **kwargs):
     )
 
 def _test_coverage_unmatched_target_is_not_instrumented_impl(env, target):
-    env.expect.that_collection(
-        target[InstrumentedFilesInfo].metadata_files.to_list(),
-    ).is_empty()
+    env.expect.that_target(target).provider(
+        InstrumentedFilesInfo,
+    ).metadata_files().is_empty()
 
 def cc_library_configured_target_tests(name):
     test_suite(
