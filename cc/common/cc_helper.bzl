@@ -25,6 +25,8 @@ load(
     "path_contains_up_level_references",
     "should_create_per_object_debug_info",
     _artifact_category = "artifact_category_names",
+    _expand = "expand",
+    _expand_nested_variable = "expand_nested_variable",
     _extensions = "extensions",
     _get_cc_runtimes = "get_cc_runtimes",
     _get_cc_runtimes_copts = "get_cc_runtimes_copts",
@@ -32,6 +34,7 @@ load(
     _package_source_root = "package_source_root",
     _repository_exec_path = "repository_exec_path",
     _should_stamp = "should_stamp",
+    _tokenize = "tokenize",
 )
 load(":cc_info.bzl", "CcInfo")
 load(":visibility.bzl", "INTERNAL_VISIBILITY")
@@ -620,110 +623,6 @@ def _create_strip_action(ctx, cc_toolchain, cpp_config, input, output, feature_c
         arguments = command_line,
     )
 
-def _lookup_var(ctx, additional_vars, var):
-    expanded_make_var_ctx = ctx.var.get(var)
-    expanded_make_var_additional = additional_vars.get(var)
-    if expanded_make_var_additional != None:
-        return expanded_make_var_additional
-    if expanded_make_var_ctx != None:
-        return expanded_make_var_ctx
-    fail("{}: {} not defined".format(ctx.label, "$(" + var + ")"))
-
-def _expand_nested_variable(ctx, additional_vars, exp, execpath = True, targets = []):
-    # If make variable is predefined path variable(like $(location ...))
-    # we will expand it first.
-    if exp.find(" ") != -1:
-        if not execpath:
-            if exp.startswith("location"):
-                exp = exp.replace("location", "rootpath", 1)
-        data_targets = []
-        if ctx.attr.data != None:
-            data_targets = ctx.attr.data
-
-        # Make sure we do not duplicate targets.
-        unified_targets_set = {}
-        for data_target in data_targets:
-            unified_targets_set[data_target] = True
-        for target in targets:
-            unified_targets_set[target] = True
-        return ctx.expand_location("$({})".format(exp), targets = unified_targets_set.keys())
-
-    # Recursively expand nested make variables, but since there is no recursion
-    # in Starlark we will do it via for loop.
-    unbounded_recursion = True
-
-    # The only way to check if the unbounded recursion is happening or not
-    # is to have a look at the depth of the recursion.
-    # 10 seems to be a reasonable number, since it is highly unexpected
-    # to have nested make variables which are expanding more than 10 times.
-    for _ in range(10):
-        exp = _lookup_var(ctx, additional_vars, exp)
-        if len(exp) >= 3 and exp[0] == "$" and exp[1] == "(" and exp[len(exp) - 1] == ")":
-            # Try to expand once more.
-            exp = exp[2:len(exp) - 1]
-            continue
-        unbounded_recursion = False
-        break
-
-    if unbounded_recursion:
-        fail("potentially unbounded recursion during expansion of {}".format(exp))
-    return exp
-
-def _expand(ctx, expression, additional_make_variable_substitutions, execpath = True, targets = []):
-    idx = 0
-    last_make_var_end = 0
-    result = []
-    n = len(expression)
-    for _ in range(n):
-        if idx >= n:
-            break
-        if expression[idx] != "$":
-            idx += 1
-            continue
-
-        idx += 1
-
-        # We've met $$ pattern, so $ is escaped.
-        if idx < n and expression[idx] == "$":
-            idx += 1
-            result.append(expression[last_make_var_end:idx - 1])
-            last_make_var_end = idx
-            # We might have found a potential start for Make Variable.
-
-        elif idx < n and expression[idx] == "(":
-            # Try to find the closing parentheses.
-            make_var_start = idx
-            make_var_end = make_var_start
-            for j in range(idx + 1, n):
-                if expression[j] == ")":
-                    make_var_end = j
-                    break
-
-            # Note we cannot go out of string's bounds here,
-            # because of this check.
-            # If start of the variable is different from the end,
-            # we found a make variable.
-            if make_var_start != make_var_end:
-                # Some clarifications:
-                # *****$(MAKE_VAR_1)*******$(MAKE_VAR_2)*****
-                #                   ^       ^          ^
-                #                   |       |          |
-                #   last_make_var_end  make_var_start make_var_end
-                result.append(expression[last_make_var_end:make_var_start - 1])
-                make_var = expression[make_var_start + 1:make_var_end]
-                exp = _expand_nested_variable(ctx, additional_make_variable_substitutions, make_var, execpath, targets)
-                result.append(exp)
-
-                # Update indexes.
-                idx = make_var_end + 1
-                last_make_var_end = idx
-
-    # Add the last substring which would be skipped by for loop.
-    if last_make_var_end < n:
-        result.append(expression[last_make_var_end:n])
-
-    return "".join(result)
-
 def _get_expanded_env(ctx, additional_make_variable_substitutions):
     if not hasattr(ctx.attr, "env"):
         fail("could not find rule attribute named: 'env'")
@@ -738,66 +637,6 @@ def _get_expanded_env(ctx, additional_make_variable_substitutions):
             execpath = False,
         )
     return expanded_env
-
-# Implementation of Bourne shell tokenization.
-# Tokenizes str and appends result to the options list.
-def _tokenize(options, options_string):
-    token = []
-    force_token = False
-    quotation = "\0"
-    length = len(options_string)
-
-    # Since it is impossible to modify loop variable inside loop
-    # in Starlark, and also there is no while loop, I have to
-    # use this ugly hack.
-    i = -1
-    for _ in range(length):
-        i += 1
-        if i >= length:
-            break
-        c = options_string[i]
-        if quotation != "\0":
-            # In quotation.
-            if c == quotation:
-                # End quotation.
-                quotation = "\0"
-            elif c == "\\" and quotation == "\"":
-                i += 1
-                if i == length:
-                    fail("backslash at the end of the string: {}".format(options_string))
-                c = options_string[i]
-                if c != "\\" and c != "\"":
-                    token.append("\\")
-                token.append(c)
-            else:
-                # Regular char, in quotation.
-                token.append(c)
-        else:
-            # Not in quotation.
-            if c == "'" or c == "\"":
-                # Begin single double quotation.
-                quotation = c
-                force_token = True
-            elif c == " " or c == "\t":
-                # Space not quoted.
-                if force_token or len(token) > 0:
-                    options.append("".join(token))
-                    token = []
-                    force_token = False
-            elif c == "\\":
-                # Backslash not quoted.
-                i += 1
-                if i == length:
-                    fail("backslash at the end of the string: {}".format(options_string))
-                token.append(options_string[i])
-            else:
-                # Regular char, not quoted.
-                token.append(c)
-    if quotation != "\0":
-        fail("unterminated quotation at the end of the string: {}".format(options_string))
-
-    if force_token or len(token) > 0:
-        options.append("".join(token))
 
 def _should_use_pic(ctx, cc_toolchain, feature_configuration):
     """Whether to use pic files
