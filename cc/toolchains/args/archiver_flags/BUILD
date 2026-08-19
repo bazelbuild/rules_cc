@@ -22,6 +22,7 @@ bool_flag(
 config_setting(
     name = "use_libtool_setting",
     flag_values = {":use_libtool_on_macos": "true"},
+    visibility = ["//visibility:public"],
 )
 
 selects.config_setting_group(
