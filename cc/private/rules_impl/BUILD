@@ -148,6 +148,7 @@ bzl_library(
         "//cc:__subpackages__",
         "@cc_compatibility_proxy//:__pkg__",
     ],
+    deps = ["//cc/common:cc_helper_internal_bzl"],
 )
 
 bzl_library(
