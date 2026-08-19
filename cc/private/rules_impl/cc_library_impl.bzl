@@ -69,6 +69,7 @@ def _cc_library_impl(ctx):
         purpose = "cc_library-compile",
         srcs = cc_helper.get_srcs(ctx),
         module_interfaces = cc_helper.get_cpp_module_interfaces(ctx),
+        module_header_map_entries = cc_helper.get_module_header_map_entries(ctx),
         private_hdrs = cc_helper.get_private_hdrs(ctx),
         public_hdrs = cc_helper.get_public_hdrs(ctx),
         code_coverage_enabled = cc_helper.is_code_coverage_enabled(ctx),
