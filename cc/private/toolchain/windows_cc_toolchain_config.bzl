@@ -13,6 +13,7 @@
 # limitations under the License.
 """A Starlark cc_toolchain configuration rule for Windows"""
 
+load("@bazel_features//private:util.bzl", "ge")
 load("@rules_cc//cc:action_names.bzl", "ACTION_NAMES")
 load(
     "@rules_cc//cc:cc_toolchain_config_lib.bzl",
@@ -67,6 +68,19 @@ all_cpp_compile_actions = [
     ACTION_NAMES.clif_match,
 ]
 
+# Actions that must carry the MSVC runtime library flag (/MT or /MD). Module
+# interface compiles (cpp*_module_compile/codegen) must receive the same CRT
+# flag as importing TUs; otherwise cl.exe falls back to the static CRT for the
+# module unit, and importing TUs get C5050 while the linker gets LNK4098.
+msvcrt_compile_actions = [
+    ACTION_NAMES.c_compile,
+    ACTION_NAMES.cpp_compile,
+    ACTION_NAMES.cpp_module_compile,
+    ACTION_NAMES.cpp_module_codegen,
+    ACTION_NAMES.cpp20_module_compile,
+    ACTION_NAMES.cpp20_module_codegen,
+]
+
 preprocessor_compile_actions = [
     ACTION_NAMES.c_compile,
     ACTION_NAMES.cpp_compile,
@@ -101,6 +115,16 @@ lto_index_actions = [
     ACTION_NAMES.lto_index_for_dynamic_library,
     ACTION_NAMES.lto_index_for_nodeps_dynamic_library,
 ]
+
+def _cpp_module_extension(compiler):
+    """Returns the BMI/CMI file extension for cpp_module artifact_name_pattern."""
+
+    # Bazel only allows the .ifc extension for cpp_module artifacts on
+    # Bazel 9.0.0 and later; older versions only accept .pcm. This mirrors
+    # the Unix toolchain, which selects .gcm for GCC on Bazel 9+.
+    if compiler == "msvc-cl" and ge("9.0.0"):
+        return ".ifc"
+    return ".pcm"
 
 def _use_msvc_toolchain(ctx):
     return ctx.attr.cpu in ["x64_windows", "arm64_windows"] and (ctx.attr.compiler == "msvc-cl" or ctx.attr.compiler == "clang-cl")
@@ -139,6 +163,11 @@ def _impl(ctx):
                 category_name = "interface_library",
                 prefix = "",
                 extension = ".if.lib",
+            ),
+            artifact_name_pattern(
+                category_name = "cpp_module",
+                prefix = "",
+                extension = _cpp_module_extension(ctx.attr.compiler),
             ),
         ]
     else:
@@ -662,12 +691,12 @@ def _impl(ctx):
             name = "static_link_msvcrt",
             flag_sets = [
                 flag_set(
-                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                    actions = msvcrt_compile_actions,
                     flag_groups = [flag_group(flags = ["/MT"])],
                     with_features = [with_feature_set(not_features = ["dbg"])],
                 ),
                 flag_set(
-                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                    actions = msvcrt_compile_actions,
                     flag_groups = [flag_group(flags = ["/MTd"])],
                     with_features = [with_feature_set(features = ["dbg"])],
                 ),
@@ -689,12 +718,12 @@ def _impl(ctx):
             enabled = True,
             flag_sets = [
                 flag_set(
-                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                    actions = msvcrt_compile_actions,
                     flag_groups = [flag_group(flags = ["/MD"])],
                     with_features = [with_feature_set(not_features = ["dbg", "static_link_msvcrt"])],
                 ),
                 flag_set(
-                    actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                    actions = msvcrt_compile_actions,
                     flag_groups = [flag_group(flags = ["/MDd"])],
                     with_features = [with_feature_set(features = ["dbg"], not_features = ["static_link_msvcrt"])],
                 ),
@@ -1048,6 +1077,10 @@ def _impl(ctx):
                         ACTION_NAMES.cpp_compile,
                         ACTION_NAMES.cpp_header_parsing,
                         ACTION_NAMES.cpp_module_compile,
+                        ACTION_NAMES.cpp_module_codegen,
+                        ACTION_NAMES.cpp_module_deps_scanning,
+                        ACTION_NAMES.cpp20_module_compile,
+                        ACTION_NAMES.cpp20_module_codegen,
                     ],
                     flag_groups = [
                         flag_group(
@@ -1198,6 +1231,20 @@ def _impl(ctx):
                                     expand_if_available = "output_preprocess_file",
                                 ),
                             ],
+                            expand_if_available = "output_file",
+                        ),
+                    ],
+                ),
+            ],
+            env_sets = [
+                env_set(
+                    actions = [
+                        ACTION_NAMES.cpp_module_deps_scanning,
+                    ],
+                    env_entries = [
+                        env_entry(
+                            key = "DEPS_SCANNER_OUTPUT_FILE",
+                            value = "%{output_file}",
                             expand_if_available = "output_file",
                         ),
                     ],
