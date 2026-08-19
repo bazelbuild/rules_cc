@@ -15,7 +15,6 @@
 
 load("@bazel_features//:features.bzl", "bazel_features")
 load("//cc/common:cc_helper_internal.bzl", "root_relative_path")
-load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private/compile:lto_compilation_context.bzl", "get_minimized_bitcode_or_self")
 load("//cc/private/link:finalize_link_action.bzl", "finalize_link_action")
 load("//cc/private/link:link_build_variables.bzl", "setup_lto_indexing_variables")
@@ -233,8 +232,7 @@ def _lto_indexing_action(
     build_variables = variables_extensions | setup_lto_indexing_variables(
         cc_toolchain,
         feature_configuration,
-        # TODO(b/338618120): remove cheat using the root of one of the created outputs
-        _cc_internal.actions2ctx_cheat(actions).bin_dir.path,
+        thinlto_param_file.root.path,
         thinlto_param_file.path,
         thinlto_merged_object_file.path,
         lto_output_root_prefix,
