@@ -341,12 +341,11 @@ def get_specific_compile_build_variables(
     if diagnostics_file:
         result[_VARS.SERIALIZED_DIAGNOSTICS_FILE] = diagnostics_file
 
-    if gcno_file:
-        result[_VARS.GCOV_GCNO_FILE] = gcno_file
-    elif code_coverage_enabled:
-        # TODO: Blaze currently uses `gcov_gcno_file` to detect if the current target is
-        # instrumented for coverage. It should use the `coverage_instrumented` feature instead.
-        result[_VARS.GCOV_GCNO_FILE] = ""
+    if code_coverage_enabled:
+        # TODO: Blaze currently uses the presence of `gcov_gcno_file` to detect if the current
+        # target is instrumented for coverage, so it has to be set even if no .gcno file is
+        # generated. It should use the `coverage_instrumented` feature instead.
+        result[_VARS.GCOV_GCNO_FILE] = gcno_file if gcno_file else ""
     if dwo_file:
         result[_VARS.PER_OBJECT_DEBUG_INFO_FILE] = dwo_file
     if using_fission:
