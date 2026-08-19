@@ -183,7 +183,12 @@ def create_compile_variables(
         additional_build_variables = additional_build_variables,
         user_compile_flags = user_compile_flags or [],
     )
-    return _cc_internal.combine_cc_toolchain_variables(cc_toolchain._build_variables, common_vars, variables)
+    duplicate_variables = sorted([key for key in variables if key in common_vars])
+    if duplicate_variables:
+        fail("Cannot overwrite existing variables: [" + ", ".join(duplicate_variables) + "]")
+    return _cc_internal.cc_toolchain_variables(
+        vars = cc_toolchain._build_variables_dict | common_vars | variables,
+    )
 
 # buildifier: disable=function-docstring
 def setup_common_compile_build_variables(
@@ -210,7 +215,7 @@ def setup_common_compile_build_variables(
         cpp_module_map = cc_compilation_context._module_map if feature_configuration.is_enabled("module_maps") else None,
         direct_module_maps = cc_compilation_context._direct_module_maps,
     )
-    return _cc_internal.combine_cc_toolchain_variables(cc_toolchain._build_variables, common_vars)
+    return cc_toolchain._build_variables_dict | common_vars
 
 def _setup_common_compile_build_variables_internal(
         *,
@@ -275,7 +280,7 @@ def _setup_common_compile_build_variables_internal(
 
     if external_include_dirs:
         result[_VARS.EXTERNAL_INCLUDE_PATHS] = external_include_dirs
-    return _cc_internal.cc_toolchain_variables(vars = result)
+    return result
 
 # Note: this method is side-effect free, callers should add fdo inputs to
 # cc_compile_action_builder themselves
@@ -297,7 +302,7 @@ def get_specific_compile_build_variables(
         user_compile_flags = [],
         additional_build_variables = {},
         fdo_build_variables = {}):
-    """Creates a CcToolchainVariables instance
+    """Creates a dictionary of compile build variables.
 
     Args:
         use_pic: (bool)
@@ -320,7 +325,7 @@ def get_specific_compile_build_variables(
         fdo_build_variables: (dict{str,str})
 
     Returns:
-        (Variables)
+        (dict{str, object})
     """
     result = {}
 
@@ -363,7 +368,7 @@ def get_specific_compile_build_variables(
         result[_VARS.PIC] = ""
     result = result | additional_build_variables
     result = result | fdo_build_variables
-    return _cc_internal.cc_toolchain_variables(vars = result)
+    return result
 
 _SOURCE_TYPES_FOR_CXXOPTS = set(
     extensions.CC_SOURCE +
