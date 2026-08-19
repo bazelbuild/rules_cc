@@ -16,7 +16,7 @@ load("@rules_cc//cc/toolchains:make_variable.bzl", "cc_make_variable")
 load("@rules_cc//cc/toolchains:toolchain.bzl", "cc_toolchain")
 
 licenses(["notice"])
-
+exports_files(glob(["patchs/*.patch"]))
 cc_make_variable(
     name = "example_variable",
     value = "-DEXAMPLE=1",

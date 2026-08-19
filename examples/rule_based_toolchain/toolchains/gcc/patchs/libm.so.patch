@@ -1,0 +1,8 @@
+--- x86_64-buildroot-linux-gnu/sysroot/usr/lib/libm.so	2025-12-20 10:23:21.186653789 +0000
++++ x86_64-buildroot-linux-gnu/sysroot/usr/lib/libm.so	2025-12-20 10:23:38.186652581 +0000
+@@ -1,4 +1,4 @@
+ /* GNU ld script
+ */
+ OUTPUT_FORMAT(elf64-x86-64)
+-GROUP ( /lib64/libm.so.6  AS_NEEDED ( /lib64/libmvec.so.1 ) )
++GROUP ( libm.so.6  AS_NEEDED ( libmvec.so.1 ) )
