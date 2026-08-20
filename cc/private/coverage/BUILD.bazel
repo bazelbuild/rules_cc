@@ -1,3 +1,6 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
 config_setting(
     name = "incompatible_use_native_collect_cc_coverage_enabled",
     flag_values = {
@@ -5,11 +8,39 @@ config_setting(
     },
 )
 
+config_setting(
+    name = "experimental_use_cc_coverage_collector_enabled",
+    flag_values = {
+        "//cc/settings:experimental_use_cc_coverage_collector": "true",
+    },
+)
+
+cc_library(
+    name = "coverage_utils",
+    srcs = ["coverage_utils.cc"],
+    hdrs = ["coverage_utils.h"],
+)
+
+cc_binary(
+    name = "collect_coverage",
+    srcs = ["collect_coverage.cc"],
+    visibility = ["//visibility:public"],
+    deps = [":coverage_utils"],
+)
+
+alias(
+    name = "collector",
+    actual = select({
+        ":experimental_use_cc_coverage_collector_enabled": ":collect_coverage",
+        "//conditions:default": "collect_cc_coverage.sh",
+    }),
+)
+
 filegroup(
     name = "collect_cc_coverage",
     srcs = select({
         ":incompatible_use_native_collect_cc_coverage_enabled": ["@bazel_tools//tools/test:collect_cc_coverage"],
-        "//conditions:default": ["collect_cc_coverage.sh"],
+        "//conditions:default": [":collector"],
     }),
     visibility = ["//visibility:public"],
 )
