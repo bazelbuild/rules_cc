@@ -176,6 +176,32 @@ def _test_thin_lto_action_graph_impl(env, target):
         ),
     )
 
+def _test_thin_lto_merged_object_uses_toolchain_extension(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = ["hello.cc"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_thin_lto_merged_object_uses_toolchain_extension_impl,
+        target = name + "/bin",
+        test_features = ["thin_lto", "supports_start_end_lib"],
+        config_settings = {
+            str(Label("//tests/cc/testutil/toolchains:object_file_extension")): ".obj",
+        },
+        **kwargs
+    )
+
+def _test_thin_lto_merged_object_uses_toolchain_extension_impl(env, target):
+    merged_object = target.label.name.split("/")[-1] + ".lto.merged.obj"
+
+    index_action = env.expect.that_target(target).action_named("CppLTOIndexing")
+    index_action.outputs().contains_predicate(matching.file_basename_equals(merged_object))
+
+    link_action = env.expect.that_target(target).action_named("CppLink")
+    link_action.inputs().contains_predicate(matching.file_basename_equals(merged_object))
+
 def _test_thin_lto_linkshared(name, **kwargs):
     util.helper_target(
         cc_library,
@@ -2303,6 +2329,7 @@ def cc_binary_thin_lto_tests(name):
 
     # These tests pass on all Bazel versions.
     tests.append(_test_thin_lto_action_graph)
+    tests.append(_test_thin_lto_merged_object_uses_toolchain_extension)
     tests.append(_test_thin_lto_no_linkstatic)
     tests.append(_test_thin_lto_fission)
     tests.append(_test_thin_lto_no_linkstatic_fission)
