@@ -42,6 +42,9 @@ LEGACY_FILE_GROUPS = {
         Label("//cc/toolchains/actions:cpp_link_nodeps_dynamic_library"),
         Label("//cc/toolchains/actions:cpp_link_executable"),
         Label("//cc/toolchains/actions:generate_def_file"),
+        Label("//cc/toolchains/actions:lto_index_for_dynamic_library"),
+        Label("//cc/toolchains/actions:lto_index_for_executable"),
+        Label("//cc/toolchains/actions:lto_index_for_nodeps_dynamic_library"),
     ],
     "objcopy_files": [
         Label("//cc/toolchains/actions:objcopy_embed_data"),

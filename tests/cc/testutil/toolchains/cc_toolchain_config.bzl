@@ -1900,7 +1900,9 @@ _action_name_to_action = {
 }
 
 _tool_for_action_config = {
+    "c++-link-executable": "link_executable_tool",
     "generate-def-file": "def_parser_tool",
+    "lto-index-for-executable": "lto_index_tool",
     "objcopy_embed_data": "objcopy_embed_data_tool",
     "ld_embed_data": "ld_embed_data_tool",
 }
