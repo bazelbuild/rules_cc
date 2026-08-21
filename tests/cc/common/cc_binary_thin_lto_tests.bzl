@@ -2329,7 +2329,6 @@ def cc_binary_thin_lto_tests(name):
 
     # These tests pass on all Bazel versions.
     tests.append(_test_thin_lto_action_graph)
-    tests.append(_test_thin_lto_merged_object_uses_toolchain_extension)
     tests.append(_test_thin_lto_no_linkstatic)
     tests.append(_test_thin_lto_fission)
     tests.append(_test_thin_lto_no_linkstatic_fission)
@@ -2372,6 +2371,7 @@ def cc_binary_thin_lto_tests(name):
 
     # These tests fail on Bazel 7 and 8, run only for Bazel 9+.
     if bazel_features.cc.cc_common_is_in_rules_cc:
+        tests.append(_test_thin_lto_merged_object_uses_toolchain_extension)
         tests.append(_test_thin_lto_linkshared)
         tests.append(_test_thin_lto_backend_env)
         tests.append(_test_linkstatic_cc_test)
