@@ -37,10 +37,8 @@
 // ==========================================================================
 // Libc-backed default allocator.
 //
-// Used when a caller passes NULL for the allocator to rf_create*. The
-// function pointers are static wrappers so the vtable dispatch has one
-// shape everywhere and no code path needs to branch on "is this the
-// default?".
+// Wrappers keep the vtable dispatch uniform -- no code path branches on
+// "is this the default?".
 // ==========================================================================
 
 static void* rf_libc_malloc(void* ud, size_t n) {
@@ -59,7 +57,7 @@ static const rf_allocator g_libc_allocator = {rf_libc_malloc, rf_libc_realloc,
                                               rf_libc_free, NULL};
 
 // ==========================================================================
-// Allocator helpers — one vtable dispatch, no default-vs-custom branch.
+// Allocator dispatch helpers.
 // ==========================================================================
 
 static void* rf_a_malloc(const rf_allocator* a, size_t n) {
@@ -92,24 +90,21 @@ static char* rf_a_strdupn(const rf_allocator* a, const char* s, size_t len) {
 // ==========================================================================
 // Windows Unicode helpers
 //
-// On Windows, all filesystem and env-var access is done through W-variant
-// Win32 APIs so that non-ASCII paths and env values (which would otherwise
-// be mangled by the process ANSI code page) work correctly. Runfiles paths
-// and env-var values are treated as UTF-8 at the library boundary.
+// All filesystem and env-var access goes through W-variant Win32 APIs so
+// non-ASCII paths / values don't get mangled by the process ANSI code
+// page. Runfiles paths and env-var values are UTF-8 at the library
+// boundary.
 //
-// The two conversion helpers use a caller-provided stack buffer first and
-// only fall back to `malloc` when the stack buffer is too small — this
-// keeps the hot path (short paths, short env-var values) allocation-free.
-// They intentionally bypass the pluggable rf_allocator: the buffers are
-// transient (freed immediately after the Win32 call) and never observed
-// by callers.
+// rf_utf8_to_wide's output is always transient (freed on the same call
+// stack), so libc malloc is fine for its fallback. rf_wide_to_utf8's
+// output MAY escape to callers via rf_getenv_alloc, so its fallback
+// routes through the pluggable allocator to keep caller-side free
+// pairings correct.
 // ==========================================================================
 
 #ifdef _WIN32
-// Convert @p utf8 to UTF-16. Writes into @p stack_buf when the result
-// fits in @p stack_cap wchars; otherwise mallocs a fresh buffer. Caller
-// must `if (result != stack_buf) free(result);` after use. Returns NULL
-// on invalid UTF-8 or allocation failure.
+// Caller must `if (result != stack_buf) free(result);` after use.
+// Returns NULL on invalid UTF-8 or allocation failure.
 static wchar_t* rf_utf8_to_wide(const char* utf8, wchar_t* stack_buf,
                                 size_t stack_cap) {
   if (!utf8) return NULL;
@@ -126,17 +121,30 @@ static wchar_t* rf_utf8_to_wide(const char* utf8, wchar_t* stack_buf,
   return w;
 }
 
-// Convert @p wide to UTF-8 with the same stack-first / heap-fallback
-// contract as rf_utf8_to_wide.
+// Result may escape to callers, so heap fallback routes through @p
+// alloc (or libc if NULL). Caller frees through the matching path.
 static char* rf_wide_to_utf8(const wchar_t* wide, char* stack_buf,
-                             size_t stack_cap) {
+                             size_t stack_cap, const rf_allocator* alloc) {
   if (!wide) return NULL;
   int n = WideCharToMultiByte(CP_UTF8, 0, wide, -1, NULL, 0, NULL, NULL);
   if (n <= 0) return NULL;
-  char* s = ((size_t)n <= stack_cap) ? stack_buf : (char*)malloc((size_t)n);
+  char* s;
+  if ((size_t)n <= stack_cap) {
+    s = stack_buf;
+  } else if (alloc) {
+    s = (char*)rf_a_malloc(alloc, (size_t)n);
+  } else {
+    s = (char*)malloc((size_t)n);
+  }
   if (!s) return NULL;
   if (WideCharToMultiByte(CP_UTF8, 0, wide, -1, s, n, NULL, NULL) <= 0) {
-    if (s != stack_buf) free(s);
+    if (s != stack_buf) {
+      if (alloc) {
+        rf_a_free(alloc, s);
+      } else {
+        free(s);
+      }
+    }
     return NULL;
   }
   return s;
@@ -144,11 +152,9 @@ static char* rf_wide_to_utf8(const wchar_t* wide, char* stack_buf,
 #endif  // _WIN32
 
 // ==========================================================================
-// rf_fopen_utf8 — cross-platform fopen accepting UTF-8 paths.
-//
-// Windows: converts the path to UTF-16 and calls _wfopen. POSIX: plain
-// fopen (paths are already UTF-8 there). Single home for the wide-char
-// open dance so every filesystem call site is one line.
+// rf_fopen_utf8 -- cross-platform fopen accepting UTF-8 paths.
+// Windows routes through _wfopen; POSIX is plain fopen (paths already
+// UTF-8 there).
 // ==========================================================================
 
 FILE* rf_fopen_utf8(const char* path, const char* mode) {
@@ -179,16 +185,14 @@ int rf_is_absolute(const char* path) {
   // Unix-style absolute: leading '/' that is NOT a UNC-style "//host".
   if (c == '/') return path[1] != '/';
   // Windows drive-letter absolute: "<letter>:\..." or "<letter>:/...".
+  //
+  // Backslash-only paths (`\foo`, `\\host\share`, `\\?\C:\...`) are
+  // intentionally NOT treated as absolute -- matching the upstream
+  // C++ `Runfiles::IsAbsolute` contract on every platform, so
+  // callers get identical behaviour to the pre-C-port implementation.
   if (((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) && path[1] == ':' &&
       (path[2] == '\\' || path[2] == '/'))
     return 1;
-#ifdef _WIN32
-  // Windows UNC path: "\\server\share\..." (also "\\?\..." device
-  // namespace prefix). POSIX systems don't have UNC, so this branch is
-  // Windows-only — matches the existing test that pins "//host/share"
-  // to non-absolute on all platforms.
-  if (c == '\\' && path[1] == '\\') return 1;
-#endif
   return 0;
 }
 
@@ -217,17 +221,13 @@ int rf_is_directory(const char* path) {
 #endif
 }
 
-// Read an env-var as a newly-allocated UTF-8 string. Caller frees with
-// `free()`. Returns NULL if unset. Used by the rf_create* entry points
-// so Windows sees env vars set via SetEnvironmentVariableW (not visible
-// through the CRT `_environ` block) and so non-ASCII values round-trip
-// through UTF-16. Also called from the C++ facade (see runfiles.cc's
-// GetEnv) so the Windows-Unicode env-var dance lives in one place.
-char* rf_getenv_alloc(const char* name) {
+// GetEnvironmentVariableW on Windows so env vars set via
+// SetEnvironmentVariableW (not visible through the CRT `_environ`
+// block) and non-ASCII values both work; getenv on POSIX.
+char* rf_getenv_alloc(const struct rf_allocator* alloc, const char* name) {
 #ifdef _WIN32
-  // Env-var names are always short ASCII (e.g. "RUNFILES_MANIFEST_FILE",
-  // "TEST_SRCDIR"), so ASCII → UTF-16 is a straight widening copy — no
-  // MultiByteToWideChar call, no allocation.
+  // Env-var names are ASCII, so ASCII -> UTF-16 is a straight widening
+  // copy -- no MultiByteToWideChar call, no allocation.
   wchar_t wname[128];
   size_t i;
   for (i = 0; name[i] && i < sizeof(wname) / sizeof(wchar_t) - 1; i++) {
@@ -239,26 +239,46 @@ char* rf_getenv_alloc(const char* name) {
   DWORD wsize = GetEnvironmentVariableW(wname, NULL, 0);
   if (wsize == 0) return NULL;
 
+  // The wide-char buffer is transient (freed on this call stack), but
+  // we still route the heap fallback through @p alloc so a custom
+  // allocator observes every byte of runfiles-attributable traffic.
   wchar_t stack_val[1024];
-  wchar_t* wval = ((size_t)wsize <= sizeof(stack_val) / sizeof(wchar_t))
-                      ? stack_val
-                      : (wchar_t*)malloc((size_t)wsize * sizeof(wchar_t));
+  wchar_t* wval;
+  if ((size_t)wsize <= sizeof(stack_val) / sizeof(wchar_t)) {
+    wval = stack_val;
+  } else if (alloc) {
+    wval = (wchar_t*)rf_a_malloc(alloc, (size_t)wsize * sizeof(wchar_t));
+  } else {
+    wval = (wchar_t*)malloc((size_t)wsize * sizeof(wchar_t));
+  }
   if (!wval) return NULL;
   DWORD written = GetEnvironmentVariableW(wname, wval, wsize);
   if (written == 0 || written >= wsize) {
-    if (wval != stack_val) free(wval);
+    if (wval != stack_val) {
+      if (alloc) {
+        rf_a_free(alloc, wval);
+      } else {
+        free(wval);
+      }
+    }
     return NULL;
   }
-  // rf_wide_to_utf8 with a NULL stack buffer forces heap allocation, so
-  // the returned pointer is always caller-owned (never stack).
-  char* out = rf_wide_to_utf8(wval, NULL, 0);
-  if (wval != stack_val) free(wval);
+  // NULL stack buffer forces heap allocation via @p alloc.
+  char* out = rf_wide_to_utf8(wval, NULL, 0, alloc);
+  if (wval != stack_val) {
+    if (alloc) {
+      rf_a_free(alloc, wval);
+    } else {
+      free(wval);
+    }
+  }
   return out;
 #else
   const char* v = getenv(name);
   if (!v) return NULL;
   size_t len = strlen(v);
-  char* copy = (char*)malloc(len + 1);
+  char* copy =
+      alloc ? (char*)rf_a_malloc(alloc, len + 1) : (char*)malloc(len + 1);
   if (!copy) return NULL;
   memcpy(copy, v, len + 1);
   return copy;
@@ -268,11 +288,10 @@ char* rf_getenv_alloc(const char* name) {
 int rf_path_is_rlocation_valid(const char* path) {
   if (!path || !path[0]) return 0;
   size_t len = strlen(path);
-  // Treat both '/' and '\' as separators for the traversal checks.
-  // Bazel manifests use forward slashes, so a backslash in a caller-
-  // supplied rlocation key is suspicious on any platform; rejecting
-  // unconditionally closes the Windows path-traversal hole (e.g.
-  // "..\\..\\etc\\passwd") without needing a platform ifdef.
+  // Treat '\' as a separator on ALL platforms -- Bazel manifests use
+  // forward slashes, so a backslash in a caller-supplied key is
+  // suspicious and rejecting it closes the Windows path-traversal
+  // hole ("..\\..\\etc\\passwd") without a platform ifdef.
 #define RF_IS_SEP(c) ((c) == '/' || (c) == '\\')
   // starts with "../" or "..\\"
   if (len >= 3 && path[0] == '.' && path[1] == '.' && RF_IS_SEP(path[2]))
@@ -340,21 +359,44 @@ static const char kRunfilesManifest[] = ".runfiles_manifest";
 static const char kSlashManifest[] = "/MANIFEST";
 static const char kUnderscoreManifest[] = "_manifest";
 
-// Concatenate a and b into out. Returns 1 on success, 0 if the buffer
-// is too small.
-static int rf_join2(const char* a, const char* b, char* out, size_t out_len) {
-  size_t la = strlen(a);
-  size_t lb = strlen(b);
-  if (la + lb + 1 > out_len) return 0;
-  memcpy(out, a, la);
-  memcpy(out + la, b, lb);
-  out[la + lb] = '\0';
+// Grow @p *buf to hold at least @p need bytes (including NUL). Doubles
+// on each grow. Returns 1 on success, 0 on allocation failure (in which
+// case @p *buf and @p *cap are left unchanged).
+static int rf_buf_grow(char** buf, size_t* cap, size_t need,
+                       const rf_allocator* alloc) {
+  if (*cap >= need) return 1;
+  size_t nc = *cap ? *cap : 128;
+  while (nc < need) nc *= 2;
+  char* np = (char*)rf_a_realloc(alloc, *buf, nc);
+  if (!np) return 0;
+  *buf = np;
+  *cap = nc;
   return 1;
 }
 
-// Invoke a caller-provided predicate if non-NULL, else the built-in
-// rf_is_readable_file / rf_is_directory. Keeps the rf_paths_from body
-// free of null-check boilerplate.
+static int rf_buf_assign(char** buf, size_t* cap, const rf_allocator* alloc,
+                         const char* s) {
+  size_t l = strlen(s);
+  if (!rf_buf_grow(buf, cap, l + 1, alloc)) return 0;
+  memcpy(*buf, s, l + 1);
+  return 1;
+}
+
+static int rf_buf_join2(char** buf, size_t* cap, const rf_allocator* alloc,
+                        const char* a, const char* b) {
+  size_t la = strlen(a);
+  size_t lb = strlen(b);
+  if (!rf_buf_grow(buf, cap, la + lb + 1, alloc)) return 0;
+  memcpy(*buf, a, la);
+  memcpy(*buf + la, b, lb);
+  (*buf)[la + lb] = '\0';
+  return 1;
+}
+
+static void rf_buf_truncate(char* buf, size_t new_len) { buf[new_len] = '\0'; }
+
+// Predicate dispatch: caller override else the built-in. Keeps
+// rf_paths_from_body free of null-check boilerplate.
 #define RF_IS_FILE(path)                                           \
   (is_readable_file ? is_readable_file(predicate_userdata, (path)) \
                     : rf_is_readable_file(path))
@@ -362,42 +404,35 @@ static int rf_join2(const char* a, const char* b, char* out, size_t out_len) {
   (is_directory ? is_directory(predicate_userdata, (path)) \
                 : rf_is_directory(path))
 
-int rf_paths_from(const char* argv0, const char* runfiles_manifest_file,
-                  const char* runfiles_dir, rf_predicate is_readable_file,
-                  rf_predicate is_directory, void* predicate_userdata,
-                  char* out_manifest, size_t out_manifest_len,
-                  char* out_directory, size_t out_directory_len) {
-  if (!out_manifest || out_manifest_len == 0 || !out_directory ||
-      out_directory_len == 0)
-    return 0;
-
-  // Copy inputs into local buffers we can rewrite while searching.
-  // Empty ("") indicates "not set / not yet discovered".
-  char mf_buf[4096];
-  char dir_buf[4096];
-
+// Inner body -- buffers stay in the caller's locals so the wrapper can
+// free them on either path. On success ownership of a valid buffer
+// transfers to *out_manifest / *out_directory (local NULL'd).
+static int rf_paths_from_body(
+    const char* argv0, const char* runfiles_manifest_file,
+    const char* runfiles_dir, rf_predicate is_readable_file,
+    rf_predicate is_directory, void* predicate_userdata,
+    const rf_allocator* alloc, char** mf_buf, size_t* mf_cap, char** dir_buf,
+    size_t* dir_cap, char** out_manifest, char** out_directory) {
   const char* mf_in = runfiles_manifest_file ? runfiles_manifest_file : "";
   const char* dir_in = runfiles_dir ? runfiles_dir : "";
 
-  if (strlen(mf_in) + 1 > sizeof(mf_buf)) return 0;
-  if (strlen(dir_in) + 1 > sizeof(dir_buf)) return 0;
+  if (!rf_buf_assign(mf_buf, mf_cap, alloc, mf_in)) return 0;
+  if (!rf_buf_assign(dir_buf, dir_cap, alloc, dir_in)) return 0;
 
-  strcpy(mf_buf, mf_in);
-  strcpy(dir_buf, dir_in);
-
-  int mf_valid = mf_buf[0] && RF_IS_FILE(mf_buf);
-  int dir_valid = dir_buf[0] && RF_IS_DIR(dir_buf);
+  int mf_valid = (*mf_buf)[0] && RF_IS_FILE(*mf_buf);
+  int dir_valid = (*dir_buf)[0] && RF_IS_DIR(*dir_buf);
 
   if (argv0 && argv0[0] && !mf_valid && !dir_valid) {
     // argv0.runfiles/MANIFEST + argv0.runfiles
-    if (!rf_join2(argv0, kRunfilesSlashManifest, mf_buf, sizeof(mf_buf)))
+    if (!rf_buf_join2(mf_buf, mf_cap, alloc, argv0, kRunfilesSlashManifest))
       return 0;
-    if (!rf_join2(argv0, kRunfilesDir, dir_buf, sizeof(dir_buf))) return 0;
-    mf_valid = RF_IS_FILE(mf_buf);
-    dir_valid = RF_IS_DIR(dir_buf);
+    if (!rf_buf_join2(dir_buf, dir_cap, alloc, argv0, kRunfilesDir)) return 0;
+    mf_valid = RF_IS_FILE(*mf_buf);
+    dir_valid = RF_IS_DIR(*dir_buf);
     if (!mf_valid) {
-      if (!rf_join2(argv0, kRunfilesManifest, mf_buf, sizeof(mf_buf))) return 0;
-      mf_valid = RF_IS_FILE(mf_buf);
+      if (!rf_buf_join2(mf_buf, mf_cap, alloc, argv0, kRunfilesManifest))
+        return 0;
+      mf_valid = RF_IS_FILE(*mf_buf);
     }
   }
 
@@ -405,12 +440,13 @@ int rf_paths_from(const char* argv0, const char* runfiles_manifest_file,
 
   if (!mf_valid) {
     // Try dir + "/MANIFEST" then dir + "_manifest".
-    if (!rf_join2(dir_buf, kSlashManifest, mf_buf, sizeof(mf_buf))) return 0;
-    mf_valid = RF_IS_FILE(mf_buf);
+    if (!rf_buf_join2(mf_buf, mf_cap, alloc, *dir_buf, kSlashManifest))
+      return 0;
+    mf_valid = RF_IS_FILE(*mf_buf);
     if (!mf_valid) {
-      if (!rf_join2(dir_buf, kUnderscoreManifest, mf_buf, sizeof(mf_buf)))
+      if (!rf_buf_join2(mf_buf, mf_cap, alloc, *dir_buf, kUnderscoreManifest))
         return 0;
-      mf_valid = RF_IS_FILE(mf_buf);
+      mf_valid = RF_IS_FILE(*mf_buf);
     }
   }
 
@@ -418,42 +454,61 @@ int rf_paths_from(const char* argv0, const char* runfiles_manifest_file,
     // If mf ends with ".runfiles_manifest" or "/MANIFEST", derive the
     // directory by stripping the 9-char suffix ("_manifest" or
     // "/MANIFEST"). Each suffix check must guard against mf being
-    // shorter than the suffix itself to avoid reading before mf_buf.
-    size_t mf_len = strlen(mf_buf);
+    // shorter than the suffix itself to avoid reading before *mf_buf.
+    size_t mf_len = strlen(*mf_buf);
     const size_t kStripLen = 9;
     const size_t kRunfilesManifestLen = sizeof(kRunfilesManifest) - 1;
     const size_t kSlashManifestLen = sizeof(kSlashManifest) - 1;
     int matches =
         (mf_len >= kRunfilesManifestLen &&
-         strcmp(mf_buf + mf_len - kRunfilesManifestLen, kRunfilesManifest) ==
+         strcmp(*mf_buf + mf_len - kRunfilesManifestLen, kRunfilesManifest) ==
              0) ||
         (mf_len >= kSlashManifestLen &&
-         strcmp(mf_buf + mf_len - kSlashManifestLen, kSlashManifest) == 0);
+         strcmp(*mf_buf + mf_len - kSlashManifestLen, kSlashManifest) == 0);
     if (matches) {
-      if (mf_len - kStripLen + 1 > sizeof(dir_buf)) return 0;
-      memcpy(dir_buf, mf_buf, mf_len - kStripLen);
-      dir_buf[mf_len - kStripLen] = '\0';
-      dir_valid = RF_IS_DIR(dir_buf);
+      if (!rf_buf_grow(dir_buf, dir_cap, mf_len - kStripLen + 1, alloc))
+        return 0;
+      memcpy(*dir_buf, *mf_buf, mf_len - kStripLen);
+      rf_buf_truncate(*dir_buf, mf_len - kStripLen);
+      dir_valid = RF_IS_DIR(*dir_buf);
     }
   }
 
+  // Hand ownership of the valid buffers to the caller. The invalid
+  // one (and any buffer we allocated but didn't use) stays in
+  // *mf_buf / *dir_buf for the wrapper to free.
   if (mf_valid) {
-    size_t l = strlen(mf_buf);
-    if (l + 1 > out_manifest_len) return 0;
-    memcpy(out_manifest, mf_buf, l + 1);
-  } else {
-    out_manifest[0] = '\0';
+    *out_manifest = *mf_buf;
+    *mf_buf = NULL;
   }
-
   if (dir_valid) {
-    size_t l = strlen(dir_buf);
-    if (l + 1 > out_directory_len) return 0;
-    memcpy(out_directory, dir_buf, l + 1);
-  } else {
-    out_directory[0] = '\0';
+    *out_directory = *dir_buf;
+    *dir_buf = NULL;
   }
-
   return 1;
+}
+
+int rf_paths_from(const char* argv0, const char* runfiles_manifest_file,
+                  const char* runfiles_dir, rf_predicate is_readable_file,
+                  rf_predicate is_directory, void* predicate_userdata,
+                  const struct rf_allocator* alloc, char** out_manifest,
+                  char** out_directory) {
+  if (!out_manifest || !out_directory) return 0;
+  *out_manifest = NULL;
+  *out_directory = NULL;
+  if (!alloc) alloc = &g_libc_allocator;
+
+  char* mf_buf = NULL;
+  size_t mf_cap = 0;
+  char* dir_buf = NULL;
+  size_t dir_cap = 0;
+  int ok = rf_paths_from_body(argv0, runfiles_manifest_file, runfiles_dir,
+                              is_readable_file, is_directory,
+                              predicate_userdata, alloc, &mf_buf, &mf_cap,
+                              &dir_buf, &dir_cap, out_manifest, out_directory);
+  rf_a_free(alloc, mf_buf);
+  rf_a_free(alloc, dir_buf);
+  return ok;
 }
 #undef RF_IS_FILE
 #undef RF_IS_DIR
@@ -462,31 +517,23 @@ int rf_paths_from(const char* argv0, const char* runfiles_manifest_file,
 // Streaming line reader
 // ==========================================================================
 
-/// Read a single line from @p f into `*line_buf`, growing it as
-/// needed via the pluggable allocator. Strips trailing `\n` and `\r`.
-///
-/// Reads one byte at a time via `getc_unlocked` (POSIX) / `_getc_nolock`
-/// (MSVC) so embedded NUL bytes are preserved verbatim (an `fgets`+`strlen`
-/// shape would silently truncate any line containing a `\0`). Using the
-/// unlocked getc variant skips the per-call FILE lock that `fgetc` takes
-/// — safe here because the FILE* is a function-local resource never
-/// shared across threads.
-///
-/// @param f Open input stream.
-/// @param line_buf In/out: growing heap buffer. May start as `NULL`
-///   with `*line_cap == 0`.
-/// @param line_cap In/out: current capacity of `*line_buf`.
-/// @param a Allocator used for grow-a-buffer operations.
-/// @retval >=0 Line length written to `*line_buf`.
-/// @retval -1 EOF with nothing read.
-/// @retval -2 I/O error.
-/// @retval -3 Allocation failure.
+// Read one line; strip trailing \r/\n. Returns line length, or -1 EOF /
+// -2 I/O error / -3 alloc failure. Reads a byte at a time via the
+// unlocked getc so embedded NULs are preserved (fgets+strlen would
+// silently truncate them); unlocked is safe because the FILE* is
+// function-local.
 static int rf_read_line(FILE* f, char** line_buf, size_t* line_cap,
                         const rf_allocator* a) {
-#ifdef _WIN32
+// Prefer the unlocked getc where we can — the FILE* is function-local
+// so per-byte locking is pure overhead. Fall back to plain getc where
+// no reliable unlocked variant exists (MinGW ships it conditional on
+// __MSVCRT_VERSION__; Cygwin's newlib doesn't guarantee it either).
+#if defined(_MSC_VER)
 #define RF_GETC(fp) _getc_nolock(fp)
-#else
+#elif !defined(_WIN32) && !defined(__CYGWIN__)
 #define RF_GETC(fp) getc_unlocked(fp)
+#else
+#define RF_GETC(fp) getc(fp)
 #endif
   size_t used = 0;
   for (;;) {
@@ -517,8 +564,7 @@ static int rf_read_line(FILE* f, char** line_buf, size_t* line_cap,
 }
 
 // ==========================================================================
-// Format helpers (pure — no I/O, no allocation). Shared by the C-side
-// streaming parsers below AND by the C++ facade in runfiles.cc.
+// Format helpers (pure -- no I/O, no allocation).
 // ==========================================================================
 
 rf_status rf_manifest_split_line(const char* line, size_t line_len,
@@ -581,8 +627,8 @@ rf_status rf_repo_mapping_split_line(const char* line, size_t line_len,
 }
 
 // ==========================================================================
-// Manifest parser (streaming, C-private). Used by rf_data_build only —
-// the C++ facade has its own FILE*-based parser and does NOT call this.
+// Manifest parser (streaming, C-private). Only caller is rf_create,
+// via the rf_build_manifest_cb callback below.
 // ==========================================================================
 
 static rf_status rf_parse_manifest_into(
@@ -718,27 +764,23 @@ static rf_status rf_parse_repo_mapping_into(
 }
 
 // ==========================================================================
-// rf_runfiles — parsed state owned by exactly one handle.
-//
-// No refcount, no sharing across handles, no locking. Each rf_create*
-// produces a fresh handle; rf_free releases everything it owns.
+// rf_runfiles -- parsed state fully owned by one handle. No refcount, no
+// sharing, no locking.
 // ==========================================================================
 
-/// One repo-mapping row. Sorted lexicographically by
-/// `(target_apparent, source_repo)` — reproduces
-/// `std::pair<string,string>::operator<` exactly, including
-/// "'*' sorts before every valid repo-name char" for wildcard entries.
+// Sorted lexicographically by (target_apparent, source_repo) --
+// reproduces std::pair<string,string>::operator< exactly, including
+// "'*' sorts before every valid repo-name char" for wildcards.
 typedef struct {
   char* target_apparent;
   size_t ta_len;
-  char* source_repo;  ///< May end in `*` for wildcard entries.
+  char* source_repo;  // May end in '*' for wildcard entries.
   size_t sr_len;
   char* value;
   size_t value_len;
 } rf_repo_entry;
 
-/// One manifest row. `key_len` is cached so binary search doesn't need
-/// to `strlen` the stored key on every probe.
+// key_len cached so binary search doesn't strlen on every probe.
 typedef struct {
   char* key;
   size_t key_len;
@@ -746,43 +788,48 @@ typedef struct {
 } rf_manifest_entry;
 
 struct rf_runfiles {
-  /// Owned copy of the allocator vtable this handle was built with.
-  /// Copying the struct in — rather than storing a pointer — lets
-  /// callers pass a short-lived (e.g. stack-local) #rf_allocator to
-  /// #rf_create_ex; the handle uses this copy for its whole lifetime.
+  // Owned COPY of the allocator vtable, so callers may pass a
+  // stack-local #rf_allocator to rf_create.
   rf_allocator alloc;
 
-  char* directory;          ///< Resolved runfiles directory (or `""`).
-  char* manifest_file;      ///< Resolved manifest file (or `""`).
-  char* source_repository;  ///< Default source repo for #rf_rlocation.
+  char* directory;
+  char* manifest_file;
+  char* source_repository;
 
-  rf_manifest_entry* manifest;  ///< Sorted manifest rows.
+  rf_manifest_entry* manifest;
   size_t manifest_count;
   size_t manifest_capacity;
 
-  rf_repo_entry* repo_map;  ///< Sorted `_repo_mapping` rows.
+  rf_repo_entry* repo_map;
   size_t repo_map_count;
   size_t repo_map_capacity;
 
-  // Env-var values are not stored: rf_env_var derives them from
-  // manifest_file / directory above.
+  // No separate env-var storage -- rf_env_var_value returns pointers
+  // into manifest_file / directory.
 };
 
 // ==========================================================================
-// Sorting parallel arrays (manifest and repo-mapping)
+// Sort comparators
 // ==========================================================================
 
+// Length-aware to match rf_bsearch_manifest_prefix's memcmp+length
+// compare byte-for-byte. strcmp would disagree with the lookup path on
+// any key containing an embedded NUL (the streaming reader preserves
+// them).
 static int rf_manifest_qsort_cmp(const void* a, const void* b) {
   const rf_manifest_entry* ea = (const rf_manifest_entry*)a;
   const rf_manifest_entry* eb = (const rf_manifest_entry*)b;
-  return strcmp(ea->key, eb->key);
+  size_t n = ea->key_len < eb->key_len ? ea->key_len : eb->key_len;
+  int c = n ? memcmp(ea->key, eb->key, n) : 0;
+  if (c != 0) return c;
+  if (ea->key_len < eb->key_len) return -1;
+  if (ea->key_len > eb->key_len) return 1;
+  return 0;
 }
 
-// Compare two (target_apparent, source_repo) pairs lexicographically —
-// reproduces std::pair<string,string>::operator< exactly, including
-// "'*' sorts before every valid repo-name char" for wildcard entries.
-// Used both for sorting the repo-map and for binary-searching a lookup
-// key against a stored entry.
+// Lex compare on (target_apparent, source_repo). Shared by the sort
+// and the lookup so both paths agree on ordering (incl. '*' sorting
+// before every valid repo-name char for wildcards).
 static int rf_repo_key_cmp(const char* ta_a, size_t ta_a_len, const char* sr_a,
                            size_t sr_a_len, const char* ta_b, size_t ta_b_len,
                            const char* sr_b, size_t sr_b_len) {
@@ -807,11 +854,11 @@ static int rf_repo_qsort_cmp(const void* a, const void* b) {
 }
 
 // ==========================================================================
-// Callbacks for populating rf_runfiles
+// Parser callbacks
 //
-// A callback that returns non-zero surfaces as RF_ERR_CALLBACK from the
-// parser and the whole build path unwinds. Returning non-zero on OOM
-// therefore doubles as error propagation — no separate flag needed.
+// Non-zero return propagates through the parser as RF_ERR_CALLBACK and
+// unwinds the whole build path, so returning non-zero on OOM doubles
+// as error propagation -- no separate flag needed.
 // ==========================================================================
 
 static int rf_build_manifest_cb(void* userdata, const char* key, size_t klen,
@@ -880,13 +927,18 @@ static int rf_build_repo_map_cb(void* userdata, const char* ta, size_t ta_len,
 
 // ==========================================================================
 // RlocationUnchecked (data-level; no repo mapping / validation)
+//
+// Caller-buffer contract: writes NUL-terminated result into @p buf when
+// it fits, always sets @c *needed so callers can grow-and-retry once
+// with an exactly-sized buffer. Internal encoding:
+//   1  -> OK (buf written, *needed = strlen)
+//   0  -> NOT_FOUND
+//   -1 -> BUF_TOO_SMALL (buf untouched, *needed = required)
+//   -2 -> ALLOC_FAILED (only from rf_rlocation_unchecked_join's scratch)
 // ==========================================================================
 
-/// Binary search on the manifest for a key equal to the first
-/// @p prefix_len bytes of @p path. Does NOT mutate @p path. Passing
-/// `strlen(path)` as @p prefix_len yields an exact-key search.
-///
-/// @return Matching index, or `-1` if no match.
+// Passing `strlen(path)` as prefix_len is an exact-key search. Never
+// mutates @p path.
 static int rf_bsearch_manifest_prefix(const rf_runfiles* rf, const char* path,
                                       size_t prefix_len) {
   int lo = 0, hi = (int)rf->manifest_count - 1;
@@ -906,21 +958,23 @@ static int rf_bsearch_manifest_prefix(const rf_runfiles* rf, const char* path,
   return -1;
 }
 
-// Resolve `path` against the manifest/directory only (no repo mapping,
-// no path validation, no absolute-path passthrough). Returns positive
-// length on success, 0 if not found, -1 on buffer-too-small.
+// Never allocates.
 static int rf_rlocation_unchecked(const rf_runfiles* rf, const char* path,
-                                  char* out, int out_len) {
+                                  char* buf, size_t buf_cap, size_t* needed) {
+  *needed = 0;
   size_t path_len = strlen(path);
-  // 1) Exact match (prefix search with the full path length).
+
+  // 1) Exact match.
   int idx = rf_bsearch_manifest_prefix(rf, path, path_len);
   if (idx >= 0) {
     const char* v = rf->manifest[idx].value;
-    int vlen = (int)strlen(v);
-    if (vlen + 1 > out_len) return -1;
-    memcpy(out, v, vlen + 1);
-    return vlen;
+    size_t vlen = strlen(v);
+    *needed = vlen;
+    if (vlen + 1 > buf_cap) return -1;
+    memcpy(buf, v, vlen + 1);
+    return 1;
   }
+
   // 2) Longest-prefix match.
   if (rf->manifest_count > 0) {
     size_t prefix_end = path_len;
@@ -933,68 +987,64 @@ static int rf_rlocation_unchecked(const rf_runfiles* rf, const char* path,
       int pidx = rf_bsearch_manifest_prefix(rf, path, prefix_end);
       if (pidx >= 0) {
         const char* v = rf->manifest[pidx].value;
-        int vlen = (int)strlen(v);
+        size_t vlen = strlen(v);
         size_t rem_len = path_len - prefix_end - 1;
-        int total = vlen + 1 + (int)rem_len;
-        if (total + 1 > out_len) return -1;
-        memcpy(out, v, vlen);
-        out[vlen] = '/';
-        memcpy(out + vlen + 1, path + prefix_end + 1, rem_len);
-        out[total] = '\0';
-        return total;
+        size_t total = vlen + 1 + rem_len;
+        *needed = total;
+        if (total + 1 > buf_cap) return -1;
+        memcpy(buf, v, vlen);
+        buf[vlen] = '/';
+        memcpy(buf + vlen + 1, path + prefix_end + 1, rem_len);
+        buf[total] = '\0';
+        return 1;
       }
     }
   }
+
   // 3) Directory fallback.
   if (rf->directory && rf->directory[0]) {
-    int dlen = (int)strlen(rf->directory);
-    int total = dlen + 1 + (int)path_len;
-    if (total + 1 > out_len) return -1;
-    memcpy(out, rf->directory, dlen);
-    out[dlen] = '/';
-    memcpy(out + dlen + 1, path, path_len + 1);
-    return total;
+    size_t dlen = strlen(rf->directory);
+    size_t total = dlen + 1 + path_len;
+    *needed = total;
+    if (total + 1 > buf_cap) return -1;
+    memcpy(buf, rf->directory, dlen);
+    buf[dlen] = '/';
+    memcpy(buf + dlen + 1, path, path_len + 1);
+    return 1;
   }
   return 0;
 }
 
-// Helper: rlocation from a virtually-concatenated `prefix + suffix` key.
-// Used after a repo-mapping rewrite so the caller can pass "canonical +
-// path.substr(first_slash)" without doing the join themselves.
+// Post-repo-mapping variant: builds a virtual "prefix + suffix" key in
+// allocator-backed scratch, delegates the lookup, frees. Returns -2
+// if the scratch alloc fails -- the ONE alloc the caller-buffer public
+// API makes internally, bounded by prefix_len + suffix_len.
 static int rf_rlocation_unchecked_join(const rf_runfiles* rf,
                                        const char* prefix, size_t prefix_len,
                                        const char* suffix, size_t suffix_len,
-                                       char* out, int out_len) {
+                                       char* buf, size_t buf_cap,
+                                       size_t* needed) {
+  const rf_allocator* a = &rf->alloc;
+  *needed = 0;
   size_t total = prefix_len + suffix_len;
-  char stack_buf[8192];
-  char* tmp;
-  int use_heap = 0;
-  if (total + 1 <= sizeof(stack_buf)) {
-    tmp = stack_buf;
-  } else {
-    tmp = (char*)rf_a_malloc(&rf->alloc, total + 1);
-    if (!tmp) return -1;
-    use_heap = 1;
-  }
-  memcpy(tmp, prefix, prefix_len);
-  if (suffix_len) memcpy(tmp + prefix_len, suffix, suffix_len);
-  tmp[total] = '\0';
-  int r = rf_rlocation_unchecked(rf, tmp, out, out_len);
-  if (use_heap) rf_a_free(&rf->alloc, tmp);
+  char* key = (char*)rf_a_malloc(a, total + 1);
+  if (!key) return -2;
+  memcpy(key, prefix, prefix_len);
+  if (suffix_len) memcpy(key + prefix_len, suffix, suffix_len);
+  key[total] = '\0';
+  int r = rf_rlocation_unchecked(rf, key, buf, buf_cap, needed);
+  rf_a_free(a, key);
   return r;
 }
 
 // ==========================================================================
-// Public C API — construction
+// Public API -- construction
 // ==========================================================================
 
-// Free every allocation reachable from @p rf, then @p rf itself. Used
-// both by rf_free and by the mid-construction error paths in
-// rf_create_ex.
+// Also used by rf_create's mid-construction error paths.
 static void rf_free_impl(rf_runfiles* rf) {
   if (!rf) return;
-  // Snapshot the vtable so rf_a_free can still dispatch after `rf`
-  // itself is freed at the end.
+  // Snapshot the vtable so dispatch still works after `rf` is freed.
   rf_allocator a = rf->alloc;
   rf_a_free(&a, rf->directory);
   rf_a_free(&a, rf->manifest_file);
@@ -1013,16 +1063,15 @@ static void rf_free_impl(rf_runfiles* rf) {
   rf_a_free(&a, rf);
 }
 
-rf_runfiles* rf_create_ex(const rf_allocator* alloc, const char* argv0,
-                          const char* manifest, const char* dir,
-                          const char* source_repo, char* err, int err_len) {
+rf_runfiles* rf_create(const rf_allocator* alloc, const char* argv0,
+                       const char* manifest, const char* dir,
+                       const char* source_repo, char* err, size_t err_len) {
   if (!alloc) alloc = &g_libc_allocator;
 
-  char resolved_manifest[4096];
-  char resolved_directory[4096];
-  if (!rf_paths_from(argv0 ? argv0 : "", manifest, dir, NULL, NULL, NULL,
-                     resolved_manifest, sizeof(resolved_manifest),
-                     resolved_directory, sizeof(resolved_directory))) {
+  char* resolved_manifest = NULL;
+  char* resolved_directory = NULL;
+  if (!rf_paths_from(argv0 ? argv0 : "", manifest, dir, NULL, NULL, NULL, alloc,
+                     &resolved_manifest, &resolved_directory)) {
     if (err && err_len > 0) {
       snprintf(err, err_len, "ERROR: cannot find runfiles (argv0=\"%s\")",
                argv0 ? argv0 : "");
@@ -1031,22 +1080,32 @@ rf_runfiles* rf_create_ex(const rf_allocator* alloc, const char* argv0,
   }
 
   rf_runfiles* rf = (rf_runfiles*)rf_a_malloc(alloc, sizeof(rf_runfiles));
-  if (!rf) return NULL;
+  if (!rf) {
+    rf_a_free(alloc, resolved_manifest);
+    rf_a_free(alloc, resolved_directory);
+    return NULL;
+  }
   memset(rf, 0, sizeof(*rf));
-  rf->alloc = *alloc;  // owned copy — safe against short-lived vtables
+  rf->alloc = *alloc;  // owned copy -- safe against short-lived vtables
 
-  rf->directory = rf_a_strdup(alloc, resolved_directory);
-  rf->manifest_file = rf_a_strdup(alloc, resolved_manifest);
+  rf->directory =
+      rf_a_strdup(alloc, resolved_directory ? resolved_directory : "");
+  rf->manifest_file =
+      rf_a_strdup(alloc, resolved_manifest ? resolved_manifest : "");
   rf->source_repository = rf_a_strdup(alloc, source_repo ? source_repo : "");
   if (!rf->directory || !rf->manifest_file || !rf->source_repository) {
+    rf_a_free(alloc, resolved_manifest);
+    rf_a_free(alloc, resolved_directory);
     rf_free_impl(rf);
     return NULL;
   }
 
-  if (resolved_manifest[0]) {
+  if (resolved_manifest && resolved_manifest[0]) {
     rf_status s = rf_parse_manifest_into(
-        resolved_manifest, rf_build_manifest_cb, rf, err, err_len, alloc);
+        resolved_manifest, rf_build_manifest_cb, rf, err, (int)err_len, alloc);
     if (s != RF_OK) {
+      rf_a_free(alloc, resolved_manifest);
+      rf_a_free(alloc, resolved_directory);
       rf_free_impl(rf);
       return NULL;
     }
@@ -1054,31 +1113,31 @@ rf_runfiles* rf_create_ex(const rf_allocator* alloc, const char* argv0,
       qsort(rf->manifest, rf->manifest_count, sizeof(rf_manifest_entry),
             rf_manifest_qsort_cmp);
   }
+  rf_a_free(alloc, resolved_manifest);
+  rf_a_free(alloc, resolved_directory);
 
-  // Resolve the _repo_mapping path against the just-parsed manifest.
-  // Grow from an 8 KB stack buffer up to 1 MB before giving up
-  // (silently, matching C++'s "no repo mapping file" branch).
+  // Resolve _repo_mapping. Stack buffer covers ~all real paths; on
+  // BUF_TOO_SMALL retry once with the reported size.
   {
-    char stack_buf[8192];
+    char stack_buf[4096];
     char* heap_buf = NULL;
     char* buf = stack_buf;
     size_t cap = sizeof(stack_buf);
-    int n = rf_rlocation_unchecked(rf, "_repo_mapping", buf, (int)cap);
-    while (n == -1 && cap < (1u << 20)) {
-      cap *= 2;
-      char* np = (char*)rf_a_realloc(alloc, heap_buf, cap);
-      if (!np) {
-        rf_a_free(alloc, heap_buf);
+    size_t needed = 0;
+    int r = rf_rlocation_unchecked(rf, "_repo_mapping", buf, cap, &needed);
+    if (r == -1) {
+      heap_buf = (char*)rf_a_malloc(alloc, needed + 1);
+      if (!heap_buf) {
         rf_free_impl(rf);
         return NULL;
       }
-      heap_buf = np;
       buf = heap_buf;
-      n = rf_rlocation_unchecked(rf, "_repo_mapping", buf, (int)cap);
+      cap = needed + 1;
+      r = rf_rlocation_unchecked(rf, "_repo_mapping", buf, cap, &needed);
     }
-    if (n > 0) {
+    if (r == 1 && buf[0]) {
       rf_status s = rf_parse_repo_mapping_into(buf, rf_build_repo_map_cb, rf,
-                                               err, err_len, alloc);
+                                               err, (int)err_len, alloc);
       if (s != RF_OK) {
         rf_a_free(alloc, heap_buf);
         rf_free_impl(rf);
@@ -1094,48 +1153,31 @@ rf_runfiles* rf_create_ex(const rf_allocator* alloc, const char* argv0,
   return rf;
 }
 
-// Shared body of the three env-reading rf_create* entry points. Reads
-// RUNFILES_MANIFEST_FILE and @p dir_env_key from the environment (via
-// rf_getenv_alloc, so Windows Unicode env vars work) and forwards to
-// rf_create_ex.
-static rf_runfiles* rf_create_from_env(const rf_allocator* alloc,
-                                       const char* argv0,
-                                       const char* dir_env_key,
-                                       const char* source_repo, char* err,
-                                       int err_len) {
-  char* mf = rf_getenv_alloc("RUNFILES_MANIFEST_FILE");
-  char* dir = rf_getenv_alloc(dir_env_key);
-  rf_runfiles* r = rf_create_ex(alloc, argv0, mf ? mf : "", dir ? dir : "",
-                                source_repo, err, err_len);
-  free(mf);
-  free(dir);
+rf_runfiles* rf_create_for_test(const rf_allocator* alloc,
+                                const char* source_repo, char* err,
+                                size_t err_len) {
+  // Snapshot so the transient env-var strings get freed via the same
+  // vtable rf_getenv_alloc allocated them with.
+  const rf_allocator* env_alloc = alloc ? alloc : &g_libc_allocator;
+  char* mf = rf_getenv_alloc(env_alloc, "RUNFILES_MANIFEST_FILE");
+  char* dir = rf_getenv_alloc(env_alloc, "TEST_SRCDIR");
+  rf_runfiles* r = rf_create(alloc, "", mf ? mf : "", dir ? dir : "",
+                             source_repo, err, err_len);
+  rf_a_free(env_alloc, mf);
+  rf_a_free(env_alloc, dir);
   return r;
 }
 
-rf_runfiles* rf_create(const rf_allocator* alloc, const char* argv0, char* err,
-                       int err_len) {
-  return rf_create_from_env(alloc, argv0, "RUNFILES_DIR", "", err, err_len);
-}
+// ==========================================================================
+// Public API -- free
+// ==========================================================================
 
-rf_runfiles* rf_create_for_test(const rf_allocator* alloc, char* err,
-                                int err_len) {
-  return rf_create_from_env(alloc, "", "TEST_SRCDIR", "", err, err_len);
-}
-
-rf_runfiles* rf_create_for_test_ex(const rf_allocator* alloc,
-                                   const char* source_repo, char* err,
-                                   int err_len) {
-  return rf_create_from_env(alloc, "", "TEST_SRCDIR", source_repo, err,
-                            err_len);
-}
+void rf_free(rf_runfiles* rf) { rf_free_impl(rf); }
 
 // ==========================================================================
 // Rlocation (with repo-mapping)
 // ==========================================================================
 
-// Return < 0, == 0, > 0 comparing an entry to a lookup key
-// (target_apparent, source_repo). Thin wrapper over rf_repo_key_cmp
-// so sort and lookup share the same lex-order definition.
 static int rf_cmp_lookup_key(const rf_repo_entry* e,
                              const char* target_apparent, size_t ta_len,
                              const char* source_repo, size_t sr_len) {
@@ -1144,8 +1186,8 @@ static int rf_cmp_lookup_key(const rf_repo_entry* e,
                          sr_len);
 }
 
-// Find upper_bound(key): index of first repo-map entry strictly greater
-// than (target_apparent, source_repo). Returns repo_map_count if none.
+// upper_bound(key): index of first entry strictly greater than
+// (target_apparent, source_repo). Returns repo_map_count if none.
 static size_t rf_rm_upper_bound(const rf_runfiles* rf,
                                 const char* target_apparent, size_t ta_len,
                                 const char* source_repo, size_t sr_len) {
@@ -1162,100 +1204,95 @@ static size_t rf_rm_upper_bound(const rf_runfiles* rf,
   return lo;
 }
 
-int rf_rlocation_from(const rf_runfiles* rf, const char* path,
-                      const char* source_repository, char* result_buf,
-                      int result_buf_len) {
-  if (!rf || !path || !result_buf || result_buf_len <= 0) return -1;
-  result_buf[0] = '\0';
+static rf_rlocation_status rf_map_unchecked_status(int r) {
+  switch (r) {
+    case 1:
+      return RF_RLOCATION_OK;
+    case 0:
+      return RF_RLOCATION_NOT_FOUND;
+    case -1:
+      return RF_RLOCATION_BUF_TOO_SMALL;
+    default:
+      return RF_RLOCATION_ALLOC_FAILED;
+  }
+}
 
-  if (!rf_path_is_rlocation_valid(path)) return -1;
+rf_rlocation_status rf_rlocation(rf_runfiles* rf, const char* path,
+                                 const char* source_repository, char* buf,
+                                 size_t buf_cap, size_t* needed) {
+  size_t local_needed = 0;
+  if (!needed) needed = &local_needed;
+  *needed = 0;
+
+  if (!rf || !path) return RF_RLOCATION_INVALID_PATH;
+  if (!rf_path_is_rlocation_valid(path)) return RF_RLOCATION_INVALID_PATH;
 
   if (rf_is_absolute(path)) {
-    int plen = (int)strlen(path);
-    if (plen + 1 > result_buf_len) return -1;
-    memcpy(result_buf, path, plen + 1);
-    return plen;
+    size_t plen = strlen(path);
+    *needed = plen;
+    if (plen + 1 > buf_cap) return RF_RLOCATION_BUF_TOO_SMALL;
+    memcpy(buf, path, plen + 1);
+    return RF_RLOCATION_OK;
   }
 
-  const char* sr = source_repository ? source_repository : "";
+  const char* sr =
+      source_repository ? source_repository : rf->source_repository;
   size_t sr_len = strlen(sr);
 
   const char* slash = strchr(path, '/');
-  if (!slash) {
-    // No repo prefix — resolve directly.
-    return rf_rlocation_unchecked(rf, path, result_buf, result_buf_len);
+  if (!slash || rf->repo_map_count == 0) {
+    return rf_map_unchecked_status(
+        rf_rlocation_unchecked(rf, path, buf, buf_cap, needed));
   }
 
   size_t first_slash = (size_t)(slash - path);
-  if (rf->repo_map_count == 0) {
-    return rf_rlocation_unchecked(rf, path, result_buf, result_buf_len);
-  }
-
   size_t ub = rf_rm_upper_bound(rf, path, first_slash, sr, sr_len);
-  // Matches C++ std::prev(begin()) semantic: when upper_bound sits at
-  // begin(), floor stays at begin() and we still inspect the first
-  // entry — it may be a wildcard whose target_apparent matches ours,
-  // in which case rewriting must still fire even though the entry
-  // sorts strictly greater than the lookup key.
+  // C++ std::prev(begin()) semantic: when ub sits at begin(), floor
+  // stays at begin() so we still inspect the first entry -- it may be a
+  // wildcard whose target_apparent matches ours, in which case
+  // rewriting must fire even though the entry sorts strictly greater.
   size_t floor = (ub == 0) ? 0 : ub - 1;
   const rf_repo_entry* e = &rf->repo_map[floor];
   int cmp = rf_cmp_lookup_key(e, path, first_slash, sr, sr_len);
   const char* suffix = path + first_slash;
   size_t suffix_len = strlen(suffix);
-  // Exact match, OR wildcard: entry's target_apparent equals the
-  // lookup's, entry's source_repo ends in '*', and lookup's source_repo
-  // starts with the prefix (source_repo before the '*').
+  // Wildcard: entry.target_apparent == lookup.target_apparent,
+  // entry.source_repo ends in '*', and lookup.source_repo starts with
+  // the prefix (source_repo before the '*').
   int wildcard_match = e->ta_len == first_slash &&
                        memcmp(e->target_apparent, path, first_slash) == 0 &&
                        e->sr_len > 0 && e->source_repo[e->sr_len - 1] == '*' &&
                        e->sr_len - 1 <= sr_len &&
                        memcmp(e->source_repo, sr, e->sr_len - 1) == 0;
+  int r;
   if (cmp == 0 || wildcard_match) {
-    return rf_rlocation_unchecked_join(rf, e->value, e->value_len, suffix,
-                                       suffix_len, result_buf, result_buf_len);
+    r = rf_rlocation_unchecked_join(rf, e->value, e->value_len, suffix,
+                                    suffix_len, buf, buf_cap, needed);
+  } else {
+    r = rf_rlocation_unchecked(rf, path, buf, buf_cap, needed);
   }
-
-  return rf_rlocation_unchecked(rf, path, result_buf, result_buf_len);
-}
-
-int rf_rlocation(const rf_runfiles* rf, const char* path, char* result_buf,
-                 int result_buf_len) {
-  if (!rf) return -1;
-  return rf_rlocation_from(rf, path, rf->source_repository, result_buf,
-                           result_buf_len);
+  return rf_map_unchecked_status(r);
 }
 
 // ==========================================================================
 // Envvars
 // ==========================================================================
 
-int rf_env_vars_count(const rf_runfiles* rf) {
-  if (!rf) return 0;
-  return RF_NUM_ENV_VARS;
+// JAVA_RUNFILES aliases RUNFILES_DIR -- compatibility shim for the Java
+// launcher. TODO(laszlocsomor): remove once the launcher picks up
+// RUNFILES_DIR directly.
+static const char* const kRfEnvKeys[RF_NUM_ENV_VARS] = {
+    "RUNFILES_MANIFEST_FILE", "RUNFILES_DIR", "JAVA_RUNFILES"};
+
+int rf_env_vars_count(void) { return RF_NUM_ENV_VARS; }
+
+const char* rf_env_var_key(int index) {
+  if (index < 0 || index >= RF_NUM_ENV_VARS) return NULL;
+  return kRfEnvKeys[index];
 }
 
-int rf_env_var(const rf_runfiles* rf, int index, char* key_buf, int key_buf_len,
-               char* val_buf, int val_buf_len) {
-  if (!rf || index < 0 || index >= RF_NUM_ENV_VARS) return 0;
-  if (!key_buf || key_buf_len <= 0 || !val_buf || val_buf_len <= 0) return 0;
-
-  // Values are derived: index 0 -> manifest_file, 1|2 -> directory
-  // (JAVA_RUNFILES aliases RUNFILES_DIR). No storage is allocated for
-  // env values.
-  const char* key = kRfEnvKeys[index];
-  const char* val = (index == 0) ? rf->manifest_file : rf->directory;
-
-  int klen = (int)strlen(key);
-  int vlen = (int)strlen(val);
-  if (klen + 1 > key_buf_len || vlen + 1 > val_buf_len) return 0;
-
-  memcpy(key_buf, key, klen + 1);
-  memcpy(val_buf, val, vlen + 1);
-  return 1;
+const char* rf_env_var_value(rf_runfiles* rf, int index) {
+  if (!rf || index < 0 || index >= RF_NUM_ENV_VARS) return NULL;
+  // index 0 -> manifest_file, 1|2 -> directory.
+  return (index == 0) ? rf->manifest_file : rf->directory;
 }
-
-// ==========================================================================
-// Destructor
-// ==========================================================================
-
-void rf_free(rf_runfiles* rf) { rf_free_impl(rf); }

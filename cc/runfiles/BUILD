@@ -6,7 +6,10 @@ cc_library(
     name = "runfiles",
     srcs = ["runfiles.cc"],
     hdrs = ["runfiles.h"],
-    implementation_deps = [":runfiles_c"],
+    implementation_deps = [
+        ":runfiles_c",
+        ":runfiles_c_internal",
+    ],
     include_prefix = "rules_cc/cc/runfiles",
     strip_include_prefix = ".",
     visibility = ["//visibility:public"],
@@ -15,13 +18,19 @@ cc_library(
 cc_library(
     name = "runfiles_c",
     srcs = ["runfiles_c.c"],
-    hdrs = [
-        "runfiles_c.h",
-        "runfiles_c_internal.h",
-    ],
+    hdrs = ["runfiles_c.h"],
+    implementation_deps = [":runfiles_c_internal"],
     include_prefix = "rules_cc/cc/runfiles",
     strip_include_prefix = ".",
     visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "runfiles_c_internal",
+    hdrs = ["runfiles_c_internal.h"],
+    include_prefix = "rules_cc/cc/runfiles",
+    strip_include_prefix = ".",
+    visibility = ["//cc/runfiles:__pkg__"],
 )
 
 filegroup(

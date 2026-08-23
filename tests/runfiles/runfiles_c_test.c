@@ -12,20 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// @file runfiles_c_test.c
-/// @brief Pure-C smoketest for the runfiles C API.
-///
-/// Complements runfiles_c_test.cc (which is C++/googletest) by exercising
-/// the public C headers from a real C translation unit — proves the API
-/// compiles under C, that no C++-only syntax has leaked into the public
-/// header, and that the `extern "C"` boundary works end-to-end. Deliberately
-/// small: this is a smoketest, not a replacement for the full C++ suite.
-///
-/// ### Structure
-/// Each test is a `static int test_<name>(void)` returning the number of
-/// assertion failures it observed (0 = pass). `main()` iterates the
-/// `g_tests` array, prints gtest-style RUN/OK/FAILED banners, and exits
-/// non-zero if any test failed.
+// Pure-C smoketest. Proves the public C API compiles from a real C TU
+// (no C++-only syntax leaked into the header, extern "C" boundary
+// works). Deliberately tiny -- the full suite is in runfiles_c_test.cc.
 
 #include "rules_cc/cc/runfiles/runfiles_c.h"
 
@@ -43,9 +32,8 @@
 #define UNLINK(p) unlink(p)
 #endif
 
-// CHECK macros expect the enclosing test function to have an `int fails`
-// in scope; each failure increments it. The test returns `fails` as its
-// assertion-failure count.
+// The enclosing test must declare `int fails` -- each failed check
+// increments it, and the test returns `fails` as its failure count.
 #define CHECK(cond, msg)                                           \
   do {                                                             \
     if (cond) {                                                    \
@@ -82,9 +70,7 @@
     }                                                                          \
   } while (0)
 
-// Manifest created once in main and shared across tests via the C
-// library's per-(manifest, directory) cache. Bazel gives each test its
-// own TEST_TMPDIR so the fixed filename does not collide across tests.
+// Shared across tests via TEST_TMPDIR (which Bazel isolates per test).
 static char g_mf_path[4096];
 
 static void cleanup_mf(void) {
@@ -114,12 +100,10 @@ static int create_manifest(void) {
   return 1;
 }
 
-// Open a runfiles handle against the shared manifest. Returns NULL and
-// prints diagnostics on failure so the caller can bail early.
 static rf_runfiles* open_rf(void) {
   char err[256] = {0};
-  rf_runfiles* rf = rf_create_ex(NULL, "", g_mf_path, "", "", err, sizeof(err));
-  if (!rf) fprintf(stderr, "    rf_create_ex failed: %s\n", err);
+  rf_runfiles* rf = rf_create(NULL, "", g_mf_path, "", "", err, sizeof(err));
+  if (!rf) fprintf(stderr, "    rf_create failed: %s\n", err);
   return rf;
 }
 
@@ -127,13 +111,7 @@ static rf_runfiles* open_rf(void) {
 // Tests
 // ==========================================================================
 
-/// Standalone smoketest for #rf_is_absolute.
-///
-/// No runfiles state required — the function is pure and stateless.
-/// Covers: POSIX leading-`/`, Windows drive-letter (`C:/`), a relative
-/// path, the empty string, and `NULL`. Deliberately does NOT cover the
-/// Windows-only UNC (`\\host\share`) branch — that would need a
-/// platform-conditional expectation and lives in the C++ suite.
+// UNC (`\\host\share`) is in the C++ suite (needs platform ifdef).
 static int test_is_absolute(void) {
   int fails = 0;
   CHECK_EQ_INT(rf_is_absolute("/absolute/path"), 1, "unix absolute");
@@ -144,136 +122,151 @@ static int test_is_absolute(void) {
   return fails;
 }
 
-/// Handle construction plus the three golden `rf_rlocation` paths.
-///
-/// Covers:
-///   - #rf_create_ex against an explicit manifest path (bypassing env
-///     and argv0 discovery).
-///   - Exact-match lookup: `"hello/world"` → `"resolved/hello/world"`.
-///   - Second exact-match to prove multiple entries in the parsed
-///     manifest are indexed correctly.
-///   - Longest-prefix fallback: `"nested/dir/inner/file"` should hit
-///     the `"nested/dir"` prefix and append the remainder.
-///   - Unknown key in manifest-only mode returns 0 (not -1, not the
-///     directory fallback — no directory was configured).
 static int test_create_and_lookup(void) {
   int fails = 0;
   rf_runfiles* rf = open_rf();
-  CHECK(rf != NULL, "rf_create_ex succeeds");
+  CHECK(rf != NULL, "rf_create succeeds");
   if (!rf) return fails + 1;
 
   char buf[1024];
-  int n;
+  size_t needed = 0;
+  rf_rlocation_status s;
 
-  n = rf_rlocation(rf, "hello/world", buf, sizeof(buf));
-  CHECK(n > 0, "hello/world resolves");
-  if (n > 0) CHECK_EQ_STR(buf, "resolved/hello/world", "hello/world value");
+  s = rf_rlocation(rf, "hello/world", NULL, buf, sizeof(buf), &needed);
+  CHECK_EQ_INT(s, RF_RLOCATION_OK, "hello/world resolves");
+  if (s == RF_RLOCATION_OK) {
+    CHECK_EQ_STR(buf, "resolved/hello/world", "hello/world value");
+    CHECK_EQ_INT(needed, strlen("resolved/hello/world"),
+                 "needed == strlen(result)");
+  }
 
-  n = rf_rlocation(rf, "data/config.json", buf, sizeof(buf));
-  CHECK(n > 0, "data/config.json resolves");
-  if (n > 0) CHECK_EQ_STR(buf, "config/config.json", "data/config.json value");
+  s = rf_rlocation(rf, "data/config.json", NULL, buf, sizeof(buf), &needed);
+  CHECK_EQ_INT(s, RF_RLOCATION_OK, "data/config.json resolves");
+  if (s == RF_RLOCATION_OK)
+    CHECK_EQ_STR(buf, "config/config.json", "data/config.json value");
 
-  n = rf_rlocation(rf, "nested/dir/inner/file", buf, sizeof(buf));
-  CHECK(n > 0, "nested prefix match resolves");
-  if (n > 0)
+  s = rf_rlocation(rf, "nested/dir/inner/file", NULL, buf, sizeof(buf),
+                   &needed);
+  CHECK_EQ_INT(s, RF_RLOCATION_OK, "nested prefix match resolves");
+  if (s == RF_RLOCATION_OK)
     CHECK_EQ_STR(buf, "resolved/nested/dir/inner/file", "prefix-match value");
 
-  n = rf_rlocation(rf, "does/not/exist", buf, sizeof(buf));
-  CHECK_EQ_INT(n, 0, "unknown key returns 0 (manifest-only mode)");
+  s = rf_rlocation(rf, "does/not/exist", NULL, buf, sizeof(buf), &needed);
+  CHECK_EQ_INT(s, RF_RLOCATION_NOT_FOUND,
+               "unknown key returns NOT_FOUND (manifest-only mode)");
+  CHECK_EQ_INT(needed, 0, "NOT_FOUND leaves needed=0");
 
   rf_free(rf);
   return fails;
 }
 
-/// #rf_path_is_rlocation_valid rejection paths surfaced through
-/// #rf_rlocation.
-///
-/// Covers the malformed-input contract that the validator locks in:
-///   - Empty string → `-1`.
-///   - Forward-slash traversal (`../etc/passwd`).
-///   - **Backslash traversal (`..\etc\passwd`)** — a regression guard
-///     for the Windows path-traversal fix; the validator now treats
-///     `\` as a separator on all platforms so this input can never
-///     escape the runfiles tree.
-///   - Embedded `/../` mid-path.
+// Backslash traversal case is the regression guard for the
+// Windows path-traversal hole -- `\` is a separator on all platforms.
 static int test_rejects_bad_paths(void) {
   int fails = 0;
   rf_runfiles* rf = open_rf();
-  CHECK(rf != NULL, "rf_create_ex succeeds");
+  CHECK(rf != NULL, "rf_create succeeds");
   if (!rf) return fails + 1;
 
   char buf[1024];
-  CHECK_EQ_INT(rf_rlocation(rf, "", buf, sizeof(buf)), -1, "empty rejected");
-  CHECK_EQ_INT(rf_rlocation(rf, "../etc/passwd", buf, sizeof(buf)), -1,
-               "forward-slash traversal rejected");
-  CHECK_EQ_INT(rf_rlocation(rf, "..\\etc\\passwd", buf, sizeof(buf)), -1,
-               "backslash traversal rejected");
-  CHECK_EQ_INT(rf_rlocation(rf, "a/../b", buf, sizeof(buf)), -1,
-               "embedded /../ rejected");
+  size_t needed = 0;
+  CHECK_EQ_INT(rf_rlocation(rf, "", NULL, buf, sizeof(buf), &needed),
+               RF_RLOCATION_INVALID_PATH, "empty rejected");
+  CHECK_EQ_INT(
+      rf_rlocation(rf, "../etc/passwd", NULL, buf, sizeof(buf), &needed),
+      RF_RLOCATION_INVALID_PATH, "forward-slash traversal rejected");
+  CHECK_EQ_INT(
+      rf_rlocation(rf, "..\\etc\\passwd", NULL, buf, sizeof(buf), &needed),
+      RF_RLOCATION_INVALID_PATH, "backslash traversal rejected");
+  CHECK_EQ_INT(rf_rlocation(rf, "a/../b", NULL, buf, sizeof(buf), &needed),
+               RF_RLOCATION_INVALID_PATH, "embedded /../ rejected");
 
   rf_free(rf);
   return fails;
 }
 
-/// Verify that an absolute input to #rf_rlocation passes through
-/// verbatim.
-///
-/// Absolute paths are the documented escape hatch for callers that
-/// already have a resolved on-disk path. The function must NOT prepend
-/// the runfiles directory, apply repo-mapping, or consult the manifest.
 static int test_absolute_passthrough(void) {
   int fails = 0;
   rf_runfiles* rf = open_rf();
-  CHECK(rf != NULL, "rf_create_ex succeeds");
+  CHECK(rf != NULL, "rf_create succeeds");
   if (!rf) return fails + 1;
 
   char buf[1024];
-  int n = rf_rlocation(rf, "/tmp/already-absolute", buf, sizeof(buf));
-  CHECK(n > 0, "absolute path passes through");
-  if (n > 0)
+  size_t needed = 0;
+  rf_rlocation_status s = rf_rlocation(rf, "/tmp/already-absolute", NULL, buf,
+                                       sizeof(buf), &needed);
+  CHECK_EQ_INT(s, RF_RLOCATION_OK, "absolute path passes through");
+  if (s == RF_RLOCATION_OK)
     CHECK_EQ_STR(buf, "/tmp/already-absolute", "absolute path unchanged");
 
   rf_free(rf);
   return fails;
 }
 
-/// #rf_env_vars_count and #rf_env_var: the subprocess-env-publish API.
-///
-/// Covers:
-///   - Fixed count of 3 (`RUNFILES_MANIFEST_FILE`, `RUNFILES_DIR`,
-///     `JAVA_RUNFILES`).
-///   - Reading the first pair returns the manifest key and the exact
-///     manifest path we passed to #rf_create_ex.
-///   - Out-of-range index returns 0 (does NOT crash and does NOT write
-///     past the buffers).
-static int test_env_var(void) {
+static int test_buf_too_small(void) {
   int fails = 0;
   rf_runfiles* rf = open_rf();
-  CHECK(rf != NULL, "rf_create_ex succeeds");
+  CHECK(rf != NULL, "rf_create succeeds");
   if (!rf) return fails + 1;
 
-  CHECK_EQ_INT(rf_env_vars_count(rf), 3, "3 env vars");
-  char k[128], v[4096];
-  CHECK_EQ_INT(rf_env_var(rf, 0, k, sizeof(k), v, sizeof(v)), 1,
-               "env_var[0] readable");
-  CHECK_EQ_STR(k, "RUNFILES_MANIFEST_FILE", "env_var[0] key");
-  CHECK_EQ_STR(v, g_mf_path, "env_var[0] value is manifest path");
-  CHECK_EQ_INT(rf_env_var(rf, 42, k, sizeof(k), v, sizeof(v)), 0,
-               "out-of-range env_var rejected");
+  // Try with a 4-byte buffer; result is "resolved/hello/world" (20 chars).
+  char tiny[4];
+  const char sentinel = '\x7f';
+  memset(tiny, sentinel, sizeof(tiny));
+  size_t needed = 0;
+  rf_rlocation_status s =
+      rf_rlocation(rf, "hello/world", NULL, tiny, sizeof(tiny), &needed);
+  CHECK_EQ_INT(s, RF_RLOCATION_BUF_TOO_SMALL, "tiny buffer -> BUF_TOO_SMALL");
+  CHECK_EQ_INT(needed, strlen("resolved/hello/world"), "needed = full length");
+  CHECK_EQ_INT(tiny[0], sentinel, "buf untouched on BUF_TOO_SMALL[0]");
+  CHECK_EQ_INT(tiny[3], sentinel, "buf untouched on BUF_TOO_SMALL[3]");
+
+  // Query-only: NULL buf, 0 cap.
+  size_t query_needed = 0;
+  s = rf_rlocation(rf, "hello/world", NULL, NULL, 0, &query_needed);
+  CHECK_EQ_INT(s, RF_RLOCATION_BUF_TOO_SMALL,
+               "query-only NULL/0 -> BUF_TOO_SMALL");
+  CHECK_EQ_INT(query_needed, strlen("resolved/hello/world"),
+               "query needed = full length");
+
+  // Retry with exact size.
+  char* heap = (char*)malloc(needed + 1);
+  CHECK(heap != NULL, "malloc succeeded");
+  if (heap) {
+    s = rf_rlocation(rf, "hello/world", NULL, heap, needed + 1, &needed);
+    CHECK_EQ_INT(s, RF_RLOCATION_OK, "retry with exact size succeeds");
+    if (s == RF_RLOCATION_OK)
+      CHECK_EQ_STR(heap, "resolved/hello/world", "retry result correct");
+    free(heap);
+  }
 
   rf_free(rf);
   return fails;
 }
 
-/// `rf_free(NULL)` is a documented no-op.
-///
-/// Guards against a common footgun (unconditional cleanup on the error
-/// path where the handle may never have been allocated). The check
-/// simply proves control returned; the test would crash instead of
-/// failing an assertion if the contract were violated.
+static int test_env_var(void) {
+  int fails = 0;
+  rf_runfiles* rf = open_rf();
+  CHECK(rf != NULL, "rf_create succeeds");
+  if (!rf) return fails + 1;
+
+  CHECK_EQ_INT(rf_env_vars_count(), 3, "3 env vars");
+  const char* k = rf_env_var_key(0);
+  const char* v = rf_env_var_value(rf, 0);
+  CHECK(k != NULL, "env_var_key[0] readable");
+  CHECK(v != NULL, "env_var_value[0] readable");
+  if (k) CHECK_EQ_STR(k, "RUNFILES_MANIFEST_FILE", "env_var[0] key");
+  if (v) CHECK_EQ_STR(v, g_mf_path, "env_var[0] value is manifest path");
+  CHECK(rf_env_var_key(42) == NULL, "out-of-range key returns NULL");
+  CHECK(rf_env_var_value(rf, 42) == NULL, "out-of-range value returns NULL");
+
+  rf_free(rf);
+  return fails;
+}
+
 static int test_free_null(void) {
   int fails = 0;
-  rf_free(NULL);  // NULL is documented as a no-op.
+  rf_free(NULL);
   CHECK(1, "rf_free(NULL) returned without crashing");
   return fails;
 }
@@ -293,6 +286,7 @@ static const test_case g_tests[] = {
     {"CreateAndLookup", test_create_and_lookup},
     {"RejectsBadPaths", test_rejects_bad_paths},
     {"AbsolutePassthrough", test_absolute_passthrough},
+    {"BufTooSmall", test_buf_too_small},
     {"EnvVar", test_env_var},
     {"FreeNull", test_free_null},
 };

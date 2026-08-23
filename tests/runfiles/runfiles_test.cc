@@ -934,6 +934,68 @@ TEST_F(RunfilesTest, InvalidRepoMapping) {
   EXPECT_TRUE(error.find("bad repository mapping") != string::npos);
 }
 
+// Exercises Runfiles::WithSourceRepository:
+//   - The derived instance sees repo-mapping entries as if it were built
+//     from `source_repository`.
+//   - The original instance is unaffected.
+//   - Both instances share the same underlying handle (the derived one
+//     stays valid even after the original is dropped).
+//   - EnvVars() on the derived instance still returns the three
+//     env pairs.
+TEST_F(RunfilesTest, WithSourceRepositoryReRoutesRepoMappingLookups) {
+  string uid = LINE_AS_STRING();
+  unique_ptr<MockFile> rm(MockFile::Create(
+      "foo" + uid + ".runfiles/_repo_mapping",
+      {",my_module,_main", "protobuf+3.19.2,protobuf,protobuf+3.19.2"}));
+  ASSERT_TRUE(rm != nullptr);
+  string dir = rm->DirName();
+  string argv0(dir.substr(0, dir.size() - string(".runfiles").size()));
+
+  string error;
+  unique_ptr<Runfiles> r_main(
+      Runfiles::Create(argv0, /*runfiles_manifest_file=*/"",
+                       /*runfiles_dir=*/"",
+                       /*source_repository=*/"", &error));
+  ASSERT_TRUE(r_main != nullptr);
+  EXPECT_TRUE(error.empty());
+
+  // As the main workspace, `my_module/foo` rewrites to `_main/foo`.
+  EXPECT_EQ(r_main->Rlocation("my_module/foo/runfile"),
+            dir + "/_main/foo/runfile");
+  // As the main workspace there's no `protobuf,protobuf` entry, so
+  // `protobuf/foo` stays un-rewritten.
+  EXPECT_EQ(r_main->Rlocation("protobuf/foo/runfile"),
+            dir + "/protobuf/foo/runfile");
+
+  // Derive a sibling that acts as if built from `protobuf+3.19.2`.
+  unique_ptr<Runfiles> r_pb = r_main->WithSourceRepository("protobuf+3.19.2");
+  ASSERT_TRUE(r_pb != nullptr);
+
+  // In the protobuf+3.19.2 source, `protobuf/foo` rewrites to
+  // `protobuf+3.19.2/foo`.
+  EXPECT_EQ(r_pb->Rlocation("protobuf/foo/runfile"),
+            dir + "/protobuf+3.19.2/foo/runfile");
+  // `my_module/foo` doesn't have a matching entry from this source, so
+  // it stays as-is.
+  EXPECT_EQ(r_pb->Rlocation("my_module/foo/runfile"),
+            dir + "/my_module/foo/runfile");
+
+  // Original still resolves the same way it did before deriving.
+  EXPECT_EQ(r_main->Rlocation("my_module/foo/runfile"),
+            dir + "/_main/foo/runfile");
+
+  // EnvVars() on the sibling matches the original's (three entries,
+  // same paths).
+  ASSERT_EQ(r_pb->EnvVars(), r_main->EnvVars());
+  ASSERT_EQ(r_pb->EnvVars().size(), size_t{3});
+
+  // Drop the original -- the sibling must remain functional (shared
+  // handle keeps the underlying rf_runfiles alive).
+  r_main.reset();
+  EXPECT_EQ(r_pb->Rlocation("protobuf/foo/runfile"),
+            dir + "/protobuf+3.19.2/foo/runfile");
+}
+
 }  // namespace
 }  // namespace runfiles
 }  // namespace cc

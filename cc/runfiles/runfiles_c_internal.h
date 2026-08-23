@@ -19,10 +19,6 @@
 /// the C++ facade in `runfiles.cc` so both languages use the same
 /// parsers, the same path-discovery logic, and the same validation
 /// rules.
-///
-/// This header is NOT part of the public API. It is exposed only via
-/// the `textual_hdrs` attribute of `//cc/runfiles:runfiles_c` so that
-/// the C++ wrapper can `#include` it inside `extern "C" {}`.
 
 #ifndef RULES_CC_CC_RUNFILES_RUNFILES_C_INTERNAL_H_
 #define RULES_CC_CC_RUNFILES_RUNFILES_C_INTERNAL_H_
@@ -34,6 +30,11 @@
 extern "C" {
 #endif
 
+// Forward-declared to keep this header independent of runfiles_c.h.
+// Every TU that includes us also includes runfiles_c.h (which
+// supplies the typedef), so signatures below use `struct rf_allocator*`.
+struct rf_allocator;
+
 /// Result codes for streaming parser helpers.
 typedef enum {
   RF_OK = 0,           ///< Success.
@@ -43,25 +44,10 @@ typedef enum {
   RF_ERR_CALLBACK = 4  ///< Callback returned non-zero to abort.
 } rf_status;
 
-/// Number of environment variable pairs both libraries publish to
-/// subprocesses. The names live in #kRfEnvKeys below; the values are
-/// per-handle (they encode the manifest / directory paths).
+/// Count of env-var pairs the library publishes
+/// (RUNFILES_MANIFEST_FILE, RUNFILES_DIR, JAVA_RUNFILES). The name
+/// table itself lives in `runfiles_c.c` -- see rf_env_var_key.
 #define RF_NUM_ENV_VARS 3
-
-/// Canonical order of the three env var names both libraries emit:
-///   - `[0]` `RUNFILES_MANIFEST_FILE`
-///   - `[1]` `RUNFILES_DIR`
-///   - `[2]` `JAVA_RUNFILES` (compatibility shim for the Java launcher;
-///     the TODO to remove it lives here so both languages see the same
-///     intent).
-///
-/// Shared between `runfiles_c.c` and `runfiles.cc` so a change (e.g.
-/// dropping `JAVA_RUNFILES`) happens in one place.
-static const char* const kRfEnvKeys[RF_NUM_ENV_VARS] = {
-    "RUNFILES_MANIFEST_FILE", "RUNFILES_DIR",
-    // TODO(laszlocsomor): remove JAVA_RUNFILES once the Java launcher can
-    // pick up RUNFILES_DIR.
-    "JAVA_RUNFILES"};
 
 // --------------------------------------------------------------------------
 // Path / filesystem helpers (no allocation)
@@ -95,11 +81,17 @@ int rf_is_directory(const char* path);
 /// On Windows uses `GetEnvironmentVariableW` so env vars published via
 /// `SetEnvironmentVariable*` (which don't update the CRT `_environ`
 /// block) are visible, and so non-ASCII values round-trip through
-/// UTF-16. On POSIX defers to `getenv`. Caller frees with `free()`.
+/// UTF-16. On POSIX defers to `getenv`.
 ///
+/// Returned buffer is allocated via @p alloc (or libc `malloc` if @p
+/// alloc is `NULL`) so custom allocators observe the allocation
+/// symmetrically. Caller frees via `rf_a_free(alloc, ...)` (or `free`
+/// if @p alloc was `NULL`).
+///
+/// @param alloc Allocator vtable, or `NULL` for libc default.
 /// @param name ASCII env-var name.
 /// @return Newly-allocated UTF-8 value, or `NULL` if unset / failure.
-char* rf_getenv_alloc(const char* name);
+char* rf_getenv_alloc(const struct rf_allocator* alloc, const char* name);
 
 /// `fopen` that accepts a UTF-8 @p path on all platforms.
 ///
@@ -161,6 +153,13 @@ typedef int (*rf_predicate)(void* userdata, const char* path);
 ///   3. If a manifest was found but no directory, try stripping the
 ///      `_manifest` / `/MANIFEST` suffix from the manifest path.
 ///
+/// Resolved paths are returned as newly-allocated NUL-terminated
+/// strings via @p alloc (which the caller frees with `rf_a_free`) so
+/// paths of any length -- including Windows extended-length paths up
+/// to ~32K -- round-trip without truncation. If one of manifest /
+/// directory is not found the corresponding out-pointer is set to
+/// `NULL`.
+///
 /// @param argv0 Program `argv[0]`, or `NULL`/`""` if unknown.
 /// @param runfiles_manifest_file Env-provided manifest path (may be
 ///   `NULL` or `""`).
@@ -170,20 +169,21 @@ typedef int (*rf_predicate)(void* userdata, const char* path);
 /// @param is_directory Predicate for directory checks; if `NULL`, the
 ///   built-in #rf_is_directory is used.
 /// @param predicate_userdata Passed unchanged to both predicates.
-/// @param out_manifest Output buffer for the resolved manifest path
-///   (NUL-terminated, `""` if none found).
-/// @param out_manifest_len Size of @p out_manifest.
-/// @param out_directory Output buffer for the resolved directory path
-///   (NUL-terminated, `""` if none found).
-/// @param out_directory_len Size of @p out_directory.
+/// @param alloc Allocator vtable, or `NULL` for libc default.
+/// @param out_manifest Set to a newly-allocated string on success (may
+///   be `NULL` if manifest was not found); caller frees via
+///   `rf_a_free(alloc, ...)`.
+/// @param out_directory Set to a newly-allocated string on success (may
+///   be `NULL` if directory was not found); caller frees via
+///   `rf_a_free(alloc, ...)`.
 /// @retval 1 At least one of {manifest, directory} was found.
-/// @retval 0 Nothing found, or an output buffer is too small (in which
-///   case both output buffers are left untouched).
+/// @retval 0 Nothing found or allocation failed (both out-pointers set
+///   to `NULL`).
 int rf_paths_from(const char* argv0, const char* runfiles_manifest_file,
                   const char* runfiles_dir, rf_predicate is_readable_file,
                   rf_predicate is_directory, void* predicate_userdata,
-                  char* out_manifest, size_t out_manifest_len,
-                  char* out_directory, size_t out_directory_len);
+                  const struct rf_allocator* alloc, char** out_manifest,
+                  char** out_directory);
 
 // --------------------------------------------------------------------------
 // Format helpers (no I/O, no allocation) shared by both languages' parsers
@@ -193,15 +193,15 @@ int rf_paths_from(const char* argv0, const char* runfiles_manifest_file,
 /// allocates.
 ///
 /// The manifest line format is one of:
-///   - `" escaped_key escaped_value"` — leading space; both fields
+///   - `" escaped_key escaped_value"` -- leading space; both fields
 ///     need #rf_unescape_into before use.
-///   - `"raw_key raw_value"` — no escaping; key and value are the
+///   - `"raw_key raw_value"` -- no escaping; key and value are the
 ///     literal bytes.
 ///
 /// On success returns #RF_OK and writes byte offsets INTO @p line:
-///   - `*key_off`, `*key_len` — the key span within @p line.
-///   - `*val_off`, `*val_len` — the value span within @p line.
-///   - `*needs_unescape` — `1` if the escaped form was used, else `0`.
+///   - `*key_off`, `*key_len` -- the key span within @p line.
+///   - `*val_off`, `*val_len` -- the value span within @p line.
+///   - `*needs_unescape` -- `1` if the escaped form was used, else `0`.
 ///
 /// @param line Line bytes (need not be NUL-terminated).
 /// @param line_len Number of bytes in @p line.

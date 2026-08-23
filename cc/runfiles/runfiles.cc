@@ -36,37 +36,30 @@ using std::vector;
 
 namespace {
 
-// Read an env-var as a UTF-8 std::string via the C library's
-// rf_getenv_alloc, so Windows Unicode env-var handling lives in one
-// place across both languages.
+// Route env-var reads through the C library so Windows Unicode env-var
+// handling (GetEnvironmentVariableW) lives in one place across both
+// languages. NULL allocator -> libc malloc, paired with the std::free
+// below.
 string GetEnv(const string& key) {
-  char* raw = rf_getenv_alloc(key.c_str());
+  char* raw = rf_getenv_alloc(/*alloc=*/nullptr, key.c_str());
   if (!raw) return string();
   string out(raw);
   std::free(raw);
   return out;
 }
 
-// Populate the EnvVars() vector once at construction. Buffers sized to
-// cover any real filesystem path (rf_paths_from itself caps at 4096;
-// 8192 gives headroom for the JAVA_RUNFILES / RUNFILES_DIR keys).
 vector<pair<string, string> > BuildEnvVars(rf_runfiles* rf) {
-  int n = rf_env_vars_count(rf);
+  int n = rf_env_vars_count();
   vector<pair<string, string> > out;
   out.reserve(static_cast<size_t>(n));
-  char k[128];
-  char v[8192];
   for (int i = 0; i < n; i++) {
-    if (rf_env_var(rf, i, k, sizeof(k), v, sizeof(v))) {
-      out.emplace_back(k, v);
-    }
+    const char* k = rf_env_var_key(i);
+    const char* v = rf_env_var_value(rf, i);
+    if (k && v) out.emplace_back(k, v);
   }
   return out;
 }
 
-// Bridge the std::function predicates from TestOnly_PathsFrom down to
-// the C #rf_predicate function-pointer shape. Not on the production
-// code path.
 using PredicatePair =
     pair<function<bool(const string&)>, function<bool(const string&)> >;
 int PredicateTrampolineIsMf(void* userdata, const char* path) {
@@ -80,16 +73,15 @@ int PredicateTrampolineIsDir(void* userdata, const char* path) {
 
 }  // namespace
 
-Runfiles::~Runfiles() { rf_free(handle_); }
+// Out-of-line only because the class has a virtual destructor.
+Runfiles::~Runfiles() = default;
 
-// Full-parameter constructor — every other Create overload eventually
-// forwards here.
 Runfiles* Runfiles::Create(const string& argv0,
                            const string& runfiles_manifest_file,
                            const string& runfiles_dir,
                            const string& source_repository, string* error) {
   char err[512] = {0};
-  rf_runfiles* handle = rf_create_ex(
+  rf_runfiles* handle = rf_create(
       /*alloc=*/nullptr, argv0.c_str(), runfiles_manifest_file.c_str(),
       runfiles_dir.c_str(), source_repository.c_str(), err, sizeof(err));
   if (!handle) {
@@ -118,7 +110,7 @@ Runfiles* Runfiles::Create(const string& argv0, string* error) {
 Runfiles* Runfiles::CreateForTest(const string& source_repository,
                                   string* error) {
   char err[512] = {0};
-  rf_runfiles* handle = rf_create_for_test_ex(
+  rf_runfiles* handle = rf_create_for_test(
       /*alloc=*/nullptr, source_repository.c_str(), err, sizeof(err));
   if (!handle) {
     if (error) *error = err;
@@ -137,15 +129,23 @@ string Runfiles::Rlocation(const string& path) const {
 
 string Runfiles::Rlocation(const string& path,
                            const string& source_repo) const {
-  // 8 KB output buffer covers any real filesystem path. rf_rlocation
-  // returns <=0 for invalid paths, unknown runfiles, or buffer-too-
-  // small; all of those legitimately produce the empty string on the
-  // C++ side.
-  char buf[8192];
-  int n = rf_rlocation_from(handle_, path.c_str(), source_repo.c_str(), buf,
-                            sizeof(buf));
-  if (n <= 0) return string();
-  return string(buf, static_cast<size_t>(n));
+  // Grow-and-retry at most once: BUF_TOO_SMALL reports the exact
+  // required size, so a second call with `needed + 1` is guaranteed to
+  // fit. std::string handles growth via std::allocator.
+  string buf;
+  buf.resize(4096);
+  size_t needed = 0;
+  rf_rlocation_status s =
+      rf_rlocation(handle_.get(), path.c_str(), source_repo.c_str(), &buf[0],
+                   buf.size(), &needed);
+  if (s == RF_RLOCATION_BUF_TOO_SMALL) {
+    buf.resize(needed + 1);
+    s = rf_rlocation(handle_.get(), path.c_str(), source_repo.c_str(), &buf[0],
+                     buf.size(), &needed);
+  }
+  if (s != RF_RLOCATION_OK) return string();
+  buf.resize(needed);
+  return buf;
 }
 
 namespace testing {
@@ -156,14 +156,16 @@ bool TestOnly_PathsFrom(const string& argv0, string mf, string dir,
                         string* out_manifest, string* out_directory) {
   PredicatePair ctx(std::move(is_runfiles_manifest),
                     std::move(is_runfiles_directory));
-  char mf_buf[4096] = {0};
-  char dir_buf[4096] = {0};
-  int ok =
-      rf_paths_from(argv0.c_str(), mf.c_str(), dir.c_str(),
-                    &PredicateTrampolineIsMf, &PredicateTrampolineIsDir, &ctx,
-                    mf_buf, sizeof(mf_buf), dir_buf, sizeof(dir_buf));
-  *out_manifest = mf_buf;
-  *out_directory = dir_buf;
+  // NULL allocator -> libc malloc; paired with std::free below.
+  char* mf_out = nullptr;
+  char* dir_out = nullptr;
+  int ok = rf_paths_from(argv0.c_str(), mf.c_str(), dir.c_str(),
+                         &PredicateTrampolineIsMf, &PredicateTrampolineIsDir,
+                         &ctx, /*alloc=*/nullptr, &mf_out, &dir_out);
+  out_manifest->assign(mf_out ? mf_out : "");
+  out_directory->assign(dir_out ? dir_out : "");
+  std::free(mf_out);
+  std::free(dir_out);
   return ok != 0;
 }
 

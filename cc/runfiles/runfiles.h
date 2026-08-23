@@ -76,19 +76,20 @@
 /// from disk and returns an instance that fully owns its parsed data.
 /// Callers that want to reuse a parse across scopes / threads should
 /// hold the returned #Runfiles via a `std::shared_ptr<Runfiles>`
-/// themselves — the library does not maintain a process-wide cache.
+/// themselves -- the library does not maintain a process-wide cache.
 ///
 /// ### Thread safety
 ///
 /// Different #Runfiles instances are independent. A single instance is
 /// safe for parallel #Rlocation reads (the parsed state is immutable
 /// after construction); mixing reads with destruction is the caller's
-/// problem — same contract as `std::vector`.
+/// problem -- same contract as `std::vector`.
 
 #ifndef RULES_CC_CC_RUNFILES_RUNFILES_H_
 #define RULES_CC_CC_RUNFILES_RUNFILES_H_
 
 #include <functional>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -97,6 +98,7 @@
 // here so the C header does not need to be included by C++ callers.
 extern "C" {
 struct rf_runfiles;
+void rf_free(struct rf_runfiles*);
 }
 
 namespace rules_cc {
@@ -165,15 +167,41 @@ class Runfiles {
                         const std::string& source_repository) const;
 
   /// Environment variables to publish to subprocesses (populated once
-  /// at construction from the C library's `rf_env_var`).
+  /// at construction from the C library's `rf_env_var_key` /
+  /// `rf_env_var_value`).
   const std::vector<std::pair<std::string, std::string> >& EnvVars() const {
     return envvars_;
   }
 
+  /// Return a new #Runfiles instance that defaults to @p
+  /// source_repository for #Rlocation calls.
+  ///
+  /// The current instance remains valid. The underlying `rf_runfiles`
+  /// handle (and the parsed manifest / `_repo_mapping` it owns) is
+  /// shared with the current instance via `std::shared_ptr`, so this
+  /// does NOT re-parse the manifest -- it's an O(1) refcount bump plus
+  /// two small string copies.
+  ///
+  /// @param source_repository New default source repository (canonical
+  ///   name); `""` denotes the main workspace.
+  /// @return Owning pointer to the new #Runfiles.
+  std::unique_ptr<Runfiles> WithSourceRepository(
+      const std::string& source_repository) const {
+    return std::unique_ptr<Runfiles>(
+        new Runfiles(handle_, source_repository, envvars_));
+  }
+
  private:
+  // Wraps a fresh raw handle with rf_free as the shared_ptr deleter.
   Runfiles(rf_runfiles* handle, std::string source_repository,
            std::vector<std::pair<std::string, std::string> > envvars)
-      : handle_(handle),
+      : handle_(handle, &rf_free),
+        source_repository_(std::move(source_repository)),
+        envvars_(std::move(envvars)) {}
+  // Shares an existing handle (WithSourceRepository).
+  Runfiles(std::shared_ptr<rf_runfiles> handle, std::string source_repository,
+           std::vector<std::pair<std::string, std::string> > envvars)
+      : handle_(std::move(handle)),
         source_repository_(std::move(source_repository)),
         envvars_(std::move(envvars)) {}
   Runfiles(const Runfiles&) = delete;
@@ -181,7 +209,7 @@ class Runfiles {
   Runfiles& operator=(const Runfiles&) = delete;
   Runfiles& operator=(Runfiles&&) = delete;
 
-  rf_runfiles* const handle_;
+  const std::shared_ptr<rf_runfiles> handle_;
   const std::string source_repository_;
   const std::vector<std::pair<std::string, std::string> > envvars_;
 };
