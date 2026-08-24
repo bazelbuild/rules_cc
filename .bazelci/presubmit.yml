@@ -52,6 +52,26 @@
   # https://github.com/bazelbuild/rules_cc/issues/613
   ? "--test_env=IGNORE_COVERAGE_COLLECTION_FAILURES=1"
 
+# Assert that `bazel coverage` actually collected something; see
+# .bazelci/verify_coverage.sh for why the check is a named list of sources
+# rather than a per-test assertion. Only these two qualify: they are
+# instrumented under the default `--instrumentation_filter` on every supported
+# Bazel version, whereas everything else that reports coverage lives under
+# `//tests/builtins_bzl/...`, which is excluded before Bazel 9.
+.verify_coverage: &verify_coverage
+  - >-
+    ./.bazelci/verify_coverage.sh
+    --expect=tests/alwayslink_srcs/registered.c
+    --expect=tests/local_includes/lib/lib.c
+
+# Coverage collection on Windows is already known to be unreliable -- see the
+# IGNORE_COVERAGE_COLLECTION_FAILURES escape hatch above and
+# https://github.com/bazelbuild/rules_cc/issues/613. Rather than assert on
+# something the platform may not deliver, the Windows jobs only report what was
+# collected so the tally is visible in the log.
+.report_coverage: &report_coverage
+  - "./.bazelci/verify_coverage.sh --report-only"
+
 .rule_based_toolchain_config: &rule_based_toolchain_config
     working_directory: examples/rule_based_toolchain
     build_flags:
@@ -81,6 +101,7 @@ tasks:
     test_targets: *test_targets
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets
+    post_shell_commands: *verify_coverage
   macos_intel_head:
     name: MacOS Intel (Bazel HEAD)
     bazel: last_green
@@ -93,6 +114,7 @@ tasks:
     test_flags: *macos_test_flags
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets
+    post_shell_commands: *verify_coverage
   macos_head:
     name: MacOS (Bazel HEAD)
     bazel: last_green
@@ -102,6 +124,7 @@ tasks:
     test_flags: *macos_test_flags
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets
+    post_shell_commands: *verify_coverage
   windows_head:
     name: Windows (Bazel HEAD)
     bazel: last_green
@@ -111,6 +134,7 @@ tasks:
     test_flags: *windows_test_flags
     coverage_flags: *windows_coverage_flags
     coverage_targets: *coverage_targets
+    post_shell_commands: *report_coverage
 
   # Bazel@rolling
   ubuntu2004_rolling:
@@ -121,6 +145,7 @@ tasks:
     test_targets: *test_targets
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets
+    post_shell_commands: *verify_coverage
   macos_intel_rolling:
     name: MacOS Intel (Bazel rolling)
     bazel: rolling
@@ -133,6 +158,7 @@ tasks:
     test_flags: *macos_test_flags
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets
+    post_shell_commands: *verify_coverage
   macos_rolling:
     name: MacOS (Bazel rolling)
     bazel: rolling
@@ -142,6 +168,7 @@ tasks:
     test_flags: *macos_test_flags
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets
+    post_shell_commands: *verify_coverage
   windows_rolling:
     name: Windows (Bazel rolling)
     bazel: rolling
@@ -162,6 +189,7 @@ tasks:
     test_targets: *test_targets_bazel_less_than_9
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets_bazel_less_than_9
+    post_shell_commands: *verify_coverage
   macos_intel_bazel_7:
     name: MacOS Intel (Bazel 7)
     bazel: 7.x
@@ -173,6 +201,7 @@ tasks:
     test_flags: *macos_test_flags
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets_bazel_less_than_9
+    post_shell_commands: *verify_coverage
   macos_bazel_7:
     name: MacOS (Bazel 7)
     bazel: 7.x
@@ -184,6 +213,7 @@ tasks:
     test_flags: *macos_test_flags
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets_bazel_less_than_9
+    post_shell_commands: *verify_coverage
   windows_bazel_7:
     name: Windows (Bazel 7)
     bazel: 7.x
@@ -203,6 +233,7 @@ tasks:
     test_targets: *test_targets_bazel_less_than_9
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets_bazel_less_than_9
+    post_shell_commands: *verify_coverage
   macos_intel_bazel_8:
     name: MacOS Intel (Bazel 8)
     bazel: 8.x
@@ -212,6 +243,7 @@ tasks:
     test_flags: *macos_test_flags
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets_bazel_less_than_9
+    post_shell_commands: *verify_coverage
   macos_bazel_8:
     name: MacOS (Bazel 8)
     bazel: 8.x
@@ -221,6 +253,7 @@ tasks:
     test_flags: *macos_test_flags
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets_bazel_less_than_9
+    post_shell_commands: *verify_coverage
   windows_bazel_8:
     name: Windows (Bazel 8)
     bazel: 8.x
@@ -230,6 +263,7 @@ tasks:
     test_flags: *windows_test_flags
     coverage_flags: *windows_coverage_flags
     coverage_targets: *test_targets_bazel_less_than_9
+    post_shell_commands: *report_coverage
 
 # Bazel 9
   ubuntu2004:
@@ -240,6 +274,7 @@ tasks:
     test_targets: *test_targets
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets
+    post_shell_commands: *verify_coverage
   macos_intel:
     name: MacOS Intel (Bazel 9)
     bazel: 9.x
@@ -249,6 +284,7 @@ tasks:
     test_flags: *macos_test_flags
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets
+    post_shell_commands: *verify_coverage
   macos:
     name: MacOS (Bazel 9)
     bazel: 9.x
@@ -258,6 +294,7 @@ tasks:
     test_flags: *macos_test_flags
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets
+    post_shell_commands: *verify_coverage
   windows:
     name: Windows (Bazel 9)
     bazel: 9.x
@@ -266,6 +303,7 @@ tasks:
     test_flags: *windows_test_flags
     coverage_flags: *windows_coverage_flags
     coverage_targets: *test_targets
+    post_shell_commands: *report_coverage
 
   ubuntu_bzlmod:
     name: Ubuntu 20.04 (Bazel 9, bzlmod)
