@@ -33,11 +33,12 @@ LEGACY_FILE_GROUPS = {
         Label("//cc/toolchains/actions:cpp_module_deps_scanning"),
     ],
     # There are no actions listed for coverage and objcopy in action_names.bzl.
-    # The llvm-cov and llvm-profdata tools are what collect_cc_coverage.sh
-    # runs from inside the coverage test action, so their files have to ship
-    # with it -- the legacy cc_toolchain got this by defaulting coverage_files
-    # to all_files.
+    # The gcov, llvm-cov and llvm-profdata tools are what
+    # collect_cc_coverage.sh runs from inside the coverage test action, so
+    # their files have to ship with it -- the legacy cc_toolchain got this by
+    # defaulting coverage_files to all_files.
     "coverage_files": [
+        Label("//cc/toolchains/actions:gcov"),
         Label("//cc/toolchains/actions:llvm_cov"),
         Label("//cc/toolchains/actions:llvm_profdata"),
     ],
