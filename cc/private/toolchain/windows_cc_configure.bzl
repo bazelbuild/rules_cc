@@ -696,6 +696,7 @@ def _get_msvc_vars(repository_ctx, paths, target_arch = "x64", msvc_vars_x64 = N
     if not vc_path or missing_tools:
         write_builtin_include_directory_paths(repository_ctx, "msvc", [], file_suffix = "_msvc")
         msvc_vars = {
+            "%{msvc_compiler_" + target_arch + "}": "msvc-cl",
             "%{msvc_env_tmp_" + target_arch + "}": "msvc_not_found",
             "%{msvc_env_include_" + target_arch + "}": "msvc_not_found",
             "%{msvc_cxx_builtin_include_directories_" + target_arch + "}": "",
@@ -728,6 +729,11 @@ def _get_msvc_vars(repository_ctx, paths, target_arch = "x64", msvc_vars_x64 = N
 
         build_tools["CL"] = find_llvm_tool(repository_ctx, llvm_path, "clang-cl.exe")
         build_tools["ML"] = find_msvc_tool(repository_ctx, vc_path, "ml64.exe", "x64")
+
+        # LLVM has no dumpbin.exe equivalent that the MSVC toolchain shape can
+        # use, so source it from MSVC. _find_missing_vc_tools above already
+        # verified it exists for this target architecture.
+        build_tools["DUMPBIN"] = find_msvc_tool(repository_ctx, vc_path, "dumpbin.exe", target_arch)
         build_tools["LINK"] = find_llvm_tool(repository_ctx, llvm_path, "lld-link.exe")
         if not build_tools["LINK"]:
             build_tools["LINK"] = find_msvc_tool(repository_ctx, vc_path, "link.exe", "x64")
@@ -767,6 +773,10 @@ Fix this by installing the English language pack for the Visual Studio installat
         fastbuild_mode_debug_flag = "/DEBUG:FASTLINK"
 
     msvc_vars = {
+        # USE_CLANG_CL=1 keeps the MSVC toolchain shape but swaps the compiler,
+        # so report what actually runs. Otherwise select()ing on
+        # //cc/compiler:msvc-cl would feed cl.exe flags to clang-cl.
+        "%{msvc_compiler_" + target_arch + "}": "clang-cl" if _use_clang_cl(repository_ctx) else "msvc-cl",
         "%{msvc_env_tmp_" + target_arch + "}": escaped_tmp_dir,
         "%{msvc_env_include_" + target_arch + "}": escaped_include_paths,
         "%{msvc_cxx_builtin_include_directories_" + target_arch + "}": "        " + ",\n        ".join(escaped_cxx_include_directories),
