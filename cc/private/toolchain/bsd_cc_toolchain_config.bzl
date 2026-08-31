@@ -74,6 +74,7 @@ def _impl(ctx):
                     flag_group(
                         flags = [
                             "-lc++",
+                            "-lm",
                             "-Wl,-z,relro,-z,now,-z,origin",
                             "-no-canonical-prefixes",
                         ] + extra_default_link_flags,
