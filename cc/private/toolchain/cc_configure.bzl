@@ -100,6 +100,7 @@ def cc_autoconf_impl(repository_ctx, overriden_tools = dict()):
     elif cpu_value == "freebsd" or cpu_value == "openbsd":
         paths = resolve_labels(repository_ctx, [
             "@rules_cc//cc/private/toolchain:BUILD.static.bsd",
+            "@rules_cc//cc/private/toolchain:armeabi_cc_toolchain_config.bzl",
             "@rules_cc//cc/private/toolchain:bsd_cc_toolchain_config.bzl",
         ])
 
@@ -107,6 +108,7 @@ def cc_autoconf_impl(repository_ctx, overriden_tools = dict()):
         # autoconfigure this platform too. Theoretically, FreeBSD and OpenBSD
         # should be straightforward to add but we cannot run them in a Docker
         # container so skipping until we have proper tests for these platforms.
+        repository_ctx.symlink(paths["@rules_cc//cc/private/toolchain:armeabi_cc_toolchain_config.bzl"], "armeabi_cc_toolchain_config.bzl")
         repository_ctx.symlink(paths["@rules_cc//cc/private/toolchain:bsd_cc_toolchain_config.bzl"], "cc_toolchain_config.bzl")
         repository_ctx.symlink(paths["@rules_cc//cc/private/toolchain:BUILD.static.bsd"], "BUILD")
     elif cpu_value in ["x64_windows", "arm64_windows"]:
