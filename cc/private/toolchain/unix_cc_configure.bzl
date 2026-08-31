@@ -92,9 +92,7 @@ def _get_target_libc(repository_ctx, cc, darwin, compile_opts):
             ("__GLIBC__", "glibc"),
             ("__BIONIC__", "bionic"),
             ("__LLVM_LIBC__", "llvm-libc"),
-            ("__FreeBSD__", "freebsd"),
             ("__NetBSD__", "netbsd"),
-            ("__OpenBSD__", "openbsd"),
         ]:
             if ("#define %s " % macro) in result.stdout:
                 return libc
