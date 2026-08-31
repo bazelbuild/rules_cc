@@ -57,22 +57,8 @@ all_link_actions = [
 
 def _impl(ctx):
     cpu = ctx.attr.cpu
-    is_bsd = cpu == "freebsd" or cpu == "openbsd"
-    compiler = "compiler"
-    toolchain_identifier = "local_{}".format(cpu) if is_bsd else "stub_armeabi-v7a"
-    host_system_name = "local" if is_bsd else "armeabi-v7a"
-    target_system_name = "local" if is_bsd else "armeabi-v7a"
-    target_libc = cpu if is_bsd else "unknown"
-    abi_version = "local" if is_bsd else "armeabi-v7a"
-    abi_libc_version = "local" if is_bsd else "armeabi-v7a"
-
-    objcopy_embed_data_action = action_config(
-        action_name = "objcopy_embed_data",
-        enabled = True,
-        tools = [tool(path = "/usr/bin/objcopy")],
-    )
-
-    action_configs = [objcopy_embed_data_action] if is_bsd else []
+    if cpu not in ("freebsd", "openbsd"):
+        fail("unsupported BSD CPU: %s" % cpu)
 
     default_link_flags_feature = feature(
         name = "default_link_flags",
@@ -226,73 +212,50 @@ def _impl(ctx):
         ],
     )
 
-    if is_bsd:
-        features = [
-            default_compile_flags_feature,
-            default_link_flags_feature,
-            supports_dynamic_linker_feature,
-            supports_pic_feature,
-            objcopy_embed_flags_feature,
-            opt_feature,
-            dbg_feature,
-            user_compile_flags_feature,
-            sysroot_feature,
-            unfiltered_compile_flags_feature,
-        ]
-    else:
-        features = [supports_dynamic_linker_feature, supports_pic_feature]
-
-    if (is_bsd):
-        cxx_builtin_include_directories = ["/usr/lib/clang", "/usr/local/include", "/usr/include"]
-    else:
-        cxx_builtin_include_directories = []
-
-    if is_bsd:
-        tool_paths = [
-            tool_path(name = "ar", path = "/usr/bin/ar"),
-            tool_path(name = "compat-ld", path = "/usr/bin/ld"),
-            tool_path(name = "cpp", path = "/usr/bin/cpp"),
-            tool_path(name = "dwp", path = "/usr/bin/dwp"),
-            tool_path(name = "gcc", path = "/usr/bin/clang"),
-            tool_path(name = "gcov", path = "/usr/bin/gcov"),
-            tool_path(name = "ld", path = "/usr/bin/ld"),
-            tool_path(name = "nm", path = "/usr/bin/nm"),
-            tool_path(name = "objcopy", path = "/usr/bin/objcopy"),
-            tool_path(name = "objdump", path = "/usr/bin/objdump"),
-            tool_path(name = "strip", path = "/usr/bin/strip"),
-        ]
-    else:
-        tool_paths = [
-            tool_path(name = "ar", path = "/bin/false"),
-            tool_path(name = "compat-ld", path = "/bin/false"),
-            tool_path(name = "cpp", path = "/bin/false"),
-            tool_path(name = "dwp", path = "/bin/false"),
-            tool_path(name = "gcc", path = "/bin/false"),
-            tool_path(name = "gcov", path = "/bin/false"),
-            tool_path(name = "ld", path = "/bin/false"),
-            tool_path(name = "nm", path = "/bin/false"),
-            tool_path(name = "objcopy", path = "/bin/false"),
-            tool_path(name = "objdump", path = "/bin/false"),
-            tool_path(name = "strip", path = "/bin/false"),
-        ]
-
     out = ctx.actions.declare_file(ctx.label.name)
     ctx.actions.write(out, "Fake executable")
     return [
         cc_common.create_cc_toolchain_config_info(
             ctx = ctx,
-            features = features,
-            action_configs = action_configs,
-            cxx_builtin_include_directories = cxx_builtin_include_directories,
-            toolchain_identifier = toolchain_identifier,
-            host_system_name = host_system_name,
-            target_system_name = target_system_name,
+            features = [
+                default_compile_flags_feature,
+                default_link_flags_feature,
+                supports_dynamic_linker_feature,
+                supports_pic_feature,
+                objcopy_embed_flags_feature,
+                opt_feature,
+                dbg_feature,
+                user_compile_flags_feature,
+                sysroot_feature,
+                unfiltered_compile_flags_feature,
+            ],
+            action_configs = [action_config(
+                action_name = "objcopy_embed_data",
+                enabled = True,
+                tools = [tool(path = "/usr/bin/objcopy")],
+            )],
+            cxx_builtin_include_directories = ["/usr/lib/clang", "/usr/local/include", "/usr/include"],
+            toolchain_identifier = "local_{}".format(cpu),
+            host_system_name = "local",
+            target_system_name = "local",
             target_cpu = cpu,
-            target_libc = target_libc,
-            compiler = compiler,
-            abi_version = abi_version,
-            abi_libc_version = abi_libc_version,
-            tool_paths = tool_paths,
+            target_libc = cpu,
+            compiler = "clang",
+            abi_version = "local",
+            abi_libc_version = "local",
+            tool_paths = [
+                tool_path(name = "ar", path = "/usr/bin/ar"),
+                tool_path(name = "compat-ld", path = "/usr/bin/ld"),
+                tool_path(name = "cpp", path = "/usr/bin/cpp"),
+                tool_path(name = "dwp", path = "/usr/bin/dwp"),
+                tool_path(name = "gcc", path = "/usr/bin/clang"),
+                tool_path(name = "gcov", path = "/usr/bin/gcov"),
+                tool_path(name = "ld", path = "/usr/bin/ld"),
+                tool_path(name = "nm", path = "/usr/bin/nm"),
+                tool_path(name = "objcopy", path = "/usr/bin/objcopy"),
+                tool_path(name = "objdump", path = "/usr/bin/objdump"),
+                tool_path(name = "strip", path = "/usr/bin/strip"),
+            ],
         ),
         DefaultInfo(
             executable = out,
