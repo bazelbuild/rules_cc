@@ -696,7 +696,6 @@ def _get_msvc_vars(repository_ctx, paths, target_arch = "x64", msvc_vars_x64 = N
     if not vc_path or missing_tools:
         write_builtin_include_directory_paths(repository_ctx, "msvc", [], file_suffix = "_msvc")
         msvc_vars = {
-            "%{msvc_compiler_" + target_arch + "}": "msvc-cl",
             "%{msvc_env_tmp_" + target_arch + "}": "msvc_not_found",
             "%{msvc_env_include_" + target_arch + "}": "msvc_not_found",
             "%{msvc_cxx_builtin_include_directories_" + target_arch + "}": "",
@@ -773,10 +772,6 @@ Fix this by installing the English language pack for the Visual Studio installat
         fastbuild_mode_debug_flag = "/DEBUG:FASTLINK"
 
     msvc_vars = {
-        # USE_CLANG_CL=1 keeps the MSVC toolchain shape but swaps the compiler,
-        # so report what actually runs. Otherwise select()ing on
-        # //cc/compiler:msvc-cl would feed cl.exe flags to clang-cl.
-        "%{msvc_compiler_" + target_arch + "}": "clang-cl" if _use_clang_cl(repository_ctx) else "msvc-cl",
         "%{msvc_env_tmp_" + target_arch + "}": escaped_tmp_dir,
         "%{msvc_env_include_" + target_arch + "}": escaped_include_paths,
         "%{msvc_cxx_builtin_include_directories_" + target_arch + "}": "        " + ",\n        ".join(escaped_cxx_include_directories),
@@ -952,6 +947,13 @@ def configure_windows_toolchain(repository_ctx):
     )
 
     template_vars = dict()
+
+    # USE_CLANG_CL=1 keeps the MSVC toolchain shape but swaps in clang-cl, so
+    # all four msvc_* configs must report what actually runs -- otherwise
+    # select()ing on //cc/compiler:msvc-cl feeds cl.exe flags to clang-cl.
+    # Set outside _get_msvc_vars so the error-stub configs it returns early for
+    # are labelled the same as the working ones.
+    template_vars["%{compiler}"] = "clang-cl" if _use_clang_cl(repository_ctx) else "msvc-cl"
     msvc_vars_x64 = _get_msvc_vars(repository_ctx, paths, "x64")
     template_vars.update(msvc_vars_x64)
     template_vars.update(_get_clang_cl_vars(repository_ctx, paths, msvc_vars_x64, "x64"))

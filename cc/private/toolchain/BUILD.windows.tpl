@@ -315,7 +315,7 @@ cc_toolchain(
 cc_toolchain_config(
     name = "msvc_x64",
     cpu = "x64_windows",
-    compiler = "%{msvc_compiler_x64}",
+    compiler = "%{compiler}",
     host_system_name = "local",
     target_system_name = "local",
     target_libc = "ucrt",
@@ -390,7 +390,7 @@ cc_toolchain(
 cc_toolchain_config(
     name = "msvc_x64_x86",
     cpu = "x64_windows",
-    compiler = "%{msvc_compiler_x86}",
+    compiler = "%{compiler}",
     host_system_name = "local",
     target_system_name = "local",
     target_libc = "ucrt",
@@ -465,7 +465,7 @@ cc_toolchain(
 cc_toolchain_config(
     name = "msvc_x64_arm",
     cpu = "x64_windows",
-    compiler = "%{msvc_compiler_arm}",
+    compiler = "%{compiler}",
     host_system_name = "local",
     target_system_name = "local",
     target_libc = "ucrt",
@@ -540,7 +540,7 @@ cc_toolchain(
 cc_toolchain_config(
     name = "msvc_arm64",
     cpu = "x64_windows",
-    compiler = "%{msvc_compiler_arm64}",
+    compiler = "%{compiler}",
     host_system_name = "local",
     target_system_name = "local",
     target_libc = "ucrt",
