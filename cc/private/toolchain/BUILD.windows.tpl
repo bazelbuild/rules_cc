@@ -18,7 +18,6 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc/toolchains:cc_toolchain.bzl", "cc_toolchain")
 load("@rules_cc//cc/toolchains:cc_toolchain_suite.bzl", "cc_toolchain_suite")
 load(":windows_cc_toolchain_config.bzl", "cc_toolchain_config")
-load(":armeabi_cc_toolchain_config.bzl", "armeabi_cc_toolchain_config")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -74,7 +73,6 @@ filegroup(
 cc_toolchain_suite(
     name = "toolchain",
     toolchains = {
-        "armeabi-v7a|compiler": ":cc-compiler-armeabi-v7a",
         "x64_windows|msvc-cl": ":cc-compiler-x64_windows",
         "x64_x86_windows|msvc-cl": ":cc-compiler-x64_x86_windows",
         "x64_arm_windows|msvc-cl": ":cc-compiler-x64_arm_windows",
@@ -93,7 +91,6 @@ cc_toolchain_suite(
         "arm64_windows": ":cc-compiler-arm64_windows",
         "x64_arm64_windows|clang-cl": ":cc-compiler-arm64_windows-clang-cl",
         "arm64_windows|clang-cl": ":cc-compiler-arm64_windows-clang-cl",
-        "armeabi-v7a": ":cc-compiler-armeabi-v7a",
     },
 )
 
@@ -739,34 +736,5 @@ toolchain(
         "@platforms//os:windows",
     ],
     toolchain = ":cc-compiler-arm64_windows-clang-cl",
-    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
-)
-
-cc_toolchain(
-    name = "cc-compiler-armeabi-v7a",
-    toolchain_identifier = "stub_armeabi-v7a",
-    toolchain_config = ":stub_armeabi-v7a",
-    all_files = ":empty",
-    ar_files = ":empty",
-    as_files = ":empty",
-    compiler_files = ":empty",
-    dwp_files = ":empty",
-    linker_files = ":empty",
-    objcopy_files = ":empty",
-    strip_files = ":empty",
-    supports_param_files = 1,
-)
-
-armeabi_cc_toolchain_config(name = "stub_armeabi-v7a")
-
-toolchain(
-    name = "cc-toolchain-armeabi-v7a",
-    exec_compatible_with = [
-    ],
-    target_compatible_with = [
-        "@platforms//cpu:armv7",
-        "@platforms//os:android",
-    ],
-    toolchain = ":cc-compiler-armeabi-v7a",
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
 )

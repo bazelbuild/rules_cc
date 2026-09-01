@@ -921,7 +921,6 @@ def configure_windows_toolchain(repository_ctx):
     paths = resolve_labels(repository_ctx, [
         "@rules_cc//cc/private/toolchain:BUILD.windows.tpl",
         "@rules_cc//cc/private/toolchain:windows_cc_toolchain_config.bzl",
-        "@rules_cc//cc/private/toolchain:armeabi_cc_toolchain_config.bzl",
         "@rules_cc//cc/private/toolchain:vc_installation_error.bat.tpl",
         "@rules_cc//cc/private/toolchain:msys_gcc_installation_error.bat",
         "@rules_cc//cc/private/toolchain:clang_installation_error.bat.tpl",
@@ -931,10 +930,6 @@ def configure_windows_toolchain(repository_ctx):
     repository_ctx.symlink(
         paths["@rules_cc//cc/private/toolchain:windows_cc_toolchain_config.bzl"],
         "windows_cc_toolchain_config.bzl",
-    )
-    repository_ctx.symlink(
-        paths["@rules_cc//cc/private/toolchain:armeabi_cc_toolchain_config.bzl"],
-        "armeabi_cc_toolchain_config.bzl",
     )
     repository_ctx.symlink(
         paths["@rules_cc//cc/private/toolchain:msys_gcc_installation_error.bat"],
