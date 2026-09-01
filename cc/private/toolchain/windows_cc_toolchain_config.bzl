@@ -1332,15 +1332,23 @@ def _impl(ctx):
             implies = ["msvc_compile_env", "msvc_link_env"],
         )
 
-        symbol_check_feature = feature(
-            name = "symbol_check",
-            flag_sets = [
-                flag_set(
-                    actions = [ACTION_NAMES.cpp_link_static_library],
-                    flag_groups = [flag_group(flags = ["/WX:4006"])],
-                ),
-            ],
-        )
+        # /WX:4006 promotes lib.exe's "symbol already defined" warning to an
+        # error. llvm-lib.exe has no equivalent and parses the flag as an input
+        # file name, so the archive fails with "/WX:4006: no such file or
+        # directory". Leave the feature undefined there instead of defining one
+        # that quietly checks nothing; cc_static_library requests `symbol_check`
+        # and tolerates the toolchain not offering it.
+        symbol_check_feature = None
+        if ctx.attr.compiler == "msvc-cl":
+            symbol_check_feature = feature(
+                name = "symbol_check",
+                flag_sets = [
+                    flag_set(
+                        actions = [ACTION_NAMES.cpp_link_static_library],
+                        flag_groups = [flag_group(flags = ["/WX:4006"])],
+                    ),
+                ],
+            )
 
         features = [
             no_legacy_features_feature,
@@ -1397,8 +1405,9 @@ def _impl(ctx):
             no_windows_export_all_symbols_feature,
             supports_dynamic_linker_feature,
             supports_interface_shared_libraries_feature,
-            symbol_check_feature,
         ]
+        if symbol_check_feature:
+            features.append(symbol_check_feature)
     else:
         targets_windows_feature = feature(
             name = "targets_windows",
