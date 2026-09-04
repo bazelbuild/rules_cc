@@ -91,7 +91,7 @@ def _get_coverage_attrs():
             cfg = config.exec(exec_group = "test"),
         ),
         "_collect_cc_coverage": attr.label(
-            default = Label("//cc/private/coverage:collect_cc_coverage"),
+            default = Label("//cc/coverage:collect_cc_coverage"),
             executable = True,
             cfg = config.exec(exec_group = "test"),
         ),

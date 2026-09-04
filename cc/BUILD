@@ -78,6 +78,7 @@ filegroup(
     ]) + [
         "//cc/common:srcs",
         "//cc/compiler:srcs",
+        "//cc/coverage:srcs",
         "//cc/private:srcs",
         "//cc/proto:srcs",
         "//cc/runfiles:srcs",
