@@ -60,6 +60,10 @@ def _impl(ctx):
     if cpu not in ("freebsd", "openbsd"):
         fail("unsupported BSD CPU: %s" % cpu)
 
+    extra_default_link_flags = []
+    if cpu == "openbsd":
+        extra_default_link_flags = ["-lc++abi", "-lpthread"]
+
     default_link_flags_feature = feature(
         name = "default_link_flags",
         enabled = True,
@@ -70,9 +74,10 @@ def _impl(ctx):
                     flag_group(
                         flags = [
                             "-lc++",
+                            "-lm",
                             "-Wl,-z,relro,-z,now,-z,origin",
                             "-no-canonical-prefixes",
-                        ],
+                        ] + extra_default_link_flags,
                     ),
                 ],
             ),
