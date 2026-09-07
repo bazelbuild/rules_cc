@@ -59,7 +59,6 @@
     build_targets:
       - "//..."
 
-
 buildifier:
   version: latest
 
@@ -266,6 +265,22 @@ tasks:
     test_flags: *windows_test_flags
     coverage_flags: *windows_coverage_flags
     coverage_targets: *test_targets
+
+  # Same target set as the `windows` task, with the auto-configured toolchain
+  # switched over to clang-cl.exe/lld-link.exe/llvm-lib.exe instead of MSVC.
+  # //tests/compiler_settings static_asserts that the toolchain's declared
+  # compiler matches the one actually running, so this job cannot silently
+  # degrade into a copy of the MSVC job.
+  windows_clang_cl:
+    name: Windows clang-cl (Bazel 9)
+    bazel: 9.x
+    platform: windows
+    build_flags:
+      - "--repo_env=USE_CLANG_CL=1"
+    build_targets: *build_targets
+    test_flags:
+      - "--repo_env=USE_CLANG_CL=1"
+    test_targets: *test_targets
 
   ubuntu_bzlmod:
     name: Ubuntu 20.04 (Bazel 9, bzlmod)

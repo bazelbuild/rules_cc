@@ -2055,6 +2055,9 @@ def _impl(ctx):
 
     for category, values in ctx.attr.artifact_name_patterns.items():
         artifact_name_patterns.append(_get_artifact_name_pattern(category, values[0], values[1]))
+    object_file_extension = ctx.attr._object_file_extension[BuildSettingInfo].value
+    if object_file_extension:
+        artifact_name_patterns.append(_get_artifact_name_pattern("object_file", "", object_file_extension))
 
     action_configs = []
 
@@ -2134,7 +2137,7 @@ cc_toolchain_config = rule(
         "toolchain_identifier": attr.string(default = "mock-llvm-toolchain-k8"),
         "host_system_name": attr.string(default = "local"),
         "target_system_name": attr.string(default = "local"),
-        "target_libc": attr.string(default = "local"),
+        "target_libc": attr.string(default = "unknown"),
         "abi_version": attr.string(default = "local"),
         "abi_libc_version": attr.string(default = "local"),
         "feature_names": attr.string_list(),
@@ -2147,6 +2150,7 @@ cc_toolchain_config = rule(
         "make_variables": attr.string_dict(),
         "_with_features": attr.label(default = Label("//tests/cc/testutil/toolchains:with_features")),
         "_with_action_configs": attr.label(default = Label("//tests/cc/testutil/toolchains:with_action_configs")),
+        "_object_file_extension": attr.label(default = Label("//tests/cc/testutil/toolchains:object_file_extension")),
     },
     provides = [CcToolchainConfigInfo],
     executable = True,

@@ -100,7 +100,7 @@ def _mock_cc_toolchain_config_impl(ctx):
         host_system_name = "local",
         target_system_name = "local",
         target_cpu = "local",
-        target_libc = "local",
+        target_libc = "unknown",
         compiler = "compiler",
     )
 

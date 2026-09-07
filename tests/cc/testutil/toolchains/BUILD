@@ -1,4 +1,4 @@
-load("@bazel_skylib//rules:common_settings.bzl", "string_list_flag")
+load("@bazel_skylib//rules:common_settings.bzl", "string_flag", "string_list_flag")
 load("//cc:cc_library.bzl", "cc_library")
 load("//cc/toolchains:cc_toolchain.bzl", "cc_toolchain")
 load("//cc/toolchains:cc_toolchain_alias.bzl", "cc_toolchain_alias")
@@ -40,6 +40,11 @@ string_list_flag(
 string_list_flag(
     name = "with_action_configs",
     build_setting_default = [],
+)
+
+string_flag(
+    name = "object_file_extension",
+    build_setting_default = "",
 )
 
 # "everything" is a filegroup that the implementation of --grte_top (more specifically, the
@@ -306,7 +311,7 @@ cc_toolchain_config(
     feature_names = [],
     host_system_name = "local",
     make_variables = {},
-    target_libc = "local",
+    target_libc = "glibc",
     target_system_name = "local",
     tool_paths = {},
     toolchain_identifier = "mock-toolchain-k8",

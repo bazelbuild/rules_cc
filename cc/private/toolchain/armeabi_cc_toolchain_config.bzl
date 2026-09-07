@@ -26,7 +26,7 @@ def _impl(ctx):
     host_system_name = "armeabi-v7a"
     target_system_name = "armeabi-v7a"
     target_cpu = "armeabi-v7a"
-    target_libc = "armeabi-v7a"
+    target_libc = "unknown"
     compiler = "compiler"
     abi_version = "armeabi-v7a"
     abi_libc_version = "armeabi-v7a"

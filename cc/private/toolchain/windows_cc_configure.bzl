@@ -728,6 +728,11 @@ def _get_msvc_vars(repository_ctx, paths, target_arch = "x64", msvc_vars_x64 = N
 
         build_tools["CL"] = find_llvm_tool(repository_ctx, llvm_path, "clang-cl.exe")
         build_tools["ML"] = find_msvc_tool(repository_ctx, vc_path, "ml64.exe", "x64")
+
+        # LLVM has no dumpbin.exe equivalent that the MSVC toolchain shape can
+        # use, so source it from MSVC. _find_missing_vc_tools above already
+        # verified it exists for this target architecture.
+        build_tools["DUMPBIN"] = find_msvc_tool(repository_ctx, vc_path, "dumpbin.exe", target_arch)
         build_tools["LINK"] = find_llvm_tool(repository_ctx, llvm_path, "lld-link.exe")
         if not build_tools["LINK"]:
             build_tools["LINK"] = find_msvc_tool(repository_ctx, vc_path, "link.exe", "x64")
@@ -942,6 +947,13 @@ def configure_windows_toolchain(repository_ctx):
     )
 
     template_vars = dict()
+
+    # USE_CLANG_CL=1 keeps the MSVC toolchain shape but swaps in clang-cl, so
+    # all four msvc_* configs must report what actually runs -- otherwise
+    # select()ing on //cc/compiler:msvc-cl feeds cl.exe flags to clang-cl.
+    # Set outside _get_msvc_vars so the error-stub configs it returns early for
+    # are labelled the same as the working ones.
+    template_vars["%{compiler}"] = "clang-cl" if _use_clang_cl(repository_ctx) else "msvc-cl"
     msvc_vars_x64 = _get_msvc_vars(repository_ctx, paths, "x64")
     template_vars.update(msvc_vars_x64)
     template_vars.update(_get_clang_cl_vars(repository_ctx, paths, msvc_vars_x64, "x64"))

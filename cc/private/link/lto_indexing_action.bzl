@@ -14,7 +14,7 @@
 """Functions that create LTO indexing action."""
 
 load("@bazel_features//:features.bzl", "bazel_features")
-load("//cc/common:cc_helper_internal.bzl", "root_relative_path")
+load("//cc/common:cc_helper_internal.bzl", "root_relative_path", artifact_category = "artifact_category_names")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private/compile:lto_compilation_context.bzl", "get_minimized_bitcode_or_self")
 load("//cc/private/link:finalize_link_action.bzl", "finalize_link_action")
@@ -222,8 +222,12 @@ def _lto_indexing_action(
 
     # Create artifact for the merged object file, which is an object file that is created
     # during the LTO indexing step and needs to be passed to the final link.
+    object_file_extension = _cc_internal.get_artifact_name_extension_for_category(
+        cc_toolchain,
+        artifact_category.OBJECT_FILE,
+    )
     thinlto_merged_object_file = \
-        actions.declare_shareable_artifact(root_relative_path(output) + ".lto.merged.o")
+        actions.declare_shareable_artifact(root_relative_path(output) + ".lto.merged" + object_file_extension)
 
     action_outputs = \
         ([lto_artifact.imports for lto_artifact in all_lto_artifacts if lto_artifact.index] +
