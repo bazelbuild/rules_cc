@@ -92,7 +92,10 @@ def _get_target_libc(repository_ctx, cc, darwin, compile_opts):
             ("__GLIBC__", "glibc"),
             ("__BIONIC__", "bionic"),
             ("__LLVM_LIBC__", "llvm-libc"),
+            ("__DragonFly__", "dragonfly"),
+            ("__FreeBSD__", "freebsd"),
             ("__NetBSD__", "netbsd"),
+            ("__OpenBSD__", "openbsd"),
         ]:
             if ("#define %s " % macro) in result.stdout:
                 return libc
@@ -406,11 +409,11 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
 
     repository_ctx.file("tools/cpp/empty.cc", "int main() {}")
     darwin = cpu_value.startswith("darwin")
-    bsd = cpu_value == "freebsd" or cpu_value == "openbsd"
-    if bsd:
-        fail("FreeBSD / OpenBSD should use bsd_cc_toolchain_config.bzl")
 
-    cc = _find_generic(repository_ctx, "gcc", "CC", overridden_tools)
+    cc = _find_generic(repository_ctx, "gcc", "CC", overridden_tools, warn = True, silent = True)
+    if cc == None:
+        # The BSDs that ship clang have no gcc at all; their C driver is cc.
+        cc = _find_generic(repository_ctx, "cc", "CC", overridden_tools)
     is_clang = _is_clang(repository_ctx, cc)
     overridden_tools = dict(overridden_tools)
     overridden_tools["gcc"] = cc
@@ -583,6 +586,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
         "-Wl,--push-state",
         "--push-state",
     )
+
     if darwin:
         bazel_default_libs = ["-lc++", "-lm"]
     else:
