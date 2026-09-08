@@ -23,6 +23,18 @@ set -euo pipefail
 source "$(rlocation rules_cc/tests/test_utils.sh)"
 source "$(rlocation rules_cc/tests/unittest.bash)"
 
+if [[ -f MODULE.bazel ]]; then
+  cp MODULE.bazel "$TEST_TMPDIR/MODULE.bazel.backup"
+fi
+
+function set_up() {
+  if [[ -f "$TEST_TMPDIR/MODULE.bazel.backup" ]]; then
+    cp "$TEST_TMPDIR/MODULE.bazel.backup" MODULE.bazel
+  else
+    rm -f MODULE.bazel
+  fi
+}
+
 function test_extra_action_for_compile() {
   
   mkdir -p ea
@@ -1323,6 +1335,7 @@ void sayhello() {
 EOF
 
   cat >> MODULE.bazel <<EOF
+local_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:local.bzl", "local_repository")
 local_repository(name = 'repo', path='$REPO_PATH')
 EOF
 
@@ -1888,7 +1901,7 @@ EOF
   touch "${package}"/test.cc
 
   out=$(bazel cquery --collect_code_coverage \
-   "deps(//${package}:test) intersect config(@remote_coverage_tools//:all, target)")
+   "filter('@remote_coverage_tools', config(deps(//${package}:test), target))")
   if [[ -n "$out" ]]; then
     fail "Expected no dependency on lcov_merger in the target configuration, but got: $out"
   fi
@@ -1916,7 +1929,7 @@ cc_test(
 EOF
   touch "${package}"/test.cc
 
-  out=$(bazel cquery "somepath(//${package}:test,@remote_coverage_tools//:all)")
+  out=$(bazel cquery "filter('@remote_coverage_tools', deps(//${package}:test))")
   if [[ -n "$out" ]]; then
     fail "Expected no dependency on remote coverage tools, but got: $out"
   fi
@@ -2114,7 +2127,7 @@ function test_find_optional_cpp_toolchain_not_present() {
 
 function test_no_cpp_stdlib_linked_to_c_library() {
   
-  mkdir pkg
+  mkdir -p pkg
   cat > pkg/BUILD <<'EOF'
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 cc_binary(
@@ -2400,12 +2413,13 @@ EOF
 }
 
 function test_external_repo_lto() {
+  type -P clang || return 0
   is_bazel || return 0
   
   REPO_PATH=$TEST_TMPDIR/repo
   mkdir -p "$REPO_PATH"
   touch "$REPO_PATH/REPO.bazel"
-  mkdir "$REPO_PATH/foo"
+  mkdir -p "$REPO_PATH/foo"
   cat > "$REPO_PATH/foo/BUILD" <<'EOF'
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 cc_library(
