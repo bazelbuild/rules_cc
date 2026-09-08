@@ -2079,6 +2079,19 @@ def _create_module_codegen_action(
     if fdo_context_has_artifacts:
         additional_inputs = auxiliary_fdo_inputs.to_list()
 
+    # Compiling the module file into an object file causes Clang to load it, which in turn loads
+    # the module files it imports (if the module was compiled with use_header_modules). Bazel adds
+    # the transitive modules as inputs of compiles that use header modules themselves, but not of
+    # module codegen actions, whose source isn't compiled with header modules.
+    # TODO: Remove once the minimum supported Bazel version includes
+    # https://github.com/bazelbuild/bazel/pull/30396.
+    if feature_configuration.is_enabled("use_header_modules"):
+        if use_pic:
+            transitive_modules = cc_compilation_context._transitive_pic_modules
+        else:
+            transitive_modules = cc_compilation_context._transitive_modules
+        additional_inputs = additional_inputs + transitive_modules.to_list()
+
     _create_compile_action(
         action_construction_context = action_construction_context,
         cc_compilation_context = cc_compilation_context,
