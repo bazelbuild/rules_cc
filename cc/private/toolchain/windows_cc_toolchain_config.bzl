@@ -13,7 +13,7 @@
 # limitations under the License.
 """A Starlark cc_toolchain configuration rule for Windows"""
 
-load("@bazel_features//private:util.bzl", "ge")
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@rules_cc//cc:action_names.bzl", "ACTION_NAMES")
 load(
     "@rules_cc//cc:cc_toolchain_config_lib.bzl",
@@ -122,7 +122,7 @@ def _cpp_module_extension(compiler):
     # Bazel only allows the .ifc extension for cpp_module artifacts on
     # Bazel 9.0.0 and later; older versions only accept .pcm. This mirrors
     # the Unix toolchain, which selects .gcm for GCC on Bazel 9+.
-    if compiler == "msvc-cl" and ge("9.0.0"):
+    if compiler == "msvc-cl" and bazel_features.cc.cc_common_is_in_rules_cc:
         return ".ifc"
     return ".pcm"
 
