@@ -54,14 +54,16 @@ def _cc_library_impl(ctx):
     additional_make_variable_substitutions = cc_helper.get_toolchain_global_make_variables(cc_toolchain, feature_configuration)
     additional_make_variable_substitutions.update(cc_helper.get_cc_flags_make_variable(ctx, feature_configuration, cc_toolchain))
 
+    disallowed_copts_infos = getattr(cc_toolchain, "disallowed_copts_infos", [])
+
     (compilation_context, srcs_compilation_outputs) = cc_common.compile(
         actions = ctx.actions,
         name = ctx.label.name,
         cc_toolchain = cc_toolchain,
         feature_configuration = feature_configuration,
-        user_compile_flags = runtimes_copts + cc_helper.get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "copts", requested_features = features),
-        conly_flags = cc_helper.get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "conlyopts", requested_features = features),
-        cxx_flags = cc_helper.get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "cxxopts", requested_features = features),
+        user_compile_flags = runtimes_copts + cc_helper.get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "copts", requested_features = features, disallowed_copts_infos = disallowed_copts_infos),
+        conly_flags = cc_helper.get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "conlyopts", requested_features = features, disallowed_copts_infos = disallowed_copts_infos),
+        cxx_flags = cc_helper.get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "cxxopts", requested_features = features, disallowed_copts_infos = disallowed_copts_infos),
         defines = cc_helper.defines(ctx, additional_make_variable_substitutions),
         local_defines = cc_helper.local_defines(ctx, additional_make_variable_substitutions) + cc_helper.get_local_defines_for_runfiles_lookup(ctx, ctx.attr.deps + ctx.attr.implementation_deps),
         includes = cc_helper.include_dirs(ctx, additional_make_variable_substitutions),

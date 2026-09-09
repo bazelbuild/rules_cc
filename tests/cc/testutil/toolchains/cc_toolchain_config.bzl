@@ -2,6 +2,7 @@
 
 """ A rule that mocks cc_toolchain configuration."""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load(
     "@bazel_tools//tools/cpp:cc_toolchain_config_lib.bzl",
@@ -2102,6 +2103,17 @@ def _impl(ctx):
     out = ctx.actions.declare_file(ctx.label.name)
     ctx.actions.write(out, "Fake executable")
     features = _flatten_nested_lists(features)
+    extra_args = {}
+    if bazel_features.cc.cc_common_is_in_rules_cc:
+        allowlist = ctx.attr.allowlist_provider[PackageSpecificationInfo] if ctx.attr.allowlist_provider != None else None
+        allowlist_target_label = ctx.attr.allowlist_target_label or (str(ctx.attr.allowlist_provider.label) if ctx.attr.allowlist_provider else None)
+        extra_args["disallowed_copts_infos"] = [struct(
+            flags = ctx.attr.disallowed_copts,
+            allowlist = allowlist,
+            allowlist_target_label = allowlist_target_label,
+            error_message = ctx.attr.error_message or None,
+        )]
+
     return [
         cc_common.create_cc_toolchain_config_info(
             ctx = ctx,
@@ -2121,6 +2133,7 @@ def _impl(ctx):
             make_variables = make_variables,
             builtin_sysroot = builtin_sysroot,
             cc_target_os = cc_target_os,
+            **extra_args
         ),
         DefaultInfo(
             executable = out,
@@ -2141,6 +2154,10 @@ cc_toolchain_config = rule(
         "feature_names": attr.string_list(),
         "action_configs": attr.string_list(),
         "artifact_name_patterns": attr.string_list_dict(),
+        "disallowed_copts": attr.string_list(default = ["-w", "-Wno-error"]),
+        "allowlist_provider": attr.label(providers = [PackageSpecificationInfo]),
+        "allowlist_target_label": attr.string(),
+        "error_message": attr.string(),
         "cc_target_os": attr.string(),
         "builtin_sysroot": attr.string(default = "/usr/grte/v1"),
         "tool_paths": attr.string_dict(),
