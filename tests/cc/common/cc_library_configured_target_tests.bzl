@@ -218,6 +218,32 @@ def _test_coverage_unmatched_target_is_not_instrumented_impl(env, target):
         InstrumentedFilesInfo,
     ).metadata_files().is_empty()
 
+# Header module compile actions only produce a .pcm file and no code, so they must not be
+# instrumented for coverage even if the target is: a .gcno output would never be created and, in
+# the case of Blaze, violates the invariant that module compile actions have a single output.
+def _test_coverage_module_action_has_no_gcno_file(name, **kwargs):
+    util.helper_target(
+        cc_library,
+        name = name + "/instrumented",
+        hdrs = ["header.h"],
+        features = ["header_modules"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_coverage_module_action_has_no_gcno_file_impl,
+        target = name + "/instrumented",
+        config_settings = _COVERAGE_CONFIG_SETTINGS,
+        test_features = ["header_modules_feature_configuration"],
+        **kwargs
+    )
+
+def _test_coverage_module_action_has_no_gcno_file_impl(env, target):
+    env.expect.that_target(target).action_generating(
+        "{package}/_objs/{test_name}/instrumented/instrumented.pcm",
+    ).outputs().contains_exactly([
+        "{package}/_objs/{test_name}/instrumented/instrumented.pcm",
+    ])
+
 def cc_library_configured_target_tests(name):
     test_suite(
         name = name,
@@ -229,5 +255,6 @@ def cc_library_configured_target_tests(name):
             _test_coverage_dep_makes_target_instrumented,
             _test_coverage_implementation_dep_makes_target_instrumented,
             _test_coverage_unmatched_target_is_not_instrumented,
+            _test_coverage_module_action_has_no_gcno_file,
         ] if bazel_features.cc.cc_common_is_in_rules_cc else [],
     )

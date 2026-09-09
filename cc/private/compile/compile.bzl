@@ -1575,6 +1575,12 @@ def _create_compile_source_action(
         configuration = configuration,
         feature_configuration = feature_configuration,
     )
+
+    # Header module compile actions only produce a .pcm file and no code, so they are never
+    # instrumented for coverage and must not declare a .gcno output. The code of a header module is
+    # instead generated (and instrumented) by the separate module codegen action.
+    enable_coverage = (output_category != artifact_category.CPP_MODULE and
+                       feature_configuration.is_requested("coverage_instrumented"))
     gcno_file = _maybe_declare_gcno_file(
         ctx = action_construction_context,
         label = label,
@@ -1582,7 +1588,7 @@ def _create_compile_source_action(
         cc_toolchain = cc_toolchain,
         cpp_configuration = cpp_configuration,
         configuration = configuration,
-        feature_configuration = feature_configuration,
+        enable_coverage = enable_coverage,
     )
 
     # Assembly files do not support -ftime-trace; skip trace output
@@ -1630,7 +1636,7 @@ def _create_compile_source_action(
     compile_variables = get_specific_compile_build_variables(
         source_file = source_artifact,
         output_file = object_file,
-        code_coverage_enabled = feature_configuration.is_requested("coverage_instrumented"),
+        code_coverage_enabled = enable_coverage,
         gcno_file = gcno_file,
         dwo_file = dwo_file,
         using_fission = generate_dwo,
@@ -1947,6 +1953,7 @@ def _create_module_codegen_action(
     use_pic = ".pic" in module.basename
     output_name = paths.basename(module.basename)
 
+    enable_coverage = feature_configuration.is_requested("coverage_instrumented")
     gcno_file = _maybe_declare_gcno_file(
         ctx = action_construction_context,
         label = label,
@@ -1954,7 +1961,7 @@ def _create_module_codegen_action(
         cc_toolchain = cc_toolchain,
         cpp_configuration = cpp_configuration,
         configuration = configuration,
-        feature_configuration = feature_configuration,
+        enable_coverage = enable_coverage,
     )
 
     bitcode_output = (feature_configuration.is_enabled("thin_lto") and
@@ -2024,7 +2031,7 @@ def _create_module_codegen_action(
     specific_compile_build_variables = get_specific_compile_build_variables(
         source_file = module,
         output_file = object_file,
-        code_coverage_enabled = feature_configuration.is_requested("coverage_instrumented"),
+        code_coverage_enabled = enable_coverage,
         gcno_file = gcno_file,
         dwo_file = dwo_file,
         using_fission = generate_dwo,
@@ -2284,10 +2291,9 @@ def _maybe_declare_gcno_file(
         cc_toolchain,
         cpp_configuration,
         configuration,
-        feature_configuration):
+        enable_coverage):
     gcno_file = None
-    if (feature_configuration.is_requested("coverage_instrumented") and
-        not cpp_configuration.use_llvm_coverage_map_format()):
+    if enable_coverage and not cpp_configuration.use_llvm_coverage_map_format():
         gcno_file = _get_compile_output_file(
             ctx = ctx,
             label = label,
