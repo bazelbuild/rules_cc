@@ -70,9 +70,9 @@ def create_extra_link_time_library(*, build_library_func, **kwargs):
         # the split between depset and non-depset parameters to determine equality.
         _key = _KeyInfo(
             build_library_func = build_library_func,
-            # _KeyInfo is used in a dict, so all of its fields must be frozen/hashable.
-            constant_fields = _cc_internal.freeze([k for k, v in kwargs.items() if type(v) != "depset"]),
-            depset_fields = _cc_internal.freeze([k for k, v in kwargs.items() if type(v) == "depset"]),
+            # _KeyInfo is used in a dict, so all of its fields must be hashable.
+            constant_fields = tuple([k for k, v in kwargs.items() if type(v) != "depset"]),
+            depset_fields = tuple([k for k, v in kwargs.items() if type(v) == "depset"]),
         ),
         **kwargs
     )
@@ -80,12 +80,12 @@ def create_extra_link_time_library(*, build_library_func, **kwargs):
 ExtraLinkTimeLibrariesInfo = provider(
     "ExtraLinkTimeLibrariesInfo",
     fields = {
-        "libraries": "A list of (ExtraLinkTimeLibraryInfo) extra libraries.",
+        "libraries": "A tuple of (ExtraLinkTimeLibraryInfo) extra libraries.",
     },
 )
 
 _EMPTY = ExtraLinkTimeLibrariesInfo(
-    libraries = [],
+    libraries = (),
 )
 
 def create_extra_link_time_libraries(library):
@@ -99,9 +99,8 @@ def create_extra_link_time_libraries(library):
     """
     if library == None:
         return _EMPTY
-    libraries = _cc_internal.freeze([library])
     return ExtraLinkTimeLibrariesInfo(
-        libraries = libraries,
+        libraries = (library,),
     )
 
 def _merge_values(values):
@@ -150,7 +149,7 @@ def merge_extra_link_time_libraries(libraries):
 
         result.append(ExtraLinkTimeLibraryInfo(**merged_fields))
     return ExtraLinkTimeLibrariesInfo(
-        libraries = _cc_internal.freeze(result),
+        libraries = tuple(result),
     )
 
 def build_libraries(extra_libraries, ctx, static_mode, for_dynamic_library):

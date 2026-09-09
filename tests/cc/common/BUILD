@@ -15,6 +15,7 @@ load(":cc_output_groups_test.bzl", "cc_output_groups_tests")
 load(":compile_build_variables_tests.bzl", "compile_build_variables_tests")
 load(":cpp_modules_test.bzl", "cpp_modules_tests")
 load(":debug_info_packaging_test.bzl", "debug_info_packaging_tests")
+load(":extra_link_time_library_test.bzl", "extra_link_time_library_tests")
 load(":link_build_variables_test.bzl", "link_build_variables_tests")
 
 cc_binary_configured_target_tests(name = "cc_binary_configured_target_tests")
@@ -34,6 +35,8 @@ cpp_modules_tests(name = "cpp_modules_tests")
 compile_build_variables_tests(name = "compile_build_variables_tests")
 
 debug_info_packaging_tests(name = "debug_info_packaging_tests")
+
+extra_link_time_library_tests(name = "extra_link_time_library_tests")
 
 cc_fdo_env_tests(name = "cc_fdo_env_tests")
 
