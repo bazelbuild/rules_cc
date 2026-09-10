@@ -6,6 +6,9 @@ load("@rules_testing//lib:truth.bzl", "matching")
 load("@rules_testing//lib:util.bzl", "TestingAspectInfo", "util")
 load("//cc:cc_binary.bzl", "cc_binary")
 load("//cc:cc_library.bzl", "cc_library")
+load("//cc:cc_test.bzl", "cc_test")
+load("//cc:find_cc_toolchain.bzl", "find_cc_toolchain", "use_cc_toolchain")
+load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/common:cc_info.bzl", "CcInfo")
 load("//tests/cc/testutil:cc_analysis_test.bzl", "cc_analysis_test")
 load("//tests/cc/testutil:cc_info_subject.bzl", "cc_info_subject")
@@ -707,6 +710,101 @@ def _test_alwayslink_yields_lo_impl(env, target):
     files = [f.basename for f in target[DefaultInfo].files.to_list()]
     env.expect.that_collection(files).contains("libalways_link.lo")
 
+def _pic_lto_library_impl(ctx):
+    cc_toolchain = find_cc_toolchain(ctx)
+    feature_configuration = cc_common.configure_features(
+        ctx = ctx,
+        cc_toolchain = cc_toolchain,
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
+    )
+    bitcode = ctx.actions.declare_file(ctx.label.name + ".pic.o")
+    archive = ctx.actions.declare_file(ctx.label.name + ".pic.a")
+
+    # Analysis tests inspect the backend actions without compiling these files.
+    ctx.actions.write(bitcode, "")
+    ctx.actions.write(archive, "")
+    library = cc_common.create_library_to_link(
+        actions = ctx.actions,
+        cc_toolchain = cc_toolchain,
+        feature_configuration = feature_configuration,
+        pic_static_library = archive,
+        pic_objects = [bitcode],
+        pic_lto_compilation_context = cc_common.create_lto_compilation_context(
+            objects = {bitcode: (None, [])},
+        ),
+    )
+    return [
+        DefaultInfo(files = depset([bitcode, archive])),
+        CcInfo(linking_context = cc_common.create_linking_context(
+            linker_inputs = depset([cc_common.create_linker_input(
+                owner = ctx.label,
+                libraries = depset([library]),
+            )]),
+        )),
+    ]
+
+_pic_lto_library = rule(
+    implementation = _pic_lto_library_impl,
+    fragments = ["cpp"],
+    toolchains = use_cc_toolchain(),
+)
+
+def _test_create_library_to_link_pic_shared_backends(name):
+    util.helper_target(_pic_lto_library, name = name + "/lib")
+    for suffix in ["first", "second"]:
+        util.helper_target(
+            cc_test,
+            name = name + "/" + suffix,
+            srcs = ["hello.cc"],
+            deps = [":" + name + "/lib"],
+            linkstatic = True,
+            malloc = "//tests/cc/testutil/toolchains:mock_malloc",
+        )
+    cc_analysis_test(
+        name = name,
+        impl = _test_create_library_to_link_pic_shared_backends_impl,
+        targets = {
+            "lib": name + "/lib",
+            "first": name + "/first",
+            "second": name + "/second",
+        },
+        test_features = [
+            "thin_lto",
+            "supports_pic",
+            "supports_start_end_lib",
+            "thin_lto_linkstatic_tests_use_shared_nonlto_backends",
+        ],
+        config_settings = {"//command_line_option:force_pic": True},
+    )
+
+def _test_create_library_to_link_pic_shared_backends_impl(env, targets):
+    backends = [
+        action
+        for action in targets.lib[TestingAspectInfo].actions
+        if action.mnemonic == "CcLtoBackendCompile"
+    ]
+    env.expect.that_collection(backends).has_size(1)
+    if len(backends) != 1:
+        return
+
+    native_objects = [file for file in backends[0].outputs.to_list() if file.extension == "o"]
+    env.expect.that_collection(native_objects).has_size(1)
+    if len(native_objects) != 1:
+        return
+
+    native_object = native_objects[0]
+    env.expect.that_str(native_object.short_path).contains("shared.nonlto/")
+    backend = env.expect.that_target(targets.lib).action_generating(native_object.short_path)
+    backend.argv().contains("-fPIC")
+    bitcode = [file for file in targets.lib[DefaultInfo].files.to_list() if file.extension == "o"][0]
+    env.expect.that_collection(backend.actual.inputs.to_list()).contains(bitcode)
+
+    for target in [targets.first, targets.second]:
+        executable = target[DefaultInfo].files_to_run.executable
+        link = env.expect.that_target(target).action_generating(executable.short_path)
+        env.expect.that_collection(link.actual.inputs.to_list()).contains(native_object)
+
 def cc_common_tests(name):
     tests = [
         _test_same_cc_file_twice,
@@ -732,6 +830,7 @@ def cc_common_tests(name):
     ]
     if bazel_features.cc.cc_common_is_in_rules_cc:
         tests.extend([
+            _test_create_library_to_link_pic_shared_backends,
             _test_strip_include_prefix_uses_virtual_includes_by_default,
             _test_strip_include_prefix_no_virtual_includes_when_enabled,
             _test_strip_include_prefix_with_include_prefix_uses_virtual_includes,
