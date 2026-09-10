@@ -103,10 +103,9 @@ def _get_coverage_env(ctx):
 def _get_implementation_deps_allowed_attr():
     return {}
 
+# buildifier: disable=unused-parameter
 def _check_can_use_implementation_deps(ctx):
-    experimental_cc_implementation_deps = ctx.fragments.cpp.experimental_cc_implementation_deps()
-    if (not experimental_cc_implementation_deps and ctx.attr.implementation_deps):
-        fail("requires --experimental_cc_implementation_deps", attr = "implementation_deps")
+    return True
 
 _WINDOWS_PLATFORM = Label("@platforms//os:windows")  # Resolve the label within builtins context
 
