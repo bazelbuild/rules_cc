@@ -230,7 +230,7 @@ def finalize_link_action(
     else:
         tool_path = _cc_common_internal.get_tool_for_action(
             feature_configuration = feature_configuration,
-            action_name = link_type.action_name,
+            action_name = action_name,
         )
 
     if link_type.linker_or_archiver == USE_ARCHIVER:

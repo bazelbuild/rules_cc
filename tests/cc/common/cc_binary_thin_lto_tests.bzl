@@ -4,6 +4,7 @@ load("@bazel_features//:features.bzl", "bazel_features")
 load("@rules_testing//lib:analysis_test.bzl", "test_suite")
 load("@rules_testing//lib:truth.bzl", "matching", "subjects")
 load("@rules_testing//lib:util.bzl", "TestingAspectInfo", "util")
+load("//cc:action_names.bzl", "ACTION_NAMES")
 load("//cc:cc_binary.bzl", _actual_cc_binary = "cc_binary")
 load("//cc:cc_library.bzl", "cc_library")
 load("//cc:cc_test.bzl", _actual_cc_test = "cc_test")
@@ -176,6 +177,24 @@ def _test_thin_lto_action_graph_impl(env, target):
         ),
     )
 
+def _test_thin_lto_index_uses_its_action_tool(name, **kwargs):
+        impl = _test_thin_lto_index_uses_its_action_tool_impl,
+        target = name + "/bin",
+        test_features = ["thin_lto", "supports_start_end_lib"],
+        with_action_configs = [
+            ACTION_NAMES.cpp_link_executable,
+            ACTION_NAMES.lto_index_for_executable,
+        ],
+        **kwargs
+    )
+
+def _test_thin_lto_index_uses_its_action_tool_impl(env, target):
+    index_action = env.expect.that_target(target).action_named("CppLTOIndexing")
+    env.expect.that_str(index_action.actual.argv[0]).equals("tests/cc/testutil/toolchains/lto_index_tool")
+
+    link_action = env.expect.that_target(target).action_named("CppLink")
+    env.expect.that_str(link_action.actual.argv[0]).equals("tests/cc/testutil/toolchains/link_executable_tool")
+    
 def _test_thin_lto_merged_object_uses_toolchain_extension(name, **kwargs):
     util.helper_target(
         cc_binary,
@@ -2371,6 +2390,7 @@ def cc_binary_thin_lto_tests(name):
 
     # These tests fail on Bazel 7 and 8, run only for Bazel 9+.
     if bazel_features.cc.cc_common_is_in_rules_cc:
+        tests.append(_test_thin_lto_index_uses_its_action_tool)
         tests.append(_test_thin_lto_merged_object_uses_toolchain_extension)
         tests.append(_test_thin_lto_linkshared)
         tests.append(_test_thin_lto_backend_env)
