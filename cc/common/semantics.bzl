@@ -103,8 +103,7 @@ def _get_coverage_env(ctx):
 def _get_implementation_deps_allowed_attr():
     return {}
 
-# buildifier: disable=unused-parameter
-def _check_can_use_implementation_deps(ctx):
+def _check_can_use_implementation_deps(_):
     return True
 
 _WINDOWS_PLATFORM = Label("@platforms//os:windows")  # Resolve the label within builtins context
