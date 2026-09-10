@@ -57,6 +57,7 @@ _PIC_ARCHIVE_EXTENSIONS = tuple(extensions.PIC_ARCHIVE)
 _ARCHIVE_EXTENSIONS = tuple(extensions.ARCHIVE)
 _ALWAYSLINK_PIC_LIBRARY_EXTENSIONS = tuple(extensions.ALWAYSLINK_PIC_LIBRARY)
 _ALWAYSLINK_LIBRARY_EXTENSIONS = tuple(extensions.ALWAYSLINK_LIBRARY)
+_DISALLOWED_HDRS_EXTENSIONS = {extension: True for extension in extensions.DISALLOWED_HDRS_FILES}
 
 def _rule_error(msg):
     fail(msg)
@@ -362,9 +363,13 @@ def _build_precompiled_files(ctx):
     )
 
 def _check_file_extension(file, allowed_extensions, allow_versioned_shared_libraries):
-    extension = "." + file.extension
-    return extension in allowed_extensions or \
-           (allow_versioned_shared_libraries and is_versioned_shared_library_extension_valid(file.path))
+    extension = file.extension
+
+    # The final extension of a versioned .so or .dylib starts with a digit.
+    return "." + extension in allowed_extensions or \
+           (allow_versioned_shared_libraries and len(extension) > 0 and
+            extension[0].isdigit() and
+            is_versioned_shared_library_extension_valid(file.path))
 
 def _check_file_extensions(attr_values, allowed_extensions, attr_name, label, rule_name, allow_versioned_shared_libraries):
     for attr_value in attr_values:
@@ -1096,7 +1101,7 @@ def _get_public_hdrs(ctx):
     for hdr in ctx.attr.hdrs:
         if DefaultInfo in hdr:
             for artifact in hdr[DefaultInfo].files.to_list():
-                if _check_file_extension(artifact, extensions.DISALLOWED_HDRS_FILES, True):
+                if _check_file_extension(artifact, _DISALLOWED_HDRS_EXTENSIONS, True):
                     continue
                 artifact_label_map[artifact] = hdr.label
     return _map_to_list(artifact_label_map)
