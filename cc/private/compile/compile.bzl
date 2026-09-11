@@ -563,10 +563,7 @@ def _create_scan_deps_action(
             override_extension = extensions.CC_SOURCE[0],
         ),
     )
-    compile_variables = _cc_internal.combine_cc_toolchain_variables(
-        common_toolchain_variables,
-        specific_compile_build_variables,
-    )
+    compile_variables = common_toolchain_variables | specific_compile_build_variables
     _create_compile_action(
         action_construction_context = action_construction_context,
         cc_compilation_context = cc_compilation_context,
@@ -1378,10 +1375,7 @@ def _create_cc_compile_actions(
                 label = source_label,
             ),
         )
-        compile_variables = _cc_internal.combine_cc_toolchain_variables(
-            common_compile_build_variables,
-            specific_compile_build_variables,
-        )
+        compile_variables = common_compile_build_variables | specific_compile_build_variables
 
         # This creates the action to parse a header file.
         # If we generate pic actions, we prefer the header actions to use the pic artifacts.
@@ -1728,10 +1722,7 @@ def _create_compile_source_action(
         use_pic = use_pic,
         lto_indexing_file = lto_indexing_file,
         action_name = action_name,
-        compile_build_variables = _cc_internal.combine_cc_toolchain_variables(
-            common_compile_variables,
-            compile_variables,
-        ),
+        compile_build_variables = common_compile_variables | compile_variables,
         needs_include_validation = _starlark_cc_semantics.needs_include_validation(language),
         toolchain_type = _starlark_cc_semantics.toolchain,
         progress_message_prefix = progress_message_prefix,
@@ -1909,10 +1900,7 @@ def _create_temps_action(
         dotd_file = preprocess_dotd_file,
         diagnostics_file = preprocess_diagnostics_file,
         use_pic = use_pic,
-        compile_build_variables = _cc_internal.combine_cc_toolchain_variables(
-            common_compile_variables,
-            preprocess_compile_variables,
-        ),
+        compile_build_variables = common_compile_variables | preprocess_compile_variables,
         action_name = action_name,
         needs_include_validation = _starlark_cc_semantics.needs_include_validation(language),
         toolchain_type = _starlark_cc_semantics.toolchain,
@@ -1931,10 +1919,7 @@ def _create_temps_action(
         dotd_file = assembly_dotd_file,
         diagnostics_file = assembly_diagnostics_file,
         use_pic = use_pic,
-        compile_build_variables = _cc_internal.combine_cc_toolchain_variables(
-            common_compile_variables,
-            assembly_compile_variables,
-        ),
+        compile_build_variables = common_compile_variables | assembly_compile_variables,
         action_name = action_name,
         needs_include_validation = _starlark_cc_semantics.needs_include_validation(language),
         toolchain_type = _starlark_cc_semantics.toolchain,
@@ -2058,10 +2043,7 @@ def _create_module_codegen_action(
         fdo_build_variables = fdo_build_variables,
         additional_build_variables = {},
     )
-    compile_variables = _cc_internal.combine_cc_toolchain_variables(
-        common_toolchain_variables,
-        specific_compile_build_variables,
-    )
+    compile_variables = common_toolchain_variables | specific_compile_build_variables
 
     additional_inputs = []
 
@@ -2372,7 +2354,7 @@ def _create_compile_action(
         additional_include_scanning_roots = additional_include_scanning_roots,
         cc_compilation_context = cc_compilation_context,
         cc_toolchain = cc_toolchain,
-        compile_build_variables = compile_build_variables,
+        compile_build_variables = _cc_internal.cc_toolchain_variables(vars = compile_build_variables),
         configuration = configuration,
         copts_filter = copts_filter,
         diagnostics_file = diagnostics_file,

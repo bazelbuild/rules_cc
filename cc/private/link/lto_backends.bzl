@@ -268,7 +268,7 @@ def setup_common_lto_variables(
       feature_configuration: (feature_configuration) The feature configuration.
 
     Returns:
-      A CcToolchainVariables provider and a list[File] of additional inputs.
+      A dictionary of build variables and a list[File] of additional inputs.
     """
 
     build_variables = {}
@@ -285,12 +285,7 @@ def setup_common_lto_variables(
     if feature_configuration.is_enabled("cs_fdo_instrument"):
         build_variables["cs_fdo_instrument_path"] = cc_toolchain._cpp_configuration.cs_fdo_instrument()
 
-    build_variables = _cc_internal.combine_cc_toolchain_variables(
-        cc_toolchain._build_variables,
-        _cc_internal.cc_toolchain_variables(vars = build_variables),
-    )
-
-    return build_variables, additional_inputs
+    return cc_toolchain._build_variables_dict | build_variables, additional_inputs
 
 def create_lto_backend_artifacts(
         *,
@@ -327,7 +322,7 @@ def create_lto_backend_artifacts(
       cc_toolchain: (CcToolchainInfo) The C++ toolchain.
       use_pic: (bool) Whether to use PIC.
       should_create_per_object_debug_info: (bool) Whether to create per-object debug info.
-      build_variables: (CcToolchainVariables) Toolchain variables to use for argument expansion.
+      build_variables: (dict) Toolchain variables to use for argument expansion.
       additional_inputs: list[File] Additional file inputs required for generated actions.
       argv: (list[str]) The command line arguments to pass to the LTO backend.
 
@@ -340,17 +335,15 @@ def create_lto_backend_artifacts(
 
     create_shared_non_lto = all_bitcode_files == None
 
-    build_variables = _cc_internal.combine_cc_toolchain_variables(
-        build_variables,
-        _cc_internal.cc_toolchain_variables(vars = {
-            "user_compile_flags": _cc_internal.intern_string_sequence_variable_value(argv),
-        }),
-    )
+    build_variables = build_variables | {
+        "user_compile_flags": _cc_internal.intern_string_sequence_variable_value(argv),
+    }
+    native_build_variables = _cc_internal.cc_toolchain_variables(vars = build_variables)
 
     env = _cc_common_internal.get_environment_variables(
         feature_configuration = feature_configuration,
         action_name = "lto-backend",
-        variables = build_variables,
+        variables = native_build_variables,
     )
 
     obj = lto_obj_root_prefix + "/" + bitcode_file.path
@@ -378,7 +371,7 @@ def create_lto_backend_artifacts(
             feature_configuration = feature_configuration,
             additional_inputs = additional_inputs,
             env = env,
-            build_variables = build_variables,
+            build_variables = native_build_variables,
             use_pic = use_pic,
             all_bitcode_files = all_bitcode_files,
             index = index,
@@ -481,13 +474,12 @@ def _create_lto_backend_action(
         dwo_file,
         bitcode_file_path if bitcode_file_path != None else bitcode_artifact,
     )
-    _path_variables = _cc_internal.cc_toolchain_variables(vars = _path_variables)
-    build_variables = _cc_internal.combine_cc_toolchain_variables(build_variables, _path_variables)
-
     _cc_internal.create_lto_backend_action(
         actions = actions,
         feature_configuration = feature_configuration,
-        build_variables = build_variables,
+        build_variables = _cc_internal.cc_toolchain_variables(
+            vars = build_variables | _path_variables,
+        ),
         use_pic = use_pic,
         inputs = inputs,
         all_bitcode_files = bitcode_files,
