@@ -341,7 +341,68 @@ _artifact_categories = [
     _ArtifactCategoryInfo("CLIF_OUTPUT_PROTO", "", ".opb"),
 ]
 
+_ARTIFACT_CATEGORIES_BY_NAME = {
+    category.name: category
+    for category in _artifact_categories
+}
+
 artifact_category_names = struct(**{ac.name: ac.name for ac in _artifact_categories})
+
+def artifact_name_pattern_overrides_from_toolchain_config(toolchain_config_info):
+    """Returns the artifact name pattern overrides in toolchain_config_info.
+
+    Args:
+      toolchain_config_info: A CcToolchainConfigInfo.
+
+    Returns:
+      A dict mapping artifact category names to (prefix, extension) tuples.
+    """
+    overrides = {}
+    for pattern in toolchain_config_info._artifact_name_patterns_DO_NOT_USE:
+        category = _ARTIFACT_CATEGORIES_BY_NAME[pattern.category_name.upper()]
+        prefix = pattern.prefix or ""
+        extension = pattern.extension or ""
+        if prefix != category.default_prefix or extension != category.default_extension:
+            overrides[category.name] = (prefix, extension)
+    return overrides
+
+def get_artifact_name_for_category(*, cc_toolchain, category, output_name):
+    """Returns output_name with the artifact name pattern for category applied.
+
+    Args:
+      cc_toolchain: A CcToolchainInfo.
+      category: An artifact category name.
+      output_name: The output path before applying the artifact name pattern.
+
+    Returns:
+      The output path with the artifact name pattern applied to its basename.
+    """
+    pattern = cc_toolchain._artifact_name_pattern_overrides.get(category)
+    if pattern == None:
+        category_info = _ARTIFACT_CATEGORIES_BY_NAME[category]
+        prefix = category_info.default_prefix
+        extension = category_info.default_extension
+    else:
+        prefix, extension = pattern
+
+    normalized_output_name = paths.normalize(output_name) if output_name else output_name
+    artifact_name = prefix + paths.basename(normalized_output_name) + extension
+    return paths.join(paths.dirname(normalized_output_name), artifact_name)
+
+def get_artifact_name_extension_for_category(*, cc_toolchain, category):
+    """Returns the cc_toolchain extension for category.
+
+    Args:
+      cc_toolchain: A CcToolchainInfo.
+      category: An artifact category name.
+
+    Returns:
+      The configured or default extension for category.
+    """
+    pattern = cc_toolchain._artifact_name_pattern_overrides.get(category)
+    if pattern != None:
+        return pattern[1]
+    return _ARTIFACT_CATEGORIES_BY_NAME[category].default_extension
 
 output_subdirectories = struct(
     OBJS = "_objs",
