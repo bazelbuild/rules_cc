@@ -73,6 +73,7 @@ cc_sysroot(
         "//tests/rule_based_toolchain/actions:c_compile",
         "//tests/rule_based_toolchain/actions:cpp_compile",
     ],
+    data = [],
     sysroot = "//tests/rule_based_toolchain/testdata:directory",
 )
 
