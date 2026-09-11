@@ -63,7 +63,6 @@ def create_extra_link_time_library(*, build_library_func, **kwargs):
     Returns:
       ExtraLinkTimeLibraryInfo.
     """
-    _cc_internal.check_toplevel(build_library_func)
     return ExtraLinkTimeLibraryInfo(
         build_library_func = build_library_func,
         # Key to identify the "class" of a StarlarkDefinedLinkTimeLibrary. Uses the build function and
@@ -170,6 +169,7 @@ def build_libraries(extra_libraries, ctx, static_mode, for_dynamic_library):
     transitive_runtime_libraries = []
     additional_stamp_infos = []
     for library in extra_libraries:
+        ctx.actions.args().add_all([], map_each = library.build_library_func)
         kwargs = {}
         for key in dir(library):
             if key not in ["build_library_func", "_key"]:
