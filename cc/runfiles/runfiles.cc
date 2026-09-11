@@ -14,182 +14,113 @@
 
 #include "rules_cc/cc/runfiles/runfiles.h"
 
-#ifdef _WIN32
-#include <windows.h>
-#else  // not _WIN32
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-#endif  // _WIN32
+extern "C" {
+#include "rules_cc/cc/runfiles/runfiles_c.h"
+#include "rules_cc/cc/runfiles/runfiles_c_internal.h"
+}
 
-#include <fstream>
+#include <cstdlib>
 #include <functional>
-#include <map>
-#include <sstream>
-#include <vector>
+#include <string>
 #include <utility>
-
-#ifdef _WIN32
-#include <memory>
-#endif  // _WIN32
+#include <vector>
 
 namespace rules_cc {
 namespace cc {
 namespace runfiles {
 
 using std::function;
-using std::map;
 using std::pair;
 using std::string;
 using std::vector;
 
 namespace {
 
-bool starts_with(const string& s, const string& prefix) {
-  return s.compare(0, prefix.size(), prefix) == 0;
+// Route env-var reads through the C library so Windows Unicode env-var
+// handling (GetEnvironmentVariableW) lives in one place across both
+// languages. NULL allocator -> libc malloc, paired with the std::free
+// below.
+string GetEnv(const string& key) {
+  char* raw = rf_getenv_alloc(/*alloc=*/nullptr, key.c_str());
+  if (!raw) return string();
+  string out(raw);
+  std::free(raw);
+  return out;
 }
 
-bool contains(const string& s, const string& substr) {
-  return s.find(substr) != string::npos;
+vector<pair<string, string> > BuildEnvVars(rf_runfiles* rf) {
+  int n = rf_env_vars_count();
+  vector<pair<string, string> > out;
+  out.reserve(static_cast<size_t>(n));
+  for (int i = 0; i < n; i++) {
+    const char* k = rf_env_var_key(i);
+    const char* v = rf_env_var_value(rf, i);
+    if (k && v) out.emplace_back(k, v);
+  }
+  return out;
 }
 
-bool ends_with(const string& s, const string& suffix) {
-  return s.size() >= suffix.size() &&
-         s.compare(s.size() - suffix.size(), suffix.size(), suffix) == 0;
+using PredicatePair =
+    pair<function<bool(const string&)>, function<bool(const string&)> >;
+int PredicateTrampolineIsMf(void* userdata, const char* path) {
+  auto* p = static_cast<PredicatePair*>(userdata);
+  return p->first(path) ? 1 : 0;
 }
-
-bool IsReadableFile(const string& path) {
-  return std::ifstream(path).is_open();
+int PredicateTrampolineIsDir(void* userdata, const char* path) {
+  auto* p = static_cast<PredicatePair*>(userdata);
+  return p->second(path) ? 1 : 0;
 }
-
-bool IsDirectory(const string& path) {
-#ifdef _WIN32
-  DWORD attrs = GetFileAttributesA(path.c_str());
-  return (attrs != INVALID_FILE_ATTRIBUTES) &&
-         (attrs & FILE_ATTRIBUTE_DIRECTORY);
-#else
-  struct stat buf;
-  return stat(path.c_str(), &buf) == 0 && S_ISDIR(buf.st_mode);
-#endif
-}
-
-bool PathsFrom(const std::string& argv0, std::string runfiles_manifest_file,
-               std::string runfiles_dir, std::string* out_manifest,
-               std::string* out_directory);
-
-bool PathsFrom(const std::string& argv0, std::string runfiles_manifest_file,
-               std::string runfiles_dir,
-               std::function<bool(const std::string&)> is_runfiles_manifest,
-               std::function<bool(const std::string&)> is_runfiles_directory,
-               std::string* out_manifest, std::string* out_directory);
-
-bool ParseManifest(const string& path, map<string, string>* result,
-                   string* error);
-bool ParseRepoMapping(const string& path,
-                      map<pair<string, string>, string>* result, string* error);
 
 }  // namespace
+
+// Out-of-line only because the class has a virtual destructor.
+Runfiles::~Runfiles() = default;
 
 Runfiles* Runfiles::Create(const string& argv0,
                            const string& runfiles_manifest_file,
                            const string& runfiles_dir,
                            const string& source_repository, string* error) {
-  string manifest, directory;
-  if (!PathsFrom(argv0, runfiles_manifest_file, runfiles_dir, &manifest,
-                 &directory)) {
-    if (error) {
-      std::ostringstream err;
-      err << "ERROR: " << __FILE__ << "(" << __LINE__
-          << "): cannot find runfiles (argv0=\"" << argv0 << "\")";
-      *error = err.str();
-    }
+  char err[512] = {0};
+  rf_runfiles* handle = rf_create(
+      /*alloc=*/nullptr, argv0.c_str(), runfiles_manifest_file.c_str(),
+      runfiles_dir.c_str(), source_repository.c_str(), err, sizeof(err));
+  if (!handle) {
+    if (error) *error = err;
     return nullptr;
   }
+  return new Runfiles(handle, source_repository, BuildEnvVars(handle));
+}
 
-  vector<pair<string, string> > envvars = {
-      {"RUNFILES_MANIFEST_FILE", manifest},
-      {"RUNFILES_DIR", directory},
-      // TODO(laszlocsomor): remove JAVA_RUNFILES once the Java launcher can
-      // pick up RUNFILES_DIR.
-      {"JAVA_RUNFILES", directory}};
+Runfiles* Runfiles::Create(const string& argv0,
+                           const string& runfiles_manifest_file,
+                           const string& runfiles_dir, string* error) {
+  return Create(argv0, runfiles_manifest_file, runfiles_dir, "", error);
+}
 
-  map<string, string> runfiles;
-  if (!manifest.empty()) {
-    if (!ParseManifest(manifest, &runfiles, error)) {
-      return nullptr;
-    }
-  }
+Runfiles* Runfiles::Create(const string& argv0, const string& source_repository,
+                           string* error) {
+  return Create(argv0, GetEnv("RUNFILES_MANIFEST_FILE"), GetEnv("RUNFILES_DIR"),
+                source_repository, error);
+}
 
-  map<pair<string, string>, string> mapping;
-  if (!ParseRepoMapping(
-          RlocationUnchecked("_repo_mapping", runfiles, directory), &mapping,
-          error)) {
+Runfiles* Runfiles::Create(const string& argv0, string* error) {
+  return Create(argv0, "", error);
+}
+
+Runfiles* Runfiles::CreateForTest(const string& source_repository,
+                                  string* error) {
+  char err[512] = {0};
+  rf_runfiles* handle = rf_create_for_test(
+      /*alloc=*/nullptr, source_repository.c_str(), err, sizeof(err));
+  if (!handle) {
+    if (error) *error = err;
     return nullptr;
   }
-
-  return new Runfiles(std::move(runfiles), std::move(directory),
-                      std::move(mapping), std::move(envvars),
-                      string(source_repository));
+  return new Runfiles(handle, source_repository, BuildEnvVars(handle));
 }
 
-bool IsAbsolute(const string& path) {
-  if (path.empty()) {
-    return false;
-  }
-  char c = path.front();
-  return (c == '/' && (path.size() < 2 || path[1] != '/')) ||
-         (path.size() >= 3 &&
-          ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) &&
-          path[1] == ':' && (path[2] == '\\' || path[2] == '/'));
-}
-
-string GetEnv(const string& key) {
-#ifdef _WIN32
-  DWORD size = ::GetEnvironmentVariableA(key.c_str(), nullptr, 0);
-  if (size == 0) {
-    return string();  // unset or empty envvar
-  }
-  std::unique_ptr<char[]> value(new char[size]);
-  ::GetEnvironmentVariableA(key.c_str(), value.get(), size);
-  return value.get();
-#else
-  char* result = getenv(key.c_str());
-  return (result == nullptr) ? string() : string(result);
-#endif
-}
-
-// Replaces \s, \n, and \b with their respective characters.
-string Unescape(const string& path) {
-  string result;
-  result.reserve(path.size());
-  for (size_t i = 0; i < path.size(); ++i) {
-    if (path[i] == '\\' && i + 1 < path.size()) {
-      switch (path[i + 1]) {
-        case 's': {
-          result.push_back(' ');
-          break;
-        }
-        case 'n': {
-          result.push_back('\n');
-          break;
-        }
-        case 'b': {
-          result.push_back('\\');
-          break;
-        }
-        default: {
-          result.push_back(path[i]);
-          result.push_back(path[i + 1]);
-          break;
-        }
-      }
-      ++i;
-    } else {
-      result.push_back(path[i]);
-    }
-  }
-  return result;
+Runfiles* Runfiles::CreateForTest(string* error) {
+  return CreateForTest("", error);
 }
 
 string Runfiles::Rlocation(const string& path) const {
@@ -198,185 +129,24 @@ string Runfiles::Rlocation(const string& path) const {
 
 string Runfiles::Rlocation(const string& path,
                            const string& source_repo) const {
-  if (path.empty() || starts_with(path, "../") || contains(path, "/..") ||
-      starts_with(path, "./") || contains(path, "/./") ||
-      ends_with(path, "/.") || contains(path, "//")) {
-    return string();
+  // Grow-and-retry at most once: BUF_TOO_SMALL reports the exact
+  // required size, so a second call with `needed + 1` is guaranteed to
+  // fit. std::string handles growth via std::allocator.
+  string buf;
+  buf.resize(4096);
+  size_t needed = 0;
+  rf_rlocation_status s =
+      rf_rlocation(handle_.get(), path.c_str(), source_repo.c_str(), &buf[0],
+                   buf.size(), &needed);
+  if (s == RF_RLOCATION_BUF_TOO_SMALL) {
+    buf.resize(needed + 1);
+    s = rf_rlocation(handle_.get(), path.c_str(), source_repo.c_str(), &buf[0],
+                     buf.size(), &needed);
   }
-  if (IsAbsolute(path)) {
-    return path;
-  }
-
-  string::size_type first_slash = path.find_first_of('/');
-  if (first_slash == string::npos) {
-    return RlocationUnchecked(path, runfiles_map_, directory_);
-  }
-  string target_apparent = path.substr(0, first_slash);
-  auto lookup_key = std::make_pair(target_apparent, source_repo);
-  // The smallest entry that is greater than lookup_key.
-  auto upper_bound = repo_mapping_.upper_bound(lookup_key);
-  // The largest entry that is less than or equal to lookup_key.
-  auto floor = upper_bound == repo_mapping_.begin() ? upper_bound
-                                                    : std::prev(upper_bound);
-  if (floor == repo_mapping_.end()) {
-    return RlocationUnchecked(path, runfiles_map_, directory_);
-  }
-  if (floor->first == lookup_key) {
-    return RlocationUnchecked(floor->second + path.substr(first_slash),
-                              runfiles_map_, directory_);
-  }
-  // Since the asterisk sorts before any other valid character in a repo name,
-  // the floor element may be a prefix match.
-  std::pair<string, string> key;
-  string value;
-  std::tie(key, value) = *floor;
-  if (key.first == target_apparent &&
-      ends_with(key.second, "*") &&
-      starts_with(
-        source_repo, key.second.substr( 0, key.second.size() - 1))) {
-    return RlocationUnchecked(
-      value + path.substr(first_slash), runfiles_map_, directory_);
-  }
-  return RlocationUnchecked(path, runfiles_map_, directory_);
+  if (s != RF_RLOCATION_OK) return string();
+  buf.resize(needed);
+  return buf;
 }
-
-string Runfiles::RlocationUnchecked(const string& path,
-                                    const map<string, string>& runfiles_map,
-                                    const string& directory) {
-  const auto exact_match = runfiles_map.find(path);
-  if (exact_match != runfiles_map.end()) {
-    return exact_match->second;
-  }
-  if (!runfiles_map.empty()) {
-    // If path references a runfile that lies under a directory that itself is a
-    // runfile, then only the directory is listed in the manifest. Look up all
-    // prefixes of path in the manifest and append the relative path from the
-    // prefix to the looked up path.
-    std::size_t prefix_end = path.size();
-    while ((prefix_end = path.find_last_of('/', prefix_end - 1)) !=
-           string::npos) {
-      const string prefix = path.substr(0, prefix_end);
-      const auto prefix_match = runfiles_map.find(prefix);
-      if (prefix_match != runfiles_map.end()) {
-        return prefix_match->second + "/" + path.substr(prefix_end + 1);
-      }
-    }
-  }
-  if (!directory.empty()) {
-    return directory + "/" + path;
-  }
-  return "";
-}
-
-namespace {
-
-bool ParseManifest(const string& path, map<string, string>* result,
-                   string* error) {
-  std::ifstream stm(path);
-  if (!stm.is_open()) {
-    if (error) {
-      std::ostringstream err;
-      err << "ERROR: " << __FILE__ << "(" << __LINE__
-          << "): cannot open runfiles manifest \"" << path << "\"";
-      *error = err.str();
-    }
-    return false;
-  }
-  string line;
-  std::getline(stm, line);
-  size_t line_count = 1;
-  while (!line.empty()) {
-    std::string source;
-    std::string target;
-    if (line[0] == ' ') {
-      // The link path contains escape sequences for spaces and backslashes.
-      string::size_type idx = line.find(' ', 1);
-      if (idx == string::npos) {
-        if (error) {
-          std::ostringstream err;
-          err << "ERROR: " << __FILE__ << "(" << __LINE__
-              << "): bad runfiles manifest entry in \"" << path << "\" line #"
-              << line_count << ": \"" << line << "\"";
-          *error = err.str();
-        }
-        return false;
-      }
-      source = Unescape(line.substr(1, idx - 1));
-      target = Unescape(line.substr(idx + 1));
-    } else {
-      string::size_type idx = line.find(' ');
-      if (idx == string::npos) {
-        if (error) {
-          std::ostringstream err;
-          err << "ERROR: " << __FILE__ << "(" << __LINE__
-              << "): bad runfiles manifest entry in \"" << path << "\" line #"
-              << line_count << ": \"" << line << "\"";
-          *error = err.str();
-        }
-        return false;
-      }
-      source = line.substr(0, idx);
-      target = line.substr(idx + 1);
-    }
-    (*result)[source] = target;
-    std::getline(stm, line);
-    ++line_count;
-  }
-  return true;
-}
-
-bool ParseRepoMapping(const string& path,
-                      map<pair<string, string>, string>* result,
-                      string* error) {
-  std::ifstream stm(path);
-  if (!stm.is_open()) {
-    return true;
-  }
-  string line;
-  std::getline(stm, line);
-  size_t line_count = 1;
-  while (!line.empty()) {
-    string::size_type first_comma = line.find_first_of(',');
-    if (first_comma == string::npos) {
-      if (error) {
-        std::ostringstream err;
-        err << "ERROR: " << __FILE__ << "(" << __LINE__
-            << "): bad repository mapping entry in \"" << path << "\" line #"
-            << line_count << ": \"" << line << "\"";
-        *error = err.str();
-      }
-      return false;
-    }
-    string::size_type second_comma = line.find_first_of(',', first_comma + 1);
-    if (second_comma == string::npos) {
-      if (error) {
-        std::ostringstream err;
-        err << "ERROR: " << __FILE__ << "(" << __LINE__
-            << "): bad repository mapping entry in \"" << path << "\" line #"
-            << line_count << ": \"" << line << "\"";
-        *error = err.str();
-      }
-      return false;
-    }
-
-    // If the source repo ends with an asterisk, the line is supposed to match
-    // any name that starts with the prefix up to the asterisk. Since an
-    // asterisk sorts before any other valid character in a repo name, we can
-    // insert the line as is and search for a lower bound if we store the
-    // apparent target repo name first in the map key.
-    string source = line.substr(0, first_comma);
-    string target_apparent =
-        line.substr(first_comma + 1, second_comma - (first_comma + 1));
-    string target = line.substr(second_comma + 1);
-
-    (*result)[std::make_pair(target_apparent, source)] = target;
-    std::getline(stm, line);
-    ++line_count;
-  }
-  return true;
-}
-
-}  // namespace
 
 namespace testing {
 
@@ -384,106 +154,26 @@ bool TestOnly_PathsFrom(const string& argv0, string mf, string dir,
                         function<bool(const string&)> is_runfiles_manifest,
                         function<bool(const string&)> is_runfiles_directory,
                         string* out_manifest, string* out_directory) {
-  return PathsFrom(argv0, mf, dir, is_runfiles_manifest, is_runfiles_directory,
-                   out_manifest, out_directory);
+  PredicatePair ctx(std::move(is_runfiles_manifest),
+                    std::move(is_runfiles_directory));
+  // NULL allocator -> libc malloc; paired with std::free below.
+  char* mf_out = nullptr;
+  char* dir_out = nullptr;
+  int ok = rf_paths_from(argv0.c_str(), mf.c_str(), dir.c_str(),
+                         &PredicateTrampolineIsMf, &PredicateTrampolineIsDir,
+                         &ctx, /*alloc=*/nullptr, &mf_out, &dir_out);
+  out_manifest->assign(mf_out ? mf_out : "");
+  out_directory->assign(dir_out ? dir_out : "");
+  std::free(mf_out);
+  std::free(dir_out);
+  return ok != 0;
 }
 
-bool TestOnly_IsAbsolute(const string& path) { return IsAbsolute(path); }
+bool TestOnly_IsAbsolute(const string& path) {
+  return rf_is_absolute(path.c_str()) != 0;
+}
 
 }  // namespace testing
-
-Runfiles* Runfiles::Create(const std::string& argv0,
-                           const std::string& runfiles_manifest_file,
-                           const std::string& runfiles_dir,
-                           std::string* error) {
-  return Runfiles::Create(argv0, runfiles_manifest_file, runfiles_dir, "",
-                          error);
-}
-
-Runfiles* Runfiles::Create(const string& argv0, const string& source_repository,
-                           string* error) {
-  return Runfiles::Create(argv0, GetEnv("RUNFILES_MANIFEST_FILE"),
-                          GetEnv("RUNFILES_DIR"), source_repository, error);
-}
-
-Runfiles* Runfiles::Create(const string& argv0, string* error) {
-  return Runfiles::Create(argv0, "", error);
-}
-
-Runfiles* Runfiles::CreateForTest(const string& source_repository,
-                                  std::string* error) {
-  return Runfiles::Create(std::string(), GetEnv("RUNFILES_MANIFEST_FILE"),
-                          GetEnv("TEST_SRCDIR"), source_repository, error);
-}
-
-Runfiles* Runfiles::CreateForTest(std::string* error) {
-  return Runfiles::CreateForTest("", error);
-}
-
-namespace {
-
-bool PathsFrom(const string& argv0, string mf, string dir, string* out_manifest,
-               string* out_directory) {
-  return PathsFrom(
-      argv0, mf, dir, [](const string& path) { return IsReadableFile(path); },
-      [](const string& path) { return IsDirectory(path); }, out_manifest,
-      out_directory);
-}
-
-bool PathsFrom(const string& argv0, string mf, string dir,
-               function<bool(const string&)> is_runfiles_manifest,
-               function<bool(const string&)> is_runfiles_directory,
-               string* out_manifest, string* out_directory) {
-  out_manifest->clear();
-  out_directory->clear();
-
-  bool mfValid = is_runfiles_manifest(mf);
-  bool dirValid = is_runfiles_directory(dir);
-
-  if (!argv0.empty() && !mfValid && !dirValid) {
-    mf = argv0 + ".runfiles/MANIFEST";
-    dir = argv0 + ".runfiles";
-    mfValid = is_runfiles_manifest(mf);
-    dirValid = is_runfiles_directory(dir);
-    if (!mfValid) {
-      mf = argv0 + ".runfiles_manifest";
-      mfValid = is_runfiles_manifest(mf);
-    }
-  }
-
-  if (!mfValid && !dirValid) {
-    return false;
-  }
-
-  if (!mfValid) {
-    mf = dir + "/MANIFEST";
-    mfValid = is_runfiles_manifest(mf);
-    if (!mfValid) {
-      mf = dir + "_manifest";
-      mfValid = is_runfiles_manifest(mf);
-    }
-  }
-
-  if (!dirValid &&
-      (ends_with(mf, ".runfiles_manifest") || ends_with(mf, "/MANIFEST"))) {
-    static const size_t kSubstrLen = 9;  // "_manifest" or "/MANIFEST"
-    dir = mf.substr(0, mf.size() - kSubstrLen);
-    dirValid = is_runfiles_directory(dir);
-  }
-
-  if (mfValid) {
-    *out_manifest = mf;
-  }
-
-  if (dirValid) {
-    *out_directory = dir;
-  }
-
-  return true;
-}
-
-}  // namespace
-
 }  // namespace runfiles
 }  // namespace cc
 }  // namespace rules_cc
