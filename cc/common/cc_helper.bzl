@@ -1181,6 +1181,14 @@ def _has_target_constraints(ctx, constraints):
             return True
     return False
 
+def _get_link_staticness(ctx, cpp_config, force_linkstatic = False):
+    if cpp_config.dynamic_mode() == "FULLY":
+        return linker_mode.LINKING_DYNAMIC
+    elif cpp_config.dynamic_mode() == "OFF" or ctx.attr.linkstatic or force_linkstatic:
+        return linker_mode.LINKING_STATIC
+    else:
+        return linker_mode.LINKING_DYNAMIC
+
 def _should_create_test_dwp_for_statically_linked_test(is_test, linking_mode, cpp_config):
     return is_test and linking_mode != linker_mode.LINKING_DYNAMIC and cpp_config.build_test_dwp()
 
@@ -1237,6 +1245,7 @@ cc_helper = struct(
     should_stamp = _should_stamp,
     is_test_target = _is_test_target,
     get_linked_artifact = _get_linked_artifact,
+    get_link_staticness = _get_link_staticness,
     should_create_per_object_debug_info = should_create_per_object_debug_info,
     has_target_constraints = _has_target_constraints,
     package_exec_path = _package_exec_path,

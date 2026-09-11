@@ -231,6 +231,14 @@ dependency or make sure that the <code>exports_filter</code> doesn't catch this 
 Any additional files that you may want to pass to the linker, for example, linker scripts.
 You have to separately pass any linker flags that the linker needs in order to be aware
 of this file. You can do so via the <code>user_link_flags</code> attribute."""),
+        "linkstatic": attr.bool(default = True, doc = """
+Prefer static libraries for transitive dependencies and the toolchain's C++ runtimes.
+If False, prefer dynamic libraries when available. Direct <code>deps</code> are still
+linked statically, and <code>dynamic_deps</code> are still linked dynamically.
+
+<p>The <code>--dynamic_mode</code> flag overrides this attribute in the same way as
+for <code>cc_binary</code>: <code>fully</code> selects dynamic linking and
+<code>off</code> selects static linking.</p>"""),
         "shared_lib_name": attr.string(doc = """
 By default cc_shared_library will use a name for the shared library output file based on
 the target's name and the platform. This includes an extension and sometimes a prefix.
