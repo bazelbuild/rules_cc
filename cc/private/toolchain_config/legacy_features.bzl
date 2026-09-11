@@ -971,6 +971,11 @@ def get_legacy_features(ctx, platform, existing_feature_names, linker_tool_path)
             )],
         ))
 
+    if "coverage_enabled" not in existing_feature_names:
+        result.append(feature(name = "coverage_enabled"))
+    if "coverage_instrumented" not in existing_feature_names:
+        result.append(feature(name = "coverage_instrumented"))
+
     if "coverage" not in existing_feature_names:
         result.extend([
             feature(name = "coverage"),

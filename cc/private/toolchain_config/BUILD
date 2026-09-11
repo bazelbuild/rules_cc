@@ -22,6 +22,7 @@ bzl_library(
         "//cc:action_names_bzl",
         "//cc:cc_toolchain_config_lib_bzl",
         "//cc/common:semantics_bzl",
+        "//cc/private:cc_info_bzl",
         "//cc/private:cc_internal_bzl",
         "@bazel_skylib//lib:paths",
     ],
