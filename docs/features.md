@@ -179,6 +179,17 @@ and commonly correlates with the `-dead_strip` linker flag.
 
 This feature should be off by default.
 
+### `disable_repo_root_include_path`
+
+Prevents `rules_cc` from implicitly adding the repository source root
+to the include search paths. This removes the `.` quote include path for
+the main repository and the corresponding repository-root include path
+propagated from external repositories. Generated include roots and
+explicit include paths are unaffected.
+
+This feature takes effect even if the toolchain doesn't define it. It
+should be off by default and requested by users when needed.
+
 ### `disable_whole_archive_for_static_lib`
 
 Disable allowing `alwayslink = True` usage on a library.
