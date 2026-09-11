@@ -257,7 +257,7 @@ def _map_linkstamps_to_outputs(actions, linkstamps, output):
     """
     map = {}
 
-    stamp_output_dir = paths.join(paths.dirname(output.short_path), "_objs", output.basename)
+    stamp_output_dir = paths.join(paths.dirname(root_relative_path(output)), "_objs", output.basename)
     linkstamps = set(linkstamps)
     seen_linkstamp_sources = set()
     for linkstamp in linkstamps:
@@ -267,7 +267,7 @@ def _map_linkstamps_to_outputs(actions, linkstamps, output):
         linkstamp_file = linkstamp.file()
         stamp_output_path = paths.join(
             stamp_output_dir,
-            paths.replace_extension(linkstamp_file.short_path, ".o"),
+            paths.replace_extension(root_relative_path(linkstamp_file), ".o"),
         )
         stamp_output_file = actions.declare_shareable_artifact(stamp_output_path)
         map[linkstamp] = stamp_output_file
