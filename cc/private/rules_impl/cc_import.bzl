@@ -174,6 +174,7 @@ def _cc_import_impl(ctx):
         cc_toolchain = cc_toolchain,
         compilation_contexts = compilation_contexts,
         public_hdrs = ctx.files.hdrs,
+        textual_hdrs = ctx.files.textual_hdrs,
         includes = cc_helper.system_include_dirs(ctx, additional_make_variable_substitutions),
         name = ctx.label.name,
         strip_include_prefix = ctx.attr.strip_include_prefix,
@@ -365,6 +366,17 @@ cc_import(
 The list of header files published by
 this precompiled library to be directly included by sources in dependent rules.""",
         ),
+        "textual_hdrs": attr.label_list(
+            allow_files = True,
+            flags = ["ORDER_INDEPENDENT", "DIRECT_COMPILE_TIME_INPUT"],
+            doc = """
+The list of header files published by
+this precompiled library to be textually included by sources in dependent rules.
+<p>This is the location for declaring header files that cannot be compiled on their own;
+ that is, they always need to be textually included by other source files to build valid
+ code.</p>
+""",
+        ),
         "static_library": attr.label(allow_single_file = [".a", ".lib"], doc = """
 A single precompiled static library.
 <p> Permitted file types:
@@ -454,7 +466,8 @@ file, list it in the <code>srcs</code>.
         "strip_include_prefix": attr.string(doc = """
 The prefix to strip from the paths of the headers of this rule.
 
-<p>When set, the headers in the <code>hdrs</code> attribute of this rule are accessible
+<p>When set, the headers in the <code>hdrs</code> and <code>textual_hdrs</code>
+attributes of this rule are accessible
 at their path with this prefix cut off.
 
 <p>If it's a relative path, it's taken as a package-relative one. If it's an absolute one,
