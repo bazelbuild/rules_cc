@@ -273,6 +273,16 @@ cc_action_type_set(
 )
 
 cc_action_type_set(
+    name = "source_compile_actions_without_assemble",
+    actions = [
+        ":source_compile_actions",
+    ],
+    excludes = [
+        ":assemble",
+    ],
+)
+
+cc_action_type_set(
     name = "cpp20_module_actions",
     actions = [
         ":cpp20_module_compile",
