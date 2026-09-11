@@ -385,7 +385,6 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     paths = resolve_labels(repository_ctx, [
         "@rules_cc//cc/private/toolchain:BUILD.tpl",
         "@rules_cc//cc/private/toolchain:generate_system_module_map.sh",
-        "@rules_cc//cc/private/toolchain:armeabi_cc_toolchain_config.bzl",
         "@rules_cc//cc/private/toolchain:unix_cc_toolchain_config.bzl",
         "@rules_cc//cc/private/toolchain:linux_cc_wrapper.sh.tpl",
         "@rules_cc//cc/private/toolchain:validate_static_library.sh.tpl",
@@ -397,11 +396,6 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     repository_ctx.symlink(
         paths["@rules_cc//cc/private/toolchain:unix_cc_toolchain_config.bzl"],
         "cc_toolchain_config.bzl",
-    )
-
-    repository_ctx.symlink(
-        paths["@rules_cc//cc/private/toolchain:armeabi_cc_toolchain_config.bzl"],
-        "armeabi_cc_toolchain_config.bzl",
     )
 
     repository_ctx.file("tools/cpp/empty.cc", "int main() {}")
