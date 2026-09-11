@@ -26,6 +26,7 @@ jobs:
   release:
     uses: bazel-contrib/.github/.github/workflows/release_ruleset.yaml@v7.2.3
     with:
+      bazel_test_command: echo "Already executed by step 'CI'"
       prerelease: false
       release_files: rules_cc-*.tar.gz
       tag_name: ${{ inputs.tag_name || github.ref_name }}
