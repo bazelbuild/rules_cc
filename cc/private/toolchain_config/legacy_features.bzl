@@ -465,26 +465,6 @@ def get_legacy_features(ctx, platform, existing_feature_names, linker_tool_path)
             )],
         ))
 
-    if "linkstamps" not in existing_feature_names:
-        result.append(feature(
-            name = "linkstamps",
-            flag_sets = [flag_set(
-                actions = [
-                    ACTION_NAMES.cpp_link_dynamic_library,
-                    ACTION_NAMES.cpp_link_executable,
-                    ACTION_NAMES.cpp_link_nodeps_dynamic_library,
-                    ACTION_NAMES.lto_index_for_dynamic_library,
-                    ACTION_NAMES.lto_index_for_executable,
-                    ACTION_NAMES.lto_index_for_nodeps_dynamic_library,
-                ],
-                flag_groups = [flag_group(
-                    expand_if_available = "linkstamp_paths",
-                    iterate_over = "linkstamp_paths",
-                    flags = ["%{linkstamp_paths}"],
-                )],
-            )],
-        ))
-
     if "output_execpath_flags" not in existing_feature_names:
         result.append(feature(
             name = "output_execpath_flags",
@@ -1307,7 +1287,6 @@ def get_legacy_action_configs(
                 tools = [tool(path = gcc_tool_path)],
                 implies = [
                     "strip_debug_symbols",
-                    "linkstamps",
                     "output_execpath_flags",
                     "runtime_library_search_directories",
                     "library_search_directories",
@@ -1336,7 +1315,6 @@ def get_legacy_action_configs(
                     "dynamic_library_linker_tool",
                     "strip_debug_symbols",
                     "shared_flag",
-                    "linkstamps",
                     "output_execpath_flags",
                     "runtime_library_search_directories",
                     "library_search_directories",
