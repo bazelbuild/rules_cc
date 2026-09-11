@@ -353,6 +353,9 @@ def _create_action(
     for req in _cc_common_internal.get_execution_requirements(feature_configuration = feature_configuration, action_name = action_name):
         execution_info[req] = ""
 
+    if mnemonic == "CppArchive":
+        execution_info["supports-path-mapping"] = ""
+
     # At the moment we do not believe that LTO builds are sufficiently cacheable or sufficiently
     # frequent to invest time in path mapping.
     # CppLink does significantly different work for LTO and non-LTO builds and there is an argument
