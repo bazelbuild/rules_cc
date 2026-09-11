@@ -17,7 +17,7 @@
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("//cc:find_cc_toolchain.bzl", "find_cc_toolchain")
 load("//cc/common:cc_common.bzl", "cc_common")
-load("//cc/common:cc_helper.bzl", "cc_helper")
+load("//cc/common:cc_helper.bzl", "cc_helper", "linker_mode")
 load("//cc/common:cc_info.bzl", "CcInfo")
 load("//cc/common:cc_shared_library_info.bzl", "CcSharedLibraryInfo")
 load("//cc/common:semantics.bzl", "semantics")
@@ -613,10 +613,11 @@ def _cc_shared_library_impl(ctx):
     deps = _get_deps(ctx)
 
     cc_toolchain = find_cc_toolchain(ctx)
+    linking_mode = cc_helper.get_link_staticness(ctx, ctx.fragments.cpp)
     feature_configuration = cc_common.configure_features(
         ctx = ctx,
         cc_toolchain = cc_toolchain,
-        requested_features = ctx.features + ["force_no_whole_archive"],
+        requested_features = ctx.features + ["force_no_whole_archive", linking_mode],
         unsupported_features = ctx.disabled_features,
     )
 
@@ -716,11 +717,19 @@ def _cc_shared_library_impl(ctx):
         name = ctx.label.name,
         output_type = "dynamic_library",
         main_output = main_output,
+        link_deps_statically = linking_mode == linker_mode.LINKING_STATIC,
         variables_extension = link_variables,
         additional_outputs = additional_outputs,
     )
 
     runfiles_files = []
+    if linking_mode == linker_mode.LINKING_DYNAMIC:
+        runfiles_files.extend(cc_toolchain.dynamic_runtime_lib(feature_configuration = feature_configuration).to_list())
+        for context in [linking_context] + runtimes_linking_contexts:
+            runfiles_files.extend(cc_helper.get_dynamic_libraries_for_runtime(
+                context,
+                linking_statically = not cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "supports_dynamic_linker"),
+            ))
     if linking_outputs.library_to_link.resolved_symlink_dynamic_library != None:
         runfiles_files.append(linking_outputs.library_to_link.resolved_symlink_dynamic_library)
 

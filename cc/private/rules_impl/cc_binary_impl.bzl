@@ -419,14 +419,6 @@ def _collect_linking_context(ctx):
     cc_infos = _get_providers(ctx)
     return cc_common.merge_cc_infos(direct_cc_infos = cc_infos, cc_infos = cc_infos).linking_context
 
-def _get_link_staticness(ctx, cpp_config, force_linkstatic, _is_dbg_build):
-    if cpp_config.dynamic_mode() == "FULLY":
-        return linker_mode.LINKING_DYNAMIC
-    elif cpp_config.dynamic_mode() == "OFF" or ctx.attr.linkstatic or force_linkstatic:
-        return linker_mode.LINKING_STATIC
-    else:
-        return linker_mode.LINKING_DYNAMIC
-
 def _is_link_shared(ctx):
     return hasattr(ctx.attr, "linkshared") and ctx.attr.linkshared
 
@@ -479,7 +471,6 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
     target_name = ctx.label.name
     has_legacy_link_shared_name = _is_link_shared(ctx) and cc_helper.is_valid_shared_library_name(target_name)
     binary = None
-    is_dbg_build = (cc_toolchain._cpp_configuration.compilation_mode() == "dbg")
     if has_legacy_link_shared_name:
         binary = ctx.actions.declare_file(target_name)
     else:
@@ -488,11 +479,10 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
             cc_toolchain = cc_toolchain,
             linked_artifact_category = linked_artifact_category,
         )
-    linking_mode = _get_link_staticness(
+    linking_mode = cc_helper.get_link_staticness(
         ctx,
         cpp_config,
         force_linkstatic,
-        is_dbg_build,
     )
     features = ctx.features
     features.append(linking_mode)
