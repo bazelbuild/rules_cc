@@ -19,6 +19,7 @@ load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
     "//cc/common:cc_helper_internal.bzl",
     "root_relative_path",
+    "validate_variables_extension",
     "wrap_with_check_private_api",
     _use_pic_for_binaries = "use_pic_for_binaries",
     _use_pic_for_dynamic_libs = "use_pic_for_dynamic_libs",
@@ -150,6 +151,7 @@ def create_cc_link_actions(
     if not compilation_outputs:
         compilation_outputs = EMPTY_COMPILATION_OUTPUTS
     linkopts = list(linkopts)
+    variables_extension = validate_variables_extension(variables_extension)
 
     cpp_config = cc_toolchain._cpp_configuration
     use_pic_for_binaries = _use_pic_for_binaries(cpp_config, feature_configuration)
