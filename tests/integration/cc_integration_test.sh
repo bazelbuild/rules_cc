@@ -2415,6 +2415,11 @@ EOF
 function test_external_repo_lto() {
   type -P clang || return 0
   is_bazel || return 0
+
+  if ! linker_supports_start_end_lib clang; then
+    echo "Linker does not support --start-lib/--end-lib. Skipping test."
+    return 0
+  fi
   
   REPO_PATH=$TEST_TMPDIR/repo
   mkdir -p "$REPO_PATH"
