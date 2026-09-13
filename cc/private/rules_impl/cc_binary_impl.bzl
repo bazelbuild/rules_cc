@@ -816,7 +816,10 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
         dwp_file = explicit_dwp_file,
         dwo_files = dwo_files,
     )
-    binary_info = struct(
+
+    # cc_test needs the executable and runfiles to construct its own DefaultInfo.
+    info_constructor = struct if ctx.attr._is_test else DefaultInfo
+    binary_info = info_constructor(
         files = files_to_build,
         runfiles = runfiles,
         executable = binary,
@@ -847,14 +850,7 @@ ALLOWED_SRC_FILES.extend(cc_helper.extensions.PIC_OBJECT_FILE)
 
 def _impl(ctx):
     binary_info, providers = cc_binary_impl(ctx, [])
-
-    # We construct DefaultInfo here, as other cc_binary-like rules (cc_test) need
-    # a different DefaultInfo.
-    providers.append(DefaultInfo(
-        files = binary_info.files,
-        runfiles = binary_info.runfiles,
-        executable = binary_info.executable,
-    ))
+    providers.append(binary_info)
 
     # We construct RunEnvironmentInfo here as well.
     providers.append(RunEnvironmentInfo(
