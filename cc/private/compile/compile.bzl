@@ -872,8 +872,12 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
     all_module_files = depset(direct_module_files, transitive = [transitive_module_files])
     for cpp_source in compilation_unit_sources.values():
         source_artifact = cpp_source.file
-        output_name = output_name_map[source_artifact]
+        source_type = cpp_source.type
         source_label = cpp_source.label
+        if not _cc_internal.is_tree_artifact(source_artifact) and source_type == CPP_SOURCE_TYPE_HEADER:
+            continue
+
+        output_name = output_name_map[source_artifact]
         bitcode_output = feature_configuration.is_enabled("thin_lto") and (("." + source_artifact.extension) in LTO_SOURCE_EXTENSIONS)
 
         if use_pic:
