@@ -24,7 +24,15 @@ def _has_any_target_constraint(ctx, constraints):
             return True
     return False
 
-def _default_test_runner_func(ctx, default_info, processed_environment):
+def _default_test_runner_func(ctx, binary_info, processed_environment):
+    default_info = binary_info
+    if type(binary_info) == "struct":
+        # Bazel 7 and 8 builtins pass the struct from their cc_binary_impl.
+        default_info = DefaultInfo(
+            executable = binary_info.executable,
+            files = binary_info.files,
+            runfiles = binary_info.runfiles,
+        )
     providers = [
         default_info,
         RunEnvironmentInfo(
