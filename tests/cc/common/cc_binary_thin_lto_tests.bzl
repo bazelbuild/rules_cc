@@ -28,6 +28,58 @@ def cc_test(name, **kwargs):
         **kwargs
     )
 
+def _tree_cpp_sources_impl(ctx):
+    sources = ctx.actions.declare_directory(ctx.label.name + ".cc")
+    args = ctx.actions.args()
+    args.add_all([sources], expand_directories = False)
+    ctx.actions.run_shell(
+        outputs = [sources],
+        arguments = [args],
+        command = "mkdir -p \"$1\" && printf '%s\\n' 'int main() { return 0; }' > \"$1/source.cc\"",
+    )
+    return [DefaultInfo(files = depset([sources]))]
+
+_tree_cpp_sources = rule(implementation = _tree_cpp_sources_impl)
+
+def _test_thin_lto_tree_artifact_action_templates(name, **kwargs):
+    util.helper_target(
+        _tree_cpp_sources,
+        name = name + "/sources",
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = [":" + name + "/sources"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_thin_lto_tree_artifact_action_templates_impl,
+        target = name + "/bin",
+        test_features = ["thin_lto", "supports_pic", "supports_start_end_lib", "use_lto_native_object_directory"],
+        **kwargs
+    )
+
+def _test_thin_lto_tree_artifact_action_templates_impl(env, target):
+    # Native action templates are not exposed by TestingAspectInfo; their output
+    # directories are consumed by the indexing and final link actions.
+    target_subject = env.expect.that_target(target)
+    indexing = target_subject.action_named("CppLTOIndexing").actual
+    link = target_subject.action_named("CppLink").actual
+
+    bitcode_dirs = [
+        file.short_path
+        for file in indexing.inputs.to_list()
+        if file.is_directory and ("/_objs/" in file.short_path or "/_pic_objs/" in file.short_path)
+    ]
+    index_dirs = [file.short_path for file in indexing.outputs.to_list() if file.is_directory]
+    object_dirs = [file.short_path for file in link.inputs.to_list() if file.is_directory]
+    env.expect.that_collection(bitcode_dirs).has_size(1)
+    if bitcode_dirs:
+        env.expect.that_collection(index_dirs).contains_predicate(matching.str_endswith(bitcode_dirs[0]))
+        env.expect.that_collection(object_dirs).contains_predicate(matching.str_endswith(bitcode_dirs[0]))
+        env.expect.that_collection(index_dirs).contains_predicate(matching.contains(target.label.name + ".lto/"))
+        env.expect.that_collection(object_dirs).contains_predicate(matching.contains(target.label.name + ".lto-obj/"))
+
 def _test_thin_lto_action_graph(name, **kwargs):
     util.helper_target(
         cc_library,
@@ -1487,6 +1539,7 @@ def cc_binary_thin_lto_tests(name):
 
     # These tests fail on Bazel 7 and 8, run only for Bazel 9+.
     if bazel_features.cc.cc_common_is_in_rules_cc:
+        tests.append(_test_thin_lto_tree_artifact_action_templates)
         tests.append(_test_thin_lto_linkshared)
         tests.append(_test_thin_lto_backend_env)
         tests.append(_test_linkstatic_cc_test)

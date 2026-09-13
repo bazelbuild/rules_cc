@@ -183,9 +183,15 @@ def create_compile_variables(
         additional_build_variables = additional_build_variables,
         user_compile_flags = user_compile_flags or [],
     )
-    duplicate_variables = sorted([key for key in variables if key in common_vars])
+
+    # CcToolchainVariables.Builder allows children to override their parent and
+    # rejects duplicates only between children. This is the only compile/ThinLTO
+    # merge with two children (common_vars and variables); the others have one
+    # child and use parent | child. Native MapVariables visits child keys in
+    # sorted order, which also determines the order in the duplicate diagnostic.
+    duplicate_variables = [key for key in variables if key in common_vars]
     if duplicate_variables:
-        fail("Cannot overwrite existing variables: [" + ", ".join(duplicate_variables) + "]")
+        fail("Cannot overwrite existing variables: [" + ", ".join(sorted(duplicate_variables)) + "]")
     return _cc_internal.cc_toolchain_variables(
         vars = cc_toolchain._build_variables_dict | common_vars | variables,
     )
@@ -256,7 +262,10 @@ def _setup_common_compile_build_variables_internal(
     result[_VARS.PREPROCESSOR_DEFINES] = _cc_internal.intern_string_sequence_variable_value(all_defines)
     result = result | additional_build_variables
 
+    has_non_string_key = False
     for key, value in variables_extension.items():
+        if type(key) != "string":
+            has_non_string_key = True
         if type(value) == type([]):
             result[key] = _cc_internal.intern_string_sequence_variable_value(value)
         elif type(value) == type(""):
@@ -271,6 +280,9 @@ def _setup_common_compile_build_variables_internal(
 
     if external_include_dirs:
         result[_VARS.EXTERNAL_INCLUDE_PATHS] = external_include_dirs
+    if has_non_string_key:
+        # Preserve the native error even when cc_common.compile creates no actions.
+        _cc_internal.cc_toolchain_variables(vars = result)
     return result
 
 # Note: this method is side-effect free, callers should add fdo inputs to

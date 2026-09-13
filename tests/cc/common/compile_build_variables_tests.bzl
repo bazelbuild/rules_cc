@@ -43,6 +43,66 @@ _compile_variables_test_rule = rule(
     toolchains = use_cc_toolchain(),
 )
 
+def _compile_action_variables_test_rule_impl(ctx):
+    cc_toolchain = find_cpp_toolchain(ctx)
+    feature_configuration = cc_common.configure_features(
+        ctx = ctx,
+        cc_toolchain = cc_toolchain,
+        requested_features = ["debug_variables"],
+    )
+    _, compilation_outputs = cc_common.compile(
+        actions = ctx.actions,
+        feature_configuration = feature_configuration,
+        cc_toolchain = cc_toolchain,
+        name = ctx.label.name,
+        srcs = ctx.files.srcs,
+        disallow_pic_outputs = True,
+        user_compile_flags = ["-action-flag"],
+        variables_extension = {
+            "source_file": "extension.cc",
+            "output_file": "extension.o",
+            "user_compile_flags": ["-extension-flag"],
+            "sysroot": "/extension/sysroot",
+        },
+    )
+    return [DefaultInfo(files = depset(compilation_outputs.objects))]
+
+_compile_action_variables_test_rule = rule(
+    implementation = _compile_action_variables_test_rule_impl,
+    attrs = CC_TOOLCHAIN_ATTRS | {"srcs": attr.label_list(allow_files = True)},
+    fragments = ["cpp"],
+    toolchains = use_cc_toolchain(),
+)
+
+def _invalid_compile_variable_key_test_rule_impl(ctx):
+    cc_toolchain = find_cpp_toolchain(ctx)
+    feature_configuration = cc_common.configure_features(ctx = ctx, cc_toolchain = cc_toolchain)
+    variables_extension = {1: "invalid key"}
+    if ctx.attr.create_compile_variables:
+        variables_extension["source_file"] = "duplicate source"
+        cc_common.create_compile_variables(
+            cc_toolchain = cc_toolchain,
+            feature_configuration = feature_configuration,
+            source_file = "test.cc",
+            variables_extension = variables_extension,
+        )
+    else:
+        cc_common.compile(
+            actions = ctx.actions,
+            cc_toolchain = cc_toolchain,
+            feature_configuration = feature_configuration,
+            name = ctx.label.name,
+            variables_extension = variables_extension,
+        )
+    return []
+
+_invalid_compile_variable_key_test_rule = rule(
+    implementation = _invalid_compile_variable_key_test_rule_impl,
+    attrs = CC_TOOLCHAIN_ATTRS | {"create_compile_variables": attr.bool()},
+    fragments = ["cpp"],
+    toolchains = use_cc_toolchain(),
+)
+
 # Wrap cc_binary to mock out common dependencies.
 def cc_binary(name, **kwargs):
     if "malloc" not in kwargs:
@@ -313,6 +373,64 @@ def _test_compile_variables_extension_rejects_duplicate_variables_impl(env, targ
         ),
     )
 
+def _test_compile_action_variables_override_common_variables(name, **kwargs):
+    util.helper_target(
+        _compile_action_variables_test_rule,
+        name = name + "/compile",
+        srcs = ["bin.cc"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_compile_action_variables_override_common_variables_impl,
+        target = name + "/compile",
+        **kwargs
+    )
+
+def _test_compile_action_variables_override_common_variables_impl(env, target):
+    action = env.expect.that_target(target).action_named("CppCompile")
+    _variable(action, "source_file").equals(target.label.package + "/bin.cc")
+    _variable_list(action, "output_file").contains_exactly_predicates([matching.str_endswith("/bin.o")])
+    flags = _variable_list(action, "user_compile_flags")
+    flags.contains("-action-flag")
+    flags.not_contains("-extension-flag")
+    _variable(action, "sysroot").equals("/extension/sysroot")
+
+def _test_compile_without_sources_rejects_non_string_variable_key(name, **kwargs):
+    util.helper_target(
+        _invalid_compile_variable_key_test_rule,
+        name = name + "/compile",
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_rejects_non_string_variable_key_impl,
+        target = name + "/compile",
+        expect_failure = True,
+        **kwargs
+    )
+
+def _test_compile_variables_checks_non_string_key_before_duplicates(name, **kwargs):
+    util.helper_target(
+        _invalid_compile_variable_key_test_rule,
+        name = name + "/variables",
+        create_compile_variables = True,
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_rejects_non_string_variable_key_impl,
+        target = name + "/variables",
+        expect_failure = True,
+        **kwargs
+    )
+
+def _test_rejects_non_string_variable_key_impl(env, target):
+    expected_error = "got dict<int, string> for 'vars', want dict<string, unknown>"
+    env.expect.that_target(target).failures().contains_predicate(
+        matching.custom(
+            "contains '%s'" % expected_error,
+            lambda actual: expected_error in actual,
+        ),
+    )
+
 def _test_target_sysroot_without_platforms(name, **kwargs):
     util.helper_target(
         cc_binary,
@@ -490,6 +608,9 @@ def compile_build_variables_tests(name):
         tests.extend([
             _test_compile_variables_extension_overrides_toolchain_variable,
             _test_compile_variables_extension_rejects_duplicate_variables,
+            _test_compile_action_variables_override_common_variables,
+            _test_compile_without_sources_rejects_non_string_variable_key,
+            _test_compile_variables_checks_non_string_key_before_duplicates,
         ])
     test_suite(
         name = name,
