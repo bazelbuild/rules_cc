@@ -60,14 +60,20 @@ def _impl(ctx):
         # This is the "legacy" cc_test flow
         return _legacy_cc_test_impl(ctx)
 
-    binary_info, providers = cc_binary_impl(ctx, cc_test_info.linkopts, cc_test_info.linkstatic)
+    get_runner = cc_test_info.get_runner
+    runner_info, providers = cc_binary_impl(
+        ctx,
+        cc_test_info.linkopts,
+        cc_test_info.linkstatic,
+        return_default_info = getattr(get_runner, "accepts_default_info", False),
+    )
     processed_environment = cc_helper.get_expanded_env(ctx, {})
 
-    test_providers = cc_test_info.get_runner.func(
+    test_providers = get_runner.func(
         ctx,
-        binary_info,
+        runner_info,
         processed_environment = processed_environment,
-        **cc_test_info.get_runner.args
+        **get_runner.args
     )
     providers.extend(test_providers)
     return providers

@@ -24,13 +24,9 @@ def _has_any_target_constraint(ctx, constraints):
             return True
     return False
 
-def _default_test_runner_func(ctx, binary_info, processed_environment):
+def _default_test_runner_func(ctx, default_info, processed_environment):
     providers = [
-        DefaultInfo(
-            executable = binary_info.executable,
-            files = binary_info.files,
-            runfiles = binary_info.runfiles,
-        ),
+        default_info,
         RunEnvironmentInfo(
             environment = processed_environment,
             inherited_environment = ctx.attr.env_inherit,
@@ -48,6 +44,7 @@ def _default_test_runner_impl(_ctx):
         platform_common.ToolchainInfo(
             cc_test_info = struct(
                 get_runner = struct(
+                    accepts_default_info = True,
                     args = {},
                     func = _default_test_runner_func,
                 ),
