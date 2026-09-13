@@ -54,15 +54,21 @@ def create_extra_link_time_library(*, build_library_func, **kwargs):
     Any implementations must be immutable (and therefore thread-safe), because this is passed
     between rules and accessed in a multi-threaded context.
 
+    The callback is part of the key used to merge inputs from dependencies. Pass rule-specific
+    values through kwargs so dependencies can reuse the same callback.
+
     Args:
-      build_library_func: A function that takes a rule context, static_mode, for_dynamic_library,
-        and kwargs, and returns a tuple of (linker_input, runtime_library): `tuple[LinkerInputInfo,
-        File]`.
+      build_library_func: A top-level Starlark function that takes a rule context, static_mode,
+        for_dynamic_library, and kwargs. It returns a struct with linker_input (a depset of linker
+        inputs), runtime_library (a depset of files), and optional additional_stamp_info. The
+        top-level requirement is checked when the library is built.
       **kwargs: Additional fields to pass to the build function.
 
     Returns:
       ExtraLinkTimeLibraryInfo.
     """
+    if type(build_library_func) != "function":
+        fail("build_library_func must be a Starlark function, got %s" % type(build_library_func))
     return ExtraLinkTimeLibraryInfo(
         build_library_func = build_library_func,
         # Key to identify the "class" of a StarlarkDefinedLinkTimeLibrary. Uses the build function and
@@ -169,6 +175,11 @@ def build_libraries(extra_libraries, ctx, static_mode, for_dynamic_library):
     transitive_runtime_libraries = []
     additional_stamp_infos = []
     for library in extra_libraries:
+        # Merging uses build_library_func as part of the key, so require a
+        # top-level def with the same identity across dependency analysis.
+        # Args.add_all normally uses this check to keep closures out of execution;
+        # here an empty, discarded Args validates the function without invoking it
+        # or registering an action. We call build_library_func below during analysis.
         ctx.actions.args().add_all([], map_each = library.build_library_func)
         kwargs = {}
         for key in dir(library):
