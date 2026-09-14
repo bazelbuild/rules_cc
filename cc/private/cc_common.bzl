@@ -486,7 +486,6 @@ def _compile(
         additional_module_maps = _UNBOUND,
         propagate_module_map_to_compile_action = _UNBOUND,
         do_not_generate_module_map = _UNBOUND,
-        code_coverage_enabled = _UNBOUND,
         hdrs_checking_mode = _UNBOUND,
         variables_extension = {},
         language = None,
@@ -499,7 +498,6 @@ def _compile(
        additional_exported_hdrs != _UNBOUND or \
        propagate_module_map_to_compile_action != _UNBOUND or \
        do_not_generate_module_map != _UNBOUND or \
-       code_coverage_enabled != _UNBOUND or \
        purpose != _UNBOUND or \
        hdrs_checking_mode != _UNBOUND or \
        implementation_compilation_contexts != _UNBOUND or \
@@ -516,8 +514,6 @@ def _compile(
         additional_exported_hdrs = []
     if do_not_generate_module_map == _UNBOUND:
         do_not_generate_module_map = False
-    if code_coverage_enabled == _UNBOUND:
-        code_coverage_enabled = False
     if purpose == _UNBOUND:
         purpose = None
     if hdrs_checking_mode == _UNBOUND:
@@ -567,7 +563,6 @@ def _compile(
         module_map = module_map,
         additional_module_maps = additional_module_maps,
         do_not_generate_module_map = do_not_generate_module_map,
-        code_coverage_enabled = code_coverage_enabled,
         hdrs_checking_mode = hdrs_checking_mode,
         variables_extension = variables_extension,
         language = language,

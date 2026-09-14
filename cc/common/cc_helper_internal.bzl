@@ -142,7 +142,10 @@ def get_linkstamp_stamps(
     )
     stamps = {
         "GPLATFORM": cc_toolchain.toolchain_id,
-        "BUILD_COVERAGE_ENABLED": "1" if feature_configuration.is_enabled("coverage") else "0",
+        # Requested by cc_common.configure_features if coverage is generally enabled. This is
+        # checked instead of the feature being enabled so that the define is also correct for
+        # toolchains that don't define the feature.
+        "BUILD_COVERAGE_ENABLED": "1" if feature_configuration.is_requested("coverage_enabled") else "0",
         # G3_TARGET_NAME is a C string literal that normally contain the label of the target
         # being linked.  However, they are set differently when using shared native deps. In
         # that case, a single .so file is shared by multiple targets, and its contents cannot
