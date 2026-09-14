@@ -93,6 +93,35 @@ def get_cc_runtimes_copts(ctx):
     cc_runtimes_toolchain = ctx.toolchains[CC_RUNTIMES_TOOLCHAIN_TYPE]
     return cc_runtimes_toolchain.cc_runtimes_info.copts if cc_runtimes_toolchain else []
 
+def validate_variables_extension(variables_extension):
+    """Validates a user-provided variables_extension and normalizes its values.
+
+    Build variable values are stored as opaque objects and are only converted when the toolchain
+    expands them, so unsupported types have to be rejected here, next to the API call that supplied
+    them.
+
+    Args:
+      variables_extension: (dict[str, str|list[str]|depset[str]]) Additional variables as passed to
+        a public cc_common API.
+
+    Returns:
+      A dict of build variables with string sequences interned.
+    """
+    result = {}
+    for key, value in variables_extension.items():
+        if type(value) == type([]):
+            result[key] = _cc_internal.intern_string_sequence_variable_value(value)
+        elif type(value) == type(""):
+            result[key] = value
+        elif type(value) == type(depset()):
+            for e in value.to_list():
+                if type(e) != type(""):
+                    fail("for string_sequence_variables_extension, got element of type " + type(e) + ", want string")
+            result[key] = value
+        else:
+            fail("for variable extension key:" + key + ", got element of type " + type(value) + ", want string")
+    return result
+
 def get_fdo_build_stamp(cpp_configuration, fdo_context, feature_configuration):
     """Returns the FDO build stamp.
 
