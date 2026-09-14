@@ -1147,6 +1147,7 @@ def _create_cc_instrumented_files_info(ctx, cc_config, cc_toolchain, feature_con
     info = coverage_common.instrumented_files_info(
         ctx = ctx,
         source_attributes = ["srcs", "hdrs"],
+        unfiltered_source_attributes = ["module_interfaces"],
         dependency_attributes = ["implementation_deps", "deps", "data"],
         extensions = source_extensions,
         metadata_files = metadata_files,
