@@ -16,7 +16,7 @@ def _new_cc_info_subject(cc_info, meta):
         ),
         linking_context = lambda: _new_cc_info_linking_context_subject(self.actual, self.meta),
         native_libraries = lambda: subjects.collection(
-            testutil.cc_info_transitive_native_libraries(self.actual),
+            testutil.cc_info_transitive_native_libraries(self.actual).to_list(),
             self.meta.derive("transitive_native_libraries()"),
         ),
     )

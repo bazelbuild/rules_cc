@@ -11,6 +11,7 @@ load("//cc:cc_library.bzl", "cc_library")
 load("//cc:cc_test.bzl", _actual_cc_test = "cc_test")
 load("//tests/cc/testutil:cc_analysis_test.bzl", "MOCK_TOOLCHAINS", "cc_analysis_test")
 load("//tests/cc/testutil:cc_binary_target_subject.bzl", "cc_binary_target_subject")
+load("//tests/cc/testutil:cc_info_subject.bzl", "cc_info_subject")
 load("//tests/cc/testutil:link_action_subject.bzl", "link_action_subject")
 load(
     "//tests/cc/testutil:mock_rules.bzl",
@@ -1711,6 +1712,29 @@ def _test_link_shared_does_not_have_to_provide_extension_impl(env, target):
     executable = target[DefaultInfo].files_to_run.executable
     env.expect.that_str(executable.basename).equals("libfoo.so")
 
+# Regression test: the "copy_dynamic_libraries_to_binary" feature clobbered the libraries returned
+# in the CcInfo provider, so a cc_binary(linkshared = True) advertised no library at all.
+def _test_link_shared_reports_library_with_copied_dynamic_libraries(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/foo",
+        srcs = ["foo.cc"],
+        linkshared = True,
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _link_shared_reports_library_impl,
+        target = name + "/foo",
+        test_features = [FEATURE_NAMES.copy_dynamic_libraries_to_binary],
+        **kwargs
+    )
+
+def _link_shared_reports_library_impl(env, target):
+    cc_info_subject.from_target(env, target).native_libraries().transform(
+        desc = "dynamic_library basename",
+        map_each = lambda library: library.dynamic_library.basename,
+    ).contains_exactly(["libfoo.so"])
+
 def _test_pdb_files(name, **kwargs):
     util.helper_target(
         cc_binary,
@@ -2007,6 +2031,7 @@ def cc_binary_configured_target_tests(name):
             _test_system_include_paths_reclassifies_local_includes_without_propagation,
             _test_generated_def_file_uses_toolchain_action,  # copybara-uncomment-this-please
             _test_generated_def_file_uses_default_tool,  # copybara-uncomment-this-please
+            _test_link_shared_reports_library_with_copied_dynamic_libraries,
             _test_linker_toolchain_feature,
             _test_link_staticness_binary_static_dynamic_mode_default,
             _test_link_staticness_hello_test_dynamic_mode_default,
