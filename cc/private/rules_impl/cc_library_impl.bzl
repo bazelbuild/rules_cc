@@ -46,7 +46,6 @@ def _cc_library_impl(ctx):
     semantics.validate_attributes(ctx)
     _check_no_repeated_srcs(ctx)
 
-    semantics.check_can_use_implementation_deps(ctx)
     interface_deps = ctx.attr.deps + cc_helper.get_cc_runtimes(ctx, True)
     runtimes_copts = cc_helper.get_cc_runtimes_copts(ctx)
     compilation_contexts = cc_helper.get_compilation_contexts_from_deps(interface_deps)

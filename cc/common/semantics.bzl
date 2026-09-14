@@ -103,9 +103,6 @@ def _get_coverage_env(ctx):
 def _get_implementation_deps_allowed_attr():
     return {}
 
-def _check_can_use_implementation_deps(_):
-    return True
-
 _WINDOWS_PLATFORM = Label("@platforms//os:windows")  # Resolve the label within builtins context
 
 def _get_linkstatic_default_for_test():
@@ -182,7 +179,6 @@ semantics = struct(
     get_stl = _get_stl,
     get_grep_includes = _get_grep_includes,
     get_implementation_deps_allowed_attr = _get_implementation_deps_allowed_attr,
-    check_can_use_implementation_deps = _check_can_use_implementation_deps,
     get_linkstatic_default_for_test = _get_linkstatic_default_for_test,
     get_cc_link_memlimit = _get_cc_link_memlimit,
     get_runtimes_toolchain = _get_runtimes_toolchain,
