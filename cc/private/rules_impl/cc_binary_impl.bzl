@@ -732,10 +732,10 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
     copied_runtime_dynamic_libraries = None
     if feature_configuration.is_enabled(feature_names.COPY_DYNAMIC_LIBRARIES_TO_BINARY):
         linker_inputs = deps_cc_linking_context.linker_inputs.to_list()
-        libraries = []
+        dep_libraries = []
         for linker_input in linker_inputs:
-            libraries.extend(linker_input.libraries)
-        copied_runtime_dynamic_libraries = _create_dynamic_libraries_copy_actions(ctx, binary, _get_dynamic_libraries_for_runtime(is_static_mode, libraries))
+            dep_libraries.extend(linker_input.libraries)
+        copied_runtime_dynamic_libraries = _create_dynamic_libraries_copy_actions(ctx, binary, _get_dynamic_libraries_for_runtime(is_static_mode, dep_libraries))
 
     # TODO(b/198254254)(bazel-team): Do we need to put original shared libraries (along with
     # mangled symlinks) into the RunfilesSupport object? It does not seem
