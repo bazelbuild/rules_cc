@@ -52,9 +52,6 @@ def _strip_extension(file):
         return file.basename
     return file.basename[:-(1 + len(file.extension))]
 
-def _get_non_data_deps(ctx):
-    return ctx.attr.srcs + ctx.attr.deps
-
 def _runfiles_function(dep, linking_statically):
     provider = None
     if CcInfo in dep:
@@ -73,14 +70,13 @@ def _default_runfiles_function(ctx, dep):
 
     return provider
 
-def _add(ctx, linking_statically):
-    runfiles = []
-    for dep in _get_non_data_deps(ctx):
-        provider = None
-        if CcInfo in dep:
-            provider = dep[CcInfo]
-        if provider != None:
-            runfiles.extend(cc_helper.get_dynamic_libraries_for_runtime(provider.linking_context, linking_statically))
+def _collect_runtime_libraries(ctx, linking_context, linking_statically):
+    # Use the final linking context so libraries replaced by dynamic_deps do not
+    # contribute unused shared objects to runfiles or coverage inputs.
+    runfiles = cc_helper.get_dynamic_libraries_for_runtime(linking_context, linking_statically)
+    for src in ctx.attr.srcs:
+        if CcInfo in src:
+            runfiles.extend(cc_helper.get_dynamic_libraries_for_runtime(src[CcInfo].linking_context, linking_statically))
     return depset(runfiles)
 
 def _get_file_content(objects):
@@ -132,16 +128,16 @@ def _add_transitive_info_providers(ctx, cc_toolchain, cpp_config, feature_config
     output_groups["_validation"] = compilation_context.validation_artifacts
     return (cc_info, instrumented_files_provider, output_groups)
 
-def _collect_runfiles(ctx, feature_configuration, cc_toolchain, libraries, cc_library_linking_outputs, linking_mode, transitive_artifacts, link_compile_output_separately):
+def _collect_runfiles(ctx, feature_configuration, cc_toolchain, linking_context, libraries, cc_library_linking_outputs, linking_mode, transitive_artifacts, link_compile_output_separately):
     # TODO(b/198254254): Add Legacyexternalrunfiles if necessary.
     runtime_objects_for_coverage = []
     builder_artifacts = []
     builder_transitive_artifacts = []
 
-    builder = ctx.runfiles(transitive_files = _add(ctx, linking_mode != linker_mode.LINKING_DYNAMIC), collect_default = True)
-    coverage_runtime_objects_builder = ctx.runfiles(transitive_files = _add(ctx, linking_mode != linker_mode.LINKING_DYNAMIC))
+    runtime_libraries = _collect_runtime_libraries(ctx, linking_context, linking_mode != linker_mode.LINKING_DYNAMIC)
+    builder = ctx.runfiles(transitive_files = runtime_libraries, collect_default = True)
 
-    runtime_objects_for_coverage.extend(coverage_runtime_objects_builder.files.to_list())
+    runtime_objects_for_coverage.extend(runtime_libraries.to_list())
     dynamic_libraries_for_runtime = _get_dynamic_libraries_for_runtime(True, libraries)
     runtime_objects_for_coverage.extend(dynamic_libraries_for_runtime)
 
@@ -754,6 +750,7 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
         ctx,
         feature_configuration,
         cc_toolchain,
+        deps_cc_linking_context,
         libraries,
         cc_linking_outputs,
         linking_mode,
