@@ -14,6 +14,7 @@
 """Goes over LibraryToLinks and produces LibraryToLinkValue-s."""
 
 load("//cc/common:cc_helper_internal.bzl", "is_shared_library", "is_versioned_shared_library", "root_relative_path")
+load("//cc/common:feature_names.bzl", "feature_names")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 
 # Types of LibraryToLinkValues
@@ -137,8 +138,8 @@ def add_libraries_to_link(
 
     # For dynamic libraries
     windows_with_interface_shared_libraries = (
-        feature_configuration.is_enabled("targets_windows") and
-        feature_configuration.is_enabled("supports_interface_shared_libraries")
+        feature_configuration.is_enabled(feature_names.TARGETS_WINDOWS) and
+        feature_configuration.is_enabled(feature_names.SUPPORTS_INTERFACE_SHARED_LIBRARIES)
     )
 
     for library in libraries:

@@ -14,6 +14,7 @@
 """Helper functions for C++ feature configuration."""
 
 load("//cc:action_names.bzl", "ACTION_NAMES")
+load("//cc/common:feature_names.bzl", "feature_names")
 load("//cc/common:semantics.bzl", cc_semantics = "semantics")
 
 ALL_COMPILE_ACTIONS = [
@@ -114,30 +115,30 @@ def configure_features(
     if not cc_toolchain._supports_header_parsing:
         # TODO(b/159096411): Remove once supports_header_parsing has been removed from the
         # cc_toolchain rule.
-        all_unsupported_features_set.add("parse_headers")
+        all_unsupported_features_set.add(feature_names.PARSE_HEADERS)
 
     if (language != "objc" and
         language != "objcpp" and
         cc_toolchain._cc_info.compilation_context._module_map == None):
-        all_unsupported_features_set.add("module_maps")
+        all_unsupported_features_set.add(feature_names.MODULE_MAPS)
 
     if cpp_configuration.force_pic():
-        if "supports_pic" in all_unsupported_features_set:
+        if feature_names.SUPPORTS_PIC in all_unsupported_features_set:
             fail("PIC compilation is requested but the toolchain does not support it " +
-                 "(feature named 'supports_pic' is not enabled)")
-        all_requested_features_set.add("supports_pic")
+                 "(feature named '{}' is not enabled)".format(feature_names.SUPPORTS_PIC))
+        all_requested_features_set.add(feature_names.SUPPORTS_PIC)
 
     if cpp_configuration.apple_generate_dsym:
-        all_requested_features_set.add("generate_dsym_file")
+        all_requested_features_set.add(feature_names.GENERATE_DSYM_FILE)
     else:
-        all_requested_features_set.add("no_generate_debug_symbols")
+        all_requested_features_set.add(feature_names.NO_GENERATE_DEBUG_SYMBOLS)
 
     if language == "objc" or language == "objcpp":
         all_requested_features_set.add("lang_objc")
         if cpp_configuration.objc_generate_linkmap:
-            all_requested_features_set.add("generate_linkmap")
+            all_requested_features_set.add(feature_names.GENERATE_LINKMAP)
         if cpp_configuration.objc_should_strip_binary:
-            all_requested_features_set.add("dead_strip")
+            all_requested_features_set.add(feature_names.DEAD_STRIP)
 
     all_features = [cpp_configuration.compilation_mode()]
     all_features.extend(DEFAULT_ACTION_CONFIGS)
@@ -156,11 +157,11 @@ def configure_features(
     if ctx.configuration.coverage_enabled:
         all_features.extend(_get_coverage_features(cpp_configuration))
 
-    if "fdo_instrument" not in all_unsupported_features_set:
+    if feature_names.FDO_INSTRUMENT not in all_unsupported_features_set:
         if cpp_configuration.fdo_instrument() != None:
-            all_features.append("fdo_instrument")
+            all_features.append(feature_names.FDO_INSTRUMENT)
         elif cpp_configuration.cs_fdo_instrument() != None:
-            all_features.append("cs_fdo_instrument")
+            all_features.append(feature_names.CS_FDO_INSTRUMENT)
 
     fdo_context = cc_toolchain._fdo_context
     branch_fdo_provider = getattr(fdo_context, "branch_fdo_profile", None)
@@ -174,40 +175,40 @@ def configure_features(
     if branch_fdo_provider != None and cpp_configuration.compilation_mode() == "opt":
         if ((branch_fdo_provider.branch_fdo_mode == "llvm_fdo" or
              branch_fdo_provider.branch_fdo_mode == "llvm_cs_fdo") and
-            "fdo_optimize" not in all_unsupported_features_set):
-            all_features.append("fdo_optimize")
-            if "memprof_optimize" not in all_unsupported_features_set:
-                all_features.append("enable_fdo_memprof_optimize")
-            if "thin_lto" not in all_unsupported_features_set:
-                all_features.append("enable_fdo_thinlto")
-            if ("split_functions" not in all_unsupported_features_set and
+            feature_names.FDO_OPTIMIZE not in all_unsupported_features_set):
+            all_features.append(feature_names.FDO_OPTIMIZE)
+            if feature_names.MEMPROF_OPTIMIZE not in all_unsupported_features_set:
+                all_features.append(feature_names.ENABLE_FDO_MEMPROF_OPTIMIZE)
+            if feature_names.THIN_LTO not in all_unsupported_features_set:
+                all_features.append(feature_names.ENABLE_FDO_THINLTO)
+            if (feature_names.SPLIT_FUNCTIONS not in all_unsupported_features_set and
                 not enable_propeller_optimize):
-                all_features.append("enable_fdo_split_functions")
+                all_features.append(feature_names.ENABLE_FDO_SPLIT_FUNCTIONS)
 
         if branch_fdo_provider.branch_fdo_mode == "llvm_cs_fdo":
-            all_features.append("cs_fdo_optimize")
+            all_features.append(feature_names.CS_FDO_OPTIMIZE)
 
         if branch_fdo_provider.branch_fdo_mode == "auto_fdo":
-            all_features.append("autofdo")
-            if "memprof_optimize" not in all_unsupported_features_set:
-                all_features.append("enable_autofdo_memprof_optimize")
-            if "thin_lto" not in all_unsupported_features_set:
-                all_features.append("enable_afdo_thinlto")
-            if "fsafdo" not in all_unsupported_features_set:
-                all_features.append("enable_fsafdo")
-                if "split_functions" not in all_unsupported_features_set:
-                    all_features.append("enable_fdo_split_functions")
+            all_features.append(feature_names.AUTOFDO)
+            if feature_names.MEMPROF_OPTIMIZE not in all_unsupported_features_set:
+                all_features.append(feature_names.ENABLE_AUTOFDO_MEMPROF_OPTIMIZE)
+            if feature_names.THIN_LTO not in all_unsupported_features_set:
+                all_features.append(feature_names.ENABLE_AFDO_THINLTO)
+            if feature_names.FSAFDO not in all_unsupported_features_set:
+                all_features.append(feature_names.ENABLE_FSAFDO)
+                if feature_names.SPLIT_FUNCTIONS not in all_unsupported_features_set:
+                    all_features.append(feature_names.ENABLE_FDO_SPLIT_FUNCTIONS)
 
         if branch_fdo_provider.branch_fdo_mode == "xbinary_fdo":
-            all_features.append("xbinaryfdo")
-            if "thin_lto" not in all_unsupported_features_set:
-                all_features.append("enable_xbinaryfdo_thinlto")
+            all_features.append(feature_names.XBINARYFDO)
+            if feature_names.THIN_LTO not in all_unsupported_features_set:
+                all_features.append(feature_names.ENABLE_XBINARYFDO_THINLTO)
 
     if cpp_configuration._fdo_prefetch_hints_label != None:
-        all_features.append("fdo_prefetch_hints")
+        all_features.append(feature_names.FDO_PREFETCH_HINTS)
 
     if enable_propeller_optimize:
-        all_features.append("propeller_optimize")
+        all_features.append(feature_names.PROPELLER_OPTIMIZE)
 
     for feature in all_features:
         if feature not in all_unsupported_features_set:
@@ -224,9 +225,9 @@ def configure_features(
                 .format(cc_toolchain._toolchain_label, feature))
 
     if (cpp_configuration.force_pic() and
-        not feature_configuration.is_enabled("pic") and
-        not feature_configuration.is_enabled("supports_pic")):
+        not feature_configuration.is_enabled(feature_names.PIC) and
+        not feature_configuration.is_enabled(feature_names.SUPPORTS_PIC)):
         fail("PIC compilation is requested but the toolchain does not support it " +
-             "(feature named 'supports_pic' is not enabled)")
+             "(feature named '{}' is not enabled)".format(feature_names.SUPPORTS_PIC))
 
     return feature_configuration

@@ -20,6 +20,7 @@ bzl_library(
     visibility = ["//visibility:public"],
     deps = [
         "//cc:action_names_bzl",
+        "//cc/common:feature_names_bzl",
         "//cc/common:semantics_bzl",
         "//cc/private:cc_internal_bzl",
         "//cc/private/rules_impl:native_cc_common_bzl",

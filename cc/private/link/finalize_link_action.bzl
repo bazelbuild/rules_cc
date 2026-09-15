@@ -14,6 +14,7 @@
 """Common functions that create C++ link and LTO indexing action."""
 
 load("@bazel_features//:features.bzl", "bazel_features")
+load("//cc/common:feature_names.bzl", "feature_names")
 load("//cc/common:semantics.bzl", "semantics")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private/compile:linkstamp_compile.bzl", "register_linkstamp_compile_action")
@@ -112,7 +113,7 @@ def finalize_link_action(
     must_keep_debug = any([lib._must_keep_debug for lib in libraries_to_link])
 
     toolchain_libraries_solib_dir = ""
-    if feature_configuration.is_enabled("static_link_cpp_runtimes"):
+    if feature_configuration.is_enabled(feature_names.STATIC_LINK_CPP_RUNTIMES):
         toolchain_libraries_solib_dir = cc_toolchain.dynamic_runtime_solib_dir
 
     solib_dir = output.root.path + "/" + cc_toolchain._solib_dir
@@ -120,7 +121,7 @@ def finalize_link_action(
     expanded_linker_artifacts = []
     lto_map = dict(lto_mapping)  # copy map, because following functions pop from it
 
-    if feature_configuration.is_enabled("use_lto_native_object_directory"):
+    if feature_configuration.is_enabled(feature_names.USE_LTO_NATIVE_OBJECT_DIRECTORY):
         shared_non_lto_obj_root_prefix = "shared.nonlto-obj"
     else:
         shared_non_lto_obj_root_prefix = "shared.nonlto"
@@ -136,11 +137,11 @@ def finalize_link_action(
 
     # TODO(b/331164666): Remove CppHelper.getArchiveType
     use_start_end_lib = (cc_toolchain._cpp_configuration.start_end_lib() and
-                         feature_configuration.is_enabled("supports_start_end_lib"))
+                         feature_configuration.is_enabled(feature_names.SUPPORTS_START_END_LIB))
 
     # TODO(b/338618120): deduplicate prefer_static_lib, prefer_pic_libs
     prefer_static_libs = linking_mode == LINKING_MODE.STATIC or \
-                         not feature_configuration.is_enabled("supports_dynamic_linker")
+                         not feature_configuration.is_enabled(feature_names.SUPPORTS_DYNAMIC_LINKER)
 
     # TODO(b/412540147): We select PIC libraries iff creating a dynamic library. Match PIC flags.
     prefer_pic_libs = is_dynamic_library(link_type)
@@ -222,8 +223,8 @@ def finalize_link_action(
     # TODO(b/62693279): Cleanup once internal crosstools specify ifso building correctly.
     should_use_link_dynamic_library_tool = (
         is_dynamic_library(link_type) and
-        feature_configuration.is_enabled("supports_interface_shared_libraries") and
-        not feature_configuration.is_enabled("has_configured_linker_path")
+        feature_configuration.is_enabled(feature_names.SUPPORTS_INTERFACE_SHARED_LIBRARIES) and
+        not feature_configuration.is_enabled(feature_names.HAS_CONFIGURED_LINKER_PATH)
     )
     if should_use_link_dynamic_library_tool:
         tool_path = cc_toolchain._link_dynamic_library_tool.path
@@ -254,7 +255,7 @@ def finalize_link_action(
     if linkstamp_map:
         # A different value from use_pic
         needs_pic = (cc_toolchain._cpp_configuration.force_pic() or
-                     (is_dynamic_library(link_type) and feature_configuration.is_enabled("supports_pic")))
+                     (is_dynamic_library(link_type) and feature_configuration.is_enabled(feature_names.SUPPORTS_PIC)))
 
         for linkstamp, artifact in linkstamp_map.items():
             register_linkstamp_compile_action(
@@ -339,9 +340,9 @@ def _create_action(
         feature_configuration,
         interface_output,
     ):
-        if feature_configuration.is_enabled("gcc_quoting_for_param_files"):
+        if feature_configuration.is_enabled(feature_names.GCC_QUOTING_FOR_PARAM_FILES):
             parameter_file_type = "GCC_QUOTED"
-        elif feature_configuration.is_enabled("windows_quoting_for_param_files"):
+        elif feature_configuration.is_enabled(feature_names.WINDOWS_QUOTING_FOR_PARAM_FILES):
             parameter_file_type = "WINDOWS"
         else:
             parameter_file_type = "UNQUOTED"
@@ -359,9 +360,9 @@ def _create_action(
     # for using separate mnemonic for the two different activities, but that would require a lot
     # of updates to configurations and rules that reference the CppLink mnemonic.
     # A target or toolchain may also be incompatible with path mapping.
-    if (mnemonic == "CppLink" and feature_configuration.is_requested("cpp_link_path_mapping") and
-        not feature_configuration.is_enabled("disable_cpp_link_path_mapping") and
-        not feature_configuration.is_enabled("thin_lto")):
+    if (mnemonic == "CppLink" and feature_configuration.is_requested(feature_names.CPP_LINK_PATH_MAPPING) and
+        not feature_configuration.is_enabled(feature_names.DISABLE_CPP_LINK_PATH_MAPPING) and
+        not feature_configuration.is_enabled(feature_names.THIN_LTO)):
         execution_info["supports-path-mapping"] = ""
 
     build_variables = _cc_internal.cc_toolchain_variables(vars = build_variables)
@@ -381,7 +382,7 @@ def _create_action(
         action_name = action_name,
         variables = build_variables,
     )
-    if not feature_configuration.is_enabled("sanitize_pwd") and "requires_darwin" not in execution_info:
+    if not feature_configuration.is_enabled(feature_names.SANITIZE_PWD) and "requires_darwin" not in execution_info:
         # Legacy behavior: prevents gcc from writing the unpredictable (and often
         # irrelevant) value of getcwd() into the debug info.
         # New toolchains should use the sanitize_pwd feature instead.
@@ -429,14 +430,14 @@ def _can_split_command_line(
         # outputs.
         if interface_output:
             # On Windows, We can always split the command line when building DLL.
-            return feature_configuration.is_enabled("targets_windows")
+            return feature_configuration.is_enabled(feature_names.TARGETS_WINDOWS)
         else:
             return True
     elif link_type.linker_or_archiver == USE_LINKER:
         return True
     elif link_type.linker_or_archiver == USE_ARCHIVER:
         # A feature to control whether to use param files for archiving commands.
-        return feature_configuration.is_enabled("archive_param_file")
+        return feature_configuration.is_enabled(feature_names.ARCHIVE_PARAM_FILE)
 
     # This should be unreachable:
     return False
@@ -453,7 +454,7 @@ def _need_whole_archive(feature_configuration, linking_mode, link_type, linkopts
         # is not needed).
         return False
 
-    if feature_configuration.is_requested("force_no_whole_archive"):
+    if feature_configuration.is_requested(feature_names.FORCE_NO_WHOLE_ARCHIVE):
         return False
 
     if cpp_config.incompatible_remove_legacy_whole_archive():

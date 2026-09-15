@@ -20,6 +20,7 @@ load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/common:cc_helper.bzl", "cc_helper")
 load("//cc/common:cc_info.bzl", "CcInfo")
 load("//cc/common:cc_shared_library_info.bzl", "CcSharedLibraryInfo")
+load("//cc/common:feature_names.bzl", "feature_names")
 load("//cc/common:semantics.bzl", "semantics")
 load("//cc/private:graph_node_info.bzl", "GraphNodeInfo")
 load(":function_providing_rule.bzl", "wrap_starlark_function")
@@ -616,7 +617,7 @@ def _cc_shared_library_impl(ctx):
     feature_configuration = cc_common.configure_features(
         ctx = ctx,
         cc_toolchain = cc_toolchain,
-        requested_features = ctx.features + ["force_no_whole_archive"],
+        requested_features = ctx.features + [feature_names.FORCE_NO_WHOLE_ARCHIVE],
         unsupported_features = ctx.disabled_features,
     )
 
@@ -670,7 +671,7 @@ def _cc_shared_library_impl(ctx):
     additional_output_groups = {}
 
     pdb_file = None
-    if cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "generate_pdb_file"):
+    if feature_configuration.is_enabled(feature_names.GENERATE_PDB_FILE):
         if ctx.attr.shared_lib_name:
             pdb_file = ctx.actions.declare_file(paths.replace_extension(ctx.attr.shared_lib_name, ".pdb"))
         else:
@@ -678,7 +679,7 @@ def _cc_shared_library_impl(ctx):
         additional_outputs.append(pdb_file)
         additional_output_groups["pdb_file"] = depset([pdb_file])
 
-    if cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "targets_windows"):
+    if feature_configuration.is_enabled(feature_names.TARGETS_WINDOWS):
         object_files = []
         for linker_input in linking_context.linker_inputs.to_list():
             for library in linker_input.libraries:

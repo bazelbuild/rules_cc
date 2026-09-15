@@ -22,6 +22,7 @@ load("//cc:find_cc_toolchain.bzl", "CC_TOOLCHAIN_TYPE", "find_cc_toolchain", "us
 load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/common:cc_helper.bzl", "cc_helper")
 load("//cc/common:cc_info.bzl", "CcInfo")
+load("//cc/common:feature_names.bzl", "feature_names")
 load("//cc/common:semantics.bzl", "semantics")
 
 CPP_LINK_STATIC_LIBRARY_ACTION_NAME = "c++-link-static-library"
@@ -145,7 +146,7 @@ def _cc_import_impl(ctx):
         )
 
         link_flags = []
-        if static_library and cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "warn_backrefs_defined"):
+        if static_library and feature_configuration.is_enabled(feature_names.WARN_BACKREFS_DEFINED):
             link_flags.append(
                 "-Wl,--warn-backrefs-exclude=*{}*".format(static_library.short_path),
             )

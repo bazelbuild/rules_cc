@@ -27,6 +27,7 @@ see `unix_cc_toolchain_config.bzl`
 """
 
 load("//cc/common:cc_helper_internal.bzl", "get_relative_path", "should_create_per_object_debug_info", artifact_category = "artifact_category_names")
+load("//cc/common:feature_names.bzl", "feature_names")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 
 # Enum covering all build variables we create for all various C++ linking actions
@@ -142,7 +143,7 @@ def create_link_variables(
     """
 
     # LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/rules/cpp/CcModule.java)
-    if feature_configuration.is_enabled("fdo_instrument"):
+    if feature_configuration.is_enabled(feature_names.FDO_INSTRUMENT):
         fail("FDO instrumentation not supported")
 
     # Normalize input values, so that we don't set Nones on CcToolchainVariables
@@ -246,15 +247,15 @@ def setup_common_linking_variables(
         # formatting of param file path from the specification.
         vars[LINK_BUILD_VARIABLES.LINKER_PARAM_FILE] = param_file
 
-    if feature_configuration.is_enabled("fdo_instrument"):
+    if feature_configuration.is_enabled(feature_names.FDO_INSTRUMENT):
         if getattr(cc_toolchain._fdo_context, "branch_fdo_profile", None):
-            fail("Can't use --feature=fdo_instrument together with --fdo_profile")
+            fail("Can't use --feature={} together with --fdo_profile".format(feature_names.FDO_INSTRUMENT))
         if not cpp_config.fdo_instrument():
-            fail("When using --feature=fdo_instrument, you need to set --fdo_instrument as well")
+            fail("When using --feature={}, you need to set --fdo_instrument as well".format(feature_names.FDO_INSTRUMENT))
         vars[LINK_BUILD_VARIABLES.FDO_INSTRUMENT_PATH] = cpp_config.fdo_instrument()
-    elif feature_configuration.is_enabled("cs_fdo_instrument"):
+    elif feature_configuration.is_enabled(feature_names.CS_FDO_INSTRUMENT):
         if not cpp_config.cs_fdo_instrument():
-            fail("When using --feature=cs_fdo_instrument, you need to set --cs_fdo_instrument as well")
+            fail("When using --feature={}, you need to set --cs_fdo_instrument as well".format(feature_names.CS_FDO_INSTRUMENT))
         vars[LINK_BUILD_VARIABLES.CS_FDO_INSTRUMENT_PATH] = cpp_config.cs_fdo_instrument()
 
     # For now, silently ignore linkopts if this is a static library
@@ -309,7 +310,7 @@ def setup_linking_variables(
     fdo_context = cc_toolchain._fdo_context
     if (not cc_toolchain._is_tool_configuration and
         fdo_context and
-        feature_configuration.is_enabled("propeller_optimize") and
+        feature_configuration.is_enabled(feature_names.PROPELLER_OPTIMIZE) and
         fdo_context.propeller_optimize_info and
         fdo_context.propeller_optimize_info.ld_profile):
         vars[LINK_BUILD_VARIABLES.PROPELLER_OPTIMIZE_LD_PATH] = fdo_context.propeller_optimize_info.ld_profile
@@ -376,7 +377,7 @@ def setup_lto_indexing_variables(
             ";" + get_relative_path(bin_directory_path, lto_output_root_prefix) + "/"
         )
 
-    if not feature_configuration.is_enabled("no_use_lto_indexing_bitcode_file"):
+    if not feature_configuration.is_enabled(feature_names.NO_USE_LTO_INDEXING_BITCODE_FILE):
         object_file_extension = _cc_internal.get_artifact_name_extension_for_category(
             cc_toolchain,
             artifact_category.OBJECT_FILE,

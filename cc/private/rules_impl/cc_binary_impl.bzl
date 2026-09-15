@@ -21,6 +21,7 @@ load("//cc/common:cc_debug_helper.bzl", "create_debug_packager_actions")
 load("//cc/common:cc_helper.bzl", "artifact_category", "cc_helper", "linker_mode")
 load("//cc/common:cc_info.bzl", "CcInfo")
 load("//cc/common:debug_package_info.bzl", "DebugPackageInfo")
+load("//cc/common:feature_names.bzl", "feature_names")
 load("//cc/common:semantics.bzl", "semantics")
 load("//cc/private:graph_node_info.bzl", "GraphNodeInfo")
 load(":cc_shared_library_impl.bzl", "add_unused_dynamic_deps", "build_exports_map_from_only_dynamic_deps", "build_link_once_static_libs_map", "merge_cc_shared_library_infos", "separate_static_and_dynamic_link_libraries", "sort_linker_inputs", "throw_linked_but_not_exported_errors")
@@ -273,7 +274,7 @@ def _filter_libraries_that_are_linked_dynamically(ctx, feature_configuration, cc
     # Unlike Unix on Windows every dynamic dependency must be linked to the
     # main binary, even indirect ones that are dependencies of direct
     # dynamic dependencies of this binary.
-    link_indirect_deps = cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "targets_windows")
+    link_indirect_deps = feature_configuration.is_enabled(feature_names.TARGETS_WINDOWS)
     linker_inputs_count += add_unused_dynamic_deps(ctx, unused_dynamic_linker_inputs, _add_linker_input_to_dict, topologically_sorted_labels, link_indirect_deps)
 
     throw_linked_but_not_exported_errors(linked_statically_but_not_exported)
@@ -549,7 +550,7 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
     # Allows the dynamic library generated for code of test targets to be linked separately.
     link_compile_output_separately = ctx.attr._is_test and linking_mode == linker_mode.LINKING_DYNAMIC and cpp_config.dynamic_mode() == "DEFAULT" and ("dynamic_link_test_srcs" in features)
 
-    is_windows_enabled = cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "targets_windows")
+    is_windows_enabled = feature_configuration.is_enabled(feature_names.TARGETS_WINDOWS)
 
     # When linking the object files directly into the resulting binary, we do not need
     # library-level link outputs; thus, we do not let CcCompilationHelper produce link outputs
@@ -613,14 +614,14 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
     # On Windows, if GENERATE_PDB_FILE feature is enabled
     # then a pdb file will be built along with the executable.
     pdb_file = None
-    if cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "generate_pdb_file"):
+    if feature_configuration.is_enabled(feature_names.GENERATE_PDB_FILE):
         pdb_file = ctx.actions.declare_file(_strip_extension(binary) + ".pdb", sibling = binary)
         additional_linker_outputs.append(pdb_file)
 
     # On macOS, if cpp_config.apple_generate_dsym is enabled
     # then a .dSYM file will be built along with the executable.
     dsym_file = None
-    if cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "generate_dsym_file"):
+    if feature_configuration.is_enabled(feature_names.GENERATE_DSYM_FILE):
         dsym_file = ctx.actions.declare_directory(
             "{name}.dSYM".format(
                 name = target_name,
@@ -631,7 +632,7 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
         additional_linker_outputs.append(dsym_file)
 
     linkmap = None
-    if cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "generate_linkmap"):
+    if feature_configuration.is_enabled(feature_names.GENERATE_LINKMAP):
         linkmap = ctx.actions.declare_file(binary.basename + ".map", sibling = binary)
         additional_linker_outputs.append(linkmap)
 
@@ -730,7 +731,7 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
     # If the binary is linked dynamically and COPY_DYNAMIC_LIBRARIES_TO_BINARY is enabled, collect
     # all the dynamic libraries we need at runtime. Then copy these libraries next to the binary.
     copied_runtime_dynamic_libraries = None
-    if cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "copy_dynamic_libraries_to_binary"):
+    if feature_configuration.is_enabled(feature_names.COPY_DYNAMIC_LIBRARIES_TO_BINARY):
         linker_inputs = deps_cc_linking_context.linker_inputs.to_list()
         libraries = []
         for linker_input in linker_inputs:
@@ -745,7 +746,7 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
 
     files_to_build = depset(files_to_build_list)
     transitive_artifacts_list = [files_to_build, runtime_libraries_extra]
-    if cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "copy_dynamic_libraries_to_binary"):
+    if feature_configuration.is_enabled(feature_names.COPY_DYNAMIC_LIBRARIES_TO_BINARY):
         transitive_artifacts_list.append(copied_runtime_dynamic_libraries)
     transitive_artifacts = depset(transitive = transitive_artifacts_list)
 
