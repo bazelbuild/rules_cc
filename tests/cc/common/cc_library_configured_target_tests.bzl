@@ -30,6 +30,20 @@ def _cc_dep_with_runfiles_impl(ctx):
 
 _cc_dep_with_runfiles = rule(implementation = _cc_dep_with_runfiles_impl)
 
+def _generated_tree_artifact_impl(ctx):
+    directory = ctx.actions.declare_directory(ctx.label.name)
+    ctx.actions.run_shell(
+        outputs = [directory],
+        arguments = [directory.path, ctx.attr.filename],
+        command = "mkdir -p \"$1\" && touch \"$1/$2\"",
+    )
+    return [DefaultInfo(files = depset([directory]))]
+
+_generated_tree_artifact = rule(
+    implementation = _generated_tree_artifact_impl,
+    attrs = {"filename": attr.string(mandatory = True)},
+)
+
 def _test_cc_library_data_in_runfiles(name, **kwargs):
     srcs_runfiles = name + "_srcs_runfiles"
     deps_runfiles = name + "_deps_runfiles"
@@ -126,6 +140,71 @@ def _test_absolute_includes_windows_fail_impl(env, target):
         ),
     )
 
+def _test_generated_tree_artifact_sources(name):
+    source_tree = name + "_sources"
+    util.helper_target(
+        _generated_tree_artifact,
+        name = source_tree,
+        filename = "generated.cc",
+    )
+    util.helper_target(
+        cc_library,
+        name = name + "_lib",
+        srcs = [source_tree],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_generated_tree_artifact_sources_impl,
+        target = name + "_lib",
+    )
+
+def _test_generated_tree_artifact_sources_impl(env, target):
+    compilation_outputs = target[OutputGroupInfo].compilation_outputs.to_list()
+    env.expect.that_collection(compilation_outputs).contains_predicate(
+        matching.custom(
+            "compiled generated source directory",
+            lambda artifact: artifact.is_directory and artifact.basename.endswith("_sources"),
+        ),
+    )
+
+def _test_generated_tree_artifact_headers(name):
+    header_tree = name + "_headers"
+    util.helper_target(
+        _generated_tree_artifact,
+        name = header_tree,
+        filename = "generated.h",
+    )
+    util.helper_target(
+        cc_library,
+        name = name + "_lib",
+        srcs = ["source.cc"],
+        hdrs = [header_tree],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_generated_tree_artifact_headers_impl,
+        target = name + "_lib",
+        test_features = ["parse_headers"],
+        config_settings = {
+            "//command_line_option:process_headers_in_dependencies": True,
+        },
+    )
+
+def _test_generated_tree_artifact_headers_impl(env, target):
+    env.expect.that_collection(target[CcInfo].compilation_context.headers.to_list()).contains_predicate(
+        matching.custom(
+            "generated header directory",
+            lambda artifact: artifact.is_directory and artifact.basename.endswith("_headers"),
+        ),
+    )
+    compilation_outputs = target[OutputGroupInfo].compilation_outputs.to_list()
+    env.expect.that_collection(compilation_outputs).contains_predicate(
+        matching.custom(
+            "processed generated header directory",
+            lambda artifact: artifact.is_directory and artifact.basename.endswith("_headers"),
+        ),
+    )
+
 def cc_library_configured_target_tests(name):
     test_suite(
         name = name,
@@ -133,5 +212,7 @@ def cc_library_configured_target_tests(name):
             _test_cc_library_data_in_runfiles,
             _test_absolute_includes_fail,
             _test_absolute_includes_windows_fail,
+            _test_generated_tree_artifact_sources,
+            _test_generated_tree_artifact_headers,
         ] if bazel_features.cc.cc_common_is_in_rules_cc else [],
     )
