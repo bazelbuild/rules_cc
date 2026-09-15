@@ -59,8 +59,7 @@
     build_targets:
       - "//..."
 
-buildifier:
-  version: latest
+buildifier: 8.5.1
 
 tasks:
   ubuntu2004_docs:
