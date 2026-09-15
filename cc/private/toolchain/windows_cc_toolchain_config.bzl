@@ -185,7 +185,6 @@ def _impl(ctx):
             implies = [
                 "nologo",
                 "shared_flag",
-                "linkstamps",
                 "output_execpath_flags",
                 "input_param_flags",
                 "user_link_flags",
@@ -280,7 +279,6 @@ def _impl(ctx):
             action_name = ACTION_NAMES.cpp_link_executable,
             implies = [
                 "nologo",
-                "linkstamps",
                 "output_execpath_flags",
                 "input_param_flags",
                 "user_link_flags",
@@ -297,7 +295,6 @@ def _impl(ctx):
             implies = [
                 "nologo",
                 "shared_flag",
-                "linkstamps",
                 "output_execpath_flags",
                 "input_param_flags",
                 "user_link_flags",
@@ -1131,22 +1128,6 @@ def _impl(ctx):
             ],
         )
 
-        linkstamps_feature = feature(
-            name = "linkstamps",
-            flag_sets = [
-                flag_set(
-                    actions = all_link_actions,
-                    flag_groups = [
-                        flag_group(
-                            flags = ["%{linkstamp_paths}"],
-                            iterate_over = "linkstamp_paths",
-                            expand_if_available = "linkstamp_paths",
-                        ),
-                    ],
-                ),
-            ],
-        )
-
         targets_windows_feature = feature(
             name = "targets_windows",
             enabled = True,
@@ -1420,7 +1401,6 @@ def _impl(ctx):
             generate_pdb_file_feature,
             generate_linkmap_feature,
             shared_flag_feature,
-            linkstamps_feature,
             output_execpath_flags_feature,
             archiver_flags_feature,
             input_param_flags_feature,
