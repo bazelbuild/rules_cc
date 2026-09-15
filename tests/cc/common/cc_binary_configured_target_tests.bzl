@@ -8,7 +8,9 @@ load("//cc:action_names.bzl", "ACTION_NAMES")
 load("//cc:cc_binary.bzl", _actual_cc_binary = "cc_binary")
 load("//cc:cc_import.bzl", "cc_import")
 load("//cc:cc_library.bzl", "cc_library")
+load("//cc:cc_shared_library.bzl", "cc_shared_library")
 load("//cc:cc_test.bzl", _actual_cc_test = "cc_test")
+load("//cc/common:cc_info.bzl", "CcInfo")
 load("//tests/cc/testutil:cc_analysis_test.bzl", "MOCK_TOOLCHAINS", "cc_analysis_test")
 load("//tests/cc/testutil:cc_binary_target_subject.bzl", "cc_binary_target_subject")
 load("//tests/cc/testutil:link_action_subject.bzl", "link_action_subject")
@@ -1033,6 +1035,84 @@ def _test_so_in_srcs_impl(env, target):
     runfiles.contains_predicate(matching.str_endswith("library2.so.1"))
     runfiles.not_contains_predicate(matching.str_endswith("library2.so"))
 
+def _test_dynamic_deps_runfiles(name, **kwargs):
+    for lib in ["transitive", "other", "data_dep"]:
+        util.helper_target(
+            cc_library,
+            name = name + "/" + lib,
+            srcs = [lib + ".cc"],
+            data = [lib + "_data.txt"],
+        )
+    util.helper_target(
+        cc_library,
+        name = name + "/dep",
+        srcs = ["dep.cc"],
+        data = ["dep_data.txt"],
+        deps = [name + "/transitive"],
+    )
+    util.helper_target(
+        cc_shared_library,
+        name = name + "/dep_shared",
+        deps = [name + "/dep"],
+    )
+    targets = {lib: name + "/" + lib for lib in ["dep", "transitive", "other", "data_dep"]}
+    for suffix, rule_type, linkstatic in [
+        ("binary_dynamic", cc_binary, False),
+        ("binary_static", cc_binary, True),
+        ("test_dynamic", cc_test, False),
+        ("test_static", cc_test, True),
+        ("test_dep_in_data", cc_test, False),
+    ]:
+        util.helper_target(
+            rule_type,
+            name = name + "/" + suffix,
+            srcs = ["main.cc"],
+            data = [name + "/data_dep"] + ([name + "/dep"] if suffix == "test_dep_in_data" else []),
+            dynamic_deps = [name + "/dep_shared"],
+            linkstatic = linkstatic,
+            deps = [name + "/dep", name + "/other"],
+        )
+        targets[suffix] = name + "/" + suffix
+    cc_analysis_test(
+        name = name,
+        impl = _test_dynamic_deps_runfiles_impl,
+        targets = targets,
+        test_features = [
+            "supports_pic",
+            "supports_dynamic_linker",
+            "supports_interface_shared_libraries",
+        ],
+        **kwargs
+    )
+
+def _test_dynamic_deps_runfiles_impl(env, targets):
+    libraries = {}
+    for lib in ["dep", "transitive", "other", "data_dep"]:
+        dep = getattr(targets, lib)
+        for linker_input in dep[CcInfo].linking_context.linker_inputs.to_list():
+            if linker_input.owner == dep.label:
+                libraries[lib] = linker_input.libraries[0].dynamic_library
+
+    for suffix in ["binary_dynamic", "binary_static", "test_dynamic", "test_static", "test_dep_in_data"]:
+        target = env.expect.that_target(getattr(targets, suffix))
+        needed_libraries = ["data_dep"]
+        if not suffix.endswith("static"):
+            needed_libraries.append("other")
+
+        # Data dependencies need their libraries even when the same target
+        # is also linked through dynamic_deps.
+        if suffix == "test_dep_in_data":
+            needed_libraries.extend(["dep", "transitive"])
+        for runfiles in [target.runfiles(), target.data_runfiles()]:
+            runfiles.contains_predicate(matching.str_endswith("libdep_shared.so"))
+            for lib, library in libraries.items():
+                predicate = matching.str_endswith(library.short_path)
+                if lib in needed_libraries:
+                    runfiles.contains_predicate(predicate)
+                else:
+                    runfiles.not_contains_predicate(predicate)
+                runfiles.contains_predicate(matching.str_endswith(lib + "_data.txt"))
+
 def _create_three_rules_chain(name):
     util.helper_target(
         cc_library,
@@ -1999,6 +2079,7 @@ def cc_binary_configured_target_tests(name):
     if bazel_features.cc.cc_common_is_in_rules_cc:
         _setup_cc_runtimes_mock()
         tests.extend([
+            _test_dynamic_deps_runfiles,
             _test_sanitize_pwd_feature_enabled,
             _test_sanitize_pwd_feature_disabled,
             _test_sanitize_pwd_macos_no_pwd,
