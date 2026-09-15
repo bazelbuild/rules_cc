@@ -66,11 +66,27 @@ def _linking_order_test_impl(env, target):
             for arg in args
             if arg.endswith(".o") and env.ctx.label.package in arg
         ]
+        user_libs_are_objects = bool(user_libs)
+        if user_libs:
+            foo_lib = "foo.pic.o"
+            baz_lib = "baz.pic.o"
+            a_suffix_lib = "a_suffix.pic.o"
+            qux2_lib = "qux2.pic.o"
+        else:
+            user_libs = [
+                paths.basename(arg)
+                for arg in args
+                if arg.endswith(".a") and env.ctx.label.package in arg
+            ]
+            foo_lib = "libfoo.a"
+            baz_lib = "libbaz.a"
+            a_suffix_lib = "liba_suffix.a"
+            qux2_lib = "libqux2.a"
 
         env.expect.that_collection(user_libs).contains_at_least_predicates([
-            matching.contains("foo.pic.o"),
-            matching.contains("baz.pic.o"),
-            matching.contains("a_suffix.pic.o"),
+            matching.contains(foo_lib),
+            matching.contains(baz_lib),
+            matching.contains(a_suffix_lib),
         ]).in_order()
 
         env.expect.that_collection(args).contains_at_least([
@@ -78,8 +94,8 @@ def _linking_order_test_impl(env, target):
         ])
 
         env.expect.where(
-            detail = "liba_suffix.pic.o should be the last user library linked",
-        ).that_str(user_libs[-1]).equals("a_suffix.pic.o")
+            detail = "a_suffix should be the last user library linked",
+        ).that_str(user_libs[-1]).equals(a_suffix_lib)
 
         all_objects = [
             paths.basename(arg)
@@ -87,30 +103,31 @@ def _linking_order_test_impl(env, target):
             if arg.endswith(".o")
         ]
 
-        env.expect.that_collection(all_objects).contains_at_least_predicates([
-            matching.contains("a_suffix.pic.o"),
-        ])
+        if user_libs_are_objects:
+            env.expect.that_collection(all_objects).contains_at_least_predicates([
+                matching.contains("a_suffix.pic.o"),
+            ])
 
-        # We expect a_suffix.pic.o to be the last object linked if and only if this is Bazel,
-        # as runtimes-on-demand is not enabled in Bazel.
-        if env.ctx.attr.is_bazel:
-            env.expect.where(
-                detail = "a_suffix.pic.o should be the last object linked",
-            ).that_str(all_objects[-1]).equals("a_suffix.pic.o")
-        else:
-            env.expect.where(
-                detail = "a_suffix.pic.o should not be the last object linked",
-            ).that_str(all_objects[-1]).not_equals("a_suffix.pic.o")
+            # We expect a_suffix.pic.o to be the last object linked if and only if this is Bazel,
+            # as runtimes-on-demand is not enabled in Bazel.
+            if env.ctx.attr.is_bazel:
+                env.expect.where(
+                    detail = "a_suffix.pic.o should be the last object linked",
+                ).that_str(all_objects[-1]).equals("a_suffix.pic.o")
+            else:
+                env.expect.where(
+                    detail = "a_suffix.pic.o should not be the last object linked",
+                ).that_str(all_objects[-1]).not_equals("a_suffix.pic.o")
 
         # qux2 is a LINKABLE_MORE_THAN_ONCE library which is enabled by semantics.
         # It might not be present but if it is we want to test it's in the right
         # place in the linking command line before libbar
-        if "qux2.pic.o" in user_libs:
+        if qux2_lib in user_libs:
             found_bar = False
             for arg in args:
                 if "-lbar_so" in arg:
                     found_bar = True
-                elif "qux2.pic.o" in arg:
+                elif qux2_lib in arg:
                     env.expect.where(
                         detail = "qux2 should come before bar in command line",
                     ).that_bool(found_bar).equals(False)
