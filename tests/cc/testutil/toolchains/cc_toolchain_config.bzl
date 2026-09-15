@@ -935,7 +935,7 @@ _static_linking_mode_feature = feature(
     name = FEATURE_NAMES.static_linking_mode,
     env_sets = [
         env_set(
-            actions = [ACTION_NAMES.cpp_link_executable],
+            actions = [ACTION_NAMES.cpp_link_executable, ACTION_NAMES.cpp_link_dynamic_library],
             env_entries = [
                 env_entry(
                     key = "linking_mode",
@@ -950,7 +950,7 @@ _dynamic_linking_mode_feature = feature(
     name = FEATURE_NAMES.dynamic_linking_mode,
     env_sets = [
         env_set(
-            actions = [ACTION_NAMES.cpp_link_executable],
+            actions = [ACTION_NAMES.cpp_link_executable, ACTION_NAMES.cpp_link_dynamic_library],
             env_entries = [
                 env_entry(
                     key = "linking_mode",
