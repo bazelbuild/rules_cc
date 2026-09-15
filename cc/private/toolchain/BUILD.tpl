@@ -46,6 +46,14 @@ cc_library(
     name = "malloc",
 )
 
+# Auto-detected C++ std module interfaces, discovered via the compiler's
+# libstdc++.modules.json / libc++.modules.json. Generates one cc_library per
+# module found (typically std and std.compat). Toolchains without std module
+# support (e.g. GCC 13) get a no-op cc_library for each known target name so
+# that deps = ["@local_config_cc//:std"] / ["@local_config_cc//:std_compat"]
+# still resolve.
+%{std_module_targets}
+
 filegroup(
     name = "empty",
     srcs = [],
