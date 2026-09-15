@@ -58,6 +58,12 @@ cc_library(
     name = "malloc",
 )
 
+alias(
+    name = "grep-includes",
+    actual = ":empty",
+    deprecation = "grep-includes is always empty, you must provide your own.",
+)
+
 filegroup(
     name = "empty",
     srcs = [],
