@@ -58,9 +58,9 @@ cc_library(
     name = "malloc",
 )
 
-alias(
+filegroup(
     name = "grep-includes",
-    actual = ":empty",
+    srcs = ["empty.cc"],
     deprecation = "grep-includes is always empty, you must provide your own.",
 )
 
