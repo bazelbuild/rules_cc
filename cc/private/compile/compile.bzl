@@ -25,6 +25,8 @@ load(
     "CPP_SOURCE_TYPE_HEADER",
     "CPP_SOURCE_TYPE_SOURCE",
     "extensions",
+    "output_subdirectories",
+    "package_source_root",
     "should_create_per_object_debug_info",
     _use_pic_for_binaries = "use_pic_for_binaries",
     _use_pic_for_dynamic_libs = "use_pic_for_dynamic_libs",
@@ -540,7 +542,6 @@ def _create_scan_deps_action(
         dotd_file = _get_compile_output_file(
             action_construction_context,
             label,
-            configuration = configuration,
             output_name = _cc_internal.get_artifact_name_for_category(
                 cc_toolchain = cc_toolchain,
                 category = artifact_category.INCLUDED_FILE_LIST,
@@ -689,7 +690,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
     modules_info_file = _get_compile_output_file(
         action_construction_context,
         label,
-        configuration = configuration,
         output_name = _cc_internal.get_artifact_name_for_category(
             cc_toolchain = cc_toolchain,
             category = artifact_category.CPP_MODULES_INFO,
@@ -719,7 +719,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
         module_file = _get_compile_output_file(
             action_construction_context,
             label,
-            configuration = configuration,
             output_name = _cc_internal.get_artifact_name_for_category(
                 cc_toolchain = cc_toolchain,
                 category = output_category,
@@ -739,7 +738,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
         ddi_file = _get_compile_output_file(
             action_construction_context,
             label,
-            configuration = configuration,
             output_name = ddi_output_name,
         )
         _create_scan_deps_action(
@@ -799,7 +797,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
         modmap_file = _get_compile_output_file(
             action_construction_context,
             label,
-            configuration = configuration,
             output_name = _cc_internal.get_artifact_name_for_category(
                 cc_toolchain = cc_toolchain,
                 category = artifact_category.CPP_MODULES_MODMAP,
@@ -809,7 +806,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
         modmap_input_file = _get_compile_output_file(
             action_construction_context,
             label,
-            configuration = configuration,
             output_name = _cc_internal.get_artifact_name_for_category(
                 cc_toolchain = cc_toolchain,
                 category = artifact_category.CPP_MODULES_MODMAP_INPUT,
@@ -896,7 +892,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
             modmap_file = _get_compile_output_file(
                 action_construction_context,
                 label,
-                configuration = configuration,
                 output_name = _cc_internal.get_artifact_name_for_category(
                     cc_toolchain = cc_toolchain,
                     category = artifact_category.CPP_MODULES_MODMAP,
@@ -906,7 +901,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
             modmap_input_file = _get_compile_output_file(
                 action_construction_context,
                 label,
-                configuration = configuration,
                 output_name = _cc_internal.get_artifact_name_for_category(
                     cc_toolchain = cc_toolchain,
                     category = artifact_category.CPP_MODULES_MODMAP_INPUT,
@@ -922,7 +916,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
             ddi_file = _get_compile_output_file(
                 action_construction_context,
                 label,
-                configuration = configuration,
                 output_name = ddi_output_name,
             )
             _create_scan_deps_action(
@@ -950,7 +943,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
             modmap_file = _get_compile_output_file(
                 action_construction_context,
                 label,
-                configuration = configuration,
                 output_name = _cc_internal.get_artifact_name_for_category(
                     cc_toolchain = cc_toolchain,
                     category = artifact_category.CPP_MODULES_MODMAP,
@@ -960,7 +952,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
             modmap_input_file = _get_compile_output_file(
                 action_construction_context,
                 label,
-                configuration = configuration,
                 output_name = _cc_internal.get_artifact_name_for_category(
                     cc_toolchain = cc_toolchain,
                     category = artifact_category.CPP_MODULES_MODMAP_INPUT,
@@ -1334,7 +1325,6 @@ def _create_cc_compile_actions(
         output_file = _get_compile_output_file(
             action_construction_context,
             label,
-            configuration = configuration,
             output_name = _cc_internal.get_artifact_name_for_category(
                 cc_toolchain = cc_toolchain,
                 category = artifact_category.PROCESSED_HEADER,
@@ -1344,7 +1334,6 @@ def _create_cc_compile_actions(
         dotd_file = _get_compile_output_file(
             action_construction_context,
             label,
-            configuration = configuration,
             output_name = _cc_internal.get_artifact_name_for_category(
                 cc_toolchain = cc_toolchain,
                 category = artifact_category.INCLUDED_FILE_LIST,
@@ -1357,7 +1346,6 @@ def _create_cc_compile_actions(
         diagnostics_file = _get_compile_output_file(
             action_construction_context,
             label,
-            configuration = configuration,
             output_name = _cc_internal.get_artifact_name_for_category(
                 cc_toolchain = cc_toolchain,
                 category = artifact_category.SERIALIZED_DIAGNOSTICS_FILE,
@@ -1567,7 +1555,6 @@ def _create_compile_source_action(
     object_file = _get_compile_output_file(
         ctx = action_construction_context,
         label = label,
-        configuration = configuration,
         output_name = _cc_internal.get_artifact_name_for_category(
             cc_toolchain = cc_toolchain,
             category = output_category,
@@ -1581,7 +1568,6 @@ def _create_compile_source_action(
         category = output_category,
         output_name = output_pic_nopic_name,
         cc_toolchain = cc_toolchain,
-        configuration = configuration,
         feature_configuration = feature_configuration,
     ) if enable_dotd_files else None
     diagnostics_file = _maybe_declare_diagnostics_file(
@@ -1590,7 +1576,6 @@ def _create_compile_source_action(
         category = output_category,
         output_name = output_pic_nopic_name,
         cc_toolchain = cc_toolchain,
-        configuration = configuration,
         feature_configuration = feature_configuration,
     )
     gcno_file = _maybe_declare_gcno_file(
@@ -1599,7 +1584,6 @@ def _create_compile_source_action(
         output_name = output_pic_nopic_name,
         cc_toolchain = cc_toolchain,
         cpp_configuration = cpp_configuration,
-        configuration = configuration,
         enable_coverage = enable_coverage,
     )
 
@@ -1615,10 +1599,9 @@ def _create_compile_source_action(
     if generate_dwo and not bitcode_output:
         dwo_file_name = paths.replace_extension(paths.basename(object_file.path), ".dwo")
 
-        dwo_file = _cc_internal.declare_other_output_file(
-            ctx = action_construction_context,
-            output_name = dwo_file_name,
-            object_file = object_file,
+        dwo_file = action_construction_context.actions.declare_file(
+            dwo_file_name,
+            sibling = object_file,
         )
 
     lto_indexing_file = None
@@ -1627,10 +1610,9 @@ def _create_compile_source_action(
             paths.basename(object_file.path),
             extensions.LTO_INDEXING_OBJECT_FILE[0],
         )
-        lto_indexing_file = _cc_internal.declare_other_output_file(
-            ctx = action_construction_context,
-            output_name = lto_indexing_file_name,
-            object_file = object_file,
+        lto_indexing_file = action_construction_context.actions.declare_file(
+            lto_indexing_file_name,
+            sibling = object_file,
         )
 
     complete_copts = get_copts(
@@ -1811,7 +1793,6 @@ def _create_temps_action(
     preprocess_object_file = _get_compile_output_file(
         ctx = action_construction_context,
         label = label,
-        configuration = configuration,
         output_name = _cc_internal.get_artifact_name_for_category(
             cc_toolchain = cc_toolchain,
             category = category,
@@ -1821,7 +1802,6 @@ def _create_temps_action(
     assembly_object_file = _get_compile_output_file(
         ctx = action_construction_context,
         label = label,
-        configuration = configuration,
         output_name = _cc_internal.get_artifact_name_for_category(
             cc_toolchain = cc_toolchain,
             category = artifact_category.GENERATED_ASSEMBLY,
@@ -1835,7 +1815,6 @@ def _create_temps_action(
         source_artifact = source_artifact,
         category = category,
         cc_toolchain = cc_toolchain,
-        configuration = configuration,
         feature_configuration = feature_configuration,
     ) if enable_dotd_files else None
     assembly_dotd_file = _maybe_declare_dotd_file(
@@ -1845,7 +1824,6 @@ def _create_temps_action(
         source_artifact = source_artifact,
         category = artifact_category.GENERATED_ASSEMBLY,
         cc_toolchain = cc_toolchain,
-        configuration = configuration,
         feature_configuration = feature_configuration,
     ) if enable_dotd_files else None
 
@@ -1855,7 +1833,6 @@ def _create_temps_action(
         category = category,
         output_name = output_name,
         cc_toolchain = cc_toolchain,
-        configuration = configuration,
         feature_configuration = feature_configuration,
     )
     assembly_diagnostics_file = _maybe_declare_diagnostics_file(
@@ -1865,7 +1842,6 @@ def _create_temps_action(
         output_name = output_name,
         cc_toolchain = cc_toolchain,
         feature_configuration = feature_configuration,
-        configuration = configuration,
     )
     preprocess_compile_variables = get_specific_compile_build_variables(
         source_file = source_artifact,
@@ -1973,7 +1949,6 @@ def _create_module_codegen_action(
         gcno_file = _get_compile_output_file(
             ctx = action_construction_context,
             label = label,
-            configuration = configuration,
             output_name = _cc_internal.get_artifact_name_for_category(
                 cc_toolchain = cc_toolchain,
                 category = artifact_category.COVERAGE_DATA_FILE,
@@ -2001,7 +1976,6 @@ def _create_module_codegen_action(
     object_file = _get_compile_output_file(
         ctx = action_construction_context,
         label = label,
-        configuration = configuration,
         output_name = _cc_internal.get_artifact_name_for_category(
             cc_toolchain = cc_toolchain,
             category = artifact_category.OBJECT_FILE,
@@ -2015,7 +1989,6 @@ def _create_module_codegen_action(
         dotd_file = _get_compile_output_file(
             ctx = action_construction_context,
             label = label,
-            configuration = configuration,
             output_name = _cc_internal.get_artifact_name_for_category(
                 cc_toolchain = cc_toolchain,
                 category = artifact_category.INCLUDED_FILE_LIST,
@@ -2028,7 +2001,6 @@ def _create_module_codegen_action(
         diagnostics_file = _get_compile_output_file(
             ctx = action_construction_context,
             label = label,
-            configuration = configuration,
             output_name = _cc_internal.get_artifact_name_for_category(
                 cc_toolchain = cc_toolchain,
                 category = artifact_category.SERIALIZED_DIAGNOSTICS_FILE,
@@ -2164,14 +2136,18 @@ def _create_module_action(
         progress_message_prefix = progress_message_prefix,
     )
 
-def _get_compile_output_file(ctx, label, *, output_name, configuration):
-    file = _cc_internal.declare_compile_output_file(
-        ctx = ctx,
-        label = label,
-        output_name = output_name,
-        configuration = configuration,
+def _get_compile_output_file(ctx, label, *, output_name):
+    output_path = paths.join(
+        package_source_root(
+            label.workspace_name,
+            label.package,
+            ctx.configuration.is_sibling_repository_layout(),
+        ),
+        output_subdirectories.OBJS,
+        label.name,
+        output_name,
     )
-    return file
+    return ctx.actions.declare_shareable_artifact(output_path)
 
 def _use_dotd_file(feature_configuration, source_file):
     extension = "." + source_file.extension if source_file.extension else ""
@@ -2248,7 +2224,6 @@ def _maybe_declare_dotd_file(
         category,
         output_name,
         cc_toolchain,
-        configuration,
         feature_configuration):
     dotd_file = None
     if (_use_dotd_file(feature_configuration, source_artifact)):
@@ -2267,7 +2242,6 @@ def _maybe_declare_dotd_file(
         dotd_file = _get_compile_output_file(
             ctx = ctx,
             label = label,
-            configuration = configuration,
             output_name = dotd_name,
         )
     return dotd_file
@@ -2278,8 +2252,7 @@ def _maybe_declare_diagnostics_file(
         category,
         output_name,
         cc_toolchain,
-        feature_configuration,
-        configuration):
+        feature_configuration):
     diagnostics_file = None
     if feature_configuration.is_enabled(feature_names.SERIALIZED_DIAGNOSTICS_FILE):
         base_name = output_name
@@ -2297,7 +2270,6 @@ def _maybe_declare_diagnostics_file(
         diagnostics_file = _get_compile_output_file(
             ctx = ctx,
             label = label,
-            configuration = configuration,
             output_name = diagnostics_file_name,
         )
     return diagnostics_file
@@ -2308,14 +2280,12 @@ def _maybe_declare_gcno_file(
         output_name,
         cc_toolchain,
         cpp_configuration,
-        configuration,
         enable_coverage):
     gcno_file = None
     if enable_coverage and not cpp_configuration.use_llvm_coverage_map_format():
         gcno_file = _get_compile_output_file(
             ctx = ctx,
             label = label,
-            configuration = configuration,
             output_name = _cc_internal.get_artifact_name_for_category(
                 cc_toolchain = cc_toolchain,
                 category = artifact_category.COVERAGE_DATA_FILE,
