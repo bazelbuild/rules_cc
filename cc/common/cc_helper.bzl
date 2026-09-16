@@ -881,7 +881,7 @@ def _report_invalid_options(cc_toolchain, cpp_config):
     if cpp_config.grte_top() != None and cc_toolchain.sysroot == None:
         fail("The selected toolchain does not support setting --grte_top (it doesn't specify builtin_sysroot).")
 
-def _check_cpp_modules(ctx, feature_configuration):
+def _check_cpp_modules(ctx, feature_configuration, rule_name):
     if len(ctx.files.module_interfaces) == 0:
         return
     if not ctx.fragments.cpp.experimental_cpp_modules():
@@ -890,6 +890,14 @@ def _check_cpp_modules(ctx, feature_configuration):
         feature_names.CPP_MODULES,
     ):
         fail("to use C++ modules, the feature {} must be enabled".format(feature_names.CPP_MODULES))
+    _check_file_extensions(
+        ctx.attr.module_interfaces,
+        extensions.CPP_MODULE_INTERFACE,
+        "module_interfaces",
+        ctx.label,
+        rule_name,
+        False,
+    )
 
 def _expand_make_variables_for_copts(ctx, tokenization, unexpanded_tokens, additional_make_variable_substitutions):
     tokens = []
@@ -1139,14 +1147,15 @@ def _create_cc_instrumented_files_info(ctx, cc_config, cc_toolchain, feature_con
                         extensions.C_SOURCE + \
                         extensions.CC_HEADER + \
                         extensions.ASSEMBLER_WITH_C_PREPROCESSOR + \
-                        extensions.ASSEMBLER
+                        extensions.ASSEMBLER + \
+                        extensions.CPP_MODULE_INTERFACE
     coverage_environment = {}
     if ctx.configuration.coverage_enabled:
         coverage_environment = _get_coverage_environment(ctx, cc_config, cc_toolchain, feature_configuration)
     coverage_support_files = cc_toolchain._coverage_files if ctx.configuration.coverage_enabled else depset([])
     info = coverage_common.instrumented_files_info(
         ctx = ctx,
-        source_attributes = ["srcs", "hdrs"],
+        source_attributes = ["srcs", "hdrs", "module_interfaces"],
         dependency_attributes = ["implementation_deps", "deps", "data"],
         extensions = source_extensions,
         metadata_files = metadata_files,
