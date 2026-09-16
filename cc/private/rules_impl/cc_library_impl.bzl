@@ -18,6 +18,7 @@ load("//cc:find_cc_toolchain.bzl", "find_cc_toolchain")
 load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/common:cc_helper.bzl", "cc_helper")
 load("//cc/common:cc_info.bzl", "CcInfo")
+load("//cc/common:feature_names.bzl", "feature_names")
 load("//cc/common:semantics.bzl", "semantics")
 load(":function_providing_rule.bzl", "wrap_starlark_function")
 
@@ -91,17 +92,13 @@ def _cc_library_impl(ctx):
         compilation_outputs = [precompiled_objects, srcs_compilation_outputs],
     )
 
-    supports_dynamic_linker = cc_common.is_enabled(
-        feature_configuration = feature_configuration,
-        feature_name = "supports_dynamic_linker",
-    )
+    supports_dynamic_linker = feature_configuration.is_enabled(feature_names.SUPPORTS_DYNAMIC_LINKER)
 
     create_dynamic_library = (not ctx.attr.linkstatic and
                               supports_dynamic_linker and
                               (not cc_helper.is_compilation_outputs_empty(compilation_outputs) or
-                               cc_common.is_enabled(
-                                   feature_configuration = feature_configuration,
-                                   feature_name = "header_module_codegen",
+                               feature_configuration.is_enabled(
+                                   feature_names.HEADER_MODULE_CODEGEN,
                                )))
 
     output_group_builder = {}
@@ -135,7 +132,7 @@ def _cc_library_impl(ctx):
         dll_name_suffix = ""
         additional_inputs = _filter_linker_scripts(ctx.files.deps) + ctx.files.additional_linker_inputs
         link_variables = {}
-        is_windows_enabled = cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "targets_windows")
+        is_windows_enabled = feature_configuration.is_enabled(feature_names.TARGETS_WINDOWS)
         if is_windows_enabled:
             dll_name_suffix = cc_helper.dll_hash_suffix(ctx, feature_configuration, ctx.fragments.cpp)
             generated_def_file = None
@@ -236,9 +233,8 @@ def _cc_library_impl(ctx):
         if artifacts_to_build.pic_static_library != None:
             files_builder.append(artifacts_to_build.pic_static_library)
 
-        if not cc_common.is_enabled(
-            feature_configuration = feature_configuration,
-            feature_name = "targets_windows",
+        if not feature_configuration.is_enabled(
+            feature_names.TARGETS_WINDOWS,
         ):
             if artifacts_to_build.resolved_symlink_dynamic_library != None:
                 files_builder.append(artifacts_to_build.resolved_symlink_dynamic_library)

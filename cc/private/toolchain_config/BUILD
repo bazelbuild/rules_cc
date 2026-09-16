@@ -21,6 +21,7 @@ bzl_library(
     deps = [
         "//cc:action_names_bzl",
         "//cc:cc_toolchain_config_lib_bzl",
+        "//cc/common:feature_names_bzl",
         "//cc/common:semantics_bzl",
         "//cc/private:cc_internal_bzl",
         "@bazel_skylib//lib:paths",

@@ -15,6 +15,7 @@
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("//cc/common:cc_helper_internal.bzl", "is_shared_library")
+load("//cc/common:feature_names.bzl", "feature_names")
 load("//cc/private/link:target_types.bzl", "LINKING_MODE", "LINK_TARGET_TYPE", "is_dynamic_library")
 
 # TODO(b/338618120): Refine the signature of collect_solib_dirs. Large objects are passed in
@@ -178,13 +179,13 @@ def _collect_solib_dirs_from_libraries(
     include_solib_dir, include_toolchain_libraries_solib_dir = False, False
     linked_libraries_paths = {}  # :dict[str, str]
 
-    dont_copy_dynamic_libraries_to_binary = not feature_configuration.is_enabled("copy_dynamic_libraries_to_binary")
+    dont_copy_dynamic_libraries_to_binary = not feature_configuration.is_enabled(feature_names.COPY_DYNAMIC_LIBRARIES_TO_BINARY)
 
     # On Windows, dynamic library (dll) cannot be linked directly when using toolchains that
     # support interface library (eg. MSVC). If the user is doing so, it is only to be referenced
     # in other places (such as copy_dynamic_libraries_to_binary); skip adding it.
-    windows_shared_libraries = (feature_configuration.is_enabled("targets_windows") and
-                                feature_configuration.is_enabled("supports_interface_shared_libraries"))
+    windows_shared_libraries = (feature_configuration.is_enabled(feature_names.TARGETS_WINDOWS) and
+                                feature_configuration.is_enabled(feature_names.SUPPORTS_INTERFACE_SHARED_LIBRARIES))
     solib_dir_split = reversed(solib_dir.split("/"))
 
     for library in libraries:

@@ -1,23 +1,6 @@
-config_setting(
-    name = "incompatible_use_native_collect_cc_coverage_enabled",
-    flag_values = {
-        "//cc/settings:incompatible_use_native_collect_cc_coverage": "true",
-    },
-)
-
-filegroup(
+alias(
     name = "collect_cc_coverage",
-    srcs = select({
-        ":incompatible_use_native_collect_cc_coverage_enabled": ["@bazel_tools//tools/test:collect_cc_coverage"],
-        "//conditions:default": ["collect_cc_coverage.sh"],
-    }),
-    visibility = ["//visibility:public"],
-)
-
-filegroup(
-    name = "srcs",
-    srcs = glob([
-        "**",
-    ]),
+    actual = "//cc/coverage:collect_cc_coverage",
+    deprecation = "Please use //cc/coverage:collect_cc_coverage instead.",
     visibility = ["//visibility:public"],
 )

@@ -38,6 +38,7 @@ bzl_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
+        ":feature_names_bzl",
         "//cc/private:cc_internal_bzl",
         "//cc/private:paths_bzl",
         "//cc/private/rules_impl:native_cc_common_bzl",
@@ -131,3 +132,9 @@ filegroup(
         "cc_shared_library_info.bzl",
     ],
 )]
+
+bzl_library(
+    name = "feature_names_bzl",
+    srcs = ["feature_names.bzl"],
+    visibility = ["//visibility:public"],
+)

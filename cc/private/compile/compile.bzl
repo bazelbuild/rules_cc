@@ -30,6 +30,7 @@ load(
     _use_pic_for_dynamic_libs = "use_pic_for_dynamic_libs",
     artifact_category = "artifact_category_names",
 )
+load("//cc/common:feature_names.bzl", "feature_names")
 load("//cc/common:semantics.bzl", _starlark_cc_semantics = "semantics")
 load(
     "//cc/private:cc_info.bzl",
@@ -244,8 +245,8 @@ def compile(
     if not generate_pic_action and not generate_no_pic_action:
         fail("Either PIC or no PIC actions have to be created.")
 
-    if module_interfaces and not feature_configuration.is_enabled("cpp_modules"):
-        fail("to use C++20 Modules, the feature cpp_modules must be enabled")
+    if module_interfaces and not feature_configuration.is_enabled(feature_names.CPP_MODULES):
+        fail("to use C++20 Modules, the feature {} must be enabled".format(feature_names.CPP_MODULES))
 
     language_normalized = "c++" if language == None else language
     language_normalized = language_normalized.replace("+", "p").upper()
@@ -257,8 +258,8 @@ def compile(
 
     compilation_unit_sources = {}
     module_interfaces_sources = {}
-    if (feature_configuration.is_enabled("parse_headers") and
-        not feature_configuration.is_enabled("header_modules")):
+    if (feature_configuration.is_enabled(feature_names.PARSE_HEADERS) and
+        not feature_configuration.is_enabled(feature_names.HEADER_MODULES)):
         public_hdrs_with_labels = _to_file_label_tuple_list(public_hdrs, label)
         _add_suitable_headers_to_compilation_unit_sources(
             compilation_unit_sources,
@@ -321,7 +322,7 @@ def compile(
         fail("Compilation context for implementation deps was not created")
     cc_compilation_context = implementation_deps_context if implementation_compilation_contexts else public_compilation_context
 
-    if feature_configuration.is_enabled("header_modules") and not public_compilation_context._module_map:
+    if feature_configuration.is_enabled(feature_names.HEADER_MODULES) and not public_compilation_context._module_map:
         fail("All cc rules must support module maps.")
 
     common_compile_build_variables = setup_common_compile_build_variables(
@@ -395,7 +396,7 @@ def compile(
         objects = compilation_outputs_dict["lto_compilation_context"],
     )
     compilation_outputs = create_compilation_outputs_internal(**compilation_outputs_dict)
-    if feature_configuration.is_enabled("cpp_modules"):
+    if feature_configuration.is_enabled(feature_names.CPP_MODULES):
         public_compilation_context = create_cc_compilation_context_with_cpp20_modules(
             cc_compilation_context = public_compilation_context,
             cpp_module_files = compilation_outputs.cpp_module_files,
@@ -504,7 +505,7 @@ def _should_provide_header_modules(
         public_headers):
     """Returns whether we want to provide header modules for the current target."""
     return (
-        feature_configuration.is_enabled("header_modules") and
+        feature_configuration.is_enabled(feature_names.HEADER_MODULES) and
         (private_headers or public_headers)
     )
 
@@ -779,7 +780,8 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
         source_artifact = cpp_source.file
         output_name = output_name_map[source_artifact]
         source_label = cpp_source.label
-        bitcode_output = feature_configuration.is_enabled("thin_lto") and (("." + source_artifact.extension) in LTO_SOURCE_EXTENSIONS)
+        bitcode_output = feature_configuration.is_enabled(feature_names.THIN_LTO) and (("." + source_artifact.extension) in LTO_SOURCE_EXTENSIONS)
+
         module_file = source_to_module_file_map[source_artifact]
         if use_pic:
             output_name_base = _cc_internal.get_artifact_name_for_category(
@@ -878,7 +880,7 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
             continue
 
         output_name = output_name_map[source_artifact]
-        bitcode_output = feature_configuration.is_enabled("thin_lto") and (("." + source_artifact.extension) in LTO_SOURCE_EXTENSIONS)
+        bitcode_output = feature_configuration.is_enabled(feature_names.THIN_LTO) and (("." + source_artifact.extension) in LTO_SOURCE_EXTENSIONS)
 
         if use_pic:
             output_name_base = _cc_internal.get_artifact_name_for_category(
@@ -1125,14 +1127,14 @@ def _create_cc_compile_actions(
     file. It takes into account coverage, and PIC, in addition to using the settings specified on
     the current object. This method should only be called once.
     """
-    if generate_pic_action and not feature_configuration.is_enabled("pic") and not feature_configuration.is_enabled("supports_pic"):
+    if generate_pic_action and not feature_configuration.is_enabled(feature_names.PIC) and not feature_configuration.is_enabled(feature_names.SUPPORTS_PIC):
         fail("PIC compilation is requested but the toolchain does not support it " +
-             "(feature named 'supports_pic' is not enabled)")
+             "(feature named '{}' is not enabled)".format(feature_names.SUPPORTS_PIC))
 
     enable_dotd_files = dotd_files_enabled(language, action_construction_context.fragments.cpp, feature_configuration)
 
     # If C++20 modules are enabled, delegate to the module-aware implementation and return early.
-    if feature_configuration.is_enabled("cpp_modules"):
+    if feature_configuration.is_enabled(feature_names.CPP_MODULES):
         _create_cc_compile_actions_with_cpp20_module(
             actions = actions,
             action_construction_context = action_construction_context,
@@ -1221,7 +1223,7 @@ def _create_cc_compile_actions(
                 progress_message_prefix = progress_message_prefix,
             )
             modules = modules + separate_modules
-        if feature_configuration.is_enabled("header_module_codegen"):
+        if feature_configuration.is_enabled(feature_names.HEADER_MODULE_CODEGEN):
             for module in modules:
                 _create_module_codegen_action(
                     action_construction_context = action_construction_context,
@@ -1258,7 +1260,7 @@ def _create_cc_compile_actions(
             continue
 
         output_name = output_name_map[source_file]
-        bitcode_output = feature_configuration.is_enabled("thin_lto") and (("." + source_file.extension) in LTO_SOURCE_EXTENSIONS)
+        bitcode_output = feature_configuration.is_enabled(feature_names.THIN_LTO) and (("." + source_file.extension) in LTO_SOURCE_EXTENSIONS)
 
         if not _cc_internal.is_tree_artifact(source_file):
             compiled_basenames.add(_basename_without_extension(source_file))
@@ -1324,7 +1326,7 @@ def _create_cc_compile_actions(
         source_label = cpp_source.label
         if source_type != CPP_SOURCE_TYPE_HEADER or _cc_internal.is_tree_artifact(source_file):
             continue
-        if (feature_configuration.is_enabled("validates_layering_check_in_textual_hdrs") and
+        if (feature_configuration.is_enabled(feature_names.VALIDATES_LAYERING_CHECK_IN_TEXTUAL_HDRS) and
             _basename_without_extension(source_file) in compiled_basenames):
             continue
 
@@ -1609,7 +1611,7 @@ def _create_compile_source_action(
     _is_assembly = "." + source_artifact.extension in (extensions.ASSEMBLER + extensions.ASSEMBLER_WITH_C_PREPROCESSOR)
     trace_file = _maybe_declare_trace_file(
         ctx = action_construction_context,
-        enable_trace = feature_configuration.is_enabled("clang_trace") and not _is_assembly,
+        enable_trace = feature_configuration.is_enabled(feature_names.CLANG_TRACE) and not _is_assembly,
         object_file = object_file,
     )
 
@@ -1624,7 +1626,7 @@ def _create_compile_source_action(
         )
 
     lto_indexing_file = None
-    if bitcode_output and not feature_configuration.is_enabled("no_use_lto_indexing_bitcode_file"):
+    if bitcode_output and not feature_configuration.is_enabled(feature_names.NO_USE_LTO_INDEXING_BITCODE_FILE):
         lto_indexing_file_name = paths.replace_extension(
             paths.basename(object_file.path),
             extensions.LTO_INDEXING_OBJECT_FILE[0],
@@ -1983,12 +1985,12 @@ def _create_module_codegen_action(
             ),
         )
 
-    bitcode_output = (feature_configuration.is_enabled("thin_lto") and
+    bitcode_output = (feature_configuration.is_enabled(feature_names.THIN_LTO) and
                       paths.split_extension(module.basename)[-1] in LTO_SOURCE_EXTENSIONS)
 
     # TODO(tejohnson): Add support for ThinLTO if needed.
     if bitcode_output:
-        fail("bitcode output not currently supported for feature header_module_codegen")
+        fail("bitcode output not currently supported for feature {}".format(feature_names.HEADER_MODULE_CODEGEN))
 
     complete_copts = get_copts(
         language = language,
@@ -2026,7 +2028,7 @@ def _create_module_codegen_action(
         )
 
     diagnostics_file = None
-    if feature_configuration.is_enabled("serialized_diagnostics_file"):
+    if feature_configuration.is_enabled(feature_names.SERIALIZED_DIAGNOSTICS_FILE):
         diagnostics_file = _get_compile_output_file(
             ctx = action_construction_context,
             label = label,
@@ -2179,7 +2181,7 @@ def _use_dotd_file(feature_configuration, source_file):
     extension = "." + source_file.extension if source_file.extension else ""
     header_discover_required = extension not in (extensions.ASSEMBLER + extensions.CPP_MODULE)
     use_header_modules = (
-        feature_configuration.is_enabled("use_header_modules") and
+        feature_configuration.is_enabled(feature_names.USE_HEADER_MODULES) and
         extension in extensions.CC_SOURCE + extensions.CC_HEADER + extensions.CPP_MODULE_MAP
     )
     return header_discover_required and not use_header_modules
@@ -2283,7 +2285,7 @@ def _maybe_declare_diagnostics_file(
         feature_configuration,
         configuration):
     diagnostics_file = None
-    if feature_configuration.is_enabled("serialized_diagnostics_file"):
+    if feature_configuration.is_enabled(feature_names.SERIALIZED_DIAGNOSTICS_FILE):
         base_name = output_name
         if category != artifact_category.OBJECT_FILE and category != artifact_category.PROCESSED_HEADER:
             base_name = _cc_internal.get_artifact_name_for_category(

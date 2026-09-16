@@ -24,6 +24,7 @@ load(
     _use_pic_for_dynamic_libs = "use_pic_for_dynamic_libs",
     artifact_category = "artifact_category_names",
 )
+load("//cc/common:feature_names.bzl", "feature_names")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private/compile:cc_compilation_outputs.bzl", "EMPTY_COMPILATION_OUTPUTS")
 load("//cc/private/link:cpp_link_action.bzl", "link_action")
@@ -225,7 +226,7 @@ def create_cc_link_actions(
             )
 
     if static_link_type == LINK_TARGET_TYPE.ALWAYS_LINK_STATIC_LIBRARY and \
-       feature_configuration.is_enabled("disable_whole_archive_for_static_lib"):
+       feature_configuration.is_enabled(feature_names.DISABLE_WHOLE_ARCHIVE_FOR_STATIC_LIB):
         fail("Attribute alwayslink: alwayslink should not be True for a target" +
              " with the disable_whole_archive_for_static_lib feature enabled.")
 
@@ -235,7 +236,7 @@ def create_cc_link_actions(
             **(dynamic_library | static_library |
                dict(
                    _disable_whole_archive =
-                       feature_configuration.is_enabled("disable_whole_archive_for_static_lib"),
+                       feature_configuration.is_enabled(feature_names.DISABLE_WHOLE_ARCHIVE_FOR_STATIC_LIB),
                    alwayslink = alwayslink,
                    _contains_objects = True,
                ))
@@ -286,14 +287,14 @@ def _create_dynamic_link_actions(
     # Should interface shared objects should be used in the build implied by the given
     # cpp_config and toolchain.
     emit_interface_shared_libraries = emit_interface_shared_libraries and (
-        feature_configuration.is_enabled("supports_interface_shared_libraries") and
+        feature_configuration.is_enabled(feature_names.SUPPORTS_INTERFACE_SHARED_LIBRARIES) and
         cc_toolchain._cpp_configuration.interface_shared_objects()
     )
     if emit_interface_shared_libraries:
         so_interface, _ = _get_linked_artifact(actions, name, LINK_TARGET_TYPE.INTERFACE_DYNAMIC_LIBRARY, cc_toolchain)
 
         # TODO(b/28946988): Remove this hard-coded flag.
-        if not feature_configuration.is_enabled("targets_windows") and not feature_configuration.is_enabled("set_soname"):
+        if not feature_configuration.is_enabled(feature_names.TARGETS_WINDOWS) and not feature_configuration.is_enabled(feature_names.SET_SONAME):
             link_action_kwargs["linkopts"].append("-Wl,-soname=" + dynamic_library_soname(
                 actions,
                 # Must match https://github.com/bazelbuild/bazel/blob/795af54db5c348af5ca8b2961a982b399206ea20/src/main/java/com/google/devtools/build/lib/rules/cpp/SolibSymlinkAction.java#L169.
@@ -339,7 +340,7 @@ def _create_dynamic_link_actions(
 
     impl_library_link_artifact = None
     if dynamic_link_type == LINK_TARGET_TYPE.DYNAMIC_LIBRARY and not neverlink and \
-       not feature_configuration.is_enabled("copy_dynamic_libraries_to_binary"):
+       not feature_configuration.is_enabled(feature_names.COPY_DYNAMIC_LIBRARIES_TO_BINARY):
         impl_library_link_artifact = dynamic_library_symlink(
             actions,
             linker_output,
@@ -393,7 +394,7 @@ def _maybe_link_transitively(feature_configuration, dynamic_link_type, linking_m
 
     # On Windows, we cannot build a shared library with symbols unresolved, so here we
     # dynamically link to all its dependencies, even for LINK_TARGET_TYPE.NODEPS_DYNAMIC_LIBRARY.
-    should_link_transitively = (feature_configuration.is_enabled("targets_windows") or
+    should_link_transitively = (feature_configuration.is_enabled(feature_names.TARGETS_WINDOWS) or
                                 dynamic_link_type != LINK_TARGET_TYPE.NODEPS_DYNAMIC_LIBRARY)
     if not should_link_transitively:
         return [], [], [], []  # libraries_to_link, linkstamps, linkopts, non_code_inputs
@@ -425,7 +426,7 @@ def _maybe_do_lto_indexing(*, link_type, linking_mode, compilation_outputs, libr
     additional_object_files = []
     allow_lto_indexing = False
 
-    if not feature_configuration.is_enabled("thin_lto"):
+    if not feature_configuration.is_enabled(feature_names.THIN_LTO):
         return all_lto_artifacts, allow_lto_indexing, thinlto_param_file, additional_object_files
 
     lto_compilation_context = compilation_outputs._lto_compilation_context
@@ -433,7 +434,7 @@ def _maybe_do_lto_indexing(*, link_type, linking_mode, compilation_outputs, libr
 
     # TODO(b/338618120): deduplicate prefer_static_lib, prefer_pic_libs computed in finalize_link_action as well
     prefer_static_libs = linking_mode == LINKING_MODE.STATIC or \
-                         not feature_configuration.is_enabled("supports_dynamic_linker")
+                         not feature_configuration.is_enabled(feature_names.SUPPORTS_DYNAMIC_LINKER)
     prefer_pic_libs = is_dynamic_library(link_type)
 
     static_libraries_to_link = []
@@ -453,8 +454,8 @@ def _maybe_do_lto_indexing(*, link_type, linking_mode, compilation_outputs, libr
                 break
 
     if has_lto_bitcode_inputs:
-        if not feature_configuration.is_enabled("supports_start_end_lib"):
-            fail("When using LTO. The feature supports_start_end_lib must be enabled.")
+        if not feature_configuration.is_enabled(feature_names.SUPPORTS_START_END_LIB):
+            fail("When using LTO. The feature {} must be enabled.".format(feature_names.SUPPORTS_START_END_LIB))
 
         all_lto_artifacts, allow_lto_indexing, thinlto_param_file, thinlto_merged_object_file = \
             create_lto_artifacts_and_lto_indexing_action(
@@ -484,7 +485,7 @@ def _construct_dynamic_library_to_link(
     library_to_link = {}
     if dynamic_library:
         library_to_link = dict(_library_identifier = dynamic_library.library_identifier)
-        if neverlink or feature_configuration.is_enabled("copy_dynamic_libraries_to_binary"):
+        if neverlink or feature_configuration.is_enabled(feature_names.COPY_DYNAMIC_LIBRARIES_TO_BINARY):
             if interface_library:
                 library_to_link["interface_library"] = interface_library.file
             library_to_link["dynamic_library"] = dynamic_library.file
