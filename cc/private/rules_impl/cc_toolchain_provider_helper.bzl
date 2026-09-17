@@ -68,7 +68,7 @@ def _compute_tool_paths(toolchain_config_info, crosstool_top_path):
 
     return tool_paths_collector
 
-def _resolve_include_dir(target_label, s, sysroot, crosstool_path):
+def _resolve_include_dir(ctx, s, sysroot, crosstool_path):
     """ Resolve the given include directory.
 
     If it starts with %sysroot%/, that part is replaced with the actual sysroot.
@@ -97,7 +97,7 @@ def _resolve_include_dir(target_label, s, sysroot, crosstool_path):
 
         # This is necessary to avoid the hard work of parsing,
         # and use an already existing API.
-        dummy_label = target_label.relative(package + ":dummy_target")
+        dummy_label = ctx.package_relative_label(package + ":dummy_target")
         repo_prefix = dummy_label.workspace_root
         path_prefix = get_relative_path(repo_prefix, dummy_label.package)
         path_start_index = package_end_index + len(_PACKAGE_END)
@@ -222,7 +222,7 @@ def get_cc_toolchain_provider(ctx, attributes):
 
     builtin_include_directories = []
     for s in toolchain_config_info.cxx_builtin_include_directories:
-        builtin_include_directories.append(_resolve_include_dir(ctx.label, s, sysroot, tools_directory))
+        builtin_include_directories.append(_resolve_include_dir(ctx, s, sysroot, tools_directory))
 
     build_variables_dict = _get_cc_toolchain_vars(ctx.fragments.cpp, sysroot)
     build_variables = cc_common.cc_toolchain_variables(vars = build_variables_dict)
