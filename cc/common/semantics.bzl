@@ -36,6 +36,22 @@ def _validate_attributes(_ctx):
 def _validate_layering_check_features(ctx, cc_toolchain, unsupported_features):
     pass
 
+def _std_module_default(name, tags):
+    if "no_implicit_std_module" in tags:
+        return None
+    return Label("//cc:std_module")
+
+def _get_std_module_attrs():
+    return {
+        "_std_module": attr.label(default = _std_module_default),
+    }
+
+def _get_std_module_deps(ctx, feature_configuration):
+    if not feature_configuration.is_enabled("std_module"):
+        return []
+    std_module = getattr(ctx.attr, "_std_module", None)
+    return [std_module] if std_module else []
+
 def _get_stl():
     return attr.label()
 
@@ -188,6 +204,8 @@ semantics = struct(
     get_runtimes_toolchain = _get_runtimes_toolchain,
     get_test_malloc_attr = _get_test_malloc_attr,
     get_cc_runtimes = _get_cc_runtimes,
+    get_std_module_attrs = _get_std_module_attrs,
+    get_std_module_deps = _get_std_module_deps,
     get_cc_runtimes_copts = _get_cc_runtimes_copts,
     get_coverage_attrs = _get_coverage_attrs,
     get_coverage_env = _get_coverage_env,

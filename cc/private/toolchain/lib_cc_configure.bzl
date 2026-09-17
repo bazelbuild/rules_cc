@@ -276,6 +276,42 @@ def get_starlark_list(values):
         return ""
     return "\"" + "\",\n    \"".join(values) + "\""
 
+def get_std_module_library(interfaces, hdrs = [], copts = []):
+    """Return the BUILD text of the :std cc_library for the given interfaces.
+
+    cc_library only grew module_interfaces in Bazel 8, and an older Bazel
+    rejects the attribute itself, even an empty one, which fails the whole
+    generated package. The target is therefore rendered as a whole: with no
+    interface to declare it carries none of the module plumbing.
+
+    Args:
+      interfaces: The basenames of the module interface sources. May be empty.
+      hdrs: Glob patterns for headers the interfaces pull in.
+      copts: Extra options used to compile the interfaces.
+
+    Returns:
+      The BUILD text of the target, with no interface attributes when there is
+      nothing to declare.
+    """
+    if not interfaces:
+        return """cc_library(
+    name = "std",
+    tags = ["no_implicit_std_module"],
+)"""
+
+    optional_attrs = ""
+    if hdrs:
+        optional_attrs += "\n    hdrs = glob([%s], allow_empty = True)," % get_starlark_list(hdrs)
+    if copts:
+        optional_attrs += "\n    copts = [%s]," % get_starlark_list(copts)
+
+    return """cc_library(
+    name = "std",
+    module_interfaces = [%s],%s
+    features = ["cpp_modules"],
+    tags = ["no_implicit_std_module"],
+)""" % (get_starlark_list(interfaces), optional_attrs)
+
 def auto_configure_warning_maybe(repository_ctx, msg):
     """Output warning message when CC_CONFIGURE_DEBUG is enabled."""
     if is_cc_configure_debug(repository_ctx):

@@ -46,6 +46,14 @@ cc_library(
     name = "malloc",
 )
 
+# Auto-detected C++ standard library modules. The configuration repository
+# discovers std and std.compat from libstdc++.modules.json or
+# libc++.modules.json and compiles their interfaces together. An absent
+# interface leaves :std empty so standard-module label flags still resolve on
+# toolchains without module support.
+%{std_module_library}
+
+
 filegroup(
     name = "empty",
     srcs = [],

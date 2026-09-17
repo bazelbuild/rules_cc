@@ -212,8 +212,8 @@ def _get_dynamic_libraries_for_runtime(link_statically, libraries):
             dynamic_libraries_for_runtime.append(artifact)
     return dynamic_libraries_for_runtime
 
-def _get_providers(ctx):
-    all_deps = ctx.attr.deps + cc_helper.get_cc_runtimes(ctx, _is_link_shared(ctx))
+def _get_providers(ctx, feature_configuration):
+    all_deps = ctx.attr.deps + cc_helper.get_cc_runtimes(ctx, _is_link_shared(ctx)) + semantics.get_std_module_deps(ctx, feature_configuration)
     return [dep[CcInfo] for dep in all_deps if CcInfo in dep]
 
 def _filter_libraries_that_are_linked_dynamically(ctx, feature_configuration, cc_linking_context):
@@ -416,8 +416,8 @@ def _use_pic(ctx, cc_toolchain, feature_configuration):
         return cc_toolchain.needs_pic_for_dynamic_libraries(feature_configuration = feature_configuration)
     return cc_helper.should_use_pic(ctx, cc_toolchain, feature_configuration)
 
-def _collect_linking_context(ctx):
-    cc_infos = _get_providers(ctx)
+def _collect_linking_context(ctx, feature_configuration):
+    cc_infos = _get_providers(ctx, feature_configuration)
     return cc_common.merge_cc_infos(direct_cc_infos = cc_infos, cc_infos = cc_infos).linking_context
 
 def _get_link_staticness(ctx, cpp_config, force_linkstatic, _is_dbg_build):
@@ -508,7 +508,7 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
 
     cc_helper.check_cpp_modules(ctx, feature_configuration)
 
-    all_deps = ctx.attr.deps + cc_helper.get_cc_runtimes(ctx, _is_link_shared(ctx))
+    all_deps = ctx.attr.deps + cc_helper.get_cc_runtimes(ctx, _is_link_shared(ctx)) + semantics.get_std_module_deps(ctx, feature_configuration)
     compilation_context_deps = [dep[CcInfo].compilation_context for dep in all_deps if CcInfo in dep]
 
     runtimes_copts = cc_helper.get_cc_runtimes_copts(ctx)
@@ -579,7 +579,7 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
         )
 
     is_static_mode = linking_mode != linker_mode.LINKING_DYNAMIC
-    deps_cc_linking_context = _collect_linking_context(ctx)
+    deps_cc_linking_context = _collect_linking_context(ctx, feature_configuration)
     generated_def_file = None
 
     if _is_link_shared(ctx):
@@ -716,7 +716,7 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
         dwp_file,
         feature_configuration = feature_configuration,
         cc_compilation_outputs = cc_compilation_outputs,
-        cc_debug_context = cc_helper.merge_cc_debug_contexts(cc_compilation_outputs, _get_providers(ctx)),
+        cc_debug_context = cc_helper.merge_cc_debug_contexts(cc_compilation_outputs, _get_providers(ctx, feature_configuration)),
         linking_mode = linking_mode,
         use_pic = use_pic,
         lto_artifacts = cc_linking_outputs_binary.all_lto_artifacts(),
