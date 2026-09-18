@@ -424,7 +424,7 @@ def _add_suitable_headers_to_compilation_unit_sources(
         headers_with_labels: A list of (File, Label) tuples of header files.
     """
     for header, label in headers_with_labels:
-        is_header = "." + header.extension in extensions.CC_HEADER or _cc_internal.is_tree_artifact(header)
+        is_header = "." + header.extension in extensions.CC_HEADER or header.is_directory
         is_textual_include = "." + header.extension in extensions.CC_TEXTUAL_INCLUDE
         if is_header and not is_textual_include:
             compilation_unit_sources[header] = _CppSourceInfo(
@@ -445,7 +445,7 @@ def _add_suitable_srcs_to_compilation_unit_sources(
         # TODO(b/413333884): If it's a non-source file we ignore it. This is only the case for
         # precompiled files which should be forbidden in srcs of cc_library|binary and instead be
         # migrated to cc_import rules.
-        if "." + source.extension in source_category or _cc_internal.is_tree_artifact(source):
+        if "." + source.extension in source_category or source.is_directory:
             compilation_unit_sources[source] = _CppSourceInfo(
                 label = label,
                 source = source,
@@ -1252,13 +1252,13 @@ def _create_cc_compile_actions(
         source_file = cpp_source.file
         source_type = cpp_source.type
         source_label = cpp_source.label
-        if not _cc_internal.is_tree_artifact(source_file) and source_type == CPP_SOURCE_TYPE_HEADER:
+        if not source_file.is_directory and source_type == CPP_SOURCE_TYPE_HEADER:
             continue
 
         output_name = output_name_map[source_file]
         bitcode_output = feature_configuration.is_enabled(feature_names.THIN_LTO) and (("." + source_file.extension) in LTO_SOURCE_EXTENSIONS)
 
-        if not _cc_internal.is_tree_artifact(source_file):
+        if not source_file.is_directory:
             compiled_basenames.add(_basename_without_extension(source_file))
             _create_pic_nopic_compile_source_actions(
                 action_construction_context = action_construction_context,
@@ -1320,7 +1320,7 @@ def _create_cc_compile_actions(
         source_file = cpp_source.file
         source_type = cpp_source.type
         source_label = cpp_source.label
-        if source_type != CPP_SOURCE_TYPE_HEADER or _cc_internal.is_tree_artifact(source_file):
+        if source_type != CPP_SOURCE_TYPE_HEADER or source_file.is_directory:
             continue
         if (feature_configuration.is_enabled(feature_names.VALIDATES_LAYERING_CHECK_IN_TEXTUAL_HDRS) and
             _basename_without_extension(source_file) in compiled_basenames):
