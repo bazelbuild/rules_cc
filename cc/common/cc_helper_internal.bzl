@@ -18,27 +18,13 @@ Only use those within C++ implementation. The others need to go through cc_commo
 """
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
-load("//cc/common:visibility.bzl", "PRIVATE_RULES_ALLOWLIST")
-load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
+load("//cc/common:visibility.bzl", _CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES = "CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES", _PRIVATE_STARLARKIFICATION_ALLOWLIST = "PRIVATE_STARLARKIFICATION_ALLOWLIST", _check_private_api = "check_private_api", _wrap_with_check_private_api = "wrap_with_check_private_api")
 load("//cc/private:paths.bzl", "is_path_absolute")
 
-def check_private_api():
-    _cc_internal.check_private_api(allowlist = PRIVATE_STARLARKIFICATION_ALLOWLIST, depth = 2)
-
-def wrap_with_check_private_api(symbol):
-    """
-    Protects the symbol so it can only be used internally.
-
-    Returns:
-      A function. When the function is invoked (without any params), the check
-      is done and if it passes the symbol is returned.
-    """
-
-    def callback():
-        _cc_internal.check_private_api(allowlist = PRIVATE_STARLARKIFICATION_ALLOWLIST)
-        return symbol
-
-    return callback
+check_private_api = _check_private_api
+wrap_with_check_private_api = _wrap_with_check_private_api
+PRIVATE_STARLARKIFICATION_ALLOWLIST = _PRIVATE_STARLARKIFICATION_ALLOWLIST
+CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES = _CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES
 
 CPP_SOURCE_TYPE_HEADER = "HEADER"
 CPP_SOURCE_TYPE_SOURCE = "SOURCE"
@@ -180,55 +166,6 @@ def get_linkstamp_stamps(
                 stamps[d] = "1"
 
     return stamps
-
-# LINT.IfChange(forked_exports)
-
-CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES = [("", "devtools/rust/cc_interop"), ("", "third_party/crubit"), ("", "tools/build_defs/clif")]
-
-PRIVATE_STARLARKIFICATION_ALLOWLIST = [
-    ("_builtins", ""),
-    # Android rules
-    ("", "tools/build_defs/android"),
-    ("", "third_party/bazel_rules/rules_android"),
-    ("build_bazel_rules_android", ""),
-    ("rules_android", ""),
-    # Apple rules
-    ("", "third_party/bazel_rules/rules_apple"),
-    ("apple_support", ""),
-    ("build_bazel_apple_support", ""),
-    ("rules_apple", ""),
-    ("build_bazel_rules_apple", ""),
-    # C++ rules
-    ("", "bazel_internal/test_rules/cc"),
-    ("", "third_party/bazel_rules/rules_cc"),
-    ("", "tools/build_defs/cc"),
-    ("rules_cc", ""),
-    # CUDA rules
-    ("", "third_party/gpus/cuda"),
-    # Go rules
-    ("", "tools/build_defs/go"),
-    # Java rules
-    ("", "third_party/bazel_rules/rules_java"),
-    ("rules_java", ""),
-    # Objc rules
-    ("", "tools/build_defs/objc"),
-    # Protobuf rules
-    ("", "third_party/protobuf"),
-    ("protobuf", ""),
-    ("com_google_protobuf", ""),
-    ("", "third_party/upb"),
-    # Rust rules
-    ("", "third_party/bazel_rules/rules_rust/rust/private"),
-    ("rules_rust", "rust/private"),
-    ("rules_rs", "rust/private"),
-    # Python rules
-    ("", "third_party/bazel_rules/rules_python"),
-    # Various
-    ("", "research/colab"),
-    ("", "javatests/com/google/devtools/grok/kythe"),
-] + CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES + PRIVATE_RULES_ALLOWLIST
-
-# LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/cc_helper_internal.bzl:forked_exports)
 
 _CC_SOURCE = [".cc", ".cpp", ".cxx", ".c++", ".C", ".cu", ".cl"]
 _C_SOURCE = [".c"]
