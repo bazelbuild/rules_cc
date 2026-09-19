@@ -92,7 +92,10 @@ def _get_target_libc(repository_ctx, cc, darwin, compile_opts):
             ("__GLIBC__", "glibc"),
             ("__BIONIC__", "bionic"),
             ("__LLVM_LIBC__", "llvm-libc"),
+            ("__DragonFly__", "dragonfly"),
+            ("__FreeBSD__", "freebsd"),
             ("__NetBSD__", "netbsd"),
+            ("__OpenBSD__", "openbsd"),
         ]:
             if ("#define %s " % macro) in result.stdout:
                 return libc
@@ -406,11 +409,16 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
 
     repository_ctx.file("tools/cpp/empty.cc", "int main() {}")
     darwin = cpu_value.startswith("darwin")
-    bsd = cpu_value == "freebsd" or cpu_value == "openbsd"
-    if bsd:
-        fail("FreeBSD / OpenBSD should use bsd_cc_toolchain_config.bzl")
 
-    cc = _find_generic(repository_ctx, "gcc", "CC", overridden_tools)
+    # The BSDs install their C driver as cc: clang on FreeBSD and OpenBSD, the
+    # base gcc on NetBSD and DragonFly.  Asking for gcc first would prefer one
+    # installed from ports or pkgsrc over the compiler the system was built
+    # with, so name cc there instead.  CC and overridden_tools still win, since
+    # _find_generic consults both before it looks at PATH.
+    if cpu_value in ("freebsd", "openbsd", "netbsd", "dragonfly"):
+        cc = _find_generic(repository_ctx, "cc", "CC", overridden_tools)
+    else:
+        cc = _find_generic(repository_ctx, "gcc", "CC", overridden_tools)
     is_clang = _is_clang(repository_ctx, cc)
     overridden_tools = dict(overridden_tools)
     overridden_tools["gcc"] = cc
@@ -587,7 +595,16 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
         bazel_default_libs = ["-lc++", "-lm"]
     else:
         bazel_default_libs = ["-lstdc++", "-lm"]
-    if is_as_needed_supported and is_push_state_supported:
+
+    # On OpenBSD the driver expands -lstdc++ to -lc++ -lc++abi -lpthread, and
+    # libpthread is only reached through the other two.  Wrapping the whole
+    # expansion in --as-needed therefore drops it: the binary comes out with
+    # libc++ and libc++abi in NEEDED but no libpthread, and dies at startup on
+    # undefined pthread_* symbols.  cc -### does not show this, because it
+    # prints what the driver passes to the linker, not what survives the link.
+    # Diagnosed by @c2qd in #862; OpenBSD ports turn --as-needed off for the
+    # same reason.
+    if is_as_needed_supported and is_push_state_supported and cpu_value != "openbsd":
         # Do not link against C++ standard libraries unless they are actually
         # used.
         # We assume that --push-state support implies --pop-state support.
@@ -756,6 +773,17 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
                 cc,
                 force_linker_flags,
                 "-Wl,-z,relro,-z,now",
+                "-z",
+            ) + _add_linker_option_if_supported(
+                # Bazel puts $ORIGIN in the RPATH it generates, and OpenBSD's
+                # ld.so only expands it when DF_ORIGIN is set, which is what
+                # -z origin sets.  glibc and musl expand it either way, so the
+                # need for this is invisible on Linux.  Probed separately from
+                # relro/now so that a linker without it keeps those two.
+                repository_ctx,
+                cc,
+                force_linker_flags,
+                "-Wl,-z,origin",
                 "-z",
             ) + (
                 [
