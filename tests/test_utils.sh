@@ -43,6 +43,12 @@ function is_bazel() {
     [ $TEST_WORKSPACE == "_main" ]
 }
 
+function linker_supports_start_end_lib() {
+    echo "int main() {}" |
+        "$1" -x c++ - -o /dev/null \
+            -Wl,--start-lib -Wl,--end-lib &>/dev/null
+}
+
 function add_to_bazelrc() {
     echo "$@" >> .bazelrc
 }
