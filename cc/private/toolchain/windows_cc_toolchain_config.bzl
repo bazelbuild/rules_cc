@@ -607,15 +607,7 @@ def _impl(ctx):
                     ] if ctx.attr.conly_flags else []),
                 ),
                 flag_set(
-                    actions = [
-                        ACTION_NAMES.linkstamp_compile,
-                        ACTION_NAMES.cpp_compile,
-                        ACTION_NAMES.cpp_header_parsing,
-                        ACTION_NAMES.cpp_module_compile,
-                        ACTION_NAMES.cpp_module_codegen,
-                        ACTION_NAMES.lto_backend,
-                        ACTION_NAMES.clif_match,
-                    ],
+                    actions = all_cpp_compile_actions + [ACTION_NAMES.lto_backend],
                     flag_groups = ([
                         flag_group(
                             flags = ctx.attr.cxx_flags,
@@ -1498,18 +1490,7 @@ def _impl(ctx):
             enabled = True,
             flag_sets = [
                 flag_set(
-                    actions = [
-                        ACTION_NAMES.linkstamp_compile,
-                        ACTION_NAMES.cpp_compile,
-                        ACTION_NAMES.cpp_header_parsing,
-                        ACTION_NAMES.cpp_module_compile,
-                        ACTION_NAMES.cpp_module_codegen,
-                        ACTION_NAMES.cpp_module_deps_scanning,
-                        ACTION_NAMES.cpp20_module_compile,
-                        ACTION_NAMES.cpp20_module_codegen,
-                        ACTION_NAMES.lto_backend,
-                        ACTION_NAMES.clif_match,
-                    ],
+                    actions = all_cpp_compile_actions + [ACTION_NAMES.lto_backend],
                     flag_groups = [flag_group(flags = ["-std=gnu++14"] + ctx.attr.default_compile_flags)],
                 ),
             ],
@@ -1666,15 +1647,7 @@ def _impl(ctx):
                         ] if ctx.attr.conly_flags else []),
                     ),
                     flag_set(
-                        actions = [
-                            ACTION_NAMES.linkstamp_compile,
-                            ACTION_NAMES.cpp_compile,
-                            ACTION_NAMES.cpp_header_parsing,
-                            ACTION_NAMES.cpp_module_compile,
-                            ACTION_NAMES.cpp_module_codegen,
-                            ACTION_NAMES.lto_backend,
-                            ACTION_NAMES.clif_match,
-                        ],
+                        actions = all_cpp_compile_actions + [ACTION_NAMES.lto_backend],
                         flag_groups = ([
                             flag_group(
                                 flags = ctx.attr.cxx_flags,
@@ -1749,6 +1722,10 @@ def _impl(ctx):
         enabled = False,
     )
 
+    # Enables implicit dependency injection for the configured standard module.
+    # This feature intentionally contributes no compiler flags.
+    std_module_feature = feature(name = "std_module", enabled = False)
+
     cpp_module_modmap_file_feature = feature(
         name = "cpp_module_modmap_file",
         flag_sets = [
@@ -1785,7 +1762,7 @@ def _impl(ctx):
         ],
         enabled = True,
     )
-    features.extend([cpp_modules_feature, cpp_module_modmap_file_feature, cpp20_module_compile_flags_feature])
+    features.extend([cpp_modules_feature, std_module_feature, cpp_module_modmap_file_feature, cpp20_module_compile_flags_feature])
 
     extra_rules_based_features = depset(ctx.attr.extra_enabled_features + ctx.attr.extra_known_features)
     features.extend([convert_feature(extra_feature[FeatureInfo], enabled = extra_feature in ctx.attr.extra_enabled_features) for extra_feature in extra_rules_based_features.to_list()])

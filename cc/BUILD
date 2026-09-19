@@ -21,6 +21,11 @@ package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])  # Apache 2.0
 
+label_flag(
+    name = "std_module",
+    build_setting_default = "@local_config_cc//:std",
+)
+
 filegroup(
     name = "all_files_for_testing",
     srcs = glob(["**"]) + [

@@ -1848,6 +1848,10 @@ def _impl(ctx):
         enabled = False,
     )
 
+    # Enables implicit dependency injection for the configured standard module.
+    # This feature intentionally contributes no compiler flags.
+    std_module_feature = feature(name = "std_module", enabled = False)
+
     cpp_module_modmap_file_feature = feature(
         name = "cpp_module_modmap_file",
         flag_sets = [
@@ -1934,6 +1938,7 @@ def _impl(ctx):
         ]
         features = [
             cpp_modules_feature,
+            std_module_feature,
             cpp_module_modmap_file_feature,
             cpp20_module_compile_flags_feature,
             dependency_file_feature,
@@ -2014,6 +2019,7 @@ def _impl(ctx):
         ]
         features = [
             cpp_modules_feature,
+            std_module_feature,
             cpp_module_modmap_file_feature,
             cpp20_module_compile_flags_feature,
             macos_minimum_os_feature,

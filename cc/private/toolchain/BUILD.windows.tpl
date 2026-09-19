@@ -44,6 +44,8 @@ cc_library(
     name = "malloc",
 )
 
+%{std_module_library}
+
 filegroup(
     name = "empty",
     srcs = [],

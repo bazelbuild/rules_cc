@@ -22,7 +22,7 @@ load(":cc_shared_library.bzl", "dynamic_deps_attrs")
 
 visibility("private")
 
-common_attrs = {
+common_attrs = semantics.get_std_module_attrs() | {
     "srcs": attr.label_list(
         allow_files = True,
         flags = ["DIRECT_COMPILE_TIME_INPUT"],

@@ -22,6 +22,7 @@ load(
     "escape_string",
     "execute",
     "get_starlark_list",
+    "get_std_module_library",
     "resolve_labels",
     "split_escaped",
     "write_builtin_include_directory_paths",
@@ -917,6 +918,87 @@ def _get_copts(repository_ctx):
 
     return copts_vars
 
+def _find_std_module_interfaces(repository_ctx, vc_path):
+    """Find the C++ standard-library module interfaces MSVC ships.
+
+    The STL keeps its module sources under `<MSVC root>/modules` next to a
+    modules.json manifest that lists them. Detection is opt-in
+    (BAZEL_DETECT_STD_MODULE=1); it also returns an empty list on toolchains
+    that predate MSVC's std modules, and under USE_CLANG_CL, where the msvc_*
+    configs name clang-cl rather than the compiler these sources belong to.
+
+    Args:
+        repository_ctx: The repository context.
+        vc_path: Visual C++ root directory, or None if there is no VC install.
+
+    Returns:
+        The paths of the shipped module interfaces, or an empty list.
+    """
+
+    if _get_env_var(repository_ctx, "BAZEL_DETECT_STD_MODULE", default = "0") != "1":
+        return []
+
+    if not vc_path:
+        return []
+
+    # The std target is shared by every toolchain in this repository, so the
+    # interfaces must suit the compiler it names; under USE_CLANG_CL that is
+    # clang-cl, which these MSVC sources were not written for.
+    if _use_clang_cl(repository_ctx):
+        return []
+
+    # _get_vc_full_version reads <vc_path>/Tools/MSVC, which only exists for the
+    # VS 2017+ layout; older installs have no version directory there to read.
+    # Mirrors the guard around its other callers.
+    if not _is_vs_2017_or_newer(repository_ctx, vc_path) and not _is_msbuildtools(vc_path):
+        return []
+
+    full_version = _get_vc_full_version(repository_ctx, vc_path)
+    if not full_version:
+        return []
+
+    modules_dir = repository_ctx.path(
+        "%s/Tools/MSVC/%s/modules" % (vc_path.replace("\\", "/"), full_version),
+    )
+    manifest_path = modules_dir.get_child("modules.json")
+    if not manifest_path.exists:
+        auto_configure_warning_maybe(
+            repository_ctx,
+            "No standard library modules found under %s, so the std target of local_config_cc will be empty." % modules_dir,
+        )
+        return []
+
+    interfaces = []
+    for name in json.decode(repository_ctx.read(manifest_path)).get("module-sources", []):
+        source = modules_dir.get_child(name)
+        if source.exists:
+            interfaces.append(source)
+    return interfaces
+
+def _get_std_module_vars(repository_ctx, vc_path):
+    """Get the variables that populate the std target of BUILD.windows.tpl.
+
+    The interface sources are symlinked into the repository so the target can
+    name them; the headers they pull in already come from the toolchain's own
+    include directories, so no headers are globbed here.
+
+    Args:
+        repository_ctx: The repository context.
+        vc_path: Visual C++ root directory, or None if there is no VC install.
+
+    Returns:
+        A dict of template substitutions for BUILD.windows.tpl.
+    """
+    interfaces = _find_std_module_interfaces(repository_ctx, vc_path)
+    for interface in interfaces:
+        repository_ctx.symlink(interface, interface.basename)
+
+    return {
+        "%{std_module_library}": get_std_module_library(
+            [interface.basename for interface in interfaces],
+        ),
+    }
+
 def configure_windows_toolchain(repository_ctx):
     """Configure C++ toolchain on Windows.
 
@@ -959,6 +1041,7 @@ def configure_windows_toolchain(repository_ctx):
     template_vars.update(_get_clang_cl_vars(repository_ctx, paths, msvc_vars_x64, "x64"))
     template_vars.update(_get_msys_mingw_vars(repository_ctx))
     template_vars.update(_get_copts(repository_ctx))
+    template_vars.update(_get_std_module_vars(repository_ctx, find_vc_path(repository_ctx)))
     template_vars.update(_get_msvc_vars(repository_ctx, paths, "x86", msvc_vars_x64))
     template_vars.update(_get_msvc_vars(repository_ctx, paths, "arm", msvc_vars_x64))
     msvc_vars_arm64 = _get_msvc_vars(repository_ctx, paths, "arm64", msvc_vars_x64)
