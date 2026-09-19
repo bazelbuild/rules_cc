@@ -102,12 +102,6 @@ cc_external_feature(
 )
 
 cc_external_feature(
-    name = "linkstamps",
-    feature_name = "linkstamps",
-    overridable = True,
-)
-
-cc_external_feature(
     name = "output_execpath_flags",
     feature_name = "output_execpath_flags",
     overridable = True,
@@ -267,7 +261,6 @@ cc_feature_set(
         ":build_interface_libraries",
         ":dynamic_library_linker_tool",
         ":shared_flag",
-        ":linkstamps",
         ":output_execpath_flags",
         ":runtime_library_search_directories",
         ":library_search_directories",
