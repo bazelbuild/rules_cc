@@ -190,6 +190,7 @@ _OBJECT_FILE = [".o", ".obj"]
 _PIC_OBJECT_FILE = [".pic.o"]
 _CPP_MODULE = [".pcm", ".gcm", ".ifc"]
 _CPP_MODULE_MAP = [".cppmap"]
+_CPP_MODULE_INTERFACE = [".cppm", ".ixx", ".ccm", ".cxxm", ".c++m", ".mpp", ".mxx"]
 _LTO_INDEXING_OBJECT_FILE = [".indexing.o"]
 
 _CC_AND_OBJC = []
@@ -233,6 +234,7 @@ extensions = struct(
     CC_AND_OBJC = _CC_AND_OBJC,
     DISALLOWED_HDRS_FILES = _DISALLOWED_HDRS_FILES,  # Also includes VERSIONED_SHARED_LIBRARY files.
     CPP_MODULE = _CPP_MODULE,
+    CPP_MODULE_INTERFACE = _CPP_MODULE_INTERFACE,
     CPP_MODULE_MAP = _CPP_MODULE_MAP,
     LTO_INDEXING_OBJECT_FILE = _LTO_INDEXING_OBJECT_FILE,
 )
