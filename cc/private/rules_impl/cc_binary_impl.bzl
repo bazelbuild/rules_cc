@@ -421,10 +421,10 @@ def _collect_linking_context(ctx):
     return cc_common.merge_cc_infos(direct_cc_infos = cc_infos, cc_infos = cc_infos).linking_context
 
 def _get_link_staticness(ctx, cpp_config, force_linkstatic, _is_dbg_build):
-    if cpp_config.dynamic_mode() == "FULLY":
-        return linker_mode.LINKING_DYNAMIC
-    elif cpp_config.dynamic_mode() == "OFF" or ctx.attr.linkstatic or force_linkstatic:
+    if cpp_config.dynamic_mode() == "OFF" or ctx.attr.linkstatic or force_linkstatic:
         return linker_mode.LINKING_STATIC
+    elif cpp_config.dynamic_mode() == "FULLY":
+        return linker_mode.LINKING_DYNAMIC
     else:
         return linker_mode.LINKING_DYNAMIC
 
