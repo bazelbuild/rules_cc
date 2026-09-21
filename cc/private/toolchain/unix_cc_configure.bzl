@@ -59,6 +59,56 @@ def _prepare_include_path(repo_ctx, path):
         return path[len(repo_root):]
     return path
 
+def _get_target_libc(repository_ctx, cc, darwin, compile_opts):
+    """Detect the C standard library targeted by the compiler.
+
+    Returns one of the canonical names used by the config_settings in
+    @rules_cc//cc/libc if the C standard library is recognized and "unknown"
+    otherwise. Can be overridden via the BAZEL_TARGET_LIBC environment
+    variable.
+
+    Args:
+        repository_ctx: The repository context.
+        cc: Path of the compiler.
+        darwin: Whether the target platform is macOS.
+        compile_opts: User-configured C compile flags, which may affect the
+            targeted libc (e.g. via --sysroot or --target).
+    """
+    if darwin:
+        return "macosx"
+    libc = get_env_var(repository_ctx, "BAZEL_TARGET_LIBC", "", False)
+    if libc:
+        return escape_string(libc)
+
+    # Preprocessing any standard library header defines macros that identify
+    # most implementations.
+    repository_ctx.file("tools/cpp/detect_libc.c", "#include <string.h>\n")
+    result = repository_ctx.execute([cc] + compile_opts + ["-E", "-dM", "tools/cpp/detect_libc.c"])
+    if result.return_code == 0:
+        for macro, libc in [
+            # uClibc also defines __GLIBC__ for compatibility, so check for it
+            # first.
+            ("__UCLIBC__", "uclibc"),
+            ("__GLIBC__", "glibc"),
+            ("__BIONIC__", "bionic"),
+            ("__LLVM_LIBC__", "llvm-libc"),
+            ("__NetBSD__", "netbsd"),
+        ]:
+            if ("#define %s " % macro) in result.stdout:
+                return libc
+
+    # musl intentionally doesn't define an identifying macro, but is usually
+    # mentioned in the compiler's target triple.
+    result = repository_ctx.execute([cc] + compile_opts + ["-dumpmachine"])
+    if result.return_code == 0:
+        triple = result.stdout.strip()
+        if "musl" in triple:
+            return "musl"
+        if "android" in triple:
+            return "bionic"
+
+    return "unknown"
+
 def _find_tool(repository_ctx, tool, overridden_tools):
     """Find a tool for repository, taking overridden tools into account."""
     if tool in overridden_tools:
@@ -357,6 +407,8 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     repository_ctx.file("tools/cpp/empty.cc", "int main() {}")
     darwin = cpu_value.startswith("darwin")
     bsd = cpu_value == "freebsd" or cpu_value == "openbsd"
+    if bsd:
+        fail("FreeBSD / OpenBSD should use bsd_cc_toolchain_config.bzl")
 
     cc = _find_generic(repository_ctx, "gcc", "CC", overridden_tools)
     is_clang = _is_clang(repository_ctx, cc)
@@ -517,7 +569,6 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     # TODO: It's unclear why these flags aren't added on macOS.
     if bin_search_flags and not darwin:
         force_linker_flags.extend(bin_search_flags)
-    use_libcpp = darwin or bsd
     is_as_needed_supported = _is_linker_option_supported(
         repository_ctx,
         cc,
@@ -532,7 +583,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
         "-Wl,--push-state",
         "--push-state",
     )
-    if use_libcpp:
+    if darwin:
         bazel_default_libs = ["-lc++", "-lm"]
     else:
         bazel_default_libs = ["-lstdc++", "-lm"]
@@ -772,12 +823,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
                 cpu_value,
                 False,
             )),
-            "%{target_libc}": "macosx" if darwin else escape_string(get_env_var(
-                repository_ctx,
-                "BAZEL_TARGET_LIBC",
-                "local",
-                False,
-            )),
+            "%{target_libc}": _get_target_libc(repository_ctx, cc, darwin, all_compile_opts + conly_opts),
             "%{target_system_name}": escape_string(get_env_var(
                 repository_ctx,
                 "BAZEL_TARGET_SYSTEM",

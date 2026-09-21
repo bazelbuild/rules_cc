@@ -18,6 +18,7 @@ load("//cc:find_cc_toolchain.bzl", "find_cc_toolchain")
 load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/common:cc_helper.bzl", "cc_helper")
 load("//cc/common:cc_info.bzl", "CcInfo")
+load("//cc/common:feature_names.bzl", "feature_names")
 load("//cc/common:semantics.bzl", "semantics")
 load(":function_providing_rule.bzl", "wrap_starlark_function")
 
@@ -54,14 +55,16 @@ def _cc_library_impl(ctx):
     additional_make_variable_substitutions = cc_helper.get_toolchain_global_make_variables(cc_toolchain, feature_configuration)
     additional_make_variable_substitutions.update(cc_helper.get_cc_flags_make_variable(ctx, feature_configuration, cc_toolchain))
 
+    disallowed_copts_infos = getattr(cc_toolchain, "disallowed_copts_infos", [])
+
     (compilation_context, srcs_compilation_outputs) = cc_common.compile(
         actions = ctx.actions,
         name = ctx.label.name,
         cc_toolchain = cc_toolchain,
         feature_configuration = feature_configuration,
-        user_compile_flags = runtimes_copts + cc_helper.get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "copts", requested_features = features),
-        conly_flags = cc_helper.get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "conlyopts", requested_features = features),
-        cxx_flags = cc_helper.get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "cxxopts", requested_features = features),
+        user_compile_flags = runtimes_copts + cc_helper.get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "copts", requested_features = features, disallowed_copts_infos = disallowed_copts_infos),
+        conly_flags = cc_helper.get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "conlyopts", requested_features = features, disallowed_copts_infos = disallowed_copts_infos),
+        cxx_flags = cc_helper.get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "cxxopts", requested_features = features, disallowed_copts_infos = disallowed_copts_infos),
         defines = cc_helper.defines(ctx, additional_make_variable_substitutions),
         local_defines = cc_helper.local_defines(ctx, additional_make_variable_substitutions) + cc_helper.get_local_defines_for_runfiles_lookup(ctx, ctx.attr.deps + ctx.attr.implementation_deps),
         includes = cc_helper.include_dirs(ctx, additional_make_variable_substitutions),
@@ -71,7 +74,6 @@ def _cc_library_impl(ctx):
         module_interfaces = cc_helper.get_cpp_module_interfaces(ctx),
         private_hdrs = cc_helper.get_private_hdrs(ctx),
         public_hdrs = cc_helper.get_public_hdrs(ctx),
-        code_coverage_enabled = cc_helper.is_code_coverage_enabled(ctx),
         compilation_contexts = compilation_contexts,
         implementation_compilation_contexts = implementation_compilation_contexts,
         textual_hdrs = ctx.files.textual_hdrs,
@@ -89,17 +91,13 @@ def _cc_library_impl(ctx):
         compilation_outputs = [precompiled_objects, srcs_compilation_outputs],
     )
 
-    supports_dynamic_linker = cc_common.is_enabled(
-        feature_configuration = feature_configuration,
-        feature_name = "supports_dynamic_linker",
-    )
+    supports_dynamic_linker = feature_configuration.is_enabled(feature_names.SUPPORTS_DYNAMIC_LINKER)
 
     create_dynamic_library = (not ctx.attr.linkstatic and
                               supports_dynamic_linker and
                               (not cc_helper.is_compilation_outputs_empty(compilation_outputs) or
-                               cc_common.is_enabled(
-                                   feature_configuration = feature_configuration,
-                                   feature_name = "header_module_codegen",
+                               feature_configuration.is_enabled(
+                                   feature_names.HEADER_MODULE_CODEGEN,
                                )))
 
     output_group_builder = {}
@@ -133,7 +131,7 @@ def _cc_library_impl(ctx):
         dll_name_suffix = ""
         additional_inputs = _filter_linker_scripts(ctx.files.deps) + ctx.files.additional_linker_inputs
         link_variables = {}
-        is_windows_enabled = cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "targets_windows")
+        is_windows_enabled = feature_configuration.is_enabled(feature_names.TARGETS_WINDOWS)
         if is_windows_enabled:
             dll_name_suffix = cc_helper.dll_hash_suffix(ctx, feature_configuration, ctx.fragments.cpp)
             generated_def_file = None
@@ -234,9 +232,8 @@ def _cc_library_impl(ctx):
         if artifacts_to_build.pic_static_library != None:
             files_builder.append(artifacts_to_build.pic_static_library)
 
-        if not cc_common.is_enabled(
-            feature_configuration = feature_configuration,
-            feature_name = "targets_windows",
+        if not feature_configuration.is_enabled(
+            feature_names.TARGETS_WINDOWS,
         ):
             if artifacts_to_build.resolved_symlink_dynamic_library != None:
                 files_builder.append(artifacts_to_build.resolved_symlink_dynamic_library)

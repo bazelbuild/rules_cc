@@ -2,6 +2,7 @@
 
 """ A rule that mocks cc_toolchain configuration."""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load(
     "@bazel_tools//tools/cpp:cc_toolchain_config_lib.bzl",
@@ -157,7 +158,8 @@ _simple_header_modules_feature = feature(
 
 _header_modules_feature = feature(
     name = FEATURE_NAMES.header_modules,
-    implies = ["use_header_modules", "header_module_compile"],
+    implies = ["header_module_compile"],
+    requires = [feature_set(features = ["use_header_modules"])],
 )
 
 _header_module_compile_feature = feature(
@@ -216,6 +218,7 @@ _module_maps_feature = feature(
 
 _use_header_modules_feature = feature(
     name = FEATURE_NAMES.use_header_modules,
+    enabled = True,
     flag_sets = [
         flag_set(
             actions = [
@@ -1798,6 +1801,7 @@ _feature_name_to_feature = {
     FEATURE_NAMES.compiler_param_file: _compiler_param_file_feature,
     FEATURE_NAMES.gcc_quoting_for_param_files: _gcc_quoting_for_param_files_feature,
     FEATURE_NAMES.module_maps: _module_maps_feature,
+    FEATURE_NAMES.use_header_modules: _use_header_modules_feature,
     FEATURE_NAMES.static_link_cpp_runtimes: _static_link_cpp_runtimes_feature,
     FEATURE_NAMES.simple_compile_feature: _simple_compile_feature,
     FEATURE_NAMES.simple_link_feature: _simple_link_feature,
@@ -2050,6 +2054,9 @@ def _impl(ctx):
 
     for category, values in ctx.attr.artifact_name_patterns.items():
         artifact_name_patterns.append(_get_artifact_name_pattern(category, values[0], values[1]))
+    object_file_extension = ctx.attr._object_file_extension[BuildSettingInfo].value
+    if object_file_extension:
+        artifact_name_patterns.append(_get_artifact_name_pattern("object_file", "", object_file_extension))
 
     action_configs = []
 
@@ -2096,6 +2103,17 @@ def _impl(ctx):
     out = ctx.actions.declare_file(ctx.label.name)
     ctx.actions.write(out, "Fake executable")
     features = _flatten_nested_lists(features)
+    extra_args = {}
+    if bazel_features.cc.cc_common_is_in_rules_cc:
+        allowlist = ctx.attr.allowlist_provider[PackageSpecificationInfo] if ctx.attr.allowlist_provider != None else None
+        allowlist_target_label = ctx.attr.allowlist_target_label or (str(ctx.attr.allowlist_provider.label) if ctx.attr.allowlist_provider else None)
+        extra_args["disallowed_copts_infos"] = [struct(
+            flags = ctx.attr.disallowed_copts,
+            allowlist = allowlist,
+            allowlist_target_label = allowlist_target_label,
+            error_message = ctx.attr.error_message or None,
+        )]
+
     return [
         cc_common.create_cc_toolchain_config_info(
             ctx = ctx,
@@ -2115,6 +2133,7 @@ def _impl(ctx):
             make_variables = make_variables,
             builtin_sysroot = builtin_sysroot,
             cc_target_os = cc_target_os,
+            **extra_args
         ),
         DefaultInfo(
             executable = out,
@@ -2129,12 +2148,16 @@ cc_toolchain_config = rule(
         "toolchain_identifier": attr.string(default = "mock-llvm-toolchain-k8"),
         "host_system_name": attr.string(default = "local"),
         "target_system_name": attr.string(default = "local"),
-        "target_libc": attr.string(default = "local"),
+        "target_libc": attr.string(default = "unknown"),
         "abi_version": attr.string(default = "local"),
         "abi_libc_version": attr.string(default = "local"),
         "feature_names": attr.string_list(),
         "action_configs": attr.string_list(),
         "artifact_name_patterns": attr.string_list_dict(),
+        "disallowed_copts": attr.string_list(default = ["-w", "-Wno-error"]),
+        "allowlist_provider": attr.label(providers = [PackageSpecificationInfo]),
+        "allowlist_target_label": attr.string(),
+        "error_message": attr.string(),
         "cc_target_os": attr.string(),
         "builtin_sysroot": attr.string(default = "/usr/grte/v1"),
         "tool_paths": attr.string_dict(),
@@ -2142,6 +2165,7 @@ cc_toolchain_config = rule(
         "make_variables": attr.string_dict(),
         "_with_features": attr.label(default = Label("//tests/cc/testutil/toolchains:with_features")),
         "_with_action_configs": attr.label(default = Label("//tests/cc/testutil/toolchains:with_action_configs")),
+        "_object_file_extension": attr.label(default = Label("//tests/cc/testutil/toolchains:object_file_extension")),
     },
     provides = [CcToolchainConfigInfo],
     executable = True,

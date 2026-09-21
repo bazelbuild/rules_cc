@@ -30,6 +30,7 @@ load(
     _use_pic_for_dynamic_libs = "use_pic_for_dynamic_libs",
     artifact_category = "artifact_category_names",
 )
+load("//cc/common:feature_names.bzl", "feature_names")
 load("//cc/common:semantics.bzl", _starlark_cc_semantics = "semantics")
 load(
     "//cc/private:cc_info.bzl",
@@ -222,6 +223,10 @@ def compile(
         strip_include_prefix = strip_include_prefix,
         additional_include_scanning_roots = additional_include_scanning_roots,
     )
+    if code_coverage_enabled and not (feature_configuration.is_requested("coverage_instrumented") and feature_configuration.is_requested("coverage_enabled")):
+        fail("The deprecated code_coverage_enabled argument was set, but the " +
+             "coverage_instrumented and coverage_enabled features which now control code coverage " +
+             "were not enabled.")
 
     cpp_configuration = cc_toolchain._cpp_configuration
     if additional_module_maps == None:
@@ -244,8 +249,8 @@ def compile(
     if not generate_pic_action and not generate_no_pic_action:
         fail("Either PIC or no PIC actions have to be created.")
 
-    if module_interfaces and not feature_configuration.is_enabled("cpp_modules"):
-        fail("to use C++20 Modules, the feature cpp_modules must be enabled")
+    if module_interfaces and not feature_configuration.is_enabled(feature_names.CPP_MODULES):
+        fail("to use C++20 Modules, the feature {} must be enabled".format(feature_names.CPP_MODULES))
 
     language_normalized = "c++" if language == None else language
     language_normalized = language_normalized.replace("+", "p").upper()
@@ -257,8 +262,8 @@ def compile(
 
     compilation_unit_sources = {}
     module_interfaces_sources = {}
-    if (feature_configuration.is_enabled("parse_headers") and
-        not feature_configuration.is_enabled("header_modules")):
+    if (feature_configuration.is_enabled(feature_names.PARSE_HEADERS) and
+        not feature_configuration.is_enabled(feature_names.HEADER_MODULES)):
         public_hdrs_with_labels = _to_file_label_tuple_list(public_hdrs, label)
         _add_suitable_headers_to_compilation_unit_sources(
             compilation_unit_sources,
@@ -321,7 +326,7 @@ def compile(
         fail("Compilation context for implementation deps was not created")
     cc_compilation_context = implementation_deps_context if implementation_compilation_contexts else public_compilation_context
 
-    if feature_configuration.is_enabled("header_modules") and not public_compilation_context._module_map:
+    if feature_configuration.is_enabled(feature_names.HEADER_MODULES) and not public_compilation_context._module_map:
         fail("All cc rules must support module maps.")
 
     common_compile_build_variables = setup_common_compile_build_variables(
@@ -377,7 +382,6 @@ def compile(
         feature_configuration = feature_configuration,
         generate_no_pic_action = generate_no_pic_action,
         generate_pic_action = generate_pic_action,
-        is_code_coverage_enabled = code_coverage_enabled,
         label = label,
         private_headers = private_hdrs_artifacts,
         public_headers = public_hdrs_artifacts,
@@ -395,7 +399,7 @@ def compile(
         objects = compilation_outputs_dict["lto_compilation_context"],
     )
     compilation_outputs = create_compilation_outputs_internal(**compilation_outputs_dict)
-    if feature_configuration.is_enabled("cpp_modules"):
+    if feature_configuration.is_enabled(feature_names.CPP_MODULES):
         public_compilation_context = create_cc_compilation_context_with_cpp20_modules(
             cc_compilation_context = public_compilation_context,
             cpp_module_files = compilation_outputs.cpp_module_files,
@@ -504,7 +508,7 @@ def _should_provide_header_modules(
         public_headers):
     """Returns whether we want to provide header modules for the current target."""
     return (
-        feature_configuration.is_enabled("header_modules") and
+        feature_configuration.is_enabled(feature_names.HEADER_MODULES) and
         (private_headers or public_headers)
     )
 
@@ -657,7 +661,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
         cxxopts,
         fdo_context,
         feature_configuration,
-        is_code_coverage_enabled,
         label,
         private_headers,  # buildifier: disable=unused-variable
         public_headers,  # buildifier: disable=unused-variable
@@ -779,7 +782,8 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
         source_artifact = cpp_source.file
         output_name = output_name_map[source_artifact]
         source_label = cpp_source.label
-        bitcode_output = feature_configuration.is_enabled("thin_lto") and (("." + source_artifact.extension) in LTO_SOURCE_EXTENSIONS)
+        bitcode_output = feature_configuration.is_enabled(feature_names.THIN_LTO) and (("." + source_artifact.extension) in LTO_SOURCE_EXTENSIONS)
+
         module_file = source_to_module_file_map[source_artifact]
         if use_pic:
             output_name_base = _cc_internal.get_artifact_name_for_category(
@@ -848,7 +852,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
             fdo_build_variables = fdo_build_variables,
             output_category = artifact_category.CLIF_OUTPUT_PROTO if cpp_source.type == CPP_SOURCE_TYPE_CLIF_INPUT_PROTO else artifact_category.OBJECT_FILE,
             add_object = True,
-            enable_coverage = is_code_coverage_enabled,
             generate_dwo = should_create_per_object_debug_info(feature_configuration, cpp_configuration),
             bitcode_output = bitcode_output,
             fdo_context = fdo_context,
@@ -874,7 +877,7 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
         source_artifact = cpp_source.file
         output_name = output_name_map[source_artifact]
         source_label = cpp_source.label
-        bitcode_output = feature_configuration.is_enabled("thin_lto") and (("." + source_artifact.extension) in LTO_SOURCE_EXTENSIONS)
+        bitcode_output = feature_configuration.is_enabled(feature_names.THIN_LTO) and (("." + source_artifact.extension) in LTO_SOURCE_EXTENSIONS)
 
         if use_pic:
             output_name_base = _cc_internal.get_artifact_name_for_category(
@@ -995,7 +998,6 @@ def _create_cc_compile_actions_with_cpp20_module_helper(
             fdo_build_variables = fdo_build_variables,
             output_category = artifact_category.CLIF_OUTPUT_PROTO if cpp_source.type == CPP_SOURCE_TYPE_CLIF_INPUT_PROTO else artifact_category.OBJECT_FILE,
             add_object = True,
-            enable_coverage = is_code_coverage_enabled,
             generate_dwo = should_create_per_object_debug_info(feature_configuration, cpp_configuration),
             bitcode_output = bitcode_output,
             fdo_context = fdo_context,
@@ -1030,7 +1032,6 @@ def _create_cc_compile_actions_with_cpp20_module(
         feature_configuration,
         generate_no_pic_action,
         generate_pic_action,
-        is_code_coverage_enabled,
         label,
         private_headers,
         public_headers,
@@ -1068,7 +1069,6 @@ def _create_cc_compile_actions_with_cpp20_module(
             cxxopts = cxxopts,
             fdo_context = fdo_context,
             feature_configuration = feature_configuration,
-            is_code_coverage_enabled = is_code_coverage_enabled,
             label = label,
             private_headers = private_headers,
             public_headers = public_headers,
@@ -1103,7 +1103,6 @@ def _create_cc_compile_actions(
         feature_configuration,
         generate_no_pic_action,
         generate_pic_action,
-        is_code_coverage_enabled,
         label,
         private_headers,
         public_headers,
@@ -1121,14 +1120,14 @@ def _create_cc_compile_actions(
     file. It takes into account coverage, and PIC, in addition to using the settings specified on
     the current object. This method should only be called once.
     """
-    if generate_pic_action and not feature_configuration.is_enabled("pic") and not feature_configuration.is_enabled("supports_pic"):
+    if generate_pic_action and not feature_configuration.is_enabled(feature_names.PIC) and not feature_configuration.is_enabled(feature_names.SUPPORTS_PIC):
         fail("PIC compilation is requested but the toolchain does not support it " +
-             "(feature named 'supports_pic' is not enabled)")
+             "(feature named '{}' is not enabled)".format(feature_names.SUPPORTS_PIC))
 
     enable_dotd_files = dotd_files_enabled(language, action_construction_context.fragments.cpp, feature_configuration)
 
     # If C++20 modules are enabled, delegate to the module-aware implementation and return early.
-    if feature_configuration.is_enabled("cpp_modules"):
+    if feature_configuration.is_enabled(feature_names.CPP_MODULES):
         _create_cc_compile_actions_with_cpp20_module(
             actions = actions,
             action_construction_context = action_construction_context,
@@ -1147,7 +1146,6 @@ def _create_cc_compile_actions(
             feature_configuration = feature_configuration,
             generate_no_pic_action = generate_no_pic_action,
             generate_pic_action = generate_pic_action,
-            is_code_coverage_enabled = is_code_coverage_enabled,
             label = label,
             private_headers = private_headers,
             public_headers = public_headers,
@@ -1217,7 +1215,7 @@ def _create_cc_compile_actions(
                 progress_message_prefix = progress_message_prefix,
             )
             modules = modules + separate_modules
-        if feature_configuration.is_enabled("header_module_codegen"):
+        if feature_configuration.is_enabled(feature_names.HEADER_MODULE_CODEGEN):
             for module in modules:
                 _create_module_codegen_action(
                     action_construction_context = action_construction_context,
@@ -1231,7 +1229,6 @@ def _create_cc_compile_actions(
                     fdo_context = fdo_context,
                     auxiliary_fdo_inputs = auxiliary_fdo_inputs,
                     feature_configuration = feature_configuration,
-                    is_code_coverage_enabled = is_code_coverage_enabled,
                     label = label,
                     common_toolchain_variables = common_compile_build_variables,
                     fdo_build_variables = fdo_build_variables,
@@ -1254,7 +1251,7 @@ def _create_cc_compile_actions(
             continue
 
         output_name = output_name_map[source_file]
-        bitcode_output = feature_configuration.is_enabled("thin_lto") and (("." + source_file.extension) in LTO_SOURCE_EXTENSIONS)
+        bitcode_output = feature_configuration.is_enabled(feature_names.THIN_LTO) and (("." + source_file.extension) in LTO_SOURCE_EXTENSIONS)
 
         if not _cc_internal.is_tree_artifact(source_file):
             compiled_basenames.add(_basename_without_extension(source_file))
@@ -1278,7 +1275,6 @@ def _create_cc_compile_actions(
                 fdo_build_variables = fdo_build_variables,
                 output_category = (artifact_category.CLIF_OUTPUT_PROTO if source_type == CPP_SOURCE_TYPE_CLIF_INPUT_PROTO else artifact_category.OBJECT_FILE),
                 add_object = True,
-                enable_coverage = is_code_coverage_enabled,
                 generate_dwo = should_create_per_object_debug_info(feature_configuration, cpp_configuration),
                 bitcode_output = bitcode_output,
                 fdo_context = fdo_context,
@@ -1320,7 +1316,7 @@ def _create_cc_compile_actions(
         source_label = cpp_source.label
         if source_type != CPP_SOURCE_TYPE_HEADER or _cc_internal.is_tree_artifact(source_file):
             continue
-        if (feature_configuration.is_enabled("validates_layering_check_in_textual_hdrs") and
+        if (feature_configuration.is_enabled(feature_names.VALIDATES_LAYERING_CHECK_IN_TEXTUAL_HDRS) and
             _basename_without_extension(source_file) in compiled_basenames):
             continue
 
@@ -1426,7 +1422,6 @@ def _create_pic_nopic_compile_source_actions(
         fdo_build_variables,
         output_category,
         add_object,
-        enable_coverage,
         generate_dwo,
         bitcode_output,
         fdo_context,
@@ -1461,7 +1456,6 @@ def _create_pic_nopic_compile_source_actions(
             output_category = output_category,
             module_name = module_name,
             add_object = add_object,
-            enable_coverage = enable_coverage,
             generate_dwo = generate_dwo,
             bitcode_output = bitcode_output,
             fdo_context = fdo_context,
@@ -1498,7 +1492,6 @@ def _create_pic_nopic_compile_source_actions(
             output_category = output_category,
             module_name = module_name,
             add_object = add_object,
-            enable_coverage = enable_coverage,
             generate_dwo = generate_dwo,
             bitcode_output = bitcode_output,
             fdo_context = fdo_context,
@@ -1535,7 +1528,6 @@ def _create_compile_source_action(
         fdo_build_variables,
         output_category,
         add_object,
-        enable_coverage,
         generate_dwo,
         bitcode_output,
         fdo_context,
@@ -1591,6 +1583,12 @@ def _create_compile_source_action(
         configuration = configuration,
         feature_configuration = feature_configuration,
     )
+
+    # Header module compile actions only produce a .pcm file and no code, so they are never
+    # instrumented for coverage and must not declare a .gcno output. The code of a header module is
+    # instead generated (and instrumented) by the separate module codegen action.
+    enable_coverage = (output_category != artifact_category.CPP_MODULE and
+                       feature_configuration.is_requested("coverage_instrumented"))
     gcno_file = _maybe_declare_gcno_file(
         ctx = action_construction_context,
         label = label,
@@ -1605,7 +1603,7 @@ def _create_compile_source_action(
     _is_assembly = "." + source_artifact.extension in (extensions.ASSEMBLER + extensions.ASSEMBLER_WITH_C_PREPROCESSOR)
     trace_file = _maybe_declare_trace_file(
         ctx = action_construction_context,
-        enable_trace = feature_configuration.is_enabled("clang_trace") and not _is_assembly,
+        enable_trace = feature_configuration.is_enabled(feature_names.CLANG_TRACE) and not _is_assembly,
         object_file = object_file,
     )
 
@@ -1620,7 +1618,7 @@ def _create_compile_source_action(
         )
 
     lto_indexing_file = None
-    if bitcode_output and not feature_configuration.is_enabled("no_use_lto_indexing_bitcode_file"):
+    if bitcode_output and not feature_configuration.is_enabled(feature_names.NO_USE_LTO_INDEXING_BITCODE_FILE):
         lto_indexing_file_name = paths.replace_extension(
             paths.basename(object_file.path),
             extensions.LTO_INDEXING_OBJECT_FILE[0],
@@ -1868,7 +1866,6 @@ def _create_temps_action(
     preprocess_compile_variables = get_specific_compile_build_variables(
         source_file = source_artifact,
         output_file = preprocess_object_file,
-        code_coverage_enabled = False,
         gcno_file = None,
         dwo_file = None,
         using_fission = False,
@@ -1884,7 +1881,6 @@ def _create_temps_action(
     assembly_compile_variables = get_specific_compile_build_variables(
         source_file = source_artifact,
         output_file = assembly_object_file,
-        code_coverage_enabled = False,
         gcno_file = None,
         dwo_file = None,
         using_fission = False,
@@ -1954,7 +1950,6 @@ def _create_module_codegen_action(
         fdo_context,
         auxiliary_fdo_inputs,
         feature_configuration,
-        is_code_coverage_enabled,
         label,
         common_toolchain_variables,
         fdo_build_variables,
@@ -1966,25 +1961,23 @@ def _create_module_codegen_action(
     use_pic = ".pic" in module.basename
     output_name = paths.basename(module.basename)
 
-    gcno_file = None
-    if is_code_coverage_enabled and not cpp_configuration.use_llvm_coverage_map_format():
-        gcno_file = _get_compile_output_file(
-            ctx = action_construction_context,
-            label = label,
-            configuration = configuration,
-            output_name = _cc_internal.get_artifact_name_for_category(
-                cc_toolchain = cc_toolchain,
-                category = artifact_category.COVERAGE_DATA_FILE,
-                output_name = output_name,
-            ),
-        )
+    enable_coverage = feature_configuration.is_requested("coverage_instrumented")
+    gcno_file = _maybe_declare_gcno_file(
+        ctx = action_construction_context,
+        label = label,
+        output_name = output_name,
+        cc_toolchain = cc_toolchain,
+        cpp_configuration = cpp_configuration,
+        configuration = configuration,
+        enable_coverage = enable_coverage,
+    )
 
-    bitcode_output = (feature_configuration.is_enabled("thin_lto") and
+    bitcode_output = (feature_configuration.is_enabled(feature_names.THIN_LTO) and
                       paths.split_extension(module.basename)[-1] in LTO_SOURCE_EXTENSIONS)
 
     # TODO(tejohnson): Add support for ThinLTO if needed.
     if bitcode_output:
-        fail("bitcode output not currently supported for feature header_module_codegen")
+        fail("bitcode output not currently supported for feature {}".format(feature_names.HEADER_MODULE_CODEGEN))
 
     complete_copts = get_copts(
         language = language,
@@ -2022,7 +2015,7 @@ def _create_module_codegen_action(
         )
 
     diagnostics_file = None
-    if feature_configuration.is_enabled("serialized_diagnostics_file"):
+    if feature_configuration.is_enabled(feature_names.SERIALIZED_DIAGNOSTICS_FILE):
         diagnostics_file = _get_compile_output_file(
             ctx = action_construction_context,
             label = label,
@@ -2046,7 +2039,7 @@ def _create_module_codegen_action(
     specific_compile_build_variables = get_specific_compile_build_variables(
         source_file = module,
         output_file = object_file,
-        code_coverage_enabled = is_code_coverage_enabled,
+        code_coverage_enabled = enable_coverage,
         gcno_file = gcno_file,
         dwo_file = dwo_file,
         using_fission = generate_dwo,
@@ -2153,7 +2146,6 @@ def _create_module_action(
         output_category = artifact_category.CPP_MODULE,
         module_name = module_name,
         add_object = False,
-        enable_coverage = False,
         generate_dwo = False,
         bitcode_output = False,
         additional_compilation_inputs = additional_compilation_inputs,
@@ -2175,7 +2167,7 @@ def _use_dotd_file(feature_configuration, source_file):
     extension = "." + source_file.extension if source_file.extension else ""
     header_discover_required = extension not in (extensions.ASSEMBLER + extensions.CPP_MODULE)
     use_header_modules = (
-        feature_configuration.is_enabled("use_header_modules") and
+        feature_configuration.is_enabled(feature_names.USE_HEADER_MODULES) and
         extension in extensions.CC_SOURCE + extensions.CC_HEADER + extensions.CPP_MODULE_MAP
     )
     return header_discover_required and not use_header_modules
@@ -2279,7 +2271,7 @@ def _maybe_declare_diagnostics_file(
         feature_configuration,
         configuration):
     diagnostics_file = None
-    if feature_configuration.is_enabled("serialized_diagnostics_file"):
+    if feature_configuration.is_enabled(feature_names.SERIALIZED_DIAGNOSTICS_FILE):
         base_name = output_name
         if category != artifact_category.OBJECT_FILE and category != artifact_category.PROCESSED_HEADER:
             base_name = _cc_internal.get_artifact_name_for_category(

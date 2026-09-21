@@ -15,6 +15,7 @@
 
 load("//cc:action_names.bzl", "ACTION_NAMES")
 load("//cc:find_cc_toolchain.bzl", "CC_TOOLCHAIN_TYPE")
+load("//cc/common:feature_names.bzl", "feature_names")
 load("//cc/private:paths.bzl", "is_path_absolute")
 load("//cc/private/rules_impl:objc_common.bzl", "objc_common")
 load(":cc_common.bzl", "cc_common")
@@ -286,7 +287,7 @@ def _build_linking_context_from_libraries(ctx, libraries):
 
 def _dll_hash_suffix(ctx, feature_configuration, cpp_config):
     if cpp_config.dynamic_mode() != "OFF":
-        if cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "targets_windows"):
+        if feature_configuration.is_enabled(feature_names.TARGETS_WINDOWS):
             if not hasattr(ctx.attr, "win_def_file") or ctx.file.win_def_file == None:
                 # Note: ctx.label.workspace_name strips leading @,
                 # which is different from the native behavior.
@@ -407,8 +408,8 @@ def _get_windows_def_file_for_linking(ctx, custom_def_file, generated_def_file, 
         return _gen_empty_def_file(ctx)
 
 def _should_generate_def_file(ctx, feature_configuration):
-    windows_export_all_symbols_enabled = cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "windows_export_all_symbols")
-    no_windows_export_all_symbols_enabled = cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "no_windows_export_all_symbols")
+    windows_export_all_symbols_enabled = feature_configuration.is_enabled(feature_names.WINDOWS_EXPORT_ALL_SYMBOLS)
+    no_windows_export_all_symbols_enabled = feature_configuration.is_enabled(feature_names.NO_WINDOWS_EXPORT_ALL_SYMBOLS)
     return windows_export_all_symbols_enabled and (not no_windows_export_all_symbols_enabled) and (ctx.attr.win_def_file == None)
 
 def _generate_def_file(ctx, def_parser, object_files, dll_name, cc_toolchain, feature_configuration):
@@ -573,7 +574,7 @@ def _get_static_mode_params_for_dynamic_library_libraries(libs):
     return linker_inputs
 
 def _create_strip_action(ctx, cc_toolchain, cpp_config, input, output, feature_configuration):
-    if cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "no_stripping"):
+    if feature_configuration.is_enabled(feature_names.NO_STRIPPING):
         ctx.actions.symlink(
             output = output,
             target_file = input,
@@ -813,7 +814,7 @@ def _should_use_pic(ctx, cc_toolchain, feature_configuration):
     return ctx.fragments.cpp.force_pic() or (
         cc_toolchain.needs_pic_for_dynamic_libraries(feature_configuration = feature_configuration) and (
             ctx.var["COMPILATION_MODE"] != "opt" or
-            cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "prefer_pic_for_opt_binaries")
+            feature_configuration.is_enabled(feature_names.PREFER_PIC_FOR_OPT_BINARIES)
         )
     )
 
@@ -885,11 +886,10 @@ def _check_cpp_modules(ctx, feature_configuration):
         return
     if not ctx.fragments.cpp.experimental_cpp_modules():
         fail("requires --experimental_cpp_modules", attr = "module_interfaces")
-    if not cc_common.is_enabled(
-        feature_configuration = feature_configuration,
-        feature_name = "cpp_modules",
+    if not feature_configuration.is_enabled(
+        feature_names.CPP_MODULES,
     ):
-        fail("to use C++ modules, the feature cpp_modules must be enabled")
+        fail("to use C++ modules, the feature {} must be enabled".format(feature_names.CPP_MODULES))
 
 def _expand_make_variables_for_copts(ctx, tokenization, unexpanded_tokens, additional_make_variable_substitutions):
     tokens = []
@@ -908,14 +908,90 @@ def _expand_make_variables_for_copts(ctx, tokenization, unexpanded_tokens, addit
                 tokens.append(_expand(ctx, token, additional_make_variable_substitutions, targets = targets))
     return tokens
 
-def _get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "copts", requested_features = None):
+def _verify_no_disallowed_copts(
+        ctx,
+        copts,
+        attr_name,
+        disallowed_copts_infos = []):
+    """Fails the build if copts contain any disallowed compiler flags."""
+    if not disallowed_copts_infos:
+        return
+
+    violations = []
+    for info in disallowed_copts_infos:
+        if not hasattr(info, "flags") or not info.flags:
+            continue
+
+        # Check if target is exempt under this policy's allowlist
+        allowlist = getattr(info, "allowlist", None)
+        if allowlist != None and allowlist.contains(ctx.label):
+            continue
+
+        allowlist_target_label = getattr(info, "allowlist_target_label", None)
+        error_message = getattr(info, "error_message", None)
+
+        # Check each expanded flag against disallowed rules
+        for flag in copts:
+            for disallowed in info.flags:
+                if flag == disallowed or (
+                    disallowed.endswith("=") and flag.startswith(disallowed)
+                ):
+                    violations.append((flag, allowlist_target_label, error_message))
+
+    if violations:
+        formatted_violations = []
+        for flag, allowlist_target_label, error_message in violations:
+            allowlist_clause = (
+                " (target is not in the allowlist '{}')".format(
+                    allowlist_target_label,
+                ) if allowlist_target_label else ""
+            )
+            error_clause = (
+                ": {}".format(error_message) if error_message else ""
+            )
+            formatted_violations.append(
+                "- Flag '{}'{}{}".format(
+                    flag,
+                    allowlist_clause,
+                    error_clause,
+                ),
+            )
+        fail(
+            """
+[DISALLOWED COPTS ERROR] Target '{}' specifies disallowed compiler flag(s) in attribute '{}':
+  {}
+""".format(
+                ctx.label,
+                attr_name,
+                "\n  ".join(formatted_violations),
+            ),
+        )
+
+def _get_copts(
+        ctx,
+        feature_configuration,
+        additional_make_variable_substitutions,
+        attr = "copts",
+        requested_features = None,
+        disallowed_copts_infos = []):
     if not hasattr(ctx.attr, attr):
         fail("could not find rule attribute named: '{}'".format(attr))
     if requested_features == None:
         requested_features = ctx.features
     attribute_copts = getattr(ctx.attr, attr)
-    tokenization = not (cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "no_copts_tokenization") or "no_copts_tokenization" in requested_features)
+
+    # If we wanted to include command-line specified flags, we could add
+    # ctx.fragments.cpp.copts (and cxxopts/conlyopts) here.
+    tokenization = not (feature_configuration.is_enabled(feature_names.NO_COPTS_TOKENIZATION) or feature_names.NO_COPTS_TOKENIZATION in requested_features)
     expanded_attribute_copts = _expand_make_variables_for_copts(ctx, tokenization, attribute_copts, additional_make_variable_substitutions)
+
+    _verify_no_disallowed_copts(
+        ctx,
+        expanded_attribute_copts,
+        attr,
+        disallowed_copts_infos = disallowed_copts_infos,
+    )
+
     return expanded_attribute_copts
 
 # Tries to expand a single make variable from token.

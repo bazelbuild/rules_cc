@@ -227,7 +227,10 @@ def get_cc_toolchain_provider(ctx, attributes):
     build_variables_dict = _get_cc_toolchain_vars(ctx.fragments.cpp, sysroot)
     build_variables = cc_common.cc_toolchain_variables(vars = build_variables_dict)
 
+    disallowed_copts_infos = getattr(toolchain_config_info, "disallowed_copts_infos", [])
+
     return CcToolchainInfo(
+        disallowed_copts_infos = disallowed_copts_infos,
         cpp_configuration = ctx.fragments.cpp,
         toolchain_config_info = toolchain_config_info,
         toolchain_features = toolchain_features,

@@ -17,6 +17,7 @@ load("@bazel_skylib//lib:paths.bzl", "paths")
 load("//cc:build_settings.bzl", "cc")
 load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/common:cc_helper.bzl", "cc_helper")
+load("//cc/common:feature_names.bzl", "feature_names")
 load(":objc_common.bzl", "objc_common")
 load(":objc_compilation_artifacts_info.bzl", "CompilationArtifactsInfo")
 load(":objc_intermediate_artifacts.bzl", "create_intermediate_artifacts")
@@ -136,7 +137,7 @@ def _build_feature_configuration(common_variables, support_parse_headers):
     disabled_features.extend(common_variables.extra_disabled_features)
 
     if not support_parse_headers:
-        disabled_features.append("parse_headers")
+        disabled_features.append(feature_names.PARSE_HEADERS)
 
     return cc_common.configure_features(
         ctx = common_variables.ctx,
@@ -204,7 +205,6 @@ def _compile(
         module_map = module_map,
         variables_extension = extension,
         language = "objc",
-        code_coverage_enabled = cc_helper.is_code_coverage_enabled(ctx = common_variables.ctx),
         hdrs_checking_mode = "strict",
         do_not_generate_module_map = not generate_module_map or (module_map.file.is_source if type(module_map.file) == "File" else module_map.file().is_source),
         purpose = purpose,
@@ -309,9 +309,8 @@ def _cc_compile_and_link(
         support_parse_headers = True,
     )
 
-    generate_module_map = cc_common.is_enabled(
-        feature_configuration = feature_configuration,
-        feature_name = "module_maps",
+    generate_module_map = feature_configuration.is_enabled(
+        feature_names.MODULE_MAPS,
     )
     module_map = None
     if generate_module_map:

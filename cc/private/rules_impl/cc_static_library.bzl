@@ -19,6 +19,7 @@ load("//cc:find_cc_toolchain.bzl", "find_cc_toolchain", "use_cc_toolchain")
 load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/common:cc_helper.bzl", "artifact_category")
 load("//cc/common:cc_info.bzl", "CcInfo")
+load("//cc/common:feature_names.bzl", "feature_names")
 
 def _declare_static_library(*, name, actions, cc_toolchain):
     basename = paths.basename(name)
@@ -70,9 +71,8 @@ def _archive_objects(*, name, actions, cc_toolchain, feature_configuration, obje
     args.add_all(command_line)
     args.add_all(objects)
 
-    if cc_common.is_enabled(
-        feature_configuration = feature_configuration,
-        feature_name = "archive_param_file",
+    if feature_configuration.is_enabled(
+        feature_names.ARCHIVE_PARAM_FILE,
     ):
         # TODO: The flag file arg should come from the toolchain instead.
         args.use_param_file("@%s", use_always = True)
@@ -185,7 +185,7 @@ def _cc_static_library_impl(ctx):
     feature_configuration = cc_common.configure_features(
         ctx = ctx,
         cc_toolchain = cc_toolchain,
-        requested_features = ctx.features + ["symbol_check"],
+        requested_features = ctx.features + [feature_names.SYMBOL_CHECK],
         unsupported_features = ctx.disabled_features,
     )
 
@@ -273,8 +273,11 @@ message that lists the duplicate symbols and the object files containing them.</
 
 <h5 id="cc_static_library_symbol_check_toolchain">Toolchain support for <code>symbol_check</code></h5>
 <p>The auto-configured C++ toolchains shipped with Bazel support the
-<code>symbol_check</code> feature on all platforms. Custom toolchains can add support for
-it in one of two ways:</p>
+<code>symbol_check</code> feature on all platforms, except on Windows when the toolchain
+has been switched to clang-cl via <code>USE_CLANG_CL=1</code>: the check relies on a
+<code>lib.exe</code> flag that <code>llvm-lib.exe</code> does not implement, so no duplicate
+symbol check is performed there. Custom toolchains can add support for it in one of two
+ways:</p>
 <ul>
   <li>Implementing the <code>ACTION_NAMES.validate_static_library</code> action and
   enabling it with the <code>symbol_check</code> feature. The tool set in the action is

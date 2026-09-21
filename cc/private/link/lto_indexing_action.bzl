@@ -14,7 +14,8 @@
 """Functions that create LTO indexing action."""
 
 load("@bazel_features//:features.bzl", "bazel_features")
-load("//cc/common:cc_helper_internal.bzl", "root_relative_path")
+load("//cc/common:cc_helper_internal.bzl", "root_relative_path", artifact_category = "artifact_category_names")
+load("//cc/common:feature_names.bzl", "feature_names")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private/compile:lto_compilation_context.bzl", "get_minimized_bitcode_or_self")
 load("//cc/private/link:finalize_link_action.bzl", "finalize_link_action")
@@ -77,12 +78,12 @@ def create_lto_artifacts_and_lto_indexing_action(
         all_lto_artifacts, allow_lto_indexing, thinlto_param_file, thinlto_merged_object_file
 
     """
-    if not feature_configuration.is_enabled("supports_start_end_lib"):
+    if not feature_configuration.is_enabled(feature_names.SUPPORTS_START_END_LIB):
         fail("When using LTO. The feature supports_start_end_lib must be enabled.")
     can_include_any_link_static_in_lto_indexing = \
-        not feature_configuration.is_enabled("thin_lto_all_linkstatic_use_shared_nonlto_backends")
+        not feature_configuration.is_enabled(feature_names.THIN_LTO_ALL_LINKSTATIC_USE_SHARED_NONLTO_BACKENDS)
     can_include_any_link_static_test_target_in_lto_indexing = \
-        not feature_configuration.is_enabled("thin_lto_linkstatic_tests_use_shared_nonlto_backends")
+        not feature_configuration.is_enabled(feature_names.THIN_LTO_LINKSTATIC_TESTS_USE_SHARED_NONLTO_BACKENDS)
     include_link_static_in_lto_indexing = can_include_any_link_static_in_lto_indexing and (
         can_include_any_link_static_test_target_in_lto_indexing or not test_only_target
     )
@@ -92,7 +93,7 @@ def create_lto_artifacts_and_lto_indexing_action(
 
     lto_output_root_prefix = root_relative_path(output) + ".lto" if allow_lto_indexing else "shared.nonlto"
     lto_obj_root_prefix = lto_output_root_prefix
-    if feature_configuration.is_enabled("use_lto_native_object_directory"):
+    if feature_configuration.is_enabled(feature_names.USE_LTO_NATIVE_OBJECT_DIRECTORY):
         lto_obj_root_prefix = lto_output_root_prefix + "-obj"
     object_file_inputs = compilation_outputs.pic_objects if use_pic else compilation_outputs.objects
 
@@ -222,8 +223,12 @@ def _lto_indexing_action(
 
     # Create artifact for the merged object file, which is an object file that is created
     # during the LTO indexing step and needs to be passed to the final link.
+    object_file_extension = _cc_internal.get_artifact_name_extension_for_category(
+        cc_toolchain,
+        artifact_category.OBJECT_FILE,
+    )
     thinlto_merged_object_file = \
-        actions.declare_shareable_artifact(root_relative_path(output) + ".lto.merged.o")
+        actions.declare_shareable_artifact(root_relative_path(output) + ".lto.merged" + object_file_extension)
 
     action_outputs = \
         ([lto_artifact.imports for lto_artifact in all_lto_artifacts if lto_artifact.index] +

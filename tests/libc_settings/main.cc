@@ -12,18 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "registered.h"
+#include <iostream>
 
-// Static constructor that registers on load.
-#if defined(__GNUC__) || defined(__clang__)
-__attribute__((constructor)) static void registerer_init(void) {
-  set_registered();
+#define STRINGIFY(x) #x
+#define TO_STRING(x) STRINGIFY(x)
+
+int main() {
+  std::cout << "Hello, " << TO_STRING(LIBC) << "!" << std::endl;
 }
-#elif defined(_MSC_VER)
-static void registerer_init(void) { set_registered(); }
-#pragma section(".CRT$XCU", read)
-__declspec(allocate(".CRT$XCU")) static void (*registerer_init_)(void) =
-    registerer_init;
-#else
-#error "No static constructor mechanism known for this compiler"
-#endif

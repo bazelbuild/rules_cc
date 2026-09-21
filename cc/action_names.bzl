@@ -170,6 +170,7 @@ ALL_CPP_COMPILE_ACTION_NAMES = [
     ACTION_NAMES.lto_backend,
     ACTION_NAMES.clif_match,
     ACTION_NAMES.objcpp_compile,
+    ACTION_NAMES.cpp_header_analysis,
 ]
 
 # Names of actions that parse or compile C, C++ and assembly code.

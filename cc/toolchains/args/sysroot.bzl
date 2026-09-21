@@ -36,6 +36,9 @@ def cc_sysroot(*, name, sysroot, actions = _DEFAULT_SYSROOT_ACTIONS, args = [], 
       args: (List[str]) Extra command-line args to add.
       **kwargs: kwargs to pass to cc_args.
     """
+    if "data" not in kwargs:
+        kwargs["data"] = [sysroot]
+
     cc_args(
         name = name,
         actions = actions,

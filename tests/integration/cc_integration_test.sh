@@ -23,6 +23,18 @@ set -euo pipefail
 source "$(rlocation rules_cc/tests/test_utils.sh)"
 source "$(rlocation rules_cc/tests/unittest.bash)"
 
+if [[ -f MODULE.bazel ]]; then
+  cp MODULE.bazel "$TEST_TMPDIR/MODULE.bazel.backup"
+fi
+
+function set_up() {
+  if [[ -f "$TEST_TMPDIR/MODULE.bazel.backup" ]]; then
+    cp "$TEST_TMPDIR/MODULE.bazel.backup" MODULE.bazel
+  else
+    rm -f MODULE.bazel
+  fi
+}
+
 function test_extra_action_for_compile() {
   
   mkdir -p ea
@@ -1203,51 +1215,16 @@ EOF
 
 }
 
-function test_execroot_subdir_layout_fails_for_external_subpackages() {
+function test_fails_for_external_subpackages() {
   is_bazel || return 0
   
   setup_workspace_layout_with_external_directory
 
-  bazel build --experimental_sibling_repository_layout=false //baz:binary &> "$TEST_log" \
+  bazel build //baz:binary &> "$TEST_log" \
     && fail "build should have failed with sources in the external directory" || true
   expect_log "error:.*external/foo/lib.*"
   expect_log "Target //baz:binary failed to build"
 }
-
-function test_execroot_sibling_layout_null_build_for_external_subpackages() {
-  
-  setup_workspace_layout_with_external_directory
-  bazel build --experimental_sibling_repository_layout //baz:binary \
-    || fail "expected build success"
-
-  # Null build.
-  bazel build --experimental_sibling_repository_layout //baz:binary &> "$TEST_log" \
-    || fail "expected build success"
-
-  is_bazel || return 0  # internal bazel logs differently
-  expect_log "INFO: 1 process: 1 internal"
-}
-
-function test_execroot_sibling_layout_header_scanning_in_external_subpackage() {
-  
-  setup_workspace_layout_with_external_directory
-  cat << 'EOF' > external/foo/BUILD
-load("@rules_cc//cc:cc_library.bzl", "cc_library")
-cc_library(
-    name = "lib",
-    srcs = ["lib.cc"],
-    # missing header declaration
-    visibility = ["//baz:__subpackages__"],
-)
-EOF
-
-  bazel build --experimental_sibling_repository_layout --spawn_strategy=standalone //external/foo:lib &> "$TEST_log" \
-    && fail "build should not have succeeded with missing header file"
-
-  expect_log "undeclared inclusion(s) in rule '//external/foo:lib'" \
-     "could not find 'undeclared inclusion' error message in bazel output"
-}
-
 
 # Test writing the exposed args of CPPCompileAction to parameters file
 # This is needed to avoid too long commands when the args of one of the target's
@@ -1358,12 +1335,11 @@ void sayhello() {
 EOF
 
   cat >> MODULE.bazel <<EOF
+local_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:local.bzl", "local_repository")
 local_repository(name = 'repo', path='$REPO_PATH')
 EOF
 
   bazel build @repo//foo:bar \
-    > "$TEST_log" || fail "expected build success"
-  bazel build --experimental_sibling_repository_layout @repo//foo:bar \
     > "$TEST_log" || fail "expected build success"
 }
 
@@ -1628,21 +1604,6 @@ function test_external_cc_test_sandboxed() {
       @other_repo//test >& $TEST_log || fail "test failed"
 }
 
-function test_external_cc_test_sandboxed_sibling_repository_layout() {
-  if is_windows; then
-    return 0
-  fi
-  is_bazel || return 0
-
-  external_cc_test_setup
-
-  bazel test \
-      --test_output=errors \
-      --strategy=sandboxed \
-      --experimental_sibling_repository_layout \
-      @other_repo//test >& $TEST_log || fail "Test should pass"
-}
-
 function test_external_cc_test_local() {
   is_bazel || return 0
 
@@ -1652,29 +1613,6 @@ function test_external_cc_test_local() {
       --test_output=errors \
       --strategy=local \
       @other_repo//test >& $TEST_log || fail "Test should pass"
-}
-
-function test_external_cc_test_local_sibling_repository_layout() {
- is_bazel || return 0
-
-  external_cc_test_setup
-
-  bazel test \
-      --test_output=errors \
-      --strategy=local \
-      --experimental_sibling_repository_layout \
-      @other_repo//test >& $TEST_log || fail "Test should pass"
-
-  # Test cc compile action can hit the action cache. See
-  # https://github.com/bazelbuild/bazel/issues/17819
-  bazel shutdown
-
-  bazel test \
-      --test_output=errors \
-      --strategy=local \
-      --experimental_sibling_repository_layout \
-      @other_repo//test >& $TEST_log || fail "Test should pass"
-  expect_log "1 process: .*1 internal"
 }
 
 function test_bazel_current_repository_define() {
@@ -1963,7 +1901,7 @@ EOF
   touch "${package}"/test.cc
 
   out=$(bazel cquery --collect_code_coverage \
-   "deps(//${package}:test) intersect config(@remote_coverage_tools//:all, target)")
+   "filter('@remote_coverage_tools', config(deps(//${package}:test), target))")
   if [[ -n "$out" ]]; then
     fail "Expected no dependency on lcov_merger in the target configuration, but got: $out"
   fi
@@ -1991,7 +1929,7 @@ cc_test(
 EOF
   touch "${package}"/test.cc
 
-  out=$(bazel cquery "somepath(//${package}:test,@remote_coverage_tools//:all)")
+  out=$(bazel cquery "filter('@remote_coverage_tools', deps(//${package}:test))")
   if [[ -n "$out" ]]; then
     fail "Expected no dependency on remote coverage tools, but got: $out"
   fi
@@ -2189,7 +2127,7 @@ function test_find_optional_cpp_toolchain_not_present() {
 
 function test_no_cpp_stdlib_linked_to_c_library() {
   
-  mkdir pkg
+  mkdir -p pkg
   cat > pkg/BUILD <<'EOF'
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 cc_binary(
@@ -2389,6 +2327,7 @@ EOF
 
 function test_cpp20_modules_with_clang() {
   type -P clang || return 0
+  type -P clang-scan-deps || return 0
   # Check if clang version is less than 17
   clang_version=$(clang --version | head -n1 | grep -oE '[0-9]+\.[0-9]+' | head -n1)
   if [[ -n "$clang_version" ]]; then
@@ -2475,12 +2414,13 @@ EOF
 }
 
 function test_external_repo_lto() {
+  type -P clang || return 0
   is_bazel || return 0
   
   REPO_PATH=$TEST_TMPDIR/repo
   mkdir -p "$REPO_PATH"
   touch "$REPO_PATH/REPO.bazel"
-  mkdir "$REPO_PATH/foo"
+  mkdir -p "$REPO_PATH/foo"
   cat > "$REPO_PATH/foo/BUILD" <<'EOF'
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 cc_library(
@@ -2528,8 +2468,6 @@ int main() {
 EOF
   export CC=clang
   bazel build --repo_env=CC=clang --features=thin_lto @repo//foo \
-    > "$TEST_log" || fail "expected build success"
-  bazel build --repo_env=CC=clang --features=thin_lto --experimental_sibling_repository_layout @repo//foo \
     > "$TEST_log" || fail "expected build success"
 }
 

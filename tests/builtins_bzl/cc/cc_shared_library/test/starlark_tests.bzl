@@ -140,23 +140,15 @@ linking_order_test = _linking_order_test_macro
 
 def _additional_inputs_test_impl(env, target):
     if env.ctx.target_platform_has_constraint(env.ctx.attr._is_linux[platform_common.ConstraintValueInfo]):
-        found = False
         target_action = None
         for action in target.actions:
             if action.mnemonic == "CppLink":
                 target_action = action
                 break
-        for arg in target_action.argv:
-            if arg.find("-Wl,--script=") != -1:
-                env.expect.that_str(
-                    # "third_party/bazel_rules/rules_cc/tests/builtins_bzl/cc/cc_shared_library/test/additional_script.txt",  # copybara-comment-this-out-please
-                    "tests/builtins_bzl/cc/cc_shared_library/test/additional_script.txt",  # copybara-uncomment-this-please
-                ).equals(arg[13:])
-                found = True
-                break
-        env.expect.where(
-            detail = "Should have seen option --script=",
-        ).that_bool(found).equals(True)
+        env.expect.that_collection(target_action.argv).contains(
+            # "-Wl,--script=third_party/bazel_rules/rules_cc/tests/builtins_bzl/cc/cc_shared_library/test/additional_script.txt",  # copybara-comment-this-out-please
+            "-Wl,--script=tests/builtins_bzl/cc/cc_shared_library/test/additional_script.txt",  # copybara-uncomment-this-please
+        )
 
 def _additional_inputs_test_macro(name, target):
     analysis_test(

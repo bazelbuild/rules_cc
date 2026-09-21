@@ -730,7 +730,7 @@ cc_common = struct(
     # Ideally we would like to get rid of this Java symbol and replace it with Starlark one.
     # And also deprecate this public API.
     CcToolchainInfo = CcToolchainInfo,
-    do_not_use_tools_cpp_compiler_present = _cc_common_internal.do_not_use_tools_cpp_compiler_present,
+    do_not_use_tools_cpp_compiler_present = None,
     configure_features = configure_features,
     get_tool_for_action = _get_tool_for_action,
     get_execution_requirements = _get_execution_requirements,

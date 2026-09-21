@@ -17,9 +17,12 @@ Extra link-time library functionality.
 CcInfo maintains a list of extra libraries to include in a link. These are non-C++ libraries that
 are built from inputs gathered from all the dependencies. The dependencies have no way to
 coordinate, so each one will add an ExtraLinkTimeLibrary to its CcLinkingContextInfo.
+
+This file is extremely widely loaded (due to being used by CcInfo),
+do not load others unless absolutely necessary.
 """
 
-load("//cc/common:cc_helper_internal.bzl", "check_private_api")
+load("//cc/common:visibility.bzl", "check_private_api")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 
 # An implementation of ExtraLinkTimeLibrary that uses functions and data passed in from Starlark.

@@ -17,6 +17,7 @@ The cc_common.link function.
 Used for C++ transitive linking.
 """
 
+load("//cc/common:feature_names.bzl", "feature_names")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private/compile:cc_compilation_outputs.bzl", "EMPTY_COMPILATION_OUTPUTS")
 load("//cc/private/link:cc_linking_helper.bzl", "create_cc_link_actions")
@@ -190,5 +191,5 @@ def link(
         main_output,  # linker_output_artifact
         emit_interface_shared_libraries = dynamic_link_type == LINK_TARGET_TYPE.DYNAMIC_LIBRARY and
                                           (emit_interface_shared_library or
-                                           feature_configuration.is_enabled("targets_windows")),
+                                           feature_configuration.is_enabled(feature_names.TARGETS_WINDOWS)),
     )

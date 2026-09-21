@@ -20,6 +20,7 @@ load(
     "package_source_root",
     "repository_exec_path",
 )
+load("//cc/common:feature_names.bzl", "feature_names")
 load("//cc/common:semantics.bzl", "STRIP_INCLUDE_PREFIX_APPLIES_TO_TEXTUAL_HEADERS", "USE_EXEC_ROOT_FOR_VIRTUAL_INCLUDES_SYMLINKS")
 load("//cc/private:cc_info.bzl", "create_compilation_context", "create_module_map", "get_module_map_name", "module_map_name_for_label")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
@@ -47,9 +48,6 @@ def _repo_relative_path(artifact):
         relative_path = "/".join(relative_path.split("/")[2:])
 
     return relative_path
-
-def _enabled(feature_configuration, feature_name):
-    return feature_configuration.is_enabled(feature_name)
 
 def _compute_public_headers(
         actions,
@@ -200,7 +198,7 @@ def _compute_public_headers(
     )
 
 def _generates_header_module(feature_configuration, public_headers, private_headers, generate_action):
-    return _enabled(feature_configuration, "header_modules") and \
+    return feature_configuration.is_enabled(feature_names.HEADER_MODULES) and \
            (public_headers or private_headers) and \
            generate_action
 
@@ -458,9 +456,9 @@ def _init_cc_compilation_context(
     gen_include_dir = _include_dir(genfiles_dir, repo_path, sibling_repo_layout)
     bin_include_dir = _include_dir(binfiles_dir, repo_path, sibling_repo_layout)
     quote_include_dirs_for_context = [repo_path, gen_include_dir, bin_include_dir] + quote_include_dirs
-    external = repo_name != "" and _enabled(feature_configuration, "external_include_paths")
-    shorten_virtual_includes = _enabled(feature_configuration, "shorten_virtual_includes")
-    skip_virtual_includes = _enabled(feature_configuration, "skip_virtual_includes")
+    external = repo_name != "" and feature_configuration.is_enabled(feature_names.EXTERNAL_INCLUDE_PATHS)
+    shorten_virtual_includes = feature_configuration.is_enabled(feature_names.SHORTEN_VIRTUAL_INCLUDES)
+    skip_virtual_includes = feature_configuration.is_enabled(feature_names.SKIP_VIRTUAL_INCLUDES)
     external_include_dirs = []
     declared_include_srcs = []
 
@@ -542,7 +540,7 @@ def _init_cc_compilation_context(
     generates_pic_header_module = _generates_header_module(feature_configuration, public_headers_artifacts, private_headers_artifacts, generate_pic_action)
     generates_no_pic_header_module = _generates_header_module(feature_configuration, public_headers_artifacts, private_headers_artifacts, generate_no_pic_action)
     if separate_module_headers:
-        if not (_enabled(feature_configuration, "module_maps") and
+        if not (feature_configuration.is_enabled(feature_names.MODULE_MAPS) and
                 generate_module_map and
                 (generates_pic_header_module or generates_no_pic_header_module)):
             fail("Should use separate headers only when building modules: " + label.name)
@@ -565,7 +563,7 @@ def _init_cc_compilation_context(
     separate_pic_module = None
     pic_header_module = None
     header_module = None
-    if _enabled(feature_configuration, "module_maps"):
+    if feature_configuration.is_enabled(feature_names.MODULE_MAPS):
         if not module_map:
             file = actions.declare_file(label.name + ".cppmap")
 
@@ -582,10 +580,10 @@ def _init_cc_compilation_context(
         # 2. We create the module map so that libraries depending on us will include the headers
         #    textually (compiled is false).
         if generate_module_map:
-            compiled = _enabled(feature_configuration, "header_modules") or \
-                       _enabled(feature_configuration, "compile_all_modules")
+            compiled = feature_configuration.is_enabled(feature_names.HEADER_MODULES) or \
+                       feature_configuration.is_enabled(feature_names.COMPILE_ALL_MODULES)
 
-            if _enabled(feature_configuration, "only_doth_headers_in_module_maps"):
+            if feature_configuration.is_enabled(feature_names.ONLY_DOTH_HEADERS_IN_MODULE_MAPS):
                 public_headers_for_module_map_action = [header for header in public_headers.module_map_headers if (header.is_directory or header.extension == "h")]
                 textual_headers_for_module_map_action = [header for header in textual_headers.module_map_headers if (header.is_directory or header.extension == "h")]
             else:
@@ -593,7 +591,7 @@ def _init_cc_compilation_context(
                 textual_headers_for_module_map_action = textual_headers.module_map_headers
 
             private_headers_for_module_map_action = private_headers_artifacts
-            if _enabled(feature_configuration, "exclude_private_headers_in_module_maps"):
+            if feature_configuration.is_enabled(feature_names.EXCLUDE_PRIVATE_HEADERS_IN_MODULE_MAPS):
                 private_headers_for_module_map_action = []
             dependency_module_maps = _collect_module_maps(deps + implementation_deps, cc_toolchain_compilation_context, additional_cpp_module_maps)
             _create_module_map_action(
@@ -607,9 +605,9 @@ def _init_cc_compilation_context(
                 private_headers = private_headers_for_module_map_action,
                 additional_exported_headers = additional_exported_headers,
                 compiled_module = compiled,
-                module_map_home_is_cwd = _enabled(feature_configuration, "module_map_home_cwd"),
-                generate_submodules = _enabled(feature_configuration, "generate_submodules"),
-                extern_dependencies = not _enabled(feature_configuration, "module_map_without_extern_module"),
+                module_map_home_is_cwd = feature_configuration.is_enabled(feature_names.MODULE_MAP_HOME_CWD),
+                generate_submodules = feature_configuration.is_enabled(feature_names.GENERATE_SUBMODULES),
+                extern_dependencies = not feature_configuration.is_enabled(feature_names.MODULE_MAP_WITHOUT_EXTERN_MODULE),
             )
 
         if generates_pic_header_module:
@@ -720,13 +718,13 @@ def dotd_files_enabled(language, cpp_configuration, feature_configuration):
         enabled_in_config = cpp_configuration.objc_should_generate_dotd_files()
     return (
         enabled_in_config and
-        not feature_configuration.is_enabled("parse_showincludes") and
-        not feature_configuration.is_enabled("no_dotd_file")
+        not feature_configuration.is_enabled(feature_names.PARSE_SHOWINCLUDES) and
+        not feature_configuration.is_enabled(feature_names.NO_DOTD_FILE)
     )
 
 # buildifier: disable=function-docstring
 def serialized_diagnostics_file_enabled(feature_configuration):
-    return feature_configuration.is_enabled("serialized_diagnostics_file")
+    return feature_configuration.is_enabled(feature_names.SERIALIZED_DIAGNOSTICS_FILE)
 
 cc_compilation_helper = struct(
     init_cc_compilation_context = _init_cc_compilation_context,
