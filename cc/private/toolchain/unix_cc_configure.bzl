@@ -766,6 +766,8 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
                 "-Wl,-z,relro,-z,now",
                 "-z",
             ) + (
+                ["-Wl,-z,origin"] if bsd else []
+            ) + (
                 [
                     "-headerpad_max_install_names",
                 ] if darwin else [
