@@ -168,6 +168,14 @@ filegroup(
 
 filegroup(
     name = "compile-k8",
+    srcs = [
+        "toolchain_header.h",
+        ":everything-multilib",
+    ],
+)
+
+filegroup(
+    name = "compile-without-includes-k8",
     srcs = [":everything-multilib"],
 )
 
@@ -362,6 +370,7 @@ cc_toolchain(
     ar_files = "ar-k8",
     as_files = "as-k8",
     compiler_files = "compile-k8",
+    compiler_files_without_includes = "compile-without-includes-k8",
     coverage_files = "coverage-file",
     dwp_files = "dwp-k8",
     licenses = ["unencumbered"],
@@ -381,6 +390,7 @@ cc_toolchain(
     ar_files = "ar-k8",
     as_files = "as-k8",
     compiler_files = "compile-k8",
+    compiler_files_without_includes = "compile-without-includes-k8",
     coverage_files = "coverage-file",
     dwp_files = "dwp-k8",
     licenses = ["unencumbered"],
@@ -461,6 +471,7 @@ cc_toolchain(
     ar_files = "ar-k8",
     as_files = "as-k8",
     compiler_files = "compile-k8",
+    compiler_files_without_includes = "compile-without-includes-k8",
     coverage_files = "coverage-file",
     dwp_files = "dwp-k8",
     licenses = ["unencumbered"],
@@ -509,6 +520,7 @@ cc_toolchain(
     ar_files = "ar-k8",
     as_files = "as-k8",
     compiler_files = "compile-k8",
+    compiler_files_without_includes = "compile-without-includes-k8",
     coverage_files = "coverage-file",
     dwp_files = "dwp-k8",
     licenses = ["unencumbered"],

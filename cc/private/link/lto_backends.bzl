@@ -360,7 +360,10 @@ def create_lto_backend_artifacts(
     # imports files
     index_obj = lto_output_root_prefix + "/" + bitcode_file.path
 
-    additional_inputs = depset(additional_inputs, transitive = [cc_toolchain._compiler_files])
+    # LTO backend compiles operate on already-preprocessed LLVM bitcode and do not include headers,
+    # so prefer compiler_files_without_includes to avoid staging toolchain and sysroot headers.
+    compiler_files = cc_toolchain._compiler_files_without_includes or cc_toolchain._compiler_files
+    additional_inputs = depset(additional_inputs, transitive = [compiler_files])
 
     imports, index, dwo_file = None, None, None
     if bitcode_file.is_directory:

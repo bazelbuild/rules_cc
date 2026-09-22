@@ -114,6 +114,9 @@ def _test_thin_lto_action_graph_impl(env, target):
     backend_action.mnemonic().equals("CcLtoBackendCompile")
     backend_action.inputs().contains(binary_obj_path + ".thinlto.bc")
     backend_action.inputs().contains(binary_obj_path + ".imports")
+    if bazel_features.cc.cc_common_is_in_rules_cc:
+        backend_action.inputs().contains_predicate(matching.file_basename_equals("everything-multilib-src"))
+        backend_action.inputs().not_contains_predicate(matching.file_basename_equals("toolchain_header.h"))
 
     thinlto_index_arg = "thinlto_index={bindir}/{package}/{name}.lto/{bindir}/{package}/_objs/{name}/hello.pic.o".format(
         package = package,
