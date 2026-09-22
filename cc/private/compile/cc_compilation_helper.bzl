@@ -462,7 +462,7 @@ def _init_cc_compilation_context(
     external_include_dirs = []
     declared_include_srcs = []
 
-    if not external and feature_configuration.is_requested("system_include_paths"):
+    if not external and feature_configuration.is_requested(feature_names.SYSTEM_INCLUDE_PATHS):
         system_include_dirs_for_context = system_include_dirs + include_dirs
         include_dirs_for_context = []
     elif not external:
@@ -498,7 +498,7 @@ def _init_cc_compilation_context(
     if public_headers.virtual_include_path:
         if external:
             external_include_dirs.append(public_headers.virtual_include_path)
-        elif feature_configuration.is_requested("system_include_paths"):
+        elif feature_configuration.is_requested(feature_names.SYSTEM_INCLUDE_PATHS):
             system_include_dirs_for_context.append(public_headers.virtual_include_path)
         else:
             include_dirs_for_context.append(public_headers.virtual_include_path)
@@ -520,7 +520,7 @@ def _init_cc_compilation_context(
     if textual_headers.virtual_include_path:
         if external:
             external_include_dirs.append(textual_headers.virtual_include_path)
-        elif feature_configuration.is_requested("system_include_paths"):
+        elif feature_configuration.is_requested(feature_names.SYSTEM_INCLUDE_PATHS):
             system_include_dirs_for_context.append(textual_headers.virtual_include_path)
         else:
             include_dirs_for_context.append(textual_headers.virtual_include_path)

@@ -223,7 +223,7 @@ def compile(
         strip_include_prefix = strip_include_prefix,
         additional_include_scanning_roots = additional_include_scanning_roots,
     )
-    if code_coverage_enabled and not (feature_configuration.is_requested("coverage_instrumented") and feature_configuration.is_requested("coverage_enabled")):
+    if code_coverage_enabled and not (feature_configuration.is_requested(feature_names.COVERAGE_INSTRUMENTED) and feature_configuration.is_requested(feature_names.COVERAGE_ENABLED)):
         fail("The deprecated code_coverage_enabled argument was set, but the " +
              "coverage_instrumented and coverage_enabled features which now control code coverage " +
              "were not enabled.")
@@ -1588,7 +1588,7 @@ def _create_compile_source_action(
     # instrumented for coverage and must not declare a .gcno output. The code of a header module is
     # instead generated (and instrumented) by the separate module codegen action.
     enable_coverage = (output_category != artifact_category.CPP_MODULE and
-                       feature_configuration.is_requested("coverage_instrumented"))
+                       feature_configuration.is_requested(feature_names.COVERAGE_INSTRUMENTED))
     gcno_file = _maybe_declare_gcno_file(
         ctx = action_construction_context,
         label = label,
@@ -1961,7 +1961,7 @@ def _create_module_codegen_action(
     use_pic = ".pic" in module.basename
     output_name = paths.basename(module.basename)
 
-    enable_coverage = feature_configuration.is_requested("coverage_instrumented")
+    enable_coverage = feature_configuration.is_requested(feature_names.COVERAGE_INSTRUMENTED)
     gcno_file = _maybe_declare_gcno_file(
         ctx = action_construction_context,
         label = label,

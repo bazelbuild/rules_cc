@@ -466,7 +466,7 @@ def _need_whole_archive(feature_configuration, linking_mode, link_type, linkopts
         # legacy whole archive only applies to static linking mode.
         return False
 
-    if feature_configuration.is_requested("legacy_whole_archive"):
+    if feature_configuration.is_requested(feature_names.LEGACY_WHOLE_ARCHIVE):
         # --incompatible_remove_legacy_whole_archive has not been flipped, and this target requested
         # --whole-archive using features.
         return True
