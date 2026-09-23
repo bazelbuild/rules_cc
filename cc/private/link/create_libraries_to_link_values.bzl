@@ -14,8 +14,6 @@
 """Goes over LibraryToLinks and produces LibraryToLinkValue-s."""
 
 load("//cc/common:cc_helper_internal.bzl", "is_shared_library", "is_versioned_shared_library", "root_relative_path")
-load("//cc/common:feature_names.bzl", "feature_names")
-load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 
 # Types of LibraryToLinkValues
 _TYPE = struct(
@@ -60,7 +58,7 @@ def add_object_files_to_link(object_files, libraries_to_link_values):
             libraries_to_link_values.append(
                 _ObjectFileGroupInfo(
                     type = _TYPE.OBJECT_FILE_GROUP,
-                    object_files = _cc_internal.freeze([object_file]),
+                    object_files = (object_file,),
                     is_whole_archive = False,
                 ),
             )
@@ -138,8 +136,8 @@ def add_libraries_to_link(
 
     # For dynamic libraries
     windows_with_interface_shared_libraries = (
-        feature_configuration.is_enabled(feature_names.TARGETS_WINDOWS) and
-        feature_configuration.is_enabled(feature_names.SUPPORTS_INTERFACE_SHARED_LIBRARIES)
+        feature_configuration.is_enabled("targets_windows") and
+        feature_configuration.is_enabled("supports_interface_shared_libraries")
     )
 
     for library in libraries:
@@ -227,7 +225,7 @@ def _add_static_library_to_link(
                     libraries_to_link_values.append(
                         _ObjectFileGroupInfo(
                             type = _TYPE.OBJECT_FILE_GROUP,
-                            object_files = _cc_internal.freeze([object]),
+                            object_files = (object,),
                             is_whole_archive = True,
                         ),
                     )
@@ -246,7 +244,7 @@ def _add_static_library_to_link(
             libraries_to_link_values.append(
                 _ObjectFileGroupInfo(
                     type = _TYPE.OBJECT_FILE_GROUP,
-                    object_files = _cc_internal.freeze(objects),
+                    object_files = tuple(objects),
                     is_whole_archive = False,
                 ),
             )
