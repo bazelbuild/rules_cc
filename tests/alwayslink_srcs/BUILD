@@ -39,7 +39,7 @@ genrule(
     name = "copy_registerer_archive_unix",
     srcs = [":registerer_lib"],
     outs = ["libregisterer_copied.a"],
-    cmd = "for f in $(locations :registerer_lib); do case \"$$f\" in *.a) cp \"$$f\" $@;; esac; done",
+    cmd = "for f in $(execpaths :registerer_lib); do case \"$$f\" in *.a) cp \"$$f\" $@;; esac; done",
     target_compatible_with = select({
         "@platforms//os:windows": ["@platforms//:incompatible"],
         "//conditions:default": [],
@@ -50,7 +50,7 @@ genrule(
     name = "copy_registerer_archive_windows",
     srcs = [":registerer_lib"],
     outs = ["registerer_copied.lib"],
-    cmd = "for f in $(locations :registerer_lib); do case \"$$f\" in *.lib) cp \"$$f\" $@;; esac; done",
+    cmd = "for f in $(execpaths :registerer_lib); do case \"$$f\" in *.lib) cp \"$$f\" $@;; esac; done",
     target_compatible_with = ["@platforms//os:windows"],
 )
 
