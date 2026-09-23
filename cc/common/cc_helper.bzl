@@ -1033,12 +1033,6 @@ def _defines(ctx, additional_make_variable_substitutions):
 def _local_defines(ctx, additional_make_variable_substitutions):
     return _defines_attribute(ctx, additional_make_variable_substitutions, "local_defines", getattr(ctx.attr, "additional_compiler_inputs", []))
 
-def _map_to_list(m):
-    result = []
-    for k, v in m.items():
-        result.append((k, v))
-    return result
-
 def _calculate_artifact_label_map(attr_list, attr_name):
     """
     Converts a label_list attribute into a list of (Artifact, Label) tuples.
@@ -1066,13 +1060,13 @@ def _get_srcs(ctx):
     if not hasattr(ctx.attr, "srcs"):
         return []
     artifact_label_map = _calculate_artifact_label_map(ctx.attr.srcs, "srcs")
-    return _map_to_list(artifact_label_map)
+    return artifact_label_map.items()
 
 def _get_cpp_module_interfaces(ctx):
     if not hasattr(ctx.attr, "module_interfaces"):
         return []
     artifact_label_map = _calculate_artifact_label_map(ctx.attr.module_interfaces, "module_interfaces")
-    return _map_to_list(artifact_label_map)
+    return artifact_label_map.items()
 
 # Returns a list of (Artifact, Label) tuples. Each tuple represents an input source
 # file and the label of the rule that generates it (or the label of the source file itself if it
@@ -1086,7 +1080,7 @@ def _get_private_hdrs(ctx):
             for artifact in src[DefaultInfo].files.to_list():
                 if "." + artifact.extension in extensions.CC_HEADER:
                     artifact_label_map[artifact] = src.label
-    return _map_to_list(artifact_label_map)
+    return artifact_label_map.items()
 
 # Returns the files from headers and does some checks.
 def _get_public_hdrs(ctx):
@@ -1099,7 +1093,7 @@ def _get_public_hdrs(ctx):
                 if _check_file_extension(artifact, extensions.DISALLOWED_HDRS_FILES, True):
                     continue
                 artifact_label_map[artifact] = hdr.label
-    return _map_to_list(artifact_label_map)
+    return artifact_label_map.items()
 
 def _linkopts(ctx, additional_make_variable_substitutions, cc_toolchain):
     linkopts = getattr(ctx.attr, "linkopts", [])
