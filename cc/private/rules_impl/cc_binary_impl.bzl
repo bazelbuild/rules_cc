@@ -435,7 +435,7 @@ def _is_apple_platform(target_cpu):
         return True
     return False
 
-def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False, return_default_info = False):
+def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False, return_default_info = False, additional_runfiles = None):
     """Implementation function of cc_binary rule.
 
     Do NOT import outside cc_test.
@@ -445,6 +445,7 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False, return_de
       additional_linkopts: Additional linkopts from an external source (e.g. toolchain)
       force_linkstatic: If set, force this to be linked statically (i.e. --dynamic_mode=off)
       return_default_info: Whether the cc_test runner accepts DefaultInfo.
+      additional_runfiles: Runfiles to merge before constructing the result.
 
     Returns:
       Appropriate providers for cc_binary/cc_test.
@@ -761,6 +762,11 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False, return_de
         transitive_artifacts,
         link_compile_output_separately,
     )
+    if additional_runfiles != None:
+        runfiles_list = [runfiles]
+        if additional_runfiles:
+            runfiles_list.append(additional_runfiles)
+        runfiles = ctx.runfiles().merge_all(runfiles_list)
     runtime_objects_for_coverage.extend(new_runtime_objects_for_coverage)
     (cc_info, instrumented_files_provider, output_groups) = _add_transitive_info_providers(
         ctx,
