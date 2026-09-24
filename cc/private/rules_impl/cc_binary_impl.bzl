@@ -432,7 +432,7 @@ def _is_apple_platform(target_cpu):
         return True
     return False
 
-def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
+def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False, return_default_info = False, additional_runfiles = None):
     """Implementation function of cc_binary rule.
 
     Do NOT import outside cc_test.
@@ -441,6 +441,8 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
       ctx: The Starlark rule context.
       additional_linkopts: Additional linkopts from an external source (e.g. toolchain)
       force_linkstatic: If set, force this to be linked statically (i.e. --dynamic_mode=off)
+      return_default_info: Whether the cc_test runner accepts DefaultInfo.
+      additional_runfiles: Runfiles to merge before constructing the result.
 
     Returns:
       Appropriate providers for cc_binary/cc_test.
@@ -757,6 +759,11 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
         transitive_artifacts,
         link_compile_output_separately,
     )
+    if additional_runfiles != None:
+        runfiles_list = [runfiles]
+        if additional_runfiles:
+            runfiles_list.append(additional_runfiles)
+        runfiles = ctx.runfiles().merge_all(runfiles_list)
     runtime_objects_for_coverage.extend(new_runtime_objects_for_coverage)
     (cc_info, instrumented_files_provider, output_groups) = _add_transitive_info_providers(
         ctx,
@@ -813,7 +820,10 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
         dwp_file = explicit_dwp_file,
         dwo_files = dwo_files,
     )
-    binary_info = struct(
+
+    # Legacy and custom cc_test runners use the executable and runfiles fields.
+    info_constructor = DefaultInfo if return_default_info or not ctx.attr._is_test else struct
+    binary_info = info_constructor(
         files = files_to_build,
         runfiles = runfiles,
         executable = binary,
@@ -843,15 +853,8 @@ ALLOWED_SRC_FILES.extend(cc_helper.extensions.OBJECT_FILE)
 ALLOWED_SRC_FILES.extend(cc_helper.extensions.PIC_OBJECT_FILE)
 
 def _impl(ctx):
-    binary_info, providers = cc_binary_impl(ctx, [])
-
-    # We construct DefaultInfo here, as other cc_binary-like rules (cc_test) need
-    # a different DefaultInfo.
-    providers.append(DefaultInfo(
-        files = binary_info.files,
-        runfiles = binary_info.runfiles,
-        executable = binary_info.executable,
-    ))
+    default_info, providers = cc_binary_impl(ctx, [])
+    providers.append(default_info)
 
     # We construct RunEnvironmentInfo here as well.
     providers.append(RunEnvironmentInfo(
