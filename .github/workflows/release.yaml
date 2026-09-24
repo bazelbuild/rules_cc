@@ -43,7 +43,7 @@ jobs:
           fi
   release:
     needs: check-commit-status
-    uses: bazel-contrib/.github/.github/workflows/release_ruleset.yaml@v7.2.3
+    uses: bazel-contrib/.github/.github/workflows/release_ruleset.yaml@v7.7.0
     with:
       bazel_test_command: "true"
       prerelease: false
