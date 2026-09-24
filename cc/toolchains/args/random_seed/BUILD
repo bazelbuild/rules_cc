@@ -16,3 +16,9 @@ cc_args(
     format = {"output_file": "//cc/toolchains/variables:output_file"},
     requires_not_none = "//cc/toolchains/variables:output_file",
 )
+
+filegroup(
+    name = "srcs",
+    srcs = ["BUILD"],
+    visibility = ["//cc/toolchains/args:__pkg__"],
+)

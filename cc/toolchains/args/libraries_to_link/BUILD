@@ -180,3 +180,12 @@ cc_nested_args(
     requires_equal = "//cc/toolchains/variables:libraries_to_link.type",
     requires_equal_value = "versioned_dynamic_library",
 )
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        "BUILD",
+        "//cc/toolchains/args/libraries_to_link/private:srcs",
+    ],
+    visibility = ["//cc/toolchains/args:__pkg__"],
+)
