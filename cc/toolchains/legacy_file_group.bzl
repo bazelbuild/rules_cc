@@ -32,8 +32,11 @@ LEGACY_FILE_GROUPS = {
         Label("//cc/toolchains/actions:cpp20_module_codegen"),
         Label("//cc/toolchains/actions:cpp_module_deps_scanning"),
     ],
-    # There are no actions listed for coverage and objcopy in action_names.bzl.
-    "coverage_files": [],
+    "coverage_files": [
+        Label("//cc/toolchains/actions:gcov"),
+        Label("//cc/toolchains/actions:llvm_cov"),
+        Label("//cc/toolchains/actions:llvm_profdata"),
+    ],
     "dwp_files": [
         Label("//cc/toolchains/actions:dwp"),
     ],
