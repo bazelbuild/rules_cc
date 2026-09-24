@@ -16,3 +16,9 @@ cc_args(
     format = {"preprocessor_defines": "//cc/toolchains/variables:preprocessor_defines"},
     iterate_over = "//cc/toolchains/variables:preprocessor_defines",
 )
+
+filegroup(
+    name = "srcs",
+    srcs = ["BUILD"],
+    visibility = ["//cc/toolchains/args:__pkg__"],
+)

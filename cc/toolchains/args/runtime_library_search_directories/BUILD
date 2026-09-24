@@ -114,3 +114,9 @@ cc_nested_args(
     },
     iterate_over = "//cc/toolchains/variables:runtime_library_search_directories",
 )
+
+filegroup(
+    name = "srcs",
+    srcs = ["BUILD"],
+    visibility = ["//cc/toolchains/args:__pkg__"],
+)

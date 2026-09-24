@@ -16,3 +16,9 @@ cc_args(
     iterate_over = "//cc/toolchains/variables:library_search_directories",
     requires_not_none = "//cc/toolchains/variables:library_search_directories",
 )
+
+filegroup(
+    name = "srcs",
+    srcs = ["BUILD"],
+    visibility = ["//cc/toolchains/args:__pkg__"],
+)
