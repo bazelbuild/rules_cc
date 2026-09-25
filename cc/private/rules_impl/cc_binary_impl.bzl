@@ -262,7 +262,7 @@ def _filter_libraries_that_are_linked_dynamically(ctx, feature_configuration, cc
             linker_inputs_count += 1
         elif owner in targets_to_be_linked_statically_map or str(ctx.label) == owner:
             if owner in link_once_static_libs_map:
-                linked_statically_but_not_exported.setdefault(targets_to_be_linked_statically_map[owner], []).append(owner)
+                linked_statically_but_not_exported.setdefault(link_once_static_libs_map[owner], []).append(owner)
             else:
                 _add_linker_input_to_dict(linker_input.owner, linker_input)
                 linker_inputs_count += 1
