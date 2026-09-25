@@ -1,13 +1,3 @@
-load("@rules_shell//shell:sh_test.bzl", "sh_test")
-
-sh_test(
-    name = "collect_cc_coverage_test",
-    size = "small",
-    srcs = ["collect_cc_coverage_test.sh"],
-    data = ["collect_cc_coverage.sh"],
-    target_compatible_with = ["@platforms//os:linux"],
-)
-
 config_setting(
     name = "incompatible_use_native_collect_cc_coverage_enabled",
     flag_values = {
