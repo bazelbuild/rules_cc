@@ -1,7 +1,6 @@
 assemble
 c++-compile
 c++-header-parsing
-c++-module-codegen
 c++-module-compile
 c-compile
 clif-match
