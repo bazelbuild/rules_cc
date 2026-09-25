@@ -44,6 +44,11 @@ cc_library(
     name = "malloc",
 )
 
+cc_library(
+    name = "std",
+    tags = ["no_implicit_std_module"],
+)
+
 filegroup(
     name = "empty",
     srcs = [],
