@@ -35,9 +35,9 @@ load(
     _should_stamp = "should_stamp",
 )
 load(":cc_info.bzl", "CcInfo")
-load(":visibility.bzl", "INTERNAL_VISIBILITY")
+load(":visibility.bzl", "PUBLIC_IF_NOT_GOOGLE")
 
-visibility(INTERNAL_VISIBILITY)
+visibility(PUBLIC_IF_NOT_GOOGLE)
 
 linker_mode = struct(
     LINKING_DYNAMIC = "dynamic_linking_mode",
