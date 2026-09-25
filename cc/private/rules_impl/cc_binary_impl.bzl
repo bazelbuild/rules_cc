@@ -502,7 +502,7 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
         unsupported_features = disabled_features,
     )
 
-    cc_helper.check_cpp_modules(ctx, feature_configuration)
+    cc_helper.check_cpp_modules(ctx, feature_configuration, "cc_binary")
 
     all_deps = ctx.attr.deps + cc_helper.get_cc_runtimes(ctx, _is_link_shared(ctx))
     compilation_context_deps = [dep[CcInfo].compilation_context for dep in all_deps if CcInfo in dep]
