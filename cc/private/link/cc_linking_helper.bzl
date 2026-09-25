@@ -590,9 +590,9 @@ def _create_no_pic_and_pic_static_libs_actions(
             actions,
             name,
             static_link_type,
-            False,  # use_pic
-            cc_toolchain,
-            link_action_kwargs,
+            use_pic = False,
+            cc_toolchain = cc_toolchain,
+            link_action_kwargs = link_action_kwargs,
         )
 
     pic_library_to_link = {}
@@ -609,9 +609,9 @@ def _create_no_pic_and_pic_static_libs_actions(
             actions,
             name,
             link_target_type_used_for_naming,
-            True,  # use_pic
-            cc_toolchain,
-            link_action_kwargs,
+            use_pic = True,
+            cc_toolchain = cc_toolchain,
+            link_action_kwargs = link_action_kwargs,
         )
 
     return no_pic_library_to_link | pic_library_to_link

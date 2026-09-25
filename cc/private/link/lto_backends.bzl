@@ -411,7 +411,7 @@ def create_lto_backend_artifacts(
             all_bitcode_files,
             dwo_file,
             use_pic,
-            None,  # bitcode_file_path
+            bitcode_file_path = None,
         )
 
     return LtoBackendArtifactsInfo(

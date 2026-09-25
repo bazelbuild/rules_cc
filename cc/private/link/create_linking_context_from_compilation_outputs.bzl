@@ -111,11 +111,11 @@ def create_linking_context_from_compilation_outputs(
         cc_toolchain,
         compilation_outputs,
         linking_contexts,
-        user_link_flags,  # linkopts
-        stamp,
-        additional_inputs,  # additional_linker_inputs
-        [],  # linker_outputs
-        variables_extension,
+        linkopts = user_link_flags,
+        stamp = stamp,
+        additional_linker_inputs = additional_inputs,
+        linker_outputs = [],
+        variables_extension = variables_extension,
         alwayslink = alwayslink,
         test_only_target = test_only_target,
         linked_dll_name_suffix = linked_dll_name_suffix,
