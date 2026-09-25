@@ -92,7 +92,10 @@ def _get_target_libc(repository_ctx, cc, darwin, compile_opts):
             ("__GLIBC__", "glibc"),
             ("__BIONIC__", "bionic"),
             ("__LLVM_LIBC__", "llvm-libc"),
+            ("__DragonFly__", "dragonfly"),
+            ("__FreeBSD__", "freebsd"),
             ("__NetBSD__", "netbsd"),
+            ("__OpenBSD__", "openbsd"),
         ]:
             if ("#define %s " % macro) in result.stdout:
                 return libc
@@ -406,11 +409,12 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
 
     repository_ctx.file("tools/cpp/empty.cc", "int main() {}")
     darwin = cpu_value.startswith("darwin")
-    bsd = cpu_value == "freebsd" or cpu_value == "openbsd"
-    if bsd:
-        fail("FreeBSD / OpenBSD should use bsd_cc_toolchain_config.bzl")
 
-    cc = _find_generic(repository_ctx, "gcc", "CC", overridden_tools)
+    bsd = cpu_value in ("freebsd", "openbsd", "netbsd", "dragonfly")
+    if bsd:
+        cc = _find_generic(repository_ctx, "cc", "CC", overridden_tools)
+    else:
+        cc = _find_generic(repository_ctx, "gcc", "CC", overridden_tools)
     is_clang = _is_clang(repository_ctx, cc)
     overridden_tools = dict(overridden_tools)
     overridden_tools["gcc"] = cc
@@ -587,7 +591,11 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
         bazel_default_libs = ["-lc++", "-lm"]
     else:
         bazel_default_libs = ["-lstdc++", "-lm"]
-    if is_as_needed_supported and is_push_state_supported:
+
+    # On OpenBSD the driver expands -lstdc++ to -lc++ -lc++abi -lpthread, and
+    # libpthread is only reached through the other two.  Wrapping the whole
+    # expansion in --as-needed therefore drops it.
+    if is_as_needed_supported and is_push_state_supported and cpu_value != "openbsd":
         # Do not link against C++ standard libraries unless they are actually
         # used.
         # We assume that --push-state support implies --pop-state support.
@@ -757,6 +765,8 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
                 force_linker_flags,
                 "-Wl,-z,relro,-z,now",
                 "-z",
+            ) + (
+                ["-Wl,-z,origin"] if bsd else []
             ) + (
                 [
                     "-headerpad_max_install_names",
