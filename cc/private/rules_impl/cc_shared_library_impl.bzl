@@ -736,6 +736,25 @@ def _cc_shared_library_impl(ctx):
     for dep in ctx.attr.dynamic_deps:
         runfiles = runfiles.merge(dep[DefaultInfo].data_runfiles)
 
+    if feature_configuration.is_enabled(feature_names.COPY_DYNAMIC_LIBRARIES_TO_BINARY):
+        libraries_to_copy = []
+        copy_linking_contexts = [linking_context] + runtimes_linking_contexts
+        copy_linking_contexts.append(_create_linker_context([
+            dep.linker_input
+            for dep in merged_cc_shared_library_infos_list
+        ]))
+        for context in copy_linking_contexts:
+            libraries_to_copy.extend(cc_helper.get_dynamic_libraries_for_runtime(
+                context,
+                linking_statically = True,
+            ))
+        copied_runtime_libraries = cc_helper.create_dynamic_libraries_copy_actions(
+            ctx,
+            linking_outputs.library_to_link.dynamic_library,
+            libraries_to_copy,
+        )
+        runfiles = runfiles.merge(ctx.runfiles(transitive_files = copied_runtime_libraries))
+
     precompiled_only_dynamic_libraries_runfiles = []
     for precompiled_dynamic_library in precompiled_only_dynamic_libraries:
         # precompiled_dynamic_library.dynamic_library could be None if the library to link just contains

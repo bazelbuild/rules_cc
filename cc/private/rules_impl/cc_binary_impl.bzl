@@ -178,21 +178,6 @@ def _collect_runfiles(ctx, feature_configuration, cc_toolchain, linking_context,
 
     return (builder.merge(ctx.runfiles(files = builder_artifacts, transitive_files = depset(builder_transitive_artifacts))), runtime_objects_for_coverage)
 
-def _create_dynamic_libraries_copy_actions(ctx, binary, dynamic_libraries_for_runtime):
-    result = []
-    for lib in dynamic_libraries_for_runtime:
-        # If the binary and the DLL are not in the same directory, copy the DLL
-        # to the binary's directory.
-        if lib.dirname != binary.dirname:
-            copy = ctx.actions.declare_file(lib.basename, sibling = binary)
-            ctx.actions.symlink(output = copy, target_file = lib, progress_message = "Copying Execution Dynamic Library")
-            result.append(copy)
-        else:
-            # If the library is already in the same directory as the binary, we don't need to copy it,
-            # but we still add it to the result.
-            result.append(lib)
-    return depset(result)
-
 def _get_dynamic_library_for_runtime_or_none(library_to_link, link_statically):
     if library_to_link.dynamic_library == None:
         return None
@@ -731,7 +716,7 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
         libraries = []
         for linker_input in linker_inputs:
             libraries.extend(linker_input.libraries)
-        copied_runtime_dynamic_libraries = _create_dynamic_libraries_copy_actions(ctx, binary, _get_dynamic_libraries_for_runtime(is_static_mode, libraries))
+        copied_runtime_dynamic_libraries = cc_helper.create_dynamic_libraries_copy_actions(ctx, binary, _get_dynamic_libraries_for_runtime(is_static_mode, libraries))
 
     # TODO(b/198254254)(bazel-team): Do we need to put original shared libraries (along with
     # mangled symlinks) into the RunfilesSupport object? It does not seem
