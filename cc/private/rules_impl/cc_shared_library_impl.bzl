@@ -737,23 +737,21 @@ def _cc_shared_library_impl(ctx):
         runfiles = runfiles.merge(dep[DefaultInfo].data_runfiles)
 
     if feature_configuration.is_enabled(feature_names.COPY_DYNAMIC_LIBRARIES_TO_BINARY):
-        copy_libraries = []
+        libraries_to_copy = []
         copy_linking_contexts = [linking_context] + runtimes_linking_contexts
         copy_linking_contexts.append(_create_linker_context([
             dep.linker_input
             for dep in merged_cc_shared_library_infos_list
         ]))
         for context in copy_linking_contexts:
-            copy_libraries.extend(cc_helper.get_dynamic_libraries_for_runtime(
+            libraries_to_copy.extend(cc_helper.get_dynamic_libraries_for_runtime(
                 context,
-                linking_statically = linking_mode == linker_mode.LINKING_STATIC,
+                linking_statically = True,
             ))
-        if linking_mode == linker_mode.LINKING_DYNAMIC:
-            copy_libraries.extend(cc_toolchain.dynamic_runtime_lib(feature_configuration = feature_configuration).to_list())
         copied_runtime_libraries = cc_helper.create_dynamic_libraries_copy_actions(
             ctx,
             linking_outputs.library_to_link.dynamic_library,
-            copy_libraries,
+            libraries_to_copy,
         )
         runfiles = runfiles.merge(ctx.runfiles(transitive_files = copied_runtime_libraries))
 
