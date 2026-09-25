@@ -120,7 +120,7 @@ def _add_transitive_info_providers(ctx, cc_toolchain, cpp_config, feature_config
         cc_toolchain,
         feature_configuration,
         ctx,
-        False,  # generate_hidden_top_level_group
+        generate_hidden_top_level_group = False,
     )
     cc_info = CcInfo(
         compilation_context = compilation_context,

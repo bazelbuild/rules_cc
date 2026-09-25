@@ -174,21 +174,21 @@ def link(
         cc_toolchain,
         compilation_outputs,
         linking_contexts,
-        user_link_flags,  # linkopts
-        stamp,
-        additional_inputs,
-        additional_outputs,  # linker_outputs
-        variables_extension,
-        use_test_only_flags,
-        never_link,  # neverlink
-        test_only_target,
-        whole_archive,
-        native_deps,
-        additional_linkstamp_defines,
+        linkopts = user_link_flags,
+        stamp = stamp,
+        additional_linker_inputs = additional_inputs,
+        linker_outputs = additional_outputs,
+        variables_extension = variables_extension,
+        use_test_only_flags = use_test_only_flags,
+        neverlink = never_link,
+        test_only_target = test_only_target,
+        whole_archive = whole_archive,
+        native_deps = native_deps,
+        additional_linkstamp_defines = additional_linkstamp_defines,
         # alwayslink may be deprecated but we're trying to replicate CcBinary as closely as possible for the moment.
         # TODO(b/331164666): remove alwayslink, the information is in static_link_type already
-        always_link,
-        main_output,  # linker_output_artifact
+        alwayslink = always_link,
+        linker_output_artifact = main_output,
         emit_interface_shared_libraries = dynamic_link_type == LINK_TARGET_TYPE.DYNAMIC_LIBRARY and
                                           (emit_interface_shared_library or
                                            feature_configuration.is_enabled(feature_names.TARGETS_WINDOWS)),

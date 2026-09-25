@@ -263,14 +263,14 @@ def _lto_indexing_action(
 
     finalize_link_action(
         actions,
-        "CppLTOIndexing",  # mnemonic
-        action_name,
-        link_type,
-        linking_mode,
-        False,  # stamping (we don't have linkstamps, nothing to stamp)
-        feature_configuration,
-        cc_toolchain,
-        "LTO indexing %{output}",  # progress_message
+        mnemonic = "CppLTOIndexing",
+        action_name = action_name,
+        link_type = link_type,
+        linking_mode = linking_mode,
+        stamping = False,  # we don't have linkstamps, nothing to stamp
+        feature_configuration = feature_configuration,
+        cc_toolchain = cc_toolchain,
+        progress_message = "LTO indexing %{output}",
         # Inputs:
         object_file_inputs = object_file_inputs,
         libraries_to_link = libraries_to_link,
