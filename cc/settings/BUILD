@@ -7,6 +7,12 @@ bool_flag(
     visibility = ["//visibility:public"],
 )
 
+bool_flag(
+    name = "experimental_use_cc_coverage_collector",
+    build_setting_default = True,
+    visibility = ["//visibility:public"],
+)
+
 selects.config_setting_group(
     name = "default_apple_constraint",
     match_any = [
