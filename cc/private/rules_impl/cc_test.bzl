@@ -116,6 +116,7 @@ attributes common to all test rules (*_test)</a>.</p>
     } | semantics.extra_exec_groups,
     toolchains = [] +
                  use_cc_toolchain() +
+                 semantics.get_std_module_toolchain() +
                  semantics.get_runtimes_toolchain(),
     test = True,
     provides = [CcInfo],

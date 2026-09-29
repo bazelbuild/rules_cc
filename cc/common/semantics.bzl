@@ -17,8 +17,10 @@
 load(
     ":cc_helper_internal.bzl",
     "CC_RUNTIMES_TOOLCHAIN_TYPE",
+    "CC_STD_MODULE_TOOLCHAIN_TYPE",
     _get_cc_runtimes = "get_cc_runtimes",
     _get_cc_runtimes_copts = "get_cc_runtimes_copts",
+    _get_std_module_deps = "get_std_module_deps",
 )
 
 # Point virtual includes symlinks to the source root for better IDE integration.
@@ -35,6 +37,14 @@ def _validate_attributes(_ctx):
 # buildifier: disable=unused-variable
 def _validate_layering_check_features(ctx, cc_toolchain, unsupported_features):
     pass
+
+def _get_std_module_toolchain():
+    return [
+        config_common.toolchain_type(
+            CC_STD_MODULE_TOOLCHAIN_TYPE,
+            mandatory = False,
+        ),
+    ]
 
 def _get_stl():
     return attr.label()
@@ -188,6 +198,8 @@ semantics = struct(
     get_runtimes_toolchain = _get_runtimes_toolchain,
     get_test_malloc_attr = _get_test_malloc_attr,
     get_cc_runtimes = _get_cc_runtimes,
+    get_std_module_toolchain = _get_std_module_toolchain,
+    get_std_module_deps = _get_std_module_deps,
     get_cc_runtimes_copts = _get_cc_runtimes_copts,
     get_coverage_attrs = _get_coverage_attrs,
     get_coverage_env = _get_coverage_env,
