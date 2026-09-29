@@ -2422,6 +2422,7 @@ function test_std_module_libstdcxx() {
   is_darwin && return 0
 
   type -P clang >/dev/null 2>&1 || return 0
+  type -P clang-scan-deps >/dev/null 2>&1 || return 0
 
   # Skip if clang doesn't ship libstdc++.modules.json (e.g. macOS or a clang
   # build without libstdc++ module support).
@@ -2472,6 +2473,7 @@ EOF
 function test_std_compat_implicit_dependency() {
   is_darwin && return 0
   type -P clang >/dev/null 2>&1 || return 0
+  type -P clang-scan-deps >/dev/null 2>&1 || return 0
 
   local manifest
   manifest=$(clang -print-file-name=libstdc++.modules.json 2>/dev/null || true)
@@ -2518,6 +2520,7 @@ EOF
 function test_std_module_implicit_dependency() {
   is_darwin && return 0
   type -P clang >/dev/null 2>&1 || return 0
+  type -P clang-scan-deps >/dev/null 2>&1 || return 0
 
   local manifest
   manifest=$(clang -print-file-name=libstdc++.modules.json 2>/dev/null || true)
@@ -2579,6 +2582,7 @@ EOF
 
 function test_std_module_libcxx() {
   type -P clang >/dev/null 2>&1 || return 0
+  type -P clang-scan-deps >/dev/null 2>&1 || return 0
 
   # libc++ std modules require clang 17+ (modules.json shipped).
   local clang_version
