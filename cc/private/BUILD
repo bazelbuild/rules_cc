@@ -124,3 +124,9 @@ bzl_library(
     srcs = ["objc_info.bzl"],
     visibility = ["//cc:__subpackages__"],
 )
+
+bzl_library(
+    name = "visibility_bzl",
+    srcs = ["visibility.bzl"],
+    visibility = ["//cc:__subpackages__"],
+)

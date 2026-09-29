@@ -34,13 +34,13 @@ bzl_library(
         "debug_package_info.bzl",
         "objc_info.bzl",
         "semantics.bzl",
-        "visibility.bzl",
     ],
     visibility = ["//visibility:public"],
     deps = [
         ":feature_names_bzl",
         "//cc/private:cc_internal_bzl",
         "//cc/private:paths_bzl",
+        "//cc/private:visibility_bzl",
         "//cc/private/rules_impl:native_cc_common_bzl",
         "@bazel_skylib//lib:paths",
         "@cc_compatibility_proxy//:symbols_bzl",
@@ -54,9 +54,9 @@ bzl_library(
     deps = [
         ":cc_helper_internal_bzl",
         ":common",
-        ":visibility_bzl",
         "//cc:find_cc_toolchain_bzl",
         "//cc/private:paths_bzl",
+        "//cc/private:visibility_bzl",
         "//cc/private/rules_impl:objc_common",
     ],
 )
@@ -93,15 +93,9 @@ bzl_library(
     visibility = ["//visibility:public"],
     deps = [
         ":cc_helper_bzl",
-        ":visibility_bzl",
         "//cc:find_cc_toolchain_bzl",
+        "//cc/private:visibility_bzl",
     ],
-)
-
-bzl_library(
-    name = "visibility_bzl",
-    srcs = ["visibility.bzl"],
-    visibility = ["//visibility:private"],
 )
 
 filegroup(
@@ -126,7 +120,6 @@ filegroup(
     exclude = [
         "cc_helper.bzl",
         "cc_debug_helper.bzl",
-        "visibility.bzl",
         "semantics.bzl",
         "cc_helper_internal.bzl",
         "cc_shared_library_info.bzl",

@@ -17,6 +17,7 @@ load("//cc:action_names.bzl", "ACTION_NAMES")
 load("//cc:find_cc_toolchain.bzl", "CC_TOOLCHAIN_TYPE")
 load("//cc/common:feature_names.bzl", "feature_names")
 load("//cc/private:paths.bzl", "is_path_absolute")
+load("//cc/private:visibility.bzl", "PUBLIC_IF_NOT_GOOGLE")
 load("//cc/private/rules_impl:objc_common.bzl", "objc_common")
 load(":cc_common.bzl", "cc_common")
 load(
@@ -35,9 +36,8 @@ load(
     _should_stamp = "should_stamp",
 )
 load(":cc_info.bzl", "CcInfo")
-load(":visibility.bzl", "INTERNAL_VISIBILITY")
 
-visibility(INTERNAL_VISIBILITY)
+visibility(PUBLIC_IF_NOT_GOOGLE)
 
 linker_mode = struct(
     LINKING_DYNAMIC = "dynamic_linking_mode",

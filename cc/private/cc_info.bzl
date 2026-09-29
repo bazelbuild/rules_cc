@@ -18,8 +18,8 @@ This file is extremely widely loaded, do not load others unless absolutely neces
 """
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
-load("//cc/common:visibility.bzl", "check_private_api")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
+load("//cc/private:visibility.bzl", "check_private_api")
 load("//cc/private/link:create_extra_link_time_library.bzl", "create_extra_link_time_libraries", "merge_extra_link_time_libraries")
 
 CcCompilationContextInfo = provider(
