@@ -240,6 +240,21 @@ def _collect_library_hidden_top_level_artifacts(
 
     return depset(transitive = artifacts_to_force_builder)
 
+def _create_dynamic_libraries_copy_actions(ctx, binary, dynamic_libraries_for_runtime):
+    result = []
+    for lib in depset(dynamic_libraries_for_runtime).to_list():
+        # If the binary and the DLL are not in the same directory, copy the DLL
+        # to the binary's directory.
+        if lib.dirname != binary.dirname:
+            copy = ctx.actions.declare_file(lib.basename, sibling = binary)
+            ctx.actions.symlink(output = copy, target_file = lib, progress_message = "Copying Execution Dynamic Library")
+            result.append(copy)
+        else:
+            # If the library is already in the same directory as the binary, we don't need to copy it,
+            # but we still add it to the result.
+            result.append(lib)
+    return depset(result)
+
 def _get_dynamic_libraries_for_runtime(cc_linking_context, linking_statically):
     libraries = []
     for linker_input in cc_linking_context.linker_inputs.to_list():
@@ -1226,6 +1241,7 @@ cc_helper = struct(
     get_coverage_environment = _get_coverage_environment,
     create_cc_instrumented_files_info = _create_cc_instrumented_files_info,
     get_dynamic_libraries_for_runtime = _get_dynamic_libraries_for_runtime,
+    create_dynamic_libraries_copy_actions = _create_dynamic_libraries_copy_actions,
     build_output_groups_for_emitting_compile_providers = _build_output_groups_for_emitting_compile_providers,
     merge_cc_debug_contexts = _merge_cc_debug_contexts,
     get_providers = _get_providers,
