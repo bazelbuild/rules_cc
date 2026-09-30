@@ -62,6 +62,13 @@
 buildifier: 8.5.1
 
 tasks:
+  gazelle_check:
+    name: Gazelle up-to-date
+    bazel: 9.x
+    platform: ubuntu2404
+    shell_commands:
+      - "bazel run //docs:gazelle -- -mode=diff"
+
   ubuntu_docs:
     name: Docs
     platform: ubuntu2404
