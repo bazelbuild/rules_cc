@@ -1,7 +1,6 @@
 common --enable_platform_specific_config
-# Workaround symlink BwtB issues
+# TODO: Remove https://github.com/bazelbuild/bazel/pull/31423
 common:windows --remote_download_all
-test --nocache_test_results
 
 # Required by googletest 1.17.
 common --cxxopt=-std=c++17
