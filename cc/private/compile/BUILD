@@ -14,17 +14,19 @@
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
+package(default_visibility = ["//visibility:public"])
+
 bzl_library(
     name = "compile_bzl",
-    srcs = glob(["*.bzl"]),
-    visibility = ["//visibility:public"],
+    deprecation = "Use the individual bzl_library targets instead of this one.",
     deps = [
-        "//cc:action_names_bzl",
-        "//cc/common:feature_names_bzl",
-        "//cc/common:semantics_bzl",
-        "//cc/private:cc_internal_bzl",
-        "//cc/private/rules_impl:native_cc_common_bzl",
-        "@bazel_skylib//lib:paths",
+        ":cc_compilation_helper",
+        ":cc_compilation_outputs",
+        ":compile",
+        ":compile_action_templates",
+        ":compile_build_variables",
+        ":linkstamp_compile",
+        ":lto_compilation_context",
     ],
 )
 
@@ -33,7 +35,6 @@ filegroup(
     srcs = glob([
         "**/*.bzl",
     ]),
-    visibility = ["//visibility:public"],
 )
 
 filegroup(
@@ -42,5 +43,94 @@ filegroup(
         "**/*.bzl",
         "**/BUILD",
     ]),
-    visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "cc_compilation_helper",
+    srcs = ["cc_compilation_helper.bzl"],
+    deps = [
+        "//cc/common:cc_helper_internal",
+        "//cc/common:feature_names",
+        "//cc/common:semantics",
+        "//cc/private:cc_info",
+        "//cc/private:cc_internal",
+        "@bazel_skylib//lib:paths",
+    ],
+)
+
+bzl_library(
+    name = "cc_compilation_outputs",
+    srcs = ["cc_compilation_outputs.bzl"],
+    deps = [
+        ":lto_compilation_context",
+        "//cc/common:cc_helper_internal",
+        "//cc/private:cc_internal",
+    ],
+)
+
+bzl_library(
+    name = "compile",
+    srcs = ["compile.bzl"],
+    deps = [
+        ":cc_compilation_helper",
+        ":cc_compilation_outputs",
+        ":compile_action_templates",
+        ":compile_build_variables",
+        ":lto_compilation_context",
+        "//cc:action_names",
+        "//cc/common:cc_helper_internal",
+        "//cc/common:feature_names",
+        "//cc/common:semantics",
+        "//cc/private:cc_info",
+        "//cc/private:cc_internal",
+        "@bazel_skylib//lib:paths",
+    ],
+)
+
+bzl_library(
+    name = "compile_action_templates",
+    srcs = ["compile_action_templates.bzl"],
+    deps = [
+        ":cc_compilation_helper",
+        ":compile_build_variables",
+        "//cc/common:cc_helper_internal",
+        "//cc/common:feature_names",
+        "//cc/common:semantics",
+        "//cc/private:cc_internal",
+        "@bazel_skylib//lib:paths",
+    ],
+)
+
+bzl_library(
+    name = "compile_build_variables",
+    srcs = ["compile_build_variables.bzl"],
+    deps = [
+        "//cc/common:cc_helper_internal",
+        "//cc/common:feature_names",
+        "//cc/private:cc_info",
+        "//cc/private:cc_internal",
+        "//cc/private/rules_impl:native_cc_common",
+    ],
+)
+
+bzl_library(
+    name = "linkstamp_compile",
+    srcs = ["linkstamp_compile.bzl"],
+    deps = [
+        ":compile_build_variables",
+        "//cc:action_names",
+        "//cc/common:cc_helper_internal",
+        "//cc/common:semantics",
+        "//cc/private:cc_info",
+        "//cc/private:cc_internal",
+    ],
+)
+
+bzl_library(
+    name = "lto_compilation_context",
+    srcs = ["lto_compilation_context.bzl"],
+    deps = [
+        "//cc/common:cc_helper_internal",
+        "//cc/private:cc_internal",
+    ],
 )
