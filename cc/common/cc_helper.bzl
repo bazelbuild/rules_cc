@@ -923,11 +923,21 @@ def _expand_make_variables_for_copts(ctx, tokenization, unexpanded_tokens, addit
                 tokens.append(_expand(ctx, token, additional_make_variable_substitutions, targets = targets))
     return tokens
 
+def _matches_disallowed_copt(flag, disallowed_flags):
+    """Returns True if flag equals a disallowed flag or has a disallowed prefix."""
+    for disallowed in disallowed_flags:
+        if flag == disallowed or (
+            disallowed.endswith("=") and flag.startswith(disallowed)
+        ):
+            return True
+    return False
+
 def _verify_no_disallowed_copts(
         ctx,
         copts,
         attr_name,
-        disallowed_copts_infos = []):
+        disallowed_copts_infos = [],
+        command_line_copts = None):
     """Fails the build if copts contain any disallowed compiler flags."""
     if not disallowed_copts_infos:
         return
@@ -945,17 +955,23 @@ def _verify_no_disallowed_copts(
         allowlist_target_label = getattr(info, "allowlist_target_label", None)
         error_message = getattr(info, "error_message", None)
 
-        # Check each expanded flag against disallowed rules
-        for flag in copts:
-            for disallowed in info.flags:
-                if flag == disallowed or (
-                    disallowed.endswith("=") and flag.startswith(disallowed)
-                ):
-                    violations.append((flag, allowlist_target_label, error_message))
+        # Pair each set of flags with a description of where it came from.
+        flag_sources = [("attribute '{}'".format(attr_name), copts)]
+        if getattr(info, "verify_command_line", False) and command_line_copts:
+            flag_sources.extend([
+                ("'--copt' flag", command_line_copts.copts),
+                ("'--cxxopt' flag", command_line_copts.cxxopts),
+                ("'--conlyopt' flag", command_line_copts.conlyopts),
+            ])
+
+        for source, flags in flag_sources:
+            for flag in flags:
+                if _matches_disallowed_copt(flag, info.flags):
+                    violations.append((flag, allowlist_target_label, error_message, source))
 
     if violations:
         formatted_violations = []
-        for flag, allowlist_target_label, error_message in violations:
+        for flag, allowlist_target_label, error_message, source in violations:
             allowlist_clause = (
                 " (target is not in the allowlist '{}')".format(
                     allowlist_target_label,
@@ -965,21 +981,22 @@ def _verify_no_disallowed_copts(
                 ": {}".format(error_message) if error_message else ""
             )
             formatted_violations.append(
-                "- Flag '{}'{}{}".format(
+                "- Flag '{}' in {}{}{}".format(
                     flag,
+                    source,
                     allowlist_clause,
                     error_clause,
                 ),
             )
         fail(
             """
-[DISALLOWED COPTS ERROR] Target '{}' specifies disallowed compiler flag(s) in attribute '{}':
+[DISALLOWED COPTS ERROR] Target '{}' specifies disallowed compiler flag(s):
   {}
 """.format(
                 ctx.label,
-                attr_name,
                 "\n  ".join(formatted_violations),
             ),
+            stack_trace = False,
         )
 
 def _get_copts(
@@ -995,8 +1012,19 @@ def _get_copts(
         requested_features = ctx.features
     attribute_copts = getattr(ctx.attr, attr)
 
-    # If we wanted to include command-line specified flags, we could add
-    # ctx.fragments.cpp.copts (and cxxopts/conlyopts) here.
+    # Only read the command-line options when a policy asks for them; this runs
+    # for every C++ target, once per copts-like attribute.
+    command_line_copts = None
+    for info in disallowed_copts_infos:
+        if getattr(info, "verify_command_line", False):
+            cpp_fragment = ctx.fragments.cpp
+            command_line_copts = struct(
+                copts = cpp_fragment.copts,
+                cxxopts = cpp_fragment.cxxopts,
+                conlyopts = cpp_fragment.conlyopts,
+            )
+            break
+
     tokenization = not (feature_configuration.is_enabled(feature_names.NO_COPTS_TOKENIZATION) or feature_names.NO_COPTS_TOKENIZATION in requested_features)
     expanded_attribute_copts = _expand_make_variables_for_copts(ctx, tokenization, attribute_copts, additional_make_variable_substitutions)
 
@@ -1005,6 +1033,7 @@ def _get_copts(
         expanded_attribute_copts,
         attr,
         disallowed_copts_infos = disallowed_copts_infos,
+        command_line_copts = command_line_copts,
     )
 
     return expanded_attribute_copts

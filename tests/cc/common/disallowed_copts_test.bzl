@@ -19,7 +19,7 @@ def _test_fail_impl(env, target):
 def _test_fail_empty_toolchain_allowlist_impl(env, target):
     env.expect.that_target(target).failures().contains_predicate(
         matching.contains(
-            "- Flag '-Wno-error' (target is not in the allowlist '//custom:toolchain_allowlist'): Custom warning policy guidance.",
+            "- Flag '-Wno-error' in attribute 'copts' (target is not in the allowlist '//custom:toolchain_allowlist'): Custom warning policy guidance.",
         ),
     )
 
