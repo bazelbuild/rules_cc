@@ -538,6 +538,23 @@ on Windows to avoid long path issues.
 
 This feature must be enabled by default if desired.
 
+### `skip_virtual_includes`
+
+A marker feature that avoids creating `_virtual_includes` symlinks when
+headers only need a `strip_include_prefix` (without an
+`include_prefix`). Instead, `rules_cc` adds the stripped directory to
+the include paths directly and uses the original headers. This reduces
+path lengths and can help avoid long path issues on Windows.
+
+The only downside of this feature is that if you disable sandboxing
+non-declared headers can be included that are in the same directory as
+the one being added to the include path. This would still be caught by
+[`layering_check`](#layering_check) if enabled.
+
+See also [`shorten_virtual_includes`](#shorten_virtual_includes).
+
+This feature must be enabled if desired.
+
 ### `static_link_cpp_runtimes`
 
 A marker feature used by `rules_cc` to determine if the toolchain
