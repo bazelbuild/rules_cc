@@ -25,6 +25,7 @@ load(
     legacy_tool = "tool",
     legacy_tool_path = "tool_path",  # buildifier: disable=deprecated-function
 )
+load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
 load("//cc/toolchains:cc_toolchain_info.bzl", "ActionTypeInfo", "ToolchainConfigInfo")
 load("//cc/toolchains/impl:legacy_converter.bzl", "convert_toolchain")
@@ -356,6 +357,22 @@ def _rules_based_cc_toolchain_generated_config_has_same_values_test(env, targets
         generated_config[CcToolchainConfigInfo],
     )
 
+def _rules_based_cc_toolchain_sysroot_test(env, targets):
+    toolchain = targets.rules_based_cc_toolchain[cc_common.CcToolchainInfo]
+    env.expect.that_str(toolchain.sysroot).equals("tests/rule_based_toolchain/testdata/subdir1")
+
+def _rules_based_cc_toolchain_without_sysroot_test(env, targets):
+    toolchain = targets.rules_based_cc_toolchain_without_sysroot[cc_common.CcToolchainInfo]
+    env.expect.that_bool(toolchain.sysroot == None).equals(True)
+
+def _rules_based_cc_toolchain_raw_sysroot_test(env, targets):
+    toolchain = targets.rules_based_cc_toolchain_raw_sysroot[cc_common.CcToolchainInfo]
+    env.expect.that_str(toolchain.sysroot).equals("/opt/sysroot")
+
+def _rules_based_cc_toolchain_raw_sysroot_overrides_sysroot_test(env, targets):
+    toolchain = targets.rules_based_cc_toolchain_raw_sysroot_overrides_sysroot[cc_common.CcToolchainInfo]
+    env.expect.that_str(toolchain.sysroot).equals("/opt/sysroot")
+
 TARGETS = [
     "//tests/rule_based_toolchain/actions:c_compile",
     "//tests/rule_based_toolchain/actions:cpp_compile",
@@ -380,6 +397,9 @@ TARGETS = [
     ":simple_feature2",
     ":same_feature_name",
     ":rules_based_cc_toolchain",
+    ":rules_based_cc_toolchain_without_sysroot",
+    ":rules_based_cc_toolchain_raw_sysroot",
+    ":rules_based_cc_toolchain_raw_sysroot_overrides_sysroot",
     ":toolchain_config_with_legacy_tools",
 ] + ([
     ":rules_based_cc_toolchain_generated_config",
@@ -399,4 +419,8 @@ TESTS = {
     "legacy_tools_produce_tool_paths_test": _legacy_tools_produce_tool_paths_test,
     "rules_based_cc_toolchain_returns_cc_toolchain_config_info_test": _rules_based_cc_toolchain_returns_cc_toolchain_config_info_test,
     "rules_based_cc_toolchain_generated_config_has_same_values_test": _rules_based_cc_toolchain_generated_config_has_same_values_test,
+    "rules_based_cc_toolchain_sysroot_test": _rules_based_cc_toolchain_sysroot_test,
+    "rules_based_cc_toolchain_without_sysroot_test": _rules_based_cc_toolchain_without_sysroot_test,
+    "rules_based_cc_toolchain_raw_sysroot_test": _rules_based_cc_toolchain_raw_sysroot_test,
+    "rules_based_cc_toolchain_raw_sysroot_overrides_sysroot_test": _rules_based_cc_toolchain_raw_sysroot_overrides_sysroot_test,
 }

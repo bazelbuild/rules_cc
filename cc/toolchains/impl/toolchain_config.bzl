@@ -13,6 +13,7 @@
 # limitations under the License.
 """Implementation of the cc_toolchain rule."""
 
+load("@bazel_skylib//rules/directory:providers.bzl", "DirectoryInfo")
 load("//cc/common:cc_common.bzl", "cc_common")
 load(
     "//cc/toolchains:cc_toolchain_info.bzl",
@@ -76,6 +77,10 @@ def cc_toolchain_config_impl_helper(ctx):
 
     legacy = convert_toolchain(toolchain_config)
 
+    sysroot = ctx.attr.raw_sysroot or None
+    if not sysroot and ctx.attr.sysroot:
+        sysroot = ctx.attr.sysroot[DirectoryInfo].path
+
     return (
         toolchain_config,
         cc_common.create_cc_toolchain_config_info(
@@ -85,6 +90,7 @@ def cc_toolchain_config_impl_helper(ctx):
             make_variables = legacy.make_variables,
             features = legacy.features,
             cxx_builtin_include_directories = legacy.cxx_builtin_include_directories,
+            builtin_sysroot = sysroot,
             tool_paths = legacy.tool_paths,
             # toolchain_identifier is deprecated, but setting it to None results
             # in an error that it expected a string, and for safety's sake, I'd
@@ -122,6 +128,8 @@ CC_TOOLCHAIN_CONFIG_PUBLIC_ATTRS = {
     "cpu": attr.string(default = ""),
     "target_libc": attr.string(default = ""),
     "target_system_name": attr.string(default = ""),
+    "sysroot": attr.label(providers = [DirectoryInfo]),
+    "raw_sysroot": attr.string(default = ""),
     "tool_map": attr.label(providers = [ToolConfigInfo], mandatory = True),
     "args": attr.label_list(providers = [ArgsListInfo]),
     "known_features": attr.label_list(providers = [FeatureSetInfo]),

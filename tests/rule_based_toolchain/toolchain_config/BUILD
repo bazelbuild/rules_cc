@@ -261,8 +261,31 @@ cc_toolchain(
         ":legacy_gcov",
     ],
     make_variables = [":rules_based_make_variable"],
+    raw_sysroot = "",
+    sysroot = "//tests/rule_based_toolchain/testdata:subdirectory_1",
     tags = ["manual"],
     target_system_name = "rules-based-system",
+    tool_map = ":empty_tool_map",
+)
+
+cc_toolchain(
+    name = "rules_based_cc_toolchain_without_sysroot",
+    tags = ["manual"],
+    tool_map = ":empty_tool_map",
+)
+
+cc_toolchain(
+    name = "rules_based_cc_toolchain_raw_sysroot",
+    raw_sysroot = "/opt/sysroot",
+    tags = ["manual"],
+    tool_map = ":empty_tool_map",
+)
+
+cc_toolchain(
+    name = "rules_based_cc_toolchain_raw_sysroot_overrides_sysroot",
+    raw_sysroot = "/opt/sysroot",
+    sysroot = "//tests/rule_based_toolchain/testdata:subdirectory_1",
+    tags = ["manual"],
     tool_map = ":empty_tool_map",
 )
 

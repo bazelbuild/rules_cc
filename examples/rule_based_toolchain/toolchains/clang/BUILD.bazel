@@ -39,6 +39,10 @@ cc_toolchain(
     enabled_features = ["@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features"],
     known_features = ["@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features"],
     make_variables = [":example_variable"],
+    sysroot = select({
+        "@platforms//os:linux": "@linux_sysroot//:root",
+        "//conditions:default": None,
+    }),
     # This `select` happens under the target configuration. For macOS,
     # llvm-libtool-darwin should be used when creating static libraries even if the
     # exec platform is linux.
