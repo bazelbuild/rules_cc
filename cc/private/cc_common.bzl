@@ -170,7 +170,7 @@ def _get_environment_variables(*, feature_configuration, action_name, variables)
     return _cc_common_internal.get_environment_variables(feature_configuration = feature_configuration, action_name = action_name, variables = variables)
 
 def _empty_variables():
-    return _cc_common_internal.empty_variables()
+    return _cc_internal.cc_toolchain_variables(vars = {})
 
 def _create_library_to_link(
         *,
