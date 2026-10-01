@@ -24,3 +24,9 @@ cc_args(
     args = ["-fno-objc-arc"],
     requires_not_none = "//cc/toolchains/variables:no_objc_arc",
 )
+
+filegroup(
+    name = "srcs",
+    srcs = ["BUILD"],
+    visibility = ["//cc/toolchains/args:__pkg__"],
+)

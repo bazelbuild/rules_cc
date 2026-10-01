@@ -16,3 +16,9 @@ cc_args(
     format = {"def_file_path": "//cc/toolchains/variables:def_file_path"},
     requires_not_none = "//cc/toolchains/variables:def_file_path",
 )
+
+filegroup(
+    name = "srcs",
+    srcs = ["BUILD"],
+    visibility = ["//cc/toolchains/args:__pkg__"],
+)

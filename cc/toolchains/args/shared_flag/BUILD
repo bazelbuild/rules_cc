@@ -16,3 +16,9 @@ cc_args(
     args = ["-shared"],
     visibility = ["//visibility:public"],
 )
+
+filegroup(
+    name = "srcs",
+    srcs = ["BUILD"],
+    visibility = ["//cc/toolchains/args:__pkg__"],
+)

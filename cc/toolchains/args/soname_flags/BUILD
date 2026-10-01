@@ -36,3 +36,9 @@ cc_args(
     target_compatible_with = ["@platforms//os:linux"],
     visibility = ["//visibility:public"],
 )
+
+filegroup(
+    name = "srcs",
+    srcs = ["BUILD"],
+    visibility = ["//cc/toolchains/args:__pkg__"],
+)

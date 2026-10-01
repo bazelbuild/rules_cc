@@ -58,3 +58,9 @@ cc_args(
     format = {"output_execpath": "//cc/toolchains/variables:output_execpath"},
     requires_not_none = "//cc/toolchains/variables:output_execpath",
 )
+
+filegroup(
+    name = "srcs",
+    srcs = ["BUILD"],
+    visibility = ["//cc/toolchains/args:__pkg__"],
+)

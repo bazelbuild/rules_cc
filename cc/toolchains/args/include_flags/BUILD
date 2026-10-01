@@ -81,3 +81,9 @@ cc_args(
     format = {"framework_include_paths": "//cc/toolchains/variables:framework_include_paths"},
     iterate_over = "//cc/toolchains/variables:framework_include_paths",
 )
+
+filegroup(
+    name = "srcs",
+    srcs = ["BUILD"],
+    visibility = ["//cc/toolchains/args:__pkg__"],
+)

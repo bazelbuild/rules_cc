@@ -15,3 +15,9 @@ cc_args(
     args = ["-Wl,-S"],
     requires_not_none = "//cc/toolchains/variables:strip_debug_symbols",
 )
+
+filegroup(
+    name = "srcs",
+    srcs = ["BUILD"],
+    visibility = ["//cc/toolchains/args:__pkg__"],
+)

@@ -16,3 +16,9 @@ cc_args(
     iterate_over = "//cc/toolchains/variables:linkstamp_paths",
     requires_not_none = "//cc/toolchains/variables:linkstamp_paths",
 )
+
+filegroup(
+    name = "srcs",
+    srcs = ["BUILD"],
+    visibility = ["//cc/toolchains/args:__pkg__"],
+)

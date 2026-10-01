@@ -42,3 +42,9 @@ cc_args(
     requires_not_none = "//cc/toolchains/variables:force_pic",
     visibility = ["//:__subpackages__"],
 )
+
+filegroup(
+    name = "srcs",
+    srcs = ["BUILD"],
+    visibility = ["//cc/toolchains/args:__pkg__"],
+)
