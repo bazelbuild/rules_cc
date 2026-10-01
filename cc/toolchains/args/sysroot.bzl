@@ -28,6 +28,9 @@ _DEFAULT_SYSROOT_ACTIONS = [
 def cc_sysroot(*, name, sysroot, actions = _DEFAULT_SYSROOT_ACTIONS, args = [], **kwargs):
     """Creates args for a sysroot.
 
+    Set `cc_toolchain.sysroot` to the same directory to expose its path through
+    `CcToolchainInfo.sysroot` to rules that consume the toolchain.
+
     Args:
       name: (str) The name of the target
       sysroot: (bazel_skylib's directory rule) The directory that should be the
