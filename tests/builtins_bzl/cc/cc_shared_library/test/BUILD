@@ -135,8 +135,8 @@ cc_shared_library(
     user_link_flags = select({
         "@platforms//os:linux": [
             "-Wl,-rpath,kittens",
-            "-Wl,--version-script=$(location :foo.lds)",
-            "-Wl,--script=$(location :additional_script.txt)",
+            "-Wl,--version-script=$(execpath :foo.lds)",
+            "-Wl,--script=$(execpath :additional_script.txt)",
             "-Wl,--no-gc-sections",
         ],
         "//conditions:default": [],
@@ -272,7 +272,7 @@ cc_shared_library(
     features = ["windows_export_all_symbols"],
     user_link_flags = select({
         "@platforms//os:linux": [
-            "-Wl,--version-script=$(location :bar.lds)",
+            "-Wl,--version-script=$(execpath :bar.lds)",
         ],
         "//conditions:default": [],
     }),
@@ -399,7 +399,7 @@ genrule(
     name = "check_file_named_correctly",
     srcs = ["just_main_output_renamed"],
     outs = ["renamed_so_file_copy.so"],
-    cmd = "cp $$(dirname $(location :just_main_output_renamed))/renamed_so_file.so $@",
+    cmd = "cp $$(dirname $(execpath :just_main_output_renamed))/renamed_so_file.so $@",
 )
 
 filegroup(
