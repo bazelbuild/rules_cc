@@ -1,5 +1,6 @@
 load("@rules_testing//lib:util.bzl", "util")
 load("//cc/toolchains:args.bzl", "cc_args")
+load("//cc/toolchains:args_list.bzl", "cc_args_list")
 load("//cc/toolchains:feature.bzl", "cc_feature")
 load("//cc/toolchains:feature_set.bzl", "cc_feature_set")
 load("//cc/toolchains:legacy_tool.bzl", "cc_legacy_tool")
@@ -254,18 +255,25 @@ util.helper_target(
     tool_map = ":empty_tool_map",
 )
 
+cc_tool_map(
+    name = "sysroot_tool_map",
+    tools = {
+        "//cc/toolchains/actions:c_compile": "//tests/rule_based_toolchain/testdata:bin_wrapper",
+    },
+)
+
 cc_toolchain(
     name = "rules_based_cc_toolchain",
+    args = [":subdirectory_sysroot"],
     compiler = "rules-based-compiler",
     legacy_tools = [
         ":legacy_gcov",
     ],
     make_variables = [":rules_based_make_variable"],
-    raw_sysroot = "",
-    sysroot = "//tests/rule_based_toolchain/testdata:subdirectory_1",
+    sysroot_path = "",
     tags = ["manual"],
     target_system_name = "rules-based-system",
-    tool_map = ":empty_tool_map",
+    tool_map = ":sysroot_tool_map",
 )
 
 cc_toolchain(
@@ -275,18 +283,115 @@ cc_toolchain(
 )
 
 cc_toolchain(
-    name = "rules_based_cc_toolchain_raw_sysroot",
-    raw_sysroot = "/opt/sysroot",
+    name = "rules_based_cc_toolchain_sysroot_path",
+    sysroot_path = "/opt/sysroot",
     tags = ["manual"],
     tool_map = ":empty_tool_map",
 )
 
 cc_toolchain(
-    name = "rules_based_cc_toolchain_raw_sysroot_overrides_sysroot",
-    raw_sysroot = "/opt/sysroot",
-    sysroot = "//tests/rule_based_toolchain/testdata:subdirectory_1",
+    name = "rules_based_cc_toolchain_relative_sysroot_path",
+    args = [":nested_sysroot_args"],
+    sysroot_path = "external/sdk/sysroot",
     tags = ["manual"],
     tool_map = ":empty_tool_map",
+)
+
+cc_sysroot(
+    name = "subdirectory_sysroot",
+    args = ["--extra"],
+    env = {"SYSROOT": "{sysroot}"},
+    sysroot = "//tests/rule_based_toolchain/testdata:subdirectory_1",
+)
+
+cc_args_list(
+    name = "sysroot_args",
+    args = [":subdirectory_sysroot"],
+)
+
+cc_args_list(
+    name = "nested_sysroot_args",
+    args = [":sysroot_args"],
+)
+
+cc_feature(
+    name = "sysroot_feature",
+    args = [":nested_sysroot_args"],
+    feature_name = "sysroot_feature",
+)
+
+cc_feature_set(
+    name = "sysroot_feature_set",
+    all_of = [":sysroot_feature"],
+)
+
+cc_toolchain(
+    name = "rules_based_cc_toolchain_sysroot_args_list",
+    args = [":nested_sysroot_args"],
+    tags = ["manual"],
+    tool_map = ":empty_tool_map",
+)
+
+cc_toolchain(
+    name = "rules_based_cc_toolchain_sysroot_feature",
+    known_features = [":sysroot_feature_set"],
+    tags = ["manual"],
+    tool_map = ":empty_tool_map",
+)
+
+cc_toolchain(
+    name = "rules_based_cc_toolchain_sysroot_path_overrides_features",
+    args = [":sysroot"],
+    known_features = [":sysroot_feature_set"],
+    sysroot_path = "/override/sysroot",
+    tags = ["manual"],
+    tool_map = ":sysroot_tool_map",
+)
+
+cc_toolchain(
+    name = "rules_based_cc_toolchain_sysroot_without_data",
+    args = [":sysroot"],
+    tags = ["manual"],
+    tool_map = ":sysroot_tool_map",
+)
+
+cc_sysroot(
+    name = "sysroot_with_custom_data",
+    data = ["//tests/rule_based_toolchain/testdata:file2"],
+    sysroot = "//tests/rule_based_toolchain/testdata:subdirectory_1",
+)
+
+cc_toolchain(
+    name = "rules_based_cc_toolchain_sysroot_with_custom_data",
+    args = [":sysroot_with_custom_data"],
+    tags = ["manual"],
+    tool_map = ":sysroot_tool_map",
+)
+
+cc_toolchain(
+    name = "rules_based_cc_toolchain_sysroot_path_overrides_args",
+    args = [":subdirectory_sysroot"],
+    sysroot_path = "/override/sysroot",
+    tags = ["manual"],
+    tool_map = ":sysroot_tool_map",
+)
+
+cc_toolchain(
+    name = "rules_based_cc_toolchain_sysroot_enabled_feature",
+    enabled_features = [":sysroot_feature_set"],
+    tags = ["manual"],
+    tool_map = ":sysroot_tool_map",
+)
+
+cc_toolchain(
+    name = "rules_based_cc_toolchain_repeated_sysroot",
+    args = [
+        ":subdirectory_sysroot",
+        ":sysroot_with_custom_data",
+    ],
+    enabled_features = [":sysroot_feature_set"],
+    tags = ["manual"],
+    tool_map = ":sysroot_tool_map",
 )
 
 alias(

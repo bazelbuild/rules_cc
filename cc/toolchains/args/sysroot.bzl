@@ -13,7 +13,9 @@
 # limitations under the License.
 """Implementation of the cc_sysroot macro."""
 
-load("//cc/toolchains:args.bzl", "cc_args")
+load("@bazel_skylib//rules/directory:providers.bzl", "DirectoryInfo")
+load("//cc/toolchains:args.bzl", "CC_ARGS_ATTRS", "cc_args_impl")
+load("//cc/toolchains:cc_toolchain_info.bzl", "ArgsInfo", "ArgsListInfo", "CcSysrootInfo")
 
 visibility("public")
 
@@ -25,11 +27,30 @@ _DEFAULT_SYSROOT_ACTIONS = [
     Label("//cc/toolchains/actions:link_actions"),
 ]
 
-def cc_sysroot(*, name, sysroot, actions = _DEFAULT_SYSROOT_ACTIONS, args = [], **kwargs):
-    """Creates args for a sysroot.
+def _cc_sysroot_impl(ctx):
+    return cc_args_impl(ctx) + [CcSysrootInfo(sysroots = depset([
+        struct(label = ctx.label, path = ctx.attr.sysroot[DirectoryInfo].path),
+    ]))]
 
-    Set `cc_toolchain.sysroot` to the same directory to expose its path through
-    `CcToolchainInfo.sysroot` to rules that consume the toolchain.
+_cc_sysroot = rule(
+    implementation = _cc_sysroot_impl,
+    attrs = {
+        "sysroot": attr.label(providers = [DirectoryInfo], mandatory = True),
+    } | CC_ARGS_ATTRS,
+    provides = [ArgsInfo, ArgsListInfo, CcSysrootInfo],
+)
+
+def cc_sysroot(*, name, sysroot, actions = _DEFAULT_SYSROOT_ACTIONS, args = [], **kwargs):
+    """Declares a toolchain's sysroot and the arguments and inputs needed to use it.
+
+    Adding this target to a toolchain's args, directly or through a `cc_args_list`
+    or `cc_feature`, automatically sets `CcToolchainInfo.sysroot`. The directory's
+    files are included by default; pass `data = []` to omit them, or provide a
+    custom `data` list.
+
+    All collected sysroots must have the same path, including those in features
+    that are disabled. A nonempty `cc_toolchain.sysroot_path` silently overrides
+    the collected paths without changing this target's arguments or inputs.
 
     Args:
       name: (str) The name of the target
@@ -42,10 +63,11 @@ def cc_sysroot(*, name, sysroot, actions = _DEFAULT_SYSROOT_ACTIONS, args = [], 
     if "data" not in kwargs:
         kwargs["data"] = [sysroot]
 
-    cc_args(
+    _cc_sysroot(
         name = name,
+        sysroot = sysroot,
         actions = actions,
         args = ["--sysroot={sysroot}"] + args,
-        format = {"sysroot": sysroot},
+        format = {sysroot: "sysroot"},
         **kwargs
     )

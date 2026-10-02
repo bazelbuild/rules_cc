@@ -41,7 +41,15 @@ load(
 
 visibility("public")
 
-def _cc_args_impl(ctx):
+def cc_args_impl(ctx):
+    """Builds argument providers for cc_args and cc_sysroot.
+
+    Args:
+        ctx: The rule context.
+
+    Returns:
+        ArgsInfo and ArgsListInfo providers.
+    """
     actions = collect_action_types(ctx.attr.actions)
     actions_list = actions.to_list()
     variables = ctx.attr._variables[BuiltinVariablesInfo].variables
@@ -130,32 +138,34 @@ def _cc_args_impl(ctx):
         ),
     ]
 
+CC_ARGS_ATTRS = {
+    "actions": attr.label_list(
+        providers = [ActionTypeSetInfo],
+        mandatory = True,
+        doc = """See documentation for cc_args macro wrapper.""",
+    ),
+    "allowlist_absolute_include_directories": attr.string_list(
+        doc = """See documentation for cc_args macro wrapper.""",
+    ),
+    "allowlist_include_directories": attr.label_list(
+        providers = [DirectoryInfo],
+        doc = """See documentation for cc_args macro wrapper.""",
+    ),
+    "env": attr.string_dict(
+        doc = """See documentation for cc_args macro wrapper.""",
+    ),
+    "requires_any_of": attr.label_list(
+        providers = [FeatureConstraintInfo],
+        doc = """See documentation for cc_args macro wrapper.""",
+    ),
+    "_variables": attr.label(
+        default = "//cc/toolchains/variables:variables",
+    ),
+} | NESTED_ARGS_ATTRS
+
 _cc_args = rule(
-    implementation = _cc_args_impl,
-    attrs = {
-        "actions": attr.label_list(
-            providers = [ActionTypeSetInfo],
-            mandatory = True,
-            doc = """See documentation for cc_args macro wrapper.""",
-        ),
-        "allowlist_absolute_include_directories": attr.string_list(
-            doc = """See documentation for cc_args macro wrapper.""",
-        ),
-        "allowlist_include_directories": attr.label_list(
-            providers = [DirectoryInfo],
-            doc = """See documentation for cc_args macro wrapper.""",
-        ),
-        "env": attr.string_dict(
-            doc = """See documentation for cc_args macro wrapper.""",
-        ),
-        "requires_any_of": attr.label_list(
-            providers = [FeatureConstraintInfo],
-            doc = """See documentation for cc_args macro wrapper.""",
-        ),
-        "_variables": attr.label(
-            default = "//cc/toolchains/variables:variables",
-        ),
-    } | NESTED_ARGS_ATTRS,
+    implementation = cc_args_impl,
+    attrs = CC_ARGS_ATTRS,
     provides = [ArgsInfo],
     doc = """Declares a list of arguments bound to a set of actions.
 
