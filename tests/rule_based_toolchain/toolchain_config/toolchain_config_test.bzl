@@ -27,8 +27,9 @@ load(
 )
 load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
-load("//cc/toolchains:cc_toolchain_info.bzl", "ActionTypeInfo", "ToolchainConfigInfo")
+load("//cc/toolchains:cc_toolchain_info.bzl", "ActionTypeInfo", "ArgsInfo", "CcSysrootInfo", "ToolchainConfigInfo")
 load("//cc/toolchains/impl:legacy_converter.bzl", "convert_toolchain")
+load("//cc/toolchains/impl:sysroot.bzl", _get_sysroot = "get_sysroot")
 load("//cc/toolchains/impl:toolchain_config_info.bzl", _toolchain_config_info = "toolchain_config_info")
 load("//tests/rule_based_toolchain:helpers.bzl", "path_pattern")
 load("//tests/rule_based_toolchain:subjects.bzl", "result_fn_wrapper", "subjects")
@@ -36,6 +37,7 @@ load("//tests/rule_based_toolchain:subjects.bzl", "result_fn_wrapper", "subjects
 visibility("private")
 
 toolchain_config_info = result_fn_wrapper(_toolchain_config_info)
+get_sysroot = result_fn_wrapper(_get_sysroot)
 
 _COLLECTED_CPP_COMPILE_FILES = [
     # From :compile_config's tool
@@ -360,18 +362,94 @@ def _rules_based_cc_toolchain_generated_config_has_same_values_test(env, targets
 def _rules_based_cc_toolchain_sysroot_test(env, targets):
     toolchain = targets.rules_based_cc_toolchain[cc_common.CcToolchainInfo]
     env.expect.that_str(toolchain.sysroot).equals("tests/rule_based_toolchain/testdata/subdir1")
+    env.expect.that_collection([f.short_path for f in toolchain.all_files.to_list()]).contains(
+        "tests/rule_based_toolchain/testdata/subdir1/file_foo",
+    )
 
 def _rules_based_cc_toolchain_without_sysroot_test(env, targets):
     toolchain = targets.rules_based_cc_toolchain_without_sysroot[cc_common.CcToolchainInfo]
     env.expect.that_bool(toolchain.sysroot == None).equals(True)
 
-def _rules_based_cc_toolchain_raw_sysroot_test(env, targets):
-    toolchain = targets.rules_based_cc_toolchain_raw_sysroot[cc_common.CcToolchainInfo]
+def _rules_based_cc_toolchain_sysroot_path_test(env, targets):
+    toolchain = targets.rules_based_cc_toolchain_sysroot_path[cc_common.CcToolchainInfo]
     env.expect.that_str(toolchain.sysroot).equals("/opt/sysroot")
 
-def _rules_based_cc_toolchain_raw_sysroot_overrides_sysroot_test(env, targets):
-    toolchain = targets.rules_based_cc_toolchain_raw_sysroot_overrides_sysroot[cc_common.CcToolchainInfo]
-    env.expect.that_str(toolchain.sysroot).equals("/opt/sysroot")
+def _rules_based_cc_toolchain_relative_sysroot_path_test(env, targets):
+    toolchain = targets.rules_based_cc_toolchain_relative_sysroot_path[cc_common.CcToolchainInfo]
+    env.expect.that_str(toolchain.sysroot).equals("external/sdk/sysroot")
+
+def _rules_based_cc_toolchain_sysroot_args_list_test(env, targets):
+    toolchain = targets.rules_based_cc_toolchain_sysroot_args_list[cc_common.CcToolchainInfo]
+    env.expect.that_str(toolchain.sysroot).equals("tests/rule_based_toolchain/testdata/subdir1")
+
+def _rules_based_cc_toolchain_sysroot_feature_test(env, targets):
+    # Metadata is collected even from a feature that is not enabled by default.
+    toolchain = targets.rules_based_cc_toolchain_sysroot_feature[cc_common.CcToolchainInfo]
+    env.expect.that_str(toolchain.sysroot).equals("tests/rule_based_toolchain/testdata/subdir1")
+
+def _rules_based_cc_toolchain_sysroot_enabled_feature_test(env, targets):
+    toolchain = targets.rules_based_cc_toolchain_sysroot_enabled_feature[cc_common.CcToolchainInfo]
+    env.expect.that_str(toolchain.sysroot).equals("tests/rule_based_toolchain/testdata/subdir1")
+
+def _rules_based_cc_toolchain_repeated_sysroot_test(env, targets):
+    toolchain = targets.rules_based_cc_toolchain_repeated_sysroot[cc_common.CcToolchainInfo]
+    env.expect.that_str(toolchain.sysroot).equals("tests/rule_based_toolchain/testdata/subdir1")
+
+def _rules_based_cc_toolchain_sysroot_path_overrides_args_test(env, targets):
+    toolchain = targets.rules_based_cc_toolchain_sysroot_path_overrides_args[cc_common.CcToolchainInfo]
+    env.expect.that_str(toolchain.sysroot).equals("/override/sysroot")
+    env.expect.that_collection([f.short_path for f in toolchain.all_files.to_list()]).contains(
+        "tests/rule_based_toolchain/testdata/subdir1/file_foo",
+    )
+
+def _rules_based_cc_toolchain_sysroot_path_overrides_features_test(env, targets):
+    # Override wins even when direct args and nested features declare different paths.
+    toolchain = targets.rules_based_cc_toolchain_sysroot_path_overrides_features[cc_common.CcToolchainInfo]
+    env.expect.that_str(toolchain.sysroot).equals("/override/sysroot")
+
+def _rules_based_cc_toolchain_sysroot_without_data_test(env, targets):
+    toolchain = targets.rules_based_cc_toolchain_sysroot_without_data[cc_common.CcToolchainInfo]
+    env.expect.that_str(toolchain.sysroot).equals("tests/rule_based_toolchain/testdata")
+    files = [f.short_path for f in toolchain.all_files.to_list()]
+    env.expect.that_collection(files).not_contains("tests/rule_based_toolchain/testdata/subdir1/file_foo")
+    env.expect.that_collection(targets.sysroot[ArgsInfo].files.to_list()).is_empty()
+
+def _rules_based_cc_toolchain_sysroot_with_custom_data_test(env, targets):
+    toolchain = targets.rules_based_cc_toolchain_sysroot_with_custom_data[cc_common.CcToolchainInfo]
+    env.expect.that_str(toolchain.sysroot).equals("tests/rule_based_toolchain/testdata/subdir1")
+    files = [f.short_path for f in toolchain.all_files.to_list()]
+    env.expect.that_collection(files).contains("tests/rule_based_toolchain/testdata/file2")
+    env.expect.that_collection(files).not_contains("tests/rule_based_toolchain/testdata/subdir1/file_foo")
+
+def _sysroot_args_and_inputs_test(env, targets):
+    env.expect.that_target(targets.subdirectory_sysroot).has_provider(CcSysrootInfo)
+    args = targets.subdirectory_sysroot[ArgsInfo]
+    path = path_pattern("tests/rule_based_toolchain/testdata/subdir1")
+    env.expect.that_collection(args.nested.legacy_flag_group.flags).contains_exactly([
+        "--sysroot=" + path,
+        "--extra",
+    ]).in_order()
+    env.expect.that_dict(args.env.entries).contains_exactly({"SYSROOT": path})
+    env.expect.that_collection([f.short_path for f in args.files.to_list()]).contains_exactly([
+        "tests/rule_based_toolchain/testdata/subdir1/file_foo",
+    ])
+
+def _sysroot_path_overrides_conflicting_sysroots_test(env, targets):
+    sysroots = [targets.sysroot, targets.subdirectory_sysroot]
+    for path in ["/opt/sysroot", "tests/rule_based_toolchain/testdata/subdir1", "external/sdk/sysroot"]:
+        env.expect.that_value(
+            get_sysroot(sysroots, sysroot_path = path),
+            factory = subjects.result(subjects.str),
+        ).ok().equals(path)
+
+    env.expect.that_value(
+        get_sysroot(sysroots),
+        factory = subjects.result(subjects.str),
+    ).err().contains_all_of([
+        "Conflicting cc_sysroot paths",
+        str(targets.sysroot.label),
+        str(targets.subdirectory_sysroot.label),
+    ])
 
 TARGETS = [
     "//tests/rule_based_toolchain/actions:c_compile",
@@ -398,8 +476,20 @@ TARGETS = [
     ":same_feature_name",
     ":rules_based_cc_toolchain",
     ":rules_based_cc_toolchain_without_sysroot",
-    ":rules_based_cc_toolchain_raw_sysroot",
-    ":rules_based_cc_toolchain_raw_sysroot_overrides_sysroot",
+    ":rules_based_cc_toolchain_sysroot_path",
+    ":rules_based_cc_toolchain_relative_sysroot_path",
+    ":rules_based_cc_toolchain_sysroot_args_list",
+    ":rules_based_cc_toolchain_sysroot_feature",
+    ":rules_based_cc_toolchain_sysroot_path_overrides_features",
+    ":rules_based_cc_toolchain_sysroot_path_overrides_args",
+    ":rules_based_cc_toolchain_sysroot_enabled_feature",
+    ":rules_based_cc_toolchain_repeated_sysroot",
+    ":rules_based_cc_toolchain_sysroot_without_data",
+    ":rules_based_cc_toolchain_sysroot_with_custom_data",
+    ":sysroot",
+    ":subdirectory_sysroot",
+    ":nested_sysroot_args",
+    ":sysroot_feature",
     ":toolchain_config_with_legacy_tools",
 ] + ([
     ":rules_based_cc_toolchain_generated_config",
@@ -421,6 +511,16 @@ TESTS = {
     "rules_based_cc_toolchain_generated_config_has_same_values_test": _rules_based_cc_toolchain_generated_config_has_same_values_test,
     "rules_based_cc_toolchain_sysroot_test": _rules_based_cc_toolchain_sysroot_test,
     "rules_based_cc_toolchain_without_sysroot_test": _rules_based_cc_toolchain_without_sysroot_test,
-    "rules_based_cc_toolchain_raw_sysroot_test": _rules_based_cc_toolchain_raw_sysroot_test,
-    "rules_based_cc_toolchain_raw_sysroot_overrides_sysroot_test": _rules_based_cc_toolchain_raw_sysroot_overrides_sysroot_test,
+    "rules_based_cc_toolchain_sysroot_path_test": _rules_based_cc_toolchain_sysroot_path_test,
+    "rules_based_cc_toolchain_relative_sysroot_path_test": _rules_based_cc_toolchain_relative_sysroot_path_test,
+    "rules_based_cc_toolchain_sysroot_args_list_test": _rules_based_cc_toolchain_sysroot_args_list_test,
+    "rules_based_cc_toolchain_sysroot_feature_test": _rules_based_cc_toolchain_sysroot_feature_test,
+    "rules_based_cc_toolchain_sysroot_path_overrides_features_test": _rules_based_cc_toolchain_sysroot_path_overrides_features_test,
+    "rules_based_cc_toolchain_sysroot_path_overrides_args_test": _rules_based_cc_toolchain_sysroot_path_overrides_args_test,
+    "rules_based_cc_toolchain_sysroot_enabled_feature_test": _rules_based_cc_toolchain_sysroot_enabled_feature_test,
+    "rules_based_cc_toolchain_repeated_sysroot_test": _rules_based_cc_toolchain_repeated_sysroot_test,
+    "rules_based_cc_toolchain_sysroot_without_data_test": _rules_based_cc_toolchain_sysroot_without_data_test,
+    "rules_based_cc_toolchain_sysroot_with_custom_data_test": _rules_based_cc_toolchain_sysroot_with_custom_data_test,
+    "sysroot_args_and_inputs_test": _sysroot_args_and_inputs_test,
+    "sysroot_path_overrides_conflicting_sysroots_test": _sysroot_path_overrides_conflicting_sysroots_test,
 }
