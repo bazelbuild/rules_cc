@@ -2,6 +2,4 @@ common --enable_platform_specific_config
 # TODO: Remove https://github.com/bazelbuild/bazel/pull/31423
 common:windows --remote_download_all
 
-# Required by googletest 1.17.
-common --cxxopt=-std=c++17
 test --test_env=PATH=/bin:/usr/bin:/usr/local/bin
