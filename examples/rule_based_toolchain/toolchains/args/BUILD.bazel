@@ -50,6 +50,8 @@ cc_args(
     args = select({
         "//constraint:linux_aarch64": ["--target=aarch64-unknown-linux-gnu"],
         "//constraint:linux_x86_64": ["--target=x86_64-unknown-linux-gnu"],
+        "//constraint:macos_aarch64": ["--target=arm64-apple-macos"],
+        "//constraint:macos_x86_64": ["--target=x86_64-apple-macos"],
     }),
     visibility = ["//visibility:public"],
 )
