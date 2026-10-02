@@ -56,7 +56,6 @@ filegroup(
         "BUILD",
         "action_names.bzl",
     ],
-    visibility = ["//visibility:public"],
 )
 
 filegroup(
@@ -66,7 +65,6 @@ filegroup(
     ]) + [
         "//cc/private:bzl_srcs",
     ],
-    visibility = ["//visibility:public"],
 )
 
 filegroup(
@@ -86,7 +84,6 @@ filegroup(
         "//cc/toolchains:srcs",
         "@bazel_skylib//:test_deps",
     ],
-    visibility = ["//visibility:public"],
 )
 
 # TODO(aiuto): Find a way to strip this rule from the distribution tarball.
@@ -100,128 +97,131 @@ filegroup(
     ],
 )
 
-bzl_library(
+alias(
     name = "find_cc_toolchain_bzl",
-    srcs = [
-        "find_cc_toolchain.bzl",
-        "use_cc_toolchain.bzl",
-    ],
-    visibility = ["//visibility:public"],
-    deps = [
-        "//cc/common",
-    ],
+    actual = ":find_cc_toolchain",
+    deprecation = "Use //cc:find_cc_toolchain instead.",
 )
 
-bzl_library(
+alias(
     name = "action_names_bzl",
-    srcs = ["action_names.bzl"],
-    visibility = ["//visibility:public"],
+    actual = ":action_names",
+    deprecation = "Use //cc:action_names instead.",
 )
 
-bzl_library(
+alias(
     name = "cc_toolchain_config_lib_bzl",
-    srcs = ["cc_toolchain_config_lib.bzl"],
-    visibility = ["//cc:__subpackages__"],
+    actual = ":cc_toolchain_config_lib",
+    deprecation = "Use //cc:cc_toolchain_config_lib instead.",
 )
 
-bzl_library(
+alias(
     name = "repositories_bzl",
-    srcs = ["repositories.bzl"],
-    visibility = ["//visibility:private"],
-    deps = [
-        "//cc/common",
-        "//cc/private/toolchain:cc_configure_bzl",
-    ],
+    actual = ":repositories",
+    deprecation = "Use //cc:repositories instead.",
 )
 
 bzl_library(
+    name = "repositories",
+    srcs = ["repositories.bzl"],
+    deps = ["//cc/private/toolchain:cc_configure"],
+)
+
+alias(
     name = "defs_bzl",
+    actual = ":defs",
+    deprecation = "Use //cc:defs instead.",
+)
+
+bzl_library(
+    name = "defs",
     srcs = ["defs.bzl"],
-    visibility = ["//visibility:public"],
     deps = [
-        ":build_settings_bzl",
-        ":core_rules",
-        "//cc/common",
-        "//cc/common:cc_helper_bzl",
-        "//cc/private/rules_impl:failing_cc_proto_library_bzl",
-        "//cc/toolchains:toolchain_rules",
+        ":cc_binary",
+        ":cc_import",
+        ":cc_library",
+        ":cc_shared_library",
+        ":cc_test",
+        ":objc_import",
+        ":objc_library",
+        "//cc/common:cc_common",
+        "//cc/common:cc_info",
+        "//cc/common:debug_package_info",
+        "//cc/private/rules_impl:failing_cc_proto_library",
+        "//cc/toolchains:cc_flags_supplier",
+        "//cc/toolchains:cc_toolchain",
+        "//cc/toolchains:cc_toolchain_config_info",
+        "//cc/toolchains:cc_toolchain_suite",
+        "//cc/toolchains:compiler_flag",
+        "//cc/toolchains:fdo_prefetch_hints",
+        "//cc/toolchains:fdo_profile",
     ],
 )
 
+# Compatibility aggregate for the existing bzl_library label.
 bzl_library(
     name = "cc_postmark_bzl",
-    srcs = [
-        "cc_postmark.bzl",
-        "cc_postmark_initializers.bzl",
+    deps = [
+        ":cc_postmark",
+        ":cc_postmark_initializers",
     ],
-    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "build_settings_bzl",
+    actual = ":build_settings",
+    deprecation = "Use //cc:build_settings instead.",
 )
 
 bzl_library(
-    name = "build_settings_bzl",
+    name = "build_settings",
     srcs = ["build_settings.bzl"],
-    visibility = ["//visibility:public"],
-    deps = [
-        "@bazel_skylib//rules:common_settings",
-    ],
+    deps = ["@bazel_skylib//rules:common_settings"],
 )
 
 bool_flag(
     name = "incompatible_disallow_sdk_frameworks_attributes",
     build_setting_default = False,
     scope = "universal",
-    visibility = ["//visibility:public"],
 )
 
 bool_flag(
     name = "incompatible_strip_executable_safely",
     build_setting_default = False,
     scope = "universal",
-    visibility = ["//visibility:public"],
 )
 
 bool_flag(
     name = "incompatible_objc_alwayslink_by_default",
     build_setting_default = False,
     scope = "universal",
-    visibility = ["//visibility:public"],
 )
 
 bool_flag(
     name = "incompatible_builtin_objc_strip_action",
     build_setting_default = True,
     scope = "universal",
-    visibility = ["//visibility:public"],
 )
 
 bzl_library(
     name = "core_rules",
-    srcs = [
-        "cc_binary.bzl",
-        "cc_import.bzl",
-        "cc_library.bzl",
-        "cc_shared_library.bzl",
-        "cc_static_library.bzl",
-        "cc_test.bzl",
-        "objc_import.bzl",
-        "objc_library.bzl",
-    ],
-    visibility = ["//visibility:public"],
+    deprecation = "Use the individual bzl_library targets instead of this one.",
     deps = [
-        ":build_settings_bzl",
-        ":cc_postmark_bzl",
-        "//cc/toolchains:toolchain_rules",
-        "@cc_compatibility_proxy//:proxy_bzl",
+        ":cc_binary",
+        ":cc_import",
+        ":cc_library",
+        ":cc_shared_library",
+        ":cc_static_library",
+        ":cc_test",
+        ":objc_import",
+        ":objc_library",
     ],
 )
 
 bzl_library(
     name = "cc_rules_extension_support",
     srcs = ["cc_rules_extension_support.bzl"],
-    visibility = ["//visibility:public"],
-    deps = [
-        "@cc_compatibility_proxy//:proxy_bzl",
-    ],
+    deps = ["@cc_compatibility_proxy//:proxy_bzl"],
 )
 
 cc_toolchain_alias(name = "current_cc_toolchain")
@@ -240,6 +240,114 @@ starlark_doc_extract_helper(
     src = "defs.bzl",
     visibility = ["//visibility:private"],
     deps = [
-        ":defs_bzl",
+        ":defs",
     ],
+)
+
+bzl_library(
+    name = "cc_binary",
+    srcs = ["cc_binary.bzl"],
+    deps = ["@cc_compatibility_proxy//:proxy_bzl"],
+)
+
+bzl_library(
+    name = "cc_import",
+    srcs = ["cc_import.bzl"],
+    deps = ["@cc_compatibility_proxy//:proxy_bzl"],
+)
+
+bzl_library(
+    name = "cc_library",
+    srcs = ["cc_library.bzl"],
+    deps = ["@cc_compatibility_proxy//:proxy_bzl"],
+)
+
+bzl_library(
+    name = "cc_shared_library",
+    srcs = ["cc_shared_library.bzl"],
+    deps = ["@cc_compatibility_proxy//:proxy_bzl"],
+)
+
+bzl_library(
+    name = "cc_static_library",
+    srcs = ["cc_static_library.bzl"],
+    deps = ["@cc_compatibility_proxy//:proxy_bzl"],
+)
+
+bzl_library(
+    name = "cc_test",
+    srcs = ["cc_test.bzl"],  # keep
+    deps = ["@cc_compatibility_proxy//:proxy_bzl"],
+)
+
+bzl_library(
+    name = "extensions",
+    srcs = ["extensions.bzl"],
+    deps = [
+        "//cc/private/toolchain:cc_configure",
+        "@bazel_features//:features",
+        "@bazel_features//private:bzl_files",
+    ],
+)
+
+bzl_library(
+    name = "find_cc_toolchain",
+    srcs = ["find_cc_toolchain.bzl"],
+    deps = [
+        ":use_cc_toolchain",
+        "//cc/common:cc_common",
+    ],
+)
+
+bzl_library(
+    name = "objc_import",
+    srcs = ["objc_import.bzl"],
+    deps = ["@cc_compatibility_proxy//:proxy_bzl"],
+)
+
+bzl_library(
+    name = "objc_library",
+    srcs = ["objc_library.bzl"],
+    deps = ["@cc_compatibility_proxy//:proxy_bzl"],
+)
+
+bzl_library(
+    name = "toolchain_utils",
+    srcs = ["toolchain_utils.bzl"],
+    deps = [":find_cc_toolchain"],
+)
+
+bzl_library(
+    name = "action_names",
+    srcs = ["action_names.bzl"],
+)
+
+bzl_library(
+    name = "cc_postmark",
+    srcs = ["cc_postmark.bzl"],
+)
+
+bzl_library(
+    name = "cc_postmark_initializers",
+    srcs = ["cc_postmark_initializers.bzl"],
+)
+
+bzl_library(
+    name = "cc_toolchain_config_lib",
+    srcs = ["cc_toolchain_config_lib.bzl"],
+)
+
+bzl_library(
+    name = "starlark_doc_extract_helper",
+    srcs = ["starlark_doc_extract_helper.bzl"],
+)
+
+bzl_library(
+    name = "system_library",
+    srcs = ["system_library.bzl"],
+)
+
+bzl_library(
+    name = "use_cc_toolchain",
+    srcs = ["use_cc_toolchain.bzl"],
 )
