@@ -51,6 +51,9 @@ def layering_check_features(compiler, extra_flags_per_feature, is_macos):
     if compiler != "clang":
         return []
     return [
+        feature(name = "generate_submodules"),
+        feature(name = "module_map_home_cwd"),
+        feature(name = "module_map_without_extern_module"),
         feature(
             name = "use_module_maps",
             requires = [feature_set(features = ["module_maps"])],
