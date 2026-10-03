@@ -14,8 +14,12 @@
 """Implementation of the cc_sysroot macro."""
 
 load("@bazel_skylib//rules/directory:providers.bzl", "DirectoryInfo")
-load("//cc/toolchains:args.bzl", "CC_ARGS_ATTRS", "cc_args_impl")
 load("//cc/toolchains:cc_toolchain_info.bzl", "ArgsInfo", "ArgsListInfo", "CcSysrootInfo")
+load(
+    "//cc/toolchains/impl:args.bzl",
+    _CC_ARGS_ATTRS = "CC_ARGS_ATTRS",
+    _cc_args_impl = "cc_args_impl",
+)
 
 visibility("public")
 
@@ -28,7 +32,7 @@ _DEFAULT_SYSROOT_ACTIONS = [
 ]
 
 def _cc_sysroot_impl(ctx):
-    return cc_args_impl(ctx) + [CcSysrootInfo(sysroots = depset([
+    return _cc_args_impl(ctx) + [CcSysrootInfo(sysroots = depset([
         struct(label = ctx.label, path = ctx.attr.sysroot[DirectoryInfo].path),
     ]))]
 
@@ -36,7 +40,7 @@ _cc_sysroot = rule(
     implementation = _cc_sysroot_impl,
     attrs = {
         "sysroot": attr.label(providers = [DirectoryInfo], mandatory = True),
-    } | CC_ARGS_ATTRS,
+    } | _CC_ARGS_ATTRS,
     provides = [ArgsInfo, ArgsListInfo, CcSysrootInfo],
 )
 
