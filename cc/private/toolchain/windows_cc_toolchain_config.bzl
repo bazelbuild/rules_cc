@@ -499,6 +499,11 @@ def _impl(ctx):
             enabled = True,
         )
 
+        windows_quoting_for_param_files_feature = feature(
+            name = "windows_quoting_for_param_files",
+            enabled = True,
+        )
+
         compiler_param_file_feature = feature(
             name = "compiler_param_file",
             enabled = True,
@@ -1444,6 +1449,7 @@ def _impl(ctx):
             sysroot_feature,
             unfiltered_compile_flags_feature,
             archive_param_file_feature,
+            windows_quoting_for_param_files_feature,
             compiler_param_file_feature,
             compiler_output_flags_feature,
             compiler_input_flags_feature,
