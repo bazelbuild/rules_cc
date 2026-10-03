@@ -19,6 +19,7 @@ bzl_library(
     deprecation = "Use the individual bzl_library targets instead of this one.",
     visibility = ["//cc/toolchains:__subpackages__"],
     deps = [
+        ":args",
         ":args_utils",
         ":cc_artifact_category",
         ":collect",
@@ -86,6 +87,23 @@ config_setting(
 filegroup(
     name = "srcs",
     srcs = glob(["**"]),
+)
+
+bzl_library(
+    name = "args",
+    srcs = ["args.bzl"],
+    visibility = [
+        "//cc/toolchains:__pkg__",
+        "//cc/toolchains/args:__pkg__",
+    ],
+    deps = [
+        ":args_utils",
+        ":collect",
+        ":nested_args",
+        "//cc/private:paths",
+        "//cc/toolchains:cc_toolchain_info",
+        "@bazel_skylib//rules/directory:providers",
+    ],
 )
 
 bzl_library(

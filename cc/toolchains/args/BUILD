@@ -97,5 +97,9 @@ filegroup(
 bzl_library(
     name = "sysroot",
     srcs = ["sysroot.bzl"],
-    deps = ["//cc/toolchains:args"],
+    deps = [
+        "//cc/toolchains:cc_toolchain_info",
+        "//cc/toolchains/impl:args",
+        "@bazel_skylib//rules/directory:providers",
+    ],
 )
