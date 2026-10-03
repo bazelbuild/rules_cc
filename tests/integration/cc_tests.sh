@@ -83,7 +83,7 @@ EOF
   # Exercise both archiving and linking, with spaces in input and output paths.
   # C++ compilation uses its own response-file quoting; keep this test focused
   # on the linker's response files.
-  bazel build --min_param_file_size=0 \
+  bazel build --features=-compiler_param_file --min_param_file_size=0 \
     ':library with spaces' ':binary with spaces' ':shared library with spaces' \
     >& "$TEST_log" || fail "Build with spaces in response files failed"
   'bazel-bin/binary with spaces.exe' >> "$TEST_log" || fail "Binary failed"
