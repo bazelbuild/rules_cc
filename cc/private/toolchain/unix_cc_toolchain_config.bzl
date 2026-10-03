@@ -924,6 +924,7 @@ def _impl(ctx):
         )
         set_install_name_feature = feature(
             name = "set_soname",
+            enabled = True,
             flag_sets = [
                 flag_set(
                     actions = [
