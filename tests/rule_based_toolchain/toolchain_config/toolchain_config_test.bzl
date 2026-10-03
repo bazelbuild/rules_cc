@@ -446,7 +446,7 @@ def _sysroot_path_overrides_conflicting_sysroots_test(env, targets):
         get_sysroot(sysroots),
         factory = subjects.result(subjects.str),
     ).err().contains_all_of([
-        "Conflicting cc_sysroot paths",
+        "Multiple cc_sysroot were found in this toolchain",
         str(targets.sysroot.label),
         str(targets.subdirectory_sysroot.label),
     ])
