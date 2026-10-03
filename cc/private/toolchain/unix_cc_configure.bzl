@@ -513,10 +513,11 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     )
     deps_scanner = "cpp-module-deps-scanner_not_found"
     if is_clang:
-        cc_str = str(cc)
-        path_arr = cc_str.split("/")[:-1]
-        path_arr.append("clang-scan-deps")
-        deps_scanner = "/".join(path_arr)
+        sibling_deps_scanner = repository_ctx.path(cc).dirname.get_child("clang-scan-deps")
+        if sibling_deps_scanner.exists:
+            deps_scanner = str(sibling_deps_scanner)
+        else:
+            deps_scanner = which(repository_ctx, "clang-scan-deps", deps_scanner)
     repository_ctx.template(
         "deps_scanner_wrapper.sh",
         paths[deps_scanner_wrapper_src],
