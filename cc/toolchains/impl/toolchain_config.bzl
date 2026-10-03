@@ -27,6 +27,7 @@ load(
 )
 load(":collect.bzl", "collect_action_types")
 load(":legacy_converter.bzl", "convert_toolchain")
+load(":sysroot.bzl", "get_sysroot", "sysroot_aspect")
 load(":toolchain_config_info.bzl", "toolchain_config_info")
 
 visibility([
@@ -63,6 +64,11 @@ def cc_toolchain_config_impl_helper(ctx):
     if ctx.attr.features:
         fail("Features is a reserved attribute in bazel. Did you mean 'known_features' or 'enabled_features'?")
 
+    sysroot = get_sysroot(
+        ctx.attr.args + ctx.attr.known_features + ctx.attr.enabled_features,
+        ctx.attr.sysroot_path,
+    )
+
     toolchain_config = toolchain_config_info(
         label = ctx.label,
         known_features = ctx.attr.known_features + [ctx.attr._builtin_features],
@@ -85,6 +91,7 @@ def cc_toolchain_config_impl_helper(ctx):
             make_variables = legacy.make_variables,
             features = legacy.features,
             cxx_builtin_include_directories = legacy.cxx_builtin_include_directories,
+            builtin_sysroot = sysroot,
             tool_paths = legacy.tool_paths,
             # toolchain_identifier is deprecated, but setting it to None results
             # in an error that it expected a string, and for safety's sake, I'd
@@ -122,10 +129,11 @@ CC_TOOLCHAIN_CONFIG_PUBLIC_ATTRS = {
     "cpu": attr.string(default = ""),
     "target_libc": attr.string(default = ""),
     "target_system_name": attr.string(default = ""),
+    "sysroot_path": attr.string(default = ""),
     "tool_map": attr.label(providers = [ToolConfigInfo], mandatory = True),
-    "args": attr.label_list(providers = [ArgsListInfo]),
-    "known_features": attr.label_list(providers = [FeatureSetInfo]),
-    "enabled_features": attr.label_list(providers = [FeatureSetInfo]),
+    "args": attr.label_list(providers = [ArgsListInfo], aspects = [sysroot_aspect]),
+    "known_features": attr.label_list(providers = [FeatureSetInfo], aspects = [sysroot_aspect]),
+    "enabled_features": attr.label_list(providers = [FeatureSetInfo], aspects = [sysroot_aspect]),
     "artifact_name_patterns": attr.label_list(providers = [ArtifactNamePatternInfo]),
     "make_variables": attr.label_list(providers = [MakeVariableInfo]),
     "legacy_tools": attr.label_list(providers = [LegacyToolInfo]),

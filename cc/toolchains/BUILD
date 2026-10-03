@@ -22,7 +22,6 @@ bzl_library(
         "//cc:action_names_bzl",
         "//cc:cc_toolchain_config_lib_bzl",
         "//cc:find_cc_toolchain_bzl",
-        "//cc/private:paths_bzl",
         "//cc/private/rules_impl:cc_flags_supplier_lib_bzl",
         "//cc/private/rules_impl:toolchain_rules",
         "//cc/private/rules_impl/fdo:fdo_rules",
