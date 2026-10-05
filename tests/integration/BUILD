@@ -15,6 +15,12 @@ rules_cc_integration_test(
     test_script = "cc_tests.sh",
 )
 
+rules_cc_integration_test(
+    name = "cc_linking_tests",
+    target_compatible_with = [] if bazel_features.cc.cc_common_is_in_rules_cc else ["@platforms//:incompatible"],
+    test_script = "cc_linking_tests.sh",
+)
+
 # Tests migrated from bazelbuild/bazel/src/test/shell/bazel/cc_integration_test.sh
 # In a separate file from cc_tests.sh to make migration clearer.
 rules_cc_integration_test(
@@ -22,6 +28,7 @@ rules_cc_integration_test(
     shard_count = 10,
     target_compatible_with = select({
         "@platforms//os:macos": ["@platforms//:incompatible"],
+        "@platforms//os:windows": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }) if bazel_features.cc.cc_common_is_in_rules_cc else ["@platforms//:incompatible"],
     test_script = "cc_integration_test.sh",
