@@ -1741,9 +1741,9 @@ def _impl(ctx):
 
     windows_quoting_for_param_files_feature = feature(
         name = "windows_quoting_for_param_files",
-        # enabled = _use_msvc_toolchain(ctx),
+        enabled = _use_msvc_toolchain(ctx),
     )
-    # features.append(windows_quoting_for_param_files_feature)
+    features.append(windows_quoting_for_param_files_feature)
 
     # Tell bazel we support C++ modules now
     cpp_modules_feature = feature(
