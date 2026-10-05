@@ -255,7 +255,11 @@ This feature is off by default.
 Marker features to configure the quoting style of arguments in `@params`
 files. If neither are enabled, no quoting is applied.
 
-These features must be enabled if desired.
+`gcc_quoting_for_param_files` should be enabled by default for Unix like
+toolchains.
+
+`windows_quoting_for_param_files` should be enabled by default for some
+Windows toolchains, such as MSVC.
 
 ### `generate_submodules`
 
