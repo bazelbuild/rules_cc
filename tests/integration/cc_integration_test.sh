@@ -793,13 +793,6 @@ EOF
 function test_aspect_accessing_args_link_action_with_tree_artifact() {
   is_bazel || return 0
 
-  # This test assumes the presence of "nodeps" dynamic libraries, which do not
-  # function on Apple platforms.
-  if is_darwin; then
-    return 0
-  fi
-
-  
   local package="${FUNCNAME[0]}"
   mkdir -p "${package}"
   cat > "${package}/makes_tree_artifacts.sh" <<EOF
@@ -922,13 +915,6 @@ EOF
 }
 
 function test_directory_arg_compile_action() {
-  # This test assumes the presence of "nodeps" dynamic libraries, which do not
-  # function on Apple platforms.
-  if is_darwin; then
-    return 0
-  fi
-
-  
   local package="${FUNCNAME[0]}"
   mkdir -p "${package}"
 
@@ -1812,7 +1798,6 @@ EOF
 
 function test_bazel_cxxopts() {
  is_bazel || return 0
- is_darwin && return 0
 
   cat > BUILD <<'EOF'
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
@@ -1838,19 +1823,15 @@ int main() {
 }
 EOF
 
-  export BAZEL_USE_CPP_ONLY_TOOLCHAIN=1
   export BAZEL_CXXOPTS=-DEXIT_CODE=0
   bazel build //:main_c \
-    --repo_env=BAZEL_USE_CPP_ONLY_TOOLCHAIN=1 \
     --repo_env=BAZEL_CXXOPTS=-DEXIT_CODE=0 && fail "Expected C compilation to fail"
   bazel run //:main_cpp \
-    --repo_env=BAZEL_USE_CPP_ONLY_TOOLCHAIN=1 \
     --repo_env=BAZEL_CXXOPTS=-DEXIT_CODE=0 || fail "Expected C++ compilation to pass"
 }
 
 function test_bazel_conlyopts() {
  is_bazel || return 0
- is_darwin && return 0
   
   cat > BUILD <<'EOF'
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
@@ -1876,13 +1857,10 @@ int main() {
 }
 EOF
 
-  export BAZEL_USE_CPP_ONLY_TOOLCHAIN=1
   export BAZEL_CONLYOPTS=-DEXIT_CODE=0
   bazel build //:main_cpp \
-    --repo_env=BAZEL_USE_CPP_ONLY_TOOLCHAIN=1 \
     --repo_env=BAZEL_CONLYOPTS=-DEXIT_CODE=0 && fail "Expected C++ compilation to fail"
   bazel run //:main_c \
-    --repo_env=BAZEL_USE_CPP_ONLY_TOOLCHAIN=1 \
     --repo_env=BAZEL_CONLYOPTS=-DEXIT_CODE=0 || fail "Expected C compilation to pass"
 }
 
