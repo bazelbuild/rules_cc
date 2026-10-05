@@ -954,8 +954,11 @@ EOF
       grep "\(gcc\|clang\|clanc-cl.exe\|cl.exe\)" \
       || fail "args didn't contain the tool path"
 
-  cat "bazel-bin/${package}/aspect_out" | grep "a.*o .*b.*o .*c.*o" \
-      || fail "args didn't contain tree artifact paths"
+  grep -F "${package}/x.cc" "bazel-bin/${package}/aspect_out" \
+      || fail "args didn't contain the source path"
+
+  grep "${package}/_objs/x/x.*\\.o" "bazel-bin/${package}/aspect_out" \
+      || fail "args didn't contain the object file path"
 }
 
 function test_reconstructing_cpp_actions() {
