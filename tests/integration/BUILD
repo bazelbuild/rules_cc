@@ -21,7 +21,6 @@ rules_cc_integration_test(
     name = "cc_integration_test",
     shard_count = 10,
     target_compatible_with = select({
-        "@platforms//os:macos": ["@platforms//:incompatible"],
         "@platforms//os:windows": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }) if bazel_features.cc.cc_common_is_in_rules_cc else ["@platforms//:incompatible"],

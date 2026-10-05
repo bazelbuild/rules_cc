@@ -324,6 +324,10 @@ def _cc_lib_impl(ctx):
         language = "c++",
         compilation_outputs = compilation_outputs,
         linking_contexts = linking_contexts,
+        disallow_dynamic_library = not cc_common.is_enabled(
+            feature_configuration = feature_configuration,
+            feature_name = "supports_dynamic_linker",
+        ),
     )
     library = linking_outputs.library_to_link
     files = []
@@ -910,8 +914,11 @@ EOF
       grep "\(gcc\|clang\|clanc-cl.exe\|cl.exe\|cc_wrapper.sh\)" \
       || fail "args didn't contain the tool path"
 
-  cat "bazel-bin/${package}/aspect_out" | grep "a.*o .*b.*o .*c.*o" \
-      || fail "args didn't contain tree artifact paths"
+  grep -F "${package}/x.cc" "bazel-bin/${package}/aspect_out" \
+      || fail "args didn't contain the source path"
+
+  grep "${package}/_objs/x/x.*\\.o" "bazel-bin/${package}/aspect_out" \
+      || fail "args didn't contain the object file path"
 }
 
 function test_directory_arg_compile_action() {
@@ -2173,8 +2180,7 @@ EOF
 }
 
 function test_parse_headers_clean() {
-  
-  mkdir pkg
+  mkdir -p pkg
   cat > pkg/BUILD <<'EOF'
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 package(features = ["parse_headers"])
