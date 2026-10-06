@@ -44,13 +44,20 @@ cc_variable(
 
 cc_variable(
     name = "dependent_module_map_files",
-    actions = ["//cc/toolchains/actions:compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:compile_actions",
+        "//cc/toolchains/actions:cpp_module_deps_scanning",
+    ],
     type = types.option(types.list(types.file)),
 )
 
 cc_variable(
     name = "external_include_paths",
-    actions = ["//cc/toolchains/actions:compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:compile_actions",
+        "//cc/toolchains/actions:cpp20_module_compile",
+        "//cc/toolchains/actions:cpp_module_deps_scanning",
+    ],
     type = types.option(types.list(types.directory)),
 )
 
@@ -96,7 +103,11 @@ cc_variable(
 
 cc_variable(
     name = "framework_include_paths",
-    actions = ["//cc/toolchains/actions:source_compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:source_compile_actions",
+        "//cc/toolchains/actions:cpp20_module_compile",
+        "//cc/toolchains/actions:cpp_module_deps_scanning",
+    ],
     type = types.list(types.directory),
 )
 
@@ -121,13 +132,21 @@ cc_variable(
 
 cc_variable(
     name = "include_paths",
-    actions = ["//cc/toolchains/actions:source_compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:source_compile_actions",
+        "//cc/toolchains/actions:cpp20_module_compile",
+        "//cc/toolchains/actions:cpp_module_deps_scanning",
+    ],
     type = types.list(types.directory),
 )
 
 cc_variable(
     name = "includes",
-    actions = ["//cc/toolchains/actions:source_compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:source_compile_actions",
+        "//cc/toolchains/actions:cpp20_module_compile",
+        "//cc/toolchains/actions:cpp_module_deps_scanning",
+    ],
     type = types.option(types.list(types.file)),
 )
 
@@ -325,13 +344,19 @@ cc_variable(
 
 cc_variable(
     name = "module_map_file",
-    actions = ["//cc/toolchains/actions:compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:compile_actions",
+        "//cc/toolchains/actions:cpp_module_deps_scanning",
+    ],
     type = types.option(types.file),
 )
 
 cc_variable(
     name = "module_name",
-    actions = ["//cc/toolchains/actions:compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:compile_actions",
+        "//cc/toolchains/actions:cpp_module_deps_scanning",
+    ],
     type = types.option(types.string),
 )
 
@@ -457,19 +482,29 @@ cc_variable(
 
 cc_variable(
     name = "per_object_debug_info_file",
-    actions = ["//cc/toolchains/actions:compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:compile_actions",
+        "//cc/toolchains/actions:cpp20_module_codegen",
+    ],
     type = types.option(types.file),
 )
 
 cc_variable(
     name = "pic",
-    actions = ["//cc/toolchains/actions:compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:compile_actions",
+        "//cc/toolchains/actions:cpp20_module_actions",
+    ],
     type = types.option(types.void),
 )
 
 cc_variable(
     name = "preprocessor_defines",
-    actions = ["//cc/toolchains/actions:source_compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:source_compile_actions",
+        "//cc/toolchains/actions:cpp20_module_compile",
+        "//cc/toolchains/actions:cpp_module_deps_scanning",
+    ],
     type = types.list(types.string),
 )
 
@@ -481,7 +516,11 @@ cc_variable(
 
 cc_variable(
     name = "quote_include_paths",
-    actions = ["//cc/toolchains/actions:source_compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:source_compile_actions",
+        "//cc/toolchains/actions:cpp20_module_compile",
+        "//cc/toolchains/actions:cpp_module_deps_scanning",
+    ],
     type = types.list(types.directory),
 )
 
@@ -529,7 +568,11 @@ cc_variable(
 
 cc_variable(
     name = "system_include_paths",
-    actions = ["//cc/toolchains/actions:source_compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:source_compile_actions",
+        "//cc/toolchains/actions:cpp20_module_compile",
+        "//cc/toolchains/actions:cpp_module_deps_scanning",
+    ],
     type = types.list(types.directory),
 )
 
