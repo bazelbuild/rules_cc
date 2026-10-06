@@ -244,6 +244,39 @@ def _test_coverage_module_action_has_no_gcno_file_impl(env, target):
         "{package}/_objs/{test_name}/instrumented/instrumented.pcm",
     ])
 
+# A consumer of header modules receives each module file paired with the name of the module it
+# holds, so that a toolchain can load it by name (clang's -fmodule-file=<name>=<file>, which loads
+# the file only when one of the module's headers is included) instead of eagerly.
+def _test_use_header_modules_names_module_files(name, **kwargs):
+    util.helper_target(
+        cc_library,
+        name = name + "/dep",
+        hdrs = ["header.h"],
+        features = ["header_modules"],
+    )
+    util.empty_file(name + "/consumer.cc")
+    util.helper_target(
+        cc_library,
+        name = name + "/consumer",
+        srcs = [name + "/consumer.cc"],
+        deps = [name + "/dep"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_use_header_modules_names_module_files_impl,
+        target = name + "/consumer",
+        test_features = ["header_modules_feature_configuration"],
+        **kwargs
+    )
+
+def _test_use_header_modules_names_module_files_impl(env, target):
+    test_name = env.ctx.label.name
+    env.expect.that_target(target).action_generating(
+        "{package}/_objs/{test_name}/consumer/consumer.o",
+    ).argv().contains_predicate(matching.str_matches(
+        "module_file_name://*:" + test_name + "/dep=*/_objs/" + test_name + "/dep/dep.pcm",
+    ))
+
 def cc_library_configured_target_tests(name):
     test_suite(
         name = name,
@@ -256,5 +289,6 @@ def cc_library_configured_target_tests(name):
             _test_coverage_implementation_dep_makes_target_instrumented,
             _test_coverage_unmatched_target_is_not_instrumented,
             _test_coverage_module_action_has_no_gcno_file,
+            _test_use_header_modules_names_module_files,
         ] if bazel_features.cc.cc_common_is_in_rules_cc else [],
     )
