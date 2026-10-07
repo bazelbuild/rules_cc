@@ -20,11 +20,7 @@ cc_feature(
 
 cc_args(
     name = "includes_flags",
-    actions = [
-        "//cc/toolchains/actions:source_compile_actions",
-        "//cc/toolchains/actions:cpp20_module_compile",
-        "//cc/toolchains/actions:cpp_module_deps_scanning",
-    ],
+    actions = ["//cc/toolchains/actions:source_compile_actions"],
     args = [
         "-include",
         "{includes}",
@@ -48,11 +44,7 @@ cc_feature(
 
 cc_args(
     name = "quote_include_paths_flags",
-    actions = [
-        "//cc/toolchains/actions:source_compile_actions",
-        "//cc/toolchains/actions:cpp20_module_compile",
-        "//cc/toolchains/actions:cpp_module_deps_scanning",
-    ],
+    actions = ["//cc/toolchains/actions:source_compile_actions"],
     args = [
         "-iquote",
         "{quote_include_paths}",
@@ -63,11 +55,7 @@ cc_args(
 
 cc_args(
     name = "include_paths_flags",
-    actions = [
-        "//cc/toolchains/actions:source_compile_actions",
-        "//cc/toolchains/actions:cpp20_module_compile",
-        "//cc/toolchains/actions:cpp_module_deps_scanning",
-    ],
+    actions = ["//cc/toolchains/actions:source_compile_actions"],
     args = [
         "-I{include_paths}",
     ],
@@ -77,11 +65,7 @@ cc_args(
 
 cc_args(
     name = "system_include_paths_flags",
-    actions = [
-        "//cc/toolchains/actions:source_compile_actions",
-        "//cc/toolchains/actions:cpp20_module_compile",
-        "//cc/toolchains/actions:cpp_module_deps_scanning",
-    ],
+    actions = ["//cc/toolchains/actions:source_compile_actions"],
     args = [
         "-isystem",
         "{system_include_paths}",
@@ -92,11 +76,7 @@ cc_args(
 
 cc_args(
     name = "framework_include_paths_flags",
-    actions = [
-        "//cc/toolchains/actions:source_compile_actions",
-        "//cc/toolchains/actions:cpp20_module_compile",
-        "//cc/toolchains/actions:cpp_module_deps_scanning",
-    ],
+    actions = ["//cc/toolchains/actions:source_compile_actions"],
     args = [
         "-F{framework_include_paths}",
     ],
