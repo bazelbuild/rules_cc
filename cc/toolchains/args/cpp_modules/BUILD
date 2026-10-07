@@ -1,12 +1,13 @@
 load("//cc/toolchains:args.bzl", "cc_args")
 load("//cc/toolchains:feature.bzl", "cc_feature")
-load("//cc/toolchains:feature_set.bzl", "cc_feature_set")
 
 # The args C++20 modules need from a clang toolchain, matching
 # unix_cc_toolchain_config. Bazel builds module interfaces only once the
 # toolchain knows the `cpp_modules` feature and the build enables it, so
 # toolchains that map tools for the C++20 module actions should list
 # `:cpp_modules` in their known features and `:feature` in their enabled ones.
+# compiler_input_flags marks a module interface unit as one, since `-x` only
+# applies to the inputs after it.
 
 package(default_visibility = ["//visibility:public"])
 
@@ -15,21 +16,16 @@ cc_feature(
     feature_name = "cpp_modules",
 )
 
-cc_feature_set(
+cc_feature(
     name = "feature",
-    all_of = [
-        ":cpp_module_modmap_file",
-        ":cpp20_module_compile_flags",
+    args = [
+        ":modmap_file_args",
+        ":module_output_args",
     ],
+    feature_name = "cpp20_module_flags",
 )
 
 # The module map file names the BMI of each module a source imports.
-cc_feature(
-    name = "cpp_module_modmap_file",
-    args = [":modmap_file_args"],
-    feature_name = "cpp_module_modmap_file",
-)
-
 cc_args(
     name = "modmap_file_args",
     actions = [
@@ -43,27 +39,7 @@ cc_args(
     visibility = ["//visibility:private"],
 )
 
-# A module interface unit compiles as one, and writes its BMI where Bazel
-# declared it.
-cc_feature(
-    name = "cpp20_module_compile_flags",
-    args = [
-        ":module_interface_args",
-        ":module_output_args",
-    ],
-    feature_name = "cpp20_module_compile_flags",
-)
-
-cc_args(
-    name = "module_interface_args",
-    actions = ["//cc/toolchains/actions:cpp20_module_compile"],
-    args = [
-        "-x",
-        "c++-module",
-    ],
-    visibility = ["//visibility:private"],
-)
-
+# A module interface unit writes its BMI where Bazel declared it.
 cc_args(
     name = "module_output_args",
     actions = ["//cc/toolchains/actions:cpp20_module_compile"],

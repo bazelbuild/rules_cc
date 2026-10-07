@@ -5,9 +5,9 @@ load(":goldens/macos/libraries_to_link.bzl", _MACOS_LIBRARIES_TO_LINK = "GOLDEN"
 load(":goldens/macos/runtime_library_search_directories.bzl", _MACOS_RUNTIME_LIBRARY_SEARCH_DIRECTORIES = "GOLDEN")
 load(":goldens/macos/thin_lto.bzl", _MACOS_THIN_LTO = "GOLDEN")
 load(":goldens/unix/archiver_flags.bzl", _UNIX_ARCHIVER_FLAGS = "GOLDEN")
+load(":goldens/unix/compiler_input_flags.bzl", _UNIX_COMPILER_INPUT_FLAGS = "GOLDEN")
 load(":goldens/unix/compiler_output_flags.bzl", _UNIX_COMPILER_OUTPUT_FLAGS = "GOLDEN")
-load(":goldens/unix/cpp20_module_compile_flags.bzl", _UNIX_CPP20_MODULE_COMPILE_FLAGS = "GOLDEN")
-load(":goldens/unix/cpp_module_modmap_file.bzl", _UNIX_CPP_MODULE_MODMAP_FILE = "GOLDEN")
+load(":goldens/unix/cpp20_module_flags.bzl", _UNIX_CPP20_MODULE_FLAGS = "GOLDEN")
 load(":goldens/unix/force_pic_flags.bzl", _UNIX_FORCE_PIC_FLAGS = "GOLDEN")
 load(":goldens/unix/libraries_to_link.bzl", _UNIX_LIBRARIES_TO_LINK = "GOLDEN")
 load(":goldens/unix/linker_param_file.bzl", _UNIX_LINKER_PARAM_FILE = "GOLDEN")
@@ -163,16 +163,16 @@ compare_cc_feature_implementation(
 # match the features of the same names in unix_cc_toolchain_config.
 
 compare_cc_feature_implementation(
-    name = "cpp_module_modmap_file_unix_test",
-    actual_implementation = "//cc/toolchains/args/cpp_modules:cpp_module_modmap_file",
-    expected = _UNIX_CPP_MODULE_MODMAP_FILE,
+    name = "cpp20_module_flags_unix_test",
+    actual_implementation = "//cc/toolchains/args/cpp_modules:feature",
+    expected = _UNIX_CPP20_MODULE_FLAGS,
     platform = ":linux",
 )
 
 compare_cc_feature_implementation(
-    name = "cpp20_module_compile_flags_unix_test",
-    actual_implementation = "//cc/toolchains/args/cpp_modules:cpp20_module_compile_flags",
-    expected = _UNIX_CPP20_MODULE_COMPILE_FLAGS,
+    name = "compiler_input_flags_unix_test",
+    actual_implementation = "//cc/toolchains/args/compiler_input_flags:feature",
+    expected = _UNIX_COMPILER_INPUT_FLAGS,
     platform = ":linux",
 )
 

@@ -11,16 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Expected cpp20_module_compile_flags legacy feature textproto on unix."""
+"""Expected cpp20_module_flags legacy feature textproto on unix."""
 
 visibility("private")
 
 GOLDEN = """enabled: false
 flag_sets {
+  actions: "c++-compile"
+  actions: "c++20-module-codegen"
   actions: "c++20-module-compile"
   flag_groups {
-    flags: "-x"
-    flags: "c++-module"
+    expand_if_available: "cpp_module_modmap_file"
+    flags: "@%{cpp_module_modmap_file}"
   }
 }
 flag_sets {
@@ -30,5 +32,5 @@ flag_sets {
     flags: "-fmodule-output=%{cpp_module_output_file}"
   }
 }
-name: "cpp20_module_compile_flags"
+name: "cpp20_module_flags"
 """
