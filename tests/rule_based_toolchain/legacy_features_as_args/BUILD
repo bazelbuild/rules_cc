@@ -5,6 +5,9 @@ load(":goldens/macos/libraries_to_link.bzl", _MACOS_LIBRARIES_TO_LINK = "GOLDEN"
 load(":goldens/macos/runtime_library_search_directories.bzl", _MACOS_RUNTIME_LIBRARY_SEARCH_DIRECTORIES = "GOLDEN")
 load(":goldens/macos/thin_lto.bzl", _MACOS_THIN_LTO = "GOLDEN")
 load(":goldens/unix/archiver_flags.bzl", _UNIX_ARCHIVER_FLAGS = "GOLDEN")
+load(":goldens/unix/compiler_input_flags.bzl", _UNIX_COMPILER_INPUT_FLAGS = "GOLDEN")
+load(":goldens/unix/compiler_output_flags.bzl", _UNIX_COMPILER_OUTPUT_FLAGS = "GOLDEN")
+load(":goldens/unix/cpp20_module_flags.bzl", _UNIX_CPP20_MODULE_FLAGS = "GOLDEN")
 load(":goldens/unix/force_pic_flags.bzl", _UNIX_FORCE_PIC_FLAGS = "GOLDEN")
 load(":goldens/unix/libraries_to_link.bzl", _UNIX_LIBRARIES_TO_LINK = "GOLDEN")
 load(":goldens/unix/linker_param_file.bzl", _UNIX_LINKER_PARAM_FILE = "GOLDEN")
@@ -154,4 +157,28 @@ compare_cc_feature_implementation(
     actual_implementation = "//cc/toolchains/args/thin_lto:feature",
     expected = _WINDOWS_THIN_LTO,
     platform = ":windows",
+)
+
+# C++20 modules. Bazel's CppActionConfigs.java predates them, so these goldens
+# match the features of the same names in unix_cc_toolchain_config.
+
+compare_cc_feature_implementation(
+    name = "cpp20_module_flags_unix_test",
+    actual_implementation = "//cc/toolchains/args/cpp_modules:feature",
+    expected = _UNIX_CPP20_MODULE_FLAGS,
+    platform = ":linux",
+)
+
+compare_cc_feature_implementation(
+    name = "compiler_input_flags_unix_test",
+    actual_implementation = "//cc/toolchains/args/compiler_input_flags:feature",
+    expected = _UNIX_COMPILER_INPUT_FLAGS,
+    platform = ":linux",
+)
+
+compare_cc_feature_implementation(
+    name = "compiler_output_flags_unix_test",
+    actual_implementation = "//cc/toolchains/args/compiler_output_flags:feature",
+    expected = _UNIX_COMPILER_OUTPUT_FLAGS,
+    platform = ":linux",
 )

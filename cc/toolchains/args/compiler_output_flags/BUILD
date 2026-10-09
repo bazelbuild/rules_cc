@@ -15,6 +15,7 @@ cc_args_list(
         ":output_assembly_flags",
         ":output_preprocess_flags",
         ":output_flags",
+        ":deps_scanner_output_env",
     ],
 )
 
@@ -42,6 +43,16 @@ cc_args(
         "-o",
         "{output_file}",
     ],
+    format = {"output_file": "//cc/toolchains/variables:output_file"},
+    requires_not_none = "//cc/toolchains/variables:output_file",
+)
+
+# The C++20 module dependency scanner writes its P1689 output to the file this
+# names; the output_flags above name the scanned compile's object.
+cc_args(
+    name = "deps_scanner_output_env",
+    actions = ["//cc/toolchains/actions:cpp_module_deps_scanning"],
+    env = {"DEPS_SCANNER_OUTPUT_FILE": "{output_file}"},
     format = {"output_file": "//cc/toolchains/variables:output_file"},
     requires_not_none = "//cc/toolchains/variables:output_file",
 )
