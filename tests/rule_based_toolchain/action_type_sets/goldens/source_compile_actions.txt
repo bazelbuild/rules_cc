@@ -3,6 +3,8 @@ c++-compile
 c++-header-parsing
 c++-module-codegen
 c++-module-compile
+c++-module-deps-scanning
+c++20-module-compile
 c-compile
 clif-match
 linkstamp-compile

@@ -15,6 +15,7 @@ cc_feature(
     name = "includes_feature",
     args = [":includes_flags"],
     overrides = "//cc/toolchains/features/legacy:includes",
+    visibility = ["//:__subpackages__"],
 )
 
 cc_args(
@@ -38,6 +39,7 @@ cc_feature(
         ":framework_include_paths_flags",
     ],
     overrides = "//cc/toolchains/features/legacy:include_paths",
+    visibility = ["//:__subpackages__"],
 )
 
 cc_args(
