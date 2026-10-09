@@ -40,8 +40,7 @@ def _flatten_and_get_objects(linker_inputs):
     for linker_input in linker_inputs.to_list():
         for lib in linker_input.libraries:
             if lib._contains_objects:
-                # PIC and non-PIC variants are distinct files, so depset cannot
-                # deduplicate them. Select on variant per library, preferring PIC.
+                # Select on variant per library, preferring PIC.
                 transitive_objects.append(depset(lib.pic_objects or lib.objects))
 
     return depset(transitive = transitive_objects, order = "topological")
