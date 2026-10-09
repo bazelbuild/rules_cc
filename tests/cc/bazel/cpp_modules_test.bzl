@@ -18,6 +18,37 @@ def _setup_with_features_target(name, rule_fn, suffix):
         module_interfaces = [name + "/foo.cppm"],
     )
 
+def _setup_with_parse_headers_target(name, rule_fn, suffix):
+    util.empty_file(name + "/bar.cc")
+    util.empty_file(name + "/bar.h")
+    util.helper_target(
+        rule_fn,
+        name = name + suffix,
+        srcs = [name + "/bar.cc"],
+        hdrs = [name + "/bar.h"],
+        features = ["parse_headers"],
+    )
+
+def _test_cpp_modules_cc_library_with_parse_headers(name, **kwargs):
+    _setup_with_parse_headers_target(name, cc_library, "_lib")
+    cc_analysis_test(
+        name = name,
+        target = name + "_lib",
+        impl = _test_cpp_modules_with_parse_headers_impl,
+        test_features = ["cpp_modules"],
+        with_action_configs = [
+            ACTION_NAMES.cpp_module_deps_scanning,
+            ACTION_NAMES.cpp20_module_compile,
+        ],
+        config_settings = {
+            "//command_line_option:experimental_cpp_modules": True,
+        },
+        **kwargs
+    )
+
+def _test_cpp_modules_with_parse_headers_impl(env, target):
+    env.expect.that_target(target).action_named("CppCompile")
+
 def _test_cpp_modules_cc_library_configuration_with_features(name, **kwargs):
     _setup_with_features_target(name, cc_library, "_lib")
     cc_analysis_test(
@@ -166,6 +197,7 @@ def cpp_modules_tests(name, **kwargs):
             _test_cpp_modules_cc_library_configuration_with_features,
             _test_cpp_modules_cc_binary_configuration_with_features,
             _test_cpp_modules_cc_test_configuration_with_features,
+            _test_cpp_modules_cc_library_with_parse_headers,
             _test_same_module_interfaces_file_in_cc_library_twice,
             _test_same_module_interfaces_file_in_cc_binary_twice,
             _test_same_module_interfaces_file_in_cc_test_twice,
