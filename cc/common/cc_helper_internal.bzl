@@ -31,6 +31,7 @@ CPP_SOURCE_TYPE_HEADER = "HEADER"
 CPP_SOURCE_TYPE_SOURCE = "SOURCE"
 CPP_SOURCE_TYPE_CLIF_INPUT_PROTO = "CLIF_INPUT_PROTO"
 CC_RUNTIMES_TOOLCHAIN_TYPE = Label("@bazel_tools//tools/cpp:cc_runtimes_toolchain_type")
+CC_STD_MODULE_TOOLCHAIN_TYPE = Label("//cc/toolchains:std_module_toolchain_type")
 
 def get_cc_runtimes(ctx, is_library):
     """Returns the list of C++ runtime dependency targets for the rule.
@@ -79,6 +80,28 @@ def get_cc_runtimes_copts(ctx):
     """
     cc_runtimes_toolchain = ctx.toolchains[CC_RUNTIMES_TOOLCHAIN_TYPE]
     return cc_runtimes_toolchain.cc_runtimes_info.copts if cc_runtimes_toolchain else []
+
+def get_std_module_deps(ctx, feature_configuration):
+    """Returns the list of C++ standard module dependency targets for the rule.
+
+    Args:
+      ctx: The rule context.
+      feature_configuration: The feature configuration of the rule.
+
+    Returns:
+      A list of Target objects representing the required standard module.
+    """
+    if not feature_configuration.is_enabled("std_module"):
+        return []
+    # The std module provider itself carries this tag; it does not declare the
+    # toolchain type, so it must bail out before the access below.
+    if "no_implicit_std_module" in ctx.attr.tags:
+        return []
+
+    toolchain = ctx.toolchains[CC_STD_MODULE_TOOLCHAIN_TYPE]
+    if not toolchain:
+        return []
+    return [toolchain.std_module_toolchain_info.std_module]
 
 def get_fdo_build_stamp(cpp_configuration, fdo_context, feature_configuration):
     """Returns the FDO build stamp.

@@ -14,6 +14,11 @@
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
+toolchain_type(
+    name = "std_module_toolchain_type",
+    visibility = ["//visibility:public"],
+)
+
 bzl_library(
     name = "toolchain_rules",
     srcs = glob(["*.bzl"]),
