@@ -46,6 +46,7 @@ load("//cc/private/compile:cc_compilation_outputs.bzl", "create_compilation_outp
 load("//cc/private/compile:compile_action_templates.bzl", "create_compile_action_templates")
 load(
     "//cc/private/compile:compile_build_variables.bzl",
+    "COMPILE_BUILD_VARIABLES",
     "get_copts",
     "get_fdo_variables_and_inputs",
     "get_specific_compile_build_variables",
@@ -1640,6 +1641,14 @@ def _create_compile_source_action(
         # Treat C++20 module interfaces as C++ source files regardless of their extension.
         override_extension = extensions.CC_SOURCE[0] if action_name == ACTION_NAMES.cpp20_module_compile else None,
     )
+
+    if feature_configuration.is_enabled(feature_names.USE_HEADER_MODULES):
+        # "<module name>=<module file>" for each module file, so that a toolchain can pass
+        # -fmodule-file=<name>=<file>, which loads a module file only when one of its headers is
+        # included, instead of -fmodule-file=<file>, which loads it before parsing.
+        additional_build_variables = additional_build_variables | {
+            COMPILE_BUILD_VARIABLES.MODULE_FILE_NAMES: cc_compilation_context._transitive_pic_module_names if use_pic else cc_compilation_context._transitive_module_names,
+        }
 
     compile_variables = get_specific_compile_build_variables(
         source_file = source_artifact,
