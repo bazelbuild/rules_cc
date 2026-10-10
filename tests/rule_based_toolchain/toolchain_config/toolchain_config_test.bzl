@@ -27,6 +27,7 @@ load(
 )
 load("//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
 load("//cc/toolchains:cc_toolchain_info.bzl", "ActionTypeInfo", "ToolchainConfigInfo")
+load("//cc/toolchains:legacy_file_group.bzl", "LEGACY_FILE_GROUPS")
 load("//cc/toolchains/impl:legacy_converter.bzl", "convert_toolchain")
 load("//cc/toolchains/impl:toolchain_config_info.bzl", _toolchain_config_info = "toolchain_config_info")
 load("//tests/rule_based_toolchain:helpers.bzl", "path_pattern")
@@ -277,6 +278,13 @@ def _toolchain_collects_files_test(env, targets):
         ),
     ]).in_order()
 
+def _thin_lto_index_actions_are_linker_files_test(env, _targets):
+    env.expect.that_collection(LEGACY_FILE_GROUPS["linker_files"]).contains_at_least([
+        Label("//cc/toolchains/actions:lto_index_for_dynamic_library"),
+        Label("//cc/toolchains/actions:lto_index_for_executable"),
+        Label("//cc/toolchains/actions:lto_index_for_nodeps_dynamic_library"),
+    ])
+
 def _tool_env_wires_into_toolchain_test(env, targets):
     tc = env.expect.that_target(targets.tool_env_toolchain_config).provider(ToolchainConfigInfo)
     legacy = convert_toolchain(tc.actual)
@@ -395,6 +403,7 @@ TESTS = {
     "args_missing_requirements_invalid_test": _args_missing_requirements_invalid_test,
     "args_requiring_capability_valid_test": _args_requiring_capability_valid_test,
     "toolchain_collects_files_test": _toolchain_collects_files_test,
+    "thin_lto_index_actions_are_linker_files_test": _thin_lto_index_actions_are_linker_files_test,
     "tool_env_wires_into_toolchain_test": _tool_env_wires_into_toolchain_test,
     "legacy_tools_produce_tool_paths_test": _legacy_tools_produce_tool_paths_test,
     "rules_based_cc_toolchain_returns_cc_toolchain_config_info_test": _rules_based_cc_toolchain_returns_cc_toolchain_config_info_test,
