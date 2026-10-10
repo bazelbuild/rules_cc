@@ -1739,6 +1739,12 @@ def _impl(ctx):
     if "dumpbin" in ctx.attr.tool_paths:
         make_variables.append(make_variable(name = "DUMPBIN", value = ctx.attr.tool_paths["dumpbin"]))
 
+    windows_quoting_for_param_files_feature = feature(
+        name = "windows_quoting_for_param_files",
+        enabled = _use_msvc_toolchain(ctx),
+    )
+    features.append(windows_quoting_for_param_files_feature)
+
     # Tell bazel we support C++ modules now
     cpp_modules_feature = feature(
         name = "cpp_modules",
