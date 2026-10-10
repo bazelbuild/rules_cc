@@ -324,6 +324,10 @@ def _cc_lib_impl(ctx):
         language = "c++",
         compilation_outputs = compilation_outputs,
         linking_contexts = linking_contexts,
+        disallow_dynamic_library = not cc_common.is_enabled(
+            feature_configuration = feature_configuration,
+            feature_name = "supports_dynamic_linker",
+        ),
     )
     library = linking_outputs.library_to_link
     files = []
@@ -789,13 +793,6 @@ EOF
 function test_aspect_accessing_args_link_action_with_tree_artifact() {
   is_bazel || return 0
 
-  # This test assumes the presence of "nodeps" dynamic libraries, which do not
-  # function on Apple platforms.
-  if is_darwin; then
-    return 0
-  fi
-
-  
   local package="${FUNCNAME[0]}"
   mkdir -p "${package}"
   cat > "${package}/makes_tree_artifacts.sh" <<EOF
@@ -910,18 +907,14 @@ EOF
       grep "\(gcc\|clang\|clanc-cl.exe\|cl.exe\|cc_wrapper.sh\)" \
       || fail "args didn't contain the tool path"
 
-  cat "bazel-bin/${package}/aspect_out" | grep "a.*o .*b.*o .*c.*o" \
-      || fail "args didn't contain tree artifact paths"
+  grep -F "${package}/x.cc" "bazel-bin/${package}/aspect_out" \
+      || fail "args didn't contain the source path"
+
+  grep "${package}/_objs/x/x.*\\.o" "bazel-bin/${package}/aspect_out" \
+      || fail "args didn't contain the object file path"
 }
 
 function test_directory_arg_compile_action() {
-  # This test assumes the presence of "nodeps" dynamic libraries, which do not
-  # function on Apple platforms.
-  if is_darwin; then
-    return 0
-  fi
-
-  
   local package="${FUNCNAME[0]}"
   mkdir -p "${package}"
 
@@ -961,8 +954,11 @@ EOF
       grep "\(gcc\|clang\|clanc-cl.exe\|cl.exe\)" \
       || fail "args didn't contain the tool path"
 
-  cat "bazel-bin/${package}/aspect_out" | grep "a.*o .*b.*o .*c.*o" \
-      || fail "args didn't contain tree artifact paths"
+  grep -F "${package}/x.cc" "bazel-bin/${package}/aspect_out" \
+      || fail "args didn't contain the source path"
+
+  grep "${package}/_objs/x/x.*\\.o" "bazel-bin/${package}/aspect_out" \
+      || fail "args didn't contain the object file path"
 }
 
 function test_reconstructing_cpp_actions() {
@@ -1805,7 +1801,6 @@ EOF
 
 function test_bazel_cxxopts() {
  is_bazel || return 0
- is_darwin && return 0
 
   cat > BUILD <<'EOF'
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
@@ -1831,19 +1826,15 @@ int main() {
 }
 EOF
 
-  export BAZEL_USE_CPP_ONLY_TOOLCHAIN=1
   export BAZEL_CXXOPTS=-DEXIT_CODE=0
   bazel build //:main_c \
-    --repo_env=BAZEL_USE_CPP_ONLY_TOOLCHAIN=1 \
     --repo_env=BAZEL_CXXOPTS=-DEXIT_CODE=0 && fail "Expected C compilation to fail"
   bazel run //:main_cpp \
-    --repo_env=BAZEL_USE_CPP_ONLY_TOOLCHAIN=1 \
     --repo_env=BAZEL_CXXOPTS=-DEXIT_CODE=0 || fail "Expected C++ compilation to pass"
 }
 
 function test_bazel_conlyopts() {
  is_bazel || return 0
- is_darwin && return 0
   
   cat > BUILD <<'EOF'
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
@@ -1869,13 +1860,10 @@ int main() {
 }
 EOF
 
-  export BAZEL_USE_CPP_ONLY_TOOLCHAIN=1
   export BAZEL_CONLYOPTS=-DEXIT_CODE=0
   bazel build //:main_cpp \
-    --repo_env=BAZEL_USE_CPP_ONLY_TOOLCHAIN=1 \
     --repo_env=BAZEL_CONLYOPTS=-DEXIT_CODE=0 && fail "Expected C++ compilation to fail"
   bazel run //:main_c \
-    --repo_env=BAZEL_USE_CPP_ONLY_TOOLCHAIN=1 \
     --repo_env=BAZEL_CONLYOPTS=-DEXIT_CODE=0 || fail "Expected C compilation to pass"
 }
 
@@ -2173,8 +2161,7 @@ EOF
 }
 
 function test_parse_headers_clean() {
-  
-  mkdir pkg
+  mkdir -p pkg
   cat > pkg/BUILD <<'EOF'
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 package(features = ["parse_headers"])
