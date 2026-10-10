@@ -5,6 +5,11 @@ load("//cc:cc_library.bzl", "cc_library")
 load("//cc:cc_test.bzl", "cc_test")
 
 def local_includes_test(name):
+    """Tests for the local_includes attribute.
+
+    Args:
+        name: The prefix of the test targets.
+    """
     if not bazel_features.cc.cc_common_is_in_rules_cc:
         return
 
@@ -35,4 +40,22 @@ def local_includes_test(name):
             "private",
         ],
         deps = [":" + name + "_lib"],
+    )
+
+    cc_library(
+        name = name + "_implementation_deps_lib",
+        srcs = [
+            "binary.c",
+            "binary_helper.c",
+            "private/binary_helper.h",
+        ],
+        local_includes = [
+            "private",
+        ],
+        implementation_deps = [":" + name + "_lib"],
+    )
+
+    cc_test(
+        name = name + "_implementation_deps",
+        deps = [":" + name + "_implementation_deps_lib"],
     )
