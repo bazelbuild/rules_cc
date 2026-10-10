@@ -5,6 +5,11 @@ config_setting(
     },
 )
 
+exports_files(
+    ["collect_cc_coverage.sh"],
+    visibility = ["//tests/coverage:__pkg__"],
+)
+
 filegroup(
     name = "collect_cc_coverage",
     srcs = select({
