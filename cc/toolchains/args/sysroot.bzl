@@ -13,7 +13,13 @@
 # limitations under the License.
 """Implementation of the cc_sysroot macro."""
 
-load("//cc/toolchains:args.bzl", "cc_args")
+load("@bazel_skylib//rules/directory:providers.bzl", "DirectoryInfo")
+load("//cc/toolchains:cc_toolchain_info.bzl", "ArgsInfo", "ArgsListInfo", "CcSysrootInfo")
+load(
+    "//cc/toolchains/impl:args.bzl",
+    _CC_ARGS_ATTRS = "CC_ARGS_ATTRS",
+    _cc_args_impl = "cc_args_impl",
+)
 
 visibility("public")
 
@@ -25,8 +31,30 @@ _DEFAULT_SYSROOT_ACTIONS = [
     Label("//cc/toolchains/actions:link_actions"),
 ]
 
+def _cc_sysroot_impl(ctx):
+    return _cc_args_impl(ctx) + [CcSysrootInfo(sysroots = depset([
+        struct(label = ctx.label, path = ctx.attr.sysroot[DirectoryInfo].path),
+    ]))]
+
+_cc_sysroot = rule(
+    implementation = _cc_sysroot_impl,
+    attrs = {
+        "sysroot": attr.label(providers = [DirectoryInfo], mandatory = True),
+    } | _CC_ARGS_ATTRS,
+    provides = [ArgsInfo, ArgsListInfo, CcSysrootInfo],
+)
+
 def cc_sysroot(*, name, sysroot, actions = _DEFAULT_SYSROOT_ACTIONS, args = [], **kwargs):
-    """Creates args for a sysroot.
+    """Declares a toolchain's sysroot and the arguments and inputs needed to use it.
+
+    Adding this target to a toolchain's args, directly or through a `cc_args_list`
+    or `cc_feature`, automatically sets `CcToolchainInfo.sysroot`. The directory's
+    files are included by default; pass `data = []` to omit them, or provide a
+    custom `data` list.
+
+    All collected sysroots must have the same path, including those in features
+    that are disabled. A nonempty `cc_toolchain.sysroot_path` silently overrides
+    the collected paths without changing this target's arguments or inputs.
 
     Args:
       name: (str) The name of the target
@@ -39,10 +67,11 @@ def cc_sysroot(*, name, sysroot, actions = _DEFAULT_SYSROOT_ACTIONS, args = [], 
     if "data" not in kwargs:
         kwargs["data"] = [sysroot]
 
-    cc_args(
+    _cc_sysroot(
         name = name,
+        sysroot = sysroot,
         actions = actions,
         args = ["--sysroot={sysroot}"] + args,
-        format = {"sysroot": sysroot},
+        format = {sysroot: "sysroot"},
         **kwargs
     )
