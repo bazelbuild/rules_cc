@@ -19,6 +19,8 @@ load("@rules_testing//lib:util.bzl", "util")
 load("//cc:cc_import.bzl", "cc_import")
 load("//cc:cc_library.bzl", "cc_library")
 load("//cc:cc_static_library.bzl", "cc_static_library")
+load("//tests/cc/testutil:cc_analysis_test.bzl", "cc_analysis_test")
+load("//tests/cc/testutil/toolchains:features.bzl", "FEATURE_NAMES")
 load(":mock_toolchain.bzl", "mock_cc_toolchain")
 
 def _set_up_subject(name):
@@ -233,6 +235,39 @@ def _test_validation_disabled_impl(env, target):
 
     env.expect.that_collection(dir(target[OutputGroupInfo])).contains_none_of(["_validation"])
 
+def _test_opt_archives_one_object_per_source(name):
+    util.helper_target(
+        cc_library,
+        name = name + "_lib",
+        srcs = ["file.cc"],
+    )
+    util.helper_target(
+        cc_static_library,
+        name = name + "_subject",
+        deps = [name + "_lib"],
+    )
+
+    # With supports_pic in opt mode, cc_library compiles both a PIC and a
+    # non-PIC object for every source.
+    cc_analysis_test(
+        name = name,
+        impl = _test_opt_archives_one_object_per_source_impl,
+        target = name + "_subject",
+        test_features = [FEATURE_NAMES.supports_pic],
+        config_settings = {
+            "//command_line_option:compilation_mode": "opt",
+        },
+    )
+
+def _test_opt_archives_one_object_per_source_impl(env, target):
+    action = env.expect.that_target(target).action_named("CppTransitiveArchive")
+    objects = [
+        f.basename
+        for f in action.actual.inputs.to_list()
+        if f.extension == "o"
+    ]
+    env.expect.that_collection(objects).contains_exactly(["file.pic.o"])
+
 def analysis_test_suite(name):
     test_suite(
         name = name,
@@ -241,5 +276,6 @@ def analysis_test_suite(name):
             _test_output_groups,
             _test_validation_enabled,
             _test_validation_disabled,
+            _test_opt_archives_one_object_per_source,
         ],
     )
