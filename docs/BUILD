@@ -14,10 +14,26 @@
 
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 load("@bazel_skylib//rules:expand_template.bzl", "expand_template")
+load("@gazelle//:def.bzl", "gazelle", "gazelle_binary")
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load("@stardoc//stardoc:stardoc.bzl", "stardoc")
 load("//cc/toolchains/impl:documented_api.bzl", "DOCUMENTED_TOOLCHAIN_RULES")
 load("//cc/toolchains/impl:markdown_helpers.bzl", "xref_substitutions")
+
+# Run `bazel run //docs:gazelle` to update bzl_library targets.
+gazelle(
+    name = "gazelle",
+    gazelle = ":gazelle_bin",
+    tags = ["manual"],
+    visibility = ["//visibility:private"],
+)
+
+gazelle_binary(
+    name = "gazelle_bin",
+    languages = ["@bazel_skylib_gazelle_plugin//bzl"],
+    tags = ["manual"],
+    visibility = ["//visibility:private"],
+)
 
 filegroup(
     name = "srcs",
