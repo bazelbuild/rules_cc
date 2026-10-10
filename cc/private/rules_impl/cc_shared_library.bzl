@@ -79,31 +79,8 @@ graph_structure_aspect = aspect(
     implementation = _graph_structure_aspect_impl,
 )
 
-def _cc_shared_library_initializer(**kwargs):
-    """Converts labels in exports_filter into canonical form relative to the current repository.
-
-    This conversion can only be done in a macro as it requires access to the repository mapping of
-    the repository containing the cc_shared_library target. This mapping is automatically
-    applied to label attributes, but exports_filter is a list of strings attribute.
-    """
-    if "exports_filter" not in kwargs:
-        return kwargs
-
-    raw_exports_filter = kwargs["exports_filter"]
-    if type(raw_exports_filter) != type([]):
-        # TODO: Also canonicalize labels in selects once macros can operate on them.
-        # https://github.com/bazelbuild/bazel/issues/14157
-        return kwargs
-
-    canonical_exports_filter = [
-        str(native.package_relative_label(s))
-        for s in raw_exports_filter
-    ]
-    return kwargs | {"exports_filter": canonical_exports_filter}
-
 cc_shared_library = rule(
     implementation = proxy,
-    initializer = _cc_shared_library_initializer,
     doc = """
 <p>It produces a shared library.</p>
 

@@ -1,0 +1,31 @@
+load("@rules_cc//cc/toolchains:cc_toolchain.bzl", "cc_toolchain")
+load(":cc_toolchain_config.bzl", "cc_toolchain_config")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(name = "empty")
+
+cc_toolchain_config(
+    name = "toolchain_config",
+    cxx_builtin_include_directories = [
+        "%package(@test_repo//toolchain_include_dirs)%/include",
+        "%package(//toolchain_include_dirs)%/other",
+        "%package(@rules_cc//cc)%",
+    ],
+    tags = ["manual"],
+)
+
+cc_toolchain(
+    name = "toolchain",
+    all_files = ":empty",
+    ar_files = ":empty",
+    as_files = ":empty",
+    compiler_files = ":empty",
+    dwp_files = ":empty",
+    linker_files = ":empty",
+    objcopy_files = ":empty",
+    strip_files = ":empty",
+    tags = ["manual"],
+    toolchain_config = ":toolchain_config",
+    toolchain_identifier = "test-toolchain",
+)
