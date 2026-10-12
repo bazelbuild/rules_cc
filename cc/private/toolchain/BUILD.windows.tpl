@@ -15,6 +15,7 @@
 # This becomes the BUILD file for @local_config_cc// under Windows.
 
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_std_module_library")
 load("@rules_cc//cc/toolchains:cc_toolchain.bzl", "cc_toolchain")
 load("@rules_cc//cc/toolchains:cc_toolchain_suite.bzl", "cc_toolchain_suite")
 load(":windows_cc_toolchain_config.bzl", "cc_toolchain_config")
@@ -43,6 +44,12 @@ cc_library(
 cc_library(
     name = "malloc",
 )
+
+# Auto-detected C++ standard library modules. The configuration repository
+# discovers std and std.compat from the MSVC STL modules.json manifest and
+# compiles their interfaces together. When no interface is available, :std
+# remains an empty fallback library.
+%{std_module_library}
 
 filegroup(
     name = "empty",

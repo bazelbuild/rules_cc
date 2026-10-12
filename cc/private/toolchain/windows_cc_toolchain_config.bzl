@@ -1758,7 +1758,10 @@ def _impl(ctx):
         ],
         enabled = True,
     )
-    features.extend([cpp_modules_feature, cpp_module_modmap_file_feature, cpp20_module_compile_flags_feature])
+    # Enables implicit dependency injection for the configured standard module.
+    # This feature intentionally contributes no compiler flags.
+    std_module_feature = feature(name = "std_module", enabled = False)
+    features.extend([cpp_modules_feature, std_module_feature, cpp_module_modmap_file_feature, cpp20_module_compile_flags_feature])
 
     extra_rules_based_features = depset(ctx.attr.extra_enabled_features + ctx.attr.extra_known_features)
     features.extend([convert_feature(extra_feature[FeatureInfo], enabled = extra_feature in ctx.attr.extra_enabled_features) for extra_feature in extra_rules_based_features.to_list()])
