@@ -53,3 +53,13 @@ cc_args(
     }),
     visibility = ["//visibility:public"],
 )
+
+# Compile C++ as C++17 unless a target or the command line picks a standard
+# explicitly, e.g. `features = ["c++20"]` or `--features=c++20`.
+cc_args(
+    name = "default_cpp_std",
+    actions = ["@rules_cc//cc/toolchains/args/std:cpp_std_actions"],
+    args = ["-std=c++17"],
+    requires_any_of = ["@rules_cc//cc/toolchains/args/std:cpp_std_unspecified"],
+    visibility = ["//visibility:public"],
+)

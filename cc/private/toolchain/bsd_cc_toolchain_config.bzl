@@ -26,6 +26,8 @@ load(
 )  # buildifier: disable=deprecated-function
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
+load("@rules_cc//cc/toolchains:feature_injection.bzl", "INJECTED_FEATURE_PROVIDERS", "convert_injected_features")
+load("@rules_cc//cc/toolchains/args/std:standards.bzl", "CPP_STANDARDS")
 
 all_compile_actions = [
     ACTION_NAMES.c_compile,
@@ -150,9 +152,12 @@ def _impl(ctx):
                 ],
                 with_features = [with_feature_set(features = ["opt"])],
             ),
+            # Dropped when a C++ standard feature from
+            # @rules_cc//cc/toolchains/args/std is selected instead.
             flag_set(
                 actions = all_cpp_compile_actions + [ACTION_NAMES.lto_backend],
                 flag_groups = [flag_group(flags = ["-std=c++17"])],
+                with_features = [with_feature_set(not_features = CPP_STANDARDS)],
             ),
         ],
     )
@@ -233,7 +238,7 @@ def _impl(ctx):
                 user_compile_flags_feature,
                 sysroot_feature,
                 unfiltered_compile_flags_feature,
-            ],
+            ] + convert_injected_features(ctx.attr.extra_enabled_features, ctx.attr.extra_known_features),
             action_configs = [action_config(
                 action_name = "objcopy_embed_data",
                 enabled = True,
@@ -271,6 +276,16 @@ cc_toolchain_config = rule(
     implementation = _impl,
     attrs = {
         "cpu": attr.string(mandatory = True),
+        "extra_enabled_features": attr.label_list(
+            providers = INJECTED_FEATURE_PROVIDERS,
+            default = [],
+            doc = "Extra `cc_feature` or `cc_feature_set` features to add to this toolchain in an initially enabled state.",
+        ),
+        "extra_known_features": attr.label_list(
+            providers = INJECTED_FEATURE_PROVIDERS,
+            default = [],
+            doc = "Extra `cc_feature` or `cc_feature_set` features to add to this toolchain in an initially disabled state.",
+        ),
     },
     provides = [CcToolchainConfigInfo],
     executable = True,

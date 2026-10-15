@@ -28,6 +28,7 @@ load(
     "FeatureSetInfo",
     "MutuallyExclusiveCategoryInfo",
 )
+load("//cc/toolchains:feature_injection.bzl", "convert_injected_features")
 load(
     "//cc/toolchains/impl:legacy_converter.bzl",
     "convert_feature",
@@ -161,6 +162,23 @@ def _feature_with_directory_test(env, targets):
     )
     c_compile.files().contains_at_least(_SUBDIR1_FILES)
 
+def _inject_features_into_legacy_toolchain_test(env, targets):
+    # `feature_set` contains `simple` and `simple2`. `simple` is also listed as
+    # enabled, which must win over its disabled listing via the set, and the
+    # external `builtin_feature` is a declaration only and must be skipped.
+    legacy = convert_injected_features(
+        enabled_targets = [targets.simple],
+        known_targets = [targets.feature_set, targets.builtin_feature],
+    )
+    env.expect.that_collection([ft.name for ft in legacy]).contains_exactly([
+        "feature_name",
+        "simple2",
+    ]).in_order()
+    env.expect.that_collection([ft.enabled for ft in legacy]).contains_exactly([
+        True,
+        False,
+    ]).in_order()
+
 TARGETS = [
     ":args_with_dir",
     ":builtin_feature",
@@ -193,4 +211,5 @@ TESTS = {
     "external_feature_is_a_feature_test": _external_feature_is_a_feature_test,
     "feature_can_be_overridden_test": _feature_can_be_overridden_test,
     "feature_with_directory_test": _feature_with_directory_test,
+    "inject_features_into_legacy_toolchain_test": _inject_features_into_legacy_toolchain_test,
 }

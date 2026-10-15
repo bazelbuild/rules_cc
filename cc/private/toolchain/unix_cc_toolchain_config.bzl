@@ -37,7 +37,7 @@ load(
 )
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
-load("@rules_cc//cc/toolchains:feature_injection.bzl", "FeatureInfo", "convert_feature")
+load("@rules_cc//cc/toolchains:feature_injection.bzl", "INJECTED_FEATURE_PROVIDERS", "convert_injected_features")
 
 def _cpp_module_extension(compiler):
     """Returns the BMI/CMI file extension for cpp_module artifact_name_pattern."""
@@ -2069,8 +2069,7 @@ def _impl(ctx):
     if symbol_check:
         features.append(symbol_check)
 
-    extra_rules_based_features = depset(ctx.attr.extra_enabled_features + ctx.attr.extra_known_features)
-    features.extend([convert_feature(extra_feature[FeatureInfo], enabled = extra_feature in ctx.attr.extra_enabled_features) for extra_feature in extra_rules_based_features.to_list()])
+    features.extend(convert_injected_features(ctx.attr.extra_enabled_features, ctx.attr.extra_known_features))
 
     features.extend([
         trace_feature,
@@ -2113,19 +2112,19 @@ cc_toolchain_config = rule(
         "cxx_flags": attr.string_list(),
         "dbg_compile_flags": attr.string_list(),
         "extra_enabled_features": attr.label_list(
-            providers = [FeatureInfo],
+            providers = INJECTED_FEATURE_PROVIDERS,
             default = [],
             doc = """
-Extra `cc_feature` features to add to this toolchain in an initially enabled state.
+Extra `cc_feature` or `cc_feature_set` features to add to this toolchain in an initially enabled state.
 This attribute has limited integration with `cc_feature`, and does not run additional correctness checks or handle things like `data` files.
 This is only offered as a migration bridge for projects transitioning to rule-based toolchain configurations, or sharing of simple argument sets with older toolchains.
 """,
         ),
         "extra_known_features": attr.label_list(
-            providers = [FeatureInfo],
+            providers = INJECTED_FEATURE_PROVIDERS,
             default = [],
             doc = """
-Extra `cc_feature` features to add to this toolchain in an initially disabled state.
+Extra `cc_feature` or `cc_feature_set` features to add to this toolchain in an initially disabled state.
 This attribute has limited integration with `cc_feature`, and does not run additional correctness checks or handle things like `data` files.
 This is only offered as a migration bridge for projects transitioning to rule-based toolchain configurations, or sharing of simple argument sets with older toolchains.
 """,
