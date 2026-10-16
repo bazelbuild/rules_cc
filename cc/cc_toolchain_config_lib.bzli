@@ -16,6 +16,37 @@
 ActionConfigInfo also accepts the optional legacy config_name field.
 """
 
+def _check_is_none(obj: object, parameter_name: str, method_name: str) -> None: ...
+
+def _check_is_none_or_right_type(
+        obj: object,
+        obj_of_right_type: object,
+        parameter_name: str,
+        method_name: str,
+) -> None: ...
+
+def _check_right_type(
+        obj: object,
+        expected_type: str,
+        parameter_name: str,
+        method_name: str,
+) -> None: ...
+
+def _check_same_type(
+        obj: object,
+        obj_of_right_type: object,
+        parameter_name: str,
+        method_name: str,
+) -> None: ...
+
+def _check_is_nonempty_string(obj: object, parameter_name: str, method_name: str) -> None: ...
+
+def _check_is_nonempty_list[T](obj: list[T], parameter_name: str, method_name: str) -> None: ...
+
+def _is_gcc_compiler(compiler: str) -> bool: ...
+
+def get_profile_correction_flags(ctx: ctx) -> list[str]: ...
+
 def env_entry(key: str, value: str, expand_if_available: str | None = ...) -> EnvEntryInfo: ...
 
 def variable_with_value(name: str, value: str) -> VariableWithValueInfo: ...
