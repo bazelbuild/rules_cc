@@ -8,5 +8,4 @@ missing-type-argument = "error"
 unsound-assignment = "error"
 unsound-return-statement = "error"
 explicit-any = "error"
-# Native provider/ctx signatures and empty type exemplars remain gradual.
-non-static-type = "ignore"
+non-static-type = "error"
