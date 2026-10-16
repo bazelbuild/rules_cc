@@ -178,6 +178,13 @@ def _test_thin_lto_action_graph_impl(env, target):
     )
 
 def _test_thin_lto_index_uses_its_action_tool(name, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = ["hello.cc"],
+    )
+    cc_analysis_test(
+        name = name,
         impl = _test_thin_lto_index_uses_its_action_tool_impl,
         target = name + "/bin",
         test_features = ["thin_lto", "supports_start_end_lib"],
@@ -194,7 +201,7 @@ def _test_thin_lto_index_uses_its_action_tool_impl(env, target):
 
     link_action = env.expect.that_target(target).action_named("CppLink")
     env.expect.that_str(link_action.actual.argv[0]).equals("tests/cc/testutil/toolchains/link_executable_tool")
-    
+
 def _test_thin_lto_merged_object_uses_toolchain_extension(name, **kwargs):
     util.helper_target(
         cc_binary,
