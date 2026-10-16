@@ -37,7 +37,7 @@ def _check_is_nonempty_string(obj, parameter_name, method_name):
             .format(parameter_name, method_name))
 
 def _check_is_nonempty_list(obj, parameter_name, method_name):
-    _check_same_type(obj, [], parameter_name, method_name)
+    _check_right_type(obj, "list", parameter_name, method_name)
     if len(obj) == 0:
         fail("{} parameter of {} must be a nonempty list."
             .format(parameter_name, method_name))
@@ -134,7 +134,7 @@ def feature_set(features = []):
     Returns:
         A FeatureSetInfo provider.
     """
-    _check_same_type(features, [], "features", "feature_set")
+    _check_right_type(features, "list", "features", "feature_set")
     return FeatureSetInfo(features = features, type_name = "feature_set")
 
 WithFeatureSetInfo = provider(
@@ -155,8 +155,8 @@ def with_feature_set(features = [], not_features = []):
     Returns:
         A WithFeatureSetInfo provider.
     """
-    _check_same_type(features, [], "features", "with_feature_set")
-    _check_same_type(not_features, [], "not_features", "with_feature_set")
+    _check_right_type(features, "list", "features", "with_feature_set")
+    _check_right_type(not_features, "list", "not_features", "with_feature_set")
     return WithFeatureSetInfo(
         features = features,
         not_features = not_features,
@@ -190,8 +190,8 @@ def env_set(actions, env_entries = [], with_features = []):
         An EnvSetInfo provider.
     """
     _check_is_nonempty_list(actions, "actions", "env_set")
-    _check_same_type(env_entries, [], "env_entries", "env_set")
-    _check_same_type(with_features, [], "with_features", "env_set")
+    _check_right_type(env_entries, "list", "env_entries", "env_set")
+    _check_right_type(with_features, "list", "with_features", "env_set")
     return EnvSetInfo(
         actions = actions,
         env_entries = env_entries,
@@ -292,8 +292,8 @@ def flag_group(
         A FlagGroupInfo provider.
     """
 
-    _check_same_type(flags, [], "flags", "flag_group")
-    _check_same_type(flag_groups, [], "flag_groups", "flag_group")
+    _check_right_type(flags, "list", "flags", "flag_group")
+    _check_right_type(flag_groups, "list", "flag_groups", "flag_group")
     if len(flags) > 0 and len(flag_groups) > 0:
         fail("flag_group must not contain both a flag and another flag_group.")
     if len(flags) == 0 and len(flag_groups) == 0:
@@ -351,9 +351,9 @@ def flag_set(
     Returns:
         A FlagSetInfo provider.
     """
-    _check_same_type(actions, [], "actions", "flag_set")
-    _check_same_type(with_features, [], "with_features", "flag_set")
-    _check_same_type(flag_groups, [], "flag_groups", "flag_set")
+    _check_right_type(actions, "list", "actions", "flag_set")
+    _check_right_type(with_features, "list", "with_features", "flag_set")
+    _check_right_type(flag_groups, "list", "flag_groups", "flag_set")
     return FlagSetInfo(
         actions = actions,
         with_features = with_features,
@@ -421,11 +421,11 @@ def feature(
         A FeatureInfo provider.
     """
     _check_same_type(enabled, True, "enabled", "feature")
-    _check_same_type(flag_sets, [], "flag_sets", "feature")
-    _check_same_type(env_sets, [], "env_sets", "feature")
-    _check_same_type(requires, [], "requires", "feature")
-    _check_same_type(provides, [], "provides", "feature")
-    _check_same_type(implies, [], "implies", "feature")
+    _check_right_type(flag_sets, "list", "flag_sets", "feature")
+    _check_right_type(env_sets, "list", "env_sets", "feature")
+    _check_right_type(requires, "list", "requires", "feature")
+    _check_right_type(provides, "list", "provides", "feature")
+    _check_right_type(implies, "list", "implies", "feature")
     return FeatureInfo(
         name = name,
         enabled = enabled,
@@ -507,8 +507,8 @@ def tool(path = None, with_features = [], execution_requirements = [], tool = No
         _check_is_none(path, "path", "tool")
         _check_right_type(tool, "File", "tool", "tool")
 
-    _check_same_type(with_features, [], "with_features", "tool")
-    _check_same_type(execution_requirements, [], "execution_requirements", "tool")
+    _check_right_type(with_features, "list", "with_features", "tool")
+    _check_right_type(execution_requirements, "list", "execution_requirements", "tool")
     return ToolInfo(
         path = path,
         tool = tool,
@@ -566,9 +566,9 @@ def action_config(
     """
     _check_is_nonempty_string(action_name, "name", "action_config")
     _check_same_type(enabled, True, "enabled", "action_config")
-    _check_same_type(tools, [], "tools", "action_config")
-    _check_same_type(flag_sets, [], "flag_sets", "action_config")
-    _check_same_type(implies, [], "implies", "action_config")
+    _check_right_type(tools, "list", "tools", "action_config")
+    _check_right_type(flag_sets, "list", "flag_sets", "action_config")
+    _check_right_type(implies, "list", "implies", "action_config")
     return ActionConfigInfo(
         action_name = action_name,
         enabled = enabled,
