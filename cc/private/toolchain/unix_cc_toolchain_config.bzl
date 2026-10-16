@@ -13,6 +13,8 @@
 # limitations under the License.
 """A Starlark cc_toolchain configuration rule"""
 
+load("@apple_support//xcode:providers.bzl", "XcodeVersionInfo")
+
 #buildifier: disable=bzl-visibility
 load("@bazel_features//private:util.bzl", "ge")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
@@ -44,7 +46,7 @@ def _cpp_module_extension(compiler):
     return ".pcm"
 
 def _target_os_version(ctx):
-    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    xcode_config = ctx.attr._xcode_config[XcodeVersionInfo]
     return xcode_config.minimum_os_for_platform_type(apple_common.platform_type.macos)
 
 def layering_check_features(compiler, extra_flags_per_feature, is_macos):

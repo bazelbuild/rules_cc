@@ -260,6 +260,7 @@ def _test_linkstamp_compile_uses_memprof(name, **kwargs):
         name = name + "/prof",
         profile = "out.afdo",
         memprof_profile = "memprof.zip",
+        changelist = "12345",
     )
 
     util.helper_target(
@@ -293,6 +294,8 @@ def _test_linkstamp_compile_uses_memprof(name, **kwargs):
 def _test_linkstamp_compile_uses_memprof_impl(env, target):
     assert_linkstamp_action = env.expect.that_target(target).action_generating("{package}/{test_name}/_objs/foo/{package}/ls.o")
     assert_linkstamp_action.argv().contains("-DBUILD_PGHO_TYPE=\"opt\"")
+    assert_linkstamp_action.argv().contains("-DBUILD_MEMPROF_PROFILE_CHANGELIST=12345")
+    assert_linkstamp_action.argv().contains("-DBUILD_FDO_PROFILE_CHANGELIST=12345")
 
 def cc_linkstamp_compile_tests(name):
     tests = [

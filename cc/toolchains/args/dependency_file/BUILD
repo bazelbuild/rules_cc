@@ -22,3 +22,9 @@ cc_args(
     format = {"dependency_file": "//cc/toolchains/variables:dependency_file"},
     requires_not_none = "//cc/toolchains/variables:dependency_file",
 )
+
+filegroup(
+    name = "srcs",
+    srcs = ["BUILD"],
+    visibility = ["//cc/toolchains/args:__pkg__"],
+)

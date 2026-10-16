@@ -15,14 +15,16 @@
 Definition of CcToolchainInfo provider.
 """
 
+load("//cc/common:feature_names.bzl", "feature_names")
+
 visibility(["//cc/..."])
 
 def _needs_pic_for_dynamic_libraries(*, feature_configuration):
-    return feature_configuration.is_enabled("supports_pic")
+    return feature_configuration.is_enabled(feature_names.SUPPORTS_PIC)
 
 def _static_runtime_lib(static_runtime_lib):
     def static_runtime_lib_func(*, feature_configuration):
-        if feature_configuration.is_enabled("static_link_cpp_runtimes"):
+        if feature_configuration.is_enabled(feature_names.STATIC_LINK_CPP_RUNTIMES):
             if static_runtime_lib == None:
                 fail("Toolchain supports embedded runtimes, but didn't provide static_runtime_lib attribute.")
             return static_runtime_lib
@@ -32,7 +34,7 @@ def _static_runtime_lib(static_runtime_lib):
 
 def _dynamic_runtime_lib(dynamic_runtime_lib):
     def dynamic_runtime_lib_func(*, feature_configuration):
-        if feature_configuration.is_enabled("static_link_cpp_runtimes"):
+        if feature_configuration.is_enabled(feature_names.STATIC_LINK_CPP_RUNTIMES):
             if dynamic_runtime_lib == None:
                 fail("Toolchain supports embedded runtimes, but didn't provide dynamic_runtime_lib attribute.")
             return dynamic_runtime_lib
@@ -93,6 +95,7 @@ def _create_cc_toolchain_info(
         objcopy_files,
         aggregate_ddi,
         generate_modmap,
+        disallowed_copts_infos = [],
         extra_cpp_configuration = None):
     cc_toolchain_info = dict(
         needs_pic_for_dynamic_libraries = (lambda *, feature_configuration: True) if cpp_configuration.force_pic() else _needs_pic_for_dynamic_libraries,
@@ -106,6 +109,7 @@ def _create_cc_toolchain_info(
         cpu = toolchain_config_info.target_cpu,
         target_gnu_system_name = toolchain_config_info.target_system_name,
         toolchain_id = toolchain_config_info.toolchain_id,
+        disallowed_copts_infos = disallowed_copts_infos or [],
         dynamic_runtime_solib_dir = dynamic_runtime_solib_dir,
         objcopy_executable = objcopy_executable,
         compiler_executable = compiler_executable,
@@ -173,6 +177,7 @@ CcToolchainInfo, _ = provider(
             on the C++ toolchain and presence of `--force_pic` Bazel option.""",
         "built_in_include_directories": "Returns the list of built-in directories of the compiler.",
         "all_files": "Returns all toolchain files (so they can be passed to actions using this toolchain as inputs).",
+        "disallowed_copts_infos": "Returns the list of disallowed_copts_info structs for disallowed copts enforcement.",
         "static_runtime_lib": """
             Returns the files from `static_runtime_lib` attribute (so they can be passed to actions
             using this toolchain as inputs). The caller should check whether the

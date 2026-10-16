@@ -36,7 +36,6 @@ filegroup(
     ]) + [
         "//cc/private/bazel7:BUILD",
         "//cc/private/compile:srcs",
-        "//cc/private/coverage:srcs",
         "//cc/private/link:srcs",
         "//cc/private/rules_impl:srcs",
         "//cc/private/toolchain:srcs",
@@ -123,5 +122,11 @@ bzl_library(
 bzl_library(
     name = "objc_info_bzl",
     srcs = ["objc_info.bzl"],
+    visibility = ["//cc:__subpackages__"],
+)
+
+bzl_library(
+    name = "visibility_bzl",
+    srcs = ["visibility.bzl"],
     visibility = ["//cc:__subpackages__"],
 )

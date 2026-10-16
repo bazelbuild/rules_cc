@@ -18,27 +18,14 @@ Only use those within C++ implementation. The others need to go through cc_commo
 """
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
-load("//cc/common:visibility.bzl", "PRIVATE_RULES_ALLOWLIST")
-load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
+load("//cc/common:feature_names.bzl", "feature_names")
 load("//cc/private:paths.bzl", "is_path_absolute")
+load("//cc/private:visibility.bzl", _CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES = "CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES", _PRIVATE_STARLARKIFICATION_ALLOWLIST = "PRIVATE_STARLARKIFICATION_ALLOWLIST", _check_private_api = "check_private_api", _wrap_with_check_private_api = "wrap_with_check_private_api")
 
-def check_private_api():
-    _cc_internal.check_private_api(allowlist = PRIVATE_STARLARKIFICATION_ALLOWLIST, depth = 2)
-
-def wrap_with_check_private_api(symbol):
-    """
-    Protects the symbol so it can only be used internally.
-
-    Returns:
-      A function. When the function is invoked (without any params), the check
-      is done and if it passes the symbol is returned.
-    """
-
-    def callback():
-        _cc_internal.check_private_api(allowlist = PRIVATE_STARLARKIFICATION_ALLOWLIST)
-        return symbol
-
-    return callback
+check_private_api = _check_private_api
+wrap_with_check_private_api = _wrap_with_check_private_api
+PRIVATE_STARLARKIFICATION_ALLOWLIST = _PRIVATE_STARLARKIFICATION_ALLOWLIST
+CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES = _CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES
 
 CPP_SOURCE_TYPE_HEADER = "HEADER"
 CPP_SOURCE_TYPE_SOURCE = "SOURCE"
@@ -108,9 +95,9 @@ def get_fdo_build_stamp(cpp_configuration, fdo_context, feature_configuration):
     if branch_fdo_profile:
         branch_fdo_mode = branch_fdo_profile.branch_fdo_mode
         if branch_fdo_mode == "auto_fdo":
-            return "AFDO" if feature_configuration.is_enabled("autofdo") else None
+            return "AFDO" if feature_configuration.is_enabled(feature_names.AUTOFDO) else None
         if branch_fdo_mode == "xbinary_fdo":
-            return "XFDO" if feature_configuration.is_enabled("xbinaryfdo") else None
+            return "XFDO" if feature_configuration.is_enabled(feature_names.XBINARYFDO) else None
         if branch_fdo_mode == "llvm_cs_fdo" or cpp_configuration.cs_fdo_instrument():
             return "CSFDO"
     if branch_fdo_profile or cpp_configuration.fdo_instrument():
@@ -142,7 +129,10 @@ def get_linkstamp_stamps(
     )
     stamps = {
         "GPLATFORM": cc_toolchain.toolchain_id,
-        "BUILD_COVERAGE_ENABLED": "1" if feature_configuration.is_enabled("coverage") else "0",
+        # Requested by cc_common.configure_features if coverage is generally enabled. This is
+        # checked instead of the feature being enabled so that the define is also correct for
+        # toolchains that don't define the feature.
+        "BUILD_COVERAGE_ENABLED": "1" if feature_configuration.is_requested(feature_names.COVERAGE_ENABLED) else "0",
         # G3_TARGET_NAME is a C string literal that normally contain the label of the target
         # being linked.  However, they are set differently when using shared native deps. In
         # that case, a single .so file is shared by multiple targets, and its contents cannot
@@ -168,7 +158,7 @@ def get_linkstamp_stamps(
         if memprof_profile_changelist:
             stamps["BUILD_MEMPROF_PROFILE_CHANGELIST"] = memprof_profile_changelist
 
-    if feature_configuration.is_enabled("thin_lto"):
+    if feature_configuration.is_enabled(feature_names.THIN_LTO):
         stamps["BUILD_LTO_TYPE"] = "thin"
 
     if additional_linkstamp_defines:
@@ -180,55 +170,6 @@ def get_linkstamp_stamps(
                 stamps[d] = "1"
 
     return stamps
-
-# LINT.IfChange(forked_exports)
-
-CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES = [("", "devtools/rust/cc_interop"), ("", "third_party/crubit"), ("", "tools/build_defs/clif")]
-
-PRIVATE_STARLARKIFICATION_ALLOWLIST = [
-    ("_builtins", ""),
-    # Android rules
-    ("", "tools/build_defs/android"),
-    ("", "third_party/bazel_rules/rules_android"),
-    ("build_bazel_rules_android", ""),
-    ("rules_android", ""),
-    # Apple rules
-    ("", "third_party/bazel_rules/rules_apple"),
-    ("apple_support", ""),
-    ("build_bazel_apple_support", ""),
-    ("rules_apple", ""),
-    ("build_bazel_rules_apple", ""),
-    # C++ rules
-    ("", "bazel_internal/test_rules/cc"),
-    ("", "third_party/bazel_rules/rules_cc"),
-    ("", "tools/build_defs/cc"),
-    ("rules_cc", ""),
-    # CUDA rules
-    ("", "third_party/gpus/cuda"),
-    # Go rules
-    ("", "tools/build_defs/go"),
-    # Java rules
-    ("", "third_party/bazel_rules/rules_java"),
-    ("rules_java", ""),
-    # Objc rules
-    ("", "tools/build_defs/objc"),
-    # Protobuf rules
-    ("", "third_party/protobuf"),
-    ("protobuf", ""),
-    ("com_google_protobuf", ""),
-    ("", "third_party/upb"),
-    # Rust rules
-    ("", "third_party/bazel_rules/rules_rust/rust/private"),
-    ("rules_rust", "rust/private"),
-    ("rules_rs", "rust/private"),
-    # Python rules
-    ("", "third_party/bazel_rules/rules_python"),
-    # Various
-    ("", "research/colab"),
-    ("", "javatests/com/google/devtools/grok/kythe"),
-] + CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES + PRIVATE_RULES_ALLOWLIST
-
-# LINT.ThenChange(https://github.com/bazelbuild/bazel/blob/master/src/main/starlark/builtins_bzl/common/cc/cc_helper_internal.bzl:forked_exports)
 
 _CC_SOURCE = [".cc", ".cpp", ".cxx", ".c++", ".C", ".cu", ".cl"]
 _C_SOURCE = [".c"]
@@ -354,7 +295,7 @@ output_subdirectories = struct(
 
 def should_create_per_object_debug_info(feature_configuration, cpp_configuration):
     return cpp_configuration.fission_active_for_current_compilation_mode() and \
-           feature_configuration.is_enabled("per_object_debug_info")
+           feature_configuration.is_enabled(feature_names.PER_OBJECT_DEBUG_INFO)
 
 def is_versioned_shared_library_extension_valid(shared_library_name):
     """Validates the name against the regex "^.+\\.((so)|(dylib))(\\.\\d\\w*)+$",
@@ -474,8 +415,8 @@ def use_pic_for_binaries(cpp_config, feature_configuration):
     Returns whether binaries must be compiled with position independent code.
     """
     return cpp_config.force_pic() or (
-        feature_configuration.is_enabled("supports_pic") and
-        (cpp_config.compilation_mode() != "opt" or feature_configuration.is_enabled("prefer_pic_for_opt_binaries"))
+        feature_configuration.is_enabled(feature_names.SUPPORTS_PIC) and
+        (cpp_config.compilation_mode() != "opt" or feature_configuration.is_enabled(feature_names.PREFER_PIC_FOR_OPT_BINARIES))
     )
 
 def use_pic_for_dynamic_libs(cpp_config, feature_configuration):
@@ -491,7 +432,7 @@ def use_pic_for_dynamic_libs(cpp_config, feature_configuration):
        true if this rule's compilations should apply -fPIC, false otherwise
     """
     return (cpp_config.force_pic() or
-            feature_configuration.is_enabled("supports_pic"))
+            feature_configuration.is_enabled(feature_names.SUPPORTS_PIC))
 
 def get_relative_path(path_a, path_b):
     if is_path_absolute(path_b):

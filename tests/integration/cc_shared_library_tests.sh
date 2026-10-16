@@ -104,13 +104,22 @@ EOF
     --experimental_cc_shared_library \
     //foo:foo_shared >& "${TEST_log}" || fail "Expected build to succeed"
 
-  so_file="bazel-bin/foo/libfoo_shared.so"
+  local so_file="bazel-bin/foo/libfoo_shared.so"
+  local nm_flag="-D"
+  local symbol_prefix="_Z"
+  if is_darwin; then
+    so_file="bazel-bin/foo/libfoo_shared.dylib"
+    symbol_prefix="__Z"
+    # nm -g reads global symbols rather than the Mach-O export trie. This test
+    # assumes that defined global symbols are also exported.
+    nm_flag="-g"
+  fi
 
-  nm -D "$so_file" | grep -q "T _Z3foov" || fail "_Z3foov not linked statically"
-  nm -D "$so_file" | grep -q "T _Z4foo2v" || fail "_Z4foo2v not linked statically"
-  nm -D "$so_file" | grep -q "U _Z3barv" || fail "_Z3barv not linked dynamically"
-  nm -D "$so_file" | grep -q "baz" && fail "baz shoulod not be linked in anyway"
-  nm -D "$so_file" | grep -q "bar2" && fail "bar2 shoulod not be linked in anyway"
+  nm "$nm_flag" "$so_file" | grep -q "T ${symbol_prefix}3foov" || fail "${symbol_prefix}3foov not linked statically"
+  nm "$nm_flag" "$so_file" | grep -q "T ${symbol_prefix}4foo2v" || fail "${symbol_prefix}4foo2v not linked statically"
+  nm "$nm_flag" "$so_file" | grep -q "U ${symbol_prefix}3barv" || fail "${symbol_prefix}3barv not linked dynamically"
+  nm "$nm_flag" "$so_file" | grep -q "baz" && fail "baz shoulod not be linked in anyway"
+  nm "$nm_flag" "$so_file" | grep -q "bar2" && fail "bar2 shoulod not be linked in anyway"
 
   return 0
 }

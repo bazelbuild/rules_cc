@@ -14,6 +14,7 @@
 
 """Tests for cc_binary with FDO."""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@rules_testing//lib:analysis_test.bzl", "test_suite")
 load("@rules_testing//lib:truth.bzl", "matching")
 load("@rules_testing//lib:util.bzl", "util")
@@ -26,6 +27,12 @@ def _test_fdo_profile_action_graph(name, **kwargs):
         cc_binary,
         name = name + "/foo",
         srcs = ["foo.cc"],
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/foo_no_fdo",
+        srcs = ["foo.cc"],
+        features = ["-fdo_optimize"],
     )
 
     util.helper_target(
@@ -46,6 +53,7 @@ def _test_fdo_profile_action_graph(name, **kwargs):
         impl = _test_fdo_profile_action_graph_impl,
         targets = {
             "foo": name + "/foo",
+            "foo_no_fdo": name + "/foo_no_fdo",
             "gen_profraw": name + "/gen_profraw",
             "compiler": select({
                 "@platforms//os:macos": "//tests/cc/testutil/toolchains:cc-compiler-macos-compiler",
@@ -100,6 +108,11 @@ def _test_fdo_profile_action_graph_impl(env, targets):
     # The configurations may not strictly line up due to how we referenced
     # these targets so just assert short_path
     assert_compile_action.inputs().contains(profdata.short_path)
+
+    if bazel_features.cc.cc_common_is_in_rules_cc:
+        env.expect.that_target(targets.foo_no_fdo).action_generating(
+            "{package}/_objs/{name}/foo.o",
+        ).inputs().not_contains(profdata.short_path)
 
 def cc_binary_fdo_tests(name):
     test_suite(

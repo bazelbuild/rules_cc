@@ -39,3 +39,9 @@ cc_args(
     ],
     requires_not_none = "//cc/toolchains/variables:per_object_debug_info_file",
 )
+
+filegroup(
+    name = "srcs",
+    srcs = ["BUILD"],
+    visibility = ["//cc/toolchains/args:__pkg__"],
+)

@@ -16,6 +16,7 @@ All build variables we create for various `CppCompileAction`s
 """
 
 load("//cc/common:cc_helper_internal.bzl", "extensions", "get_fdo_build_stamp", "get_linkstamp_stamps", _PRIVATE_STARLARKIFICATION_ALLOWLIST = "PRIVATE_STARLARKIFICATION_ALLOWLIST")
+load("//cc/common:feature_names.bzl", "feature_names")
 load("//cc/private:cc_info.bzl", "get_module_map_name")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private/rules_impl:native_cc_common.bzl", _cc_common_internal = "native_cc_common")
@@ -147,9 +148,9 @@ def create_compile_variables(
         strip_opts = []
     if input_file == _UNBOUND:
         input_file = None
-    if (use_pic and not feature_configuration.is_enabled("pic") and not feature_configuration.is_enabled("supports_pic")):
+    if (use_pic and not feature_configuration.is_enabled(feature_names.PIC) and not feature_configuration.is_enabled(feature_names.SUPPORTS_PIC)):
         fail("PIC compilation is requested but the toolchain does not support it " +
-             "(feature named 'supports_pic' is not enabled)")
+             "(feature named '{}' is not enabled)".format(feature_names.SUPPORTS_PIC))
 
     cpp_configuration = cc_toolchain._cpp_configuration
     fdo_context = cc_toolchain._fdo_context
@@ -207,7 +208,7 @@ def setup_common_compile_build_variables(
         defines = cc_compilation_context.defines,
         local_defines = cc_compilation_context.local_defines,
         external_include_dirs = cc_compilation_context.external_includes,
-        cpp_module_map = cc_compilation_context._module_map if feature_configuration.is_enabled("module_maps") else None,
+        cpp_module_map = cc_compilation_context._module_map if feature_configuration.is_enabled(feature_names.MODULE_MAPS) else None,
         direct_module_maps = cc_compilation_context._direct_module_maps,
     )
     return _cc_internal.combine_cc_toolchain_variables(cc_toolchain._build_variables, common_vars)
@@ -237,9 +238,9 @@ def _setup_common_compile_build_variables_internal(
         result[_VARS.MODULE_MAP_FILE] = cpp_module_map.file
         result[_VARS.DEPENDENT_MODULE_MAP_FILES] = direct_module_maps
 
-    if feature_configuration.is_enabled("use_header_modules"):
+    if feature_configuration.is_enabled(feature_names.USE_HEADER_MODULES):
         result[_VARS.MODULE_FILES] = ()
-    if feature_configuration.is_requested("system_include_paths"):
+    if feature_configuration.is_requested(feature_names.SYSTEM_INCLUDE_PATHS):
         result[_VARS.INCLUDE_PATHS] = include_dirs
         result[_VARS.SYSTEM_INCLUDE_PATHS] = depset(transitive = [system_include_dirs, local_includes])
     else:
@@ -341,12 +342,11 @@ def get_specific_compile_build_variables(
     if diagnostics_file:
         result[_VARS.SERIALIZED_DIAGNOSTICS_FILE] = diagnostics_file
 
-    if gcno_file:
-        result[_VARS.GCOV_GCNO_FILE] = gcno_file
-    elif code_coverage_enabled:
-        # TODO: Blaze currently uses `gcov_gcno_file` to detect if code coverage
-        # is enabled. It should use a different signal.
-        result[_VARS.GCOV_GCNO_FILE] = ""
+    if code_coverage_enabled:
+        # TODO: Blaze currently uses the presence of `gcov_gcno_file` to detect if the current
+        # target is instrumented for coverage, so it has to be set even if no .gcno file is
+        # generated. It should use the `coverage_instrumented` feature instead.
+        result[_VARS.GCOV_GCNO_FILE] = gcno_file if gcno_file else ""
     if dwo_file:
         result[_VARS.PER_OBJECT_DEBUG_INFO_FILE] = dwo_file
     if using_fission:
@@ -446,9 +446,9 @@ def _setup_fdo_build_variables(
         cs_fdo_instrument):
     """Populates FDO build variables."""
     variables = {}
-    if feature_configuration.is_enabled("fdo_instrument"):
+    if feature_configuration.is_enabled(feature_names.FDO_INSTRUMENT):
         variables["fdo_instrument_path"] = fdo_instrument
-    if feature_configuration.is_enabled("cs_fdo_instrument"):
+    if feature_configuration.is_enabled(feature_names.CS_FDO_INSTRUMENT):
         variables["cs_fdo_instrument_path"] = cs_fdo_instrument
 
     if not (getattr(fdo_context, "branch_fdo_profile", None) or
@@ -479,16 +479,24 @@ def _setup_fdo_build_variables(
 
     if (branch_fdo_profile and
         auxiliary_fdo_inputs_list and
-        (
-            feature_configuration.is_enabled("autofdo") or
-            feature_configuration.is_enabled("xbinaryfdo") or
-            (
-                feature_configuration.is_enabled("fdo_optimize") and
-                branch_fdo_profile.branch_fdo_mode in ("llvm_fdo", "llvm_cs_fdo")
-            )
-        )):
+        _uses_branch_fdo_profile(branch_fdo_profile.branch_fdo_mode, feature_configuration)):
         variables["fdo_profile_path"] = branch_fdo_profile.profile_artifact.path
     return variables
+
+def _uses_branch_fdo_profile(branch_fdo_mode, feature_configuration):
+    """Returns whether the enabled features consume the branch FDO profile.
+
+    The profile is only passed to compile actions (as `fdo_profile_path` and as
+    an input) when the toolchain feature that reads it is enabled.
+    """
+    if feature_configuration.is_enabled(feature_names.AUTOFDO):
+        return True
+    if feature_configuration.is_enabled(feature_names.XBINARYFDO):
+        return True
+    if (feature_configuration.is_enabled(feature_names.FDO_OPTIMIZE) and
+        branch_fdo_mode in ("llvm_fdo", "llvm_cs_fdo")):
+        return True
+    return False
 
 def _get_auxiliary_fdo_inputs_list(
         cc_toolchain,
@@ -517,8 +525,10 @@ def _get_auxiliary_fdo_inputs_list(
 
     branch_fdo_profile = getattr(fdo_context, "branch_fdo_profile", None)
 
-    # If --fdo_optimize was not specified, we don't have any additional inputs.
-    if branch_fdo_profile:
+    # Only add the profile when the enabled features read it, matching the
+    # condition under which `fdo_profile_path` is set.
+    if (branch_fdo_profile and
+        _uses_branch_fdo_profile(branch_fdo_profile.branch_fdo_mode, feature_configuration)):
         auxiliary_inputs.append(branch_fdo_profile.profile_artifact)
 
     return auxiliary_inputs
@@ -537,8 +547,8 @@ def _should_pass_propeller_profiles(
         return False
 
     # Don't pass Propeller input files if they have no effect (i.e. for ThinLTO).
-    return (not feature_configuration.is_enabled("thin_lto") or
-            feature_configuration.is_enabled("propeller_optimize_thinlto_compile_actions"))
+    return (not feature_configuration.is_enabled(feature_names.THIN_LTO) or
+            feature_configuration.is_enabled(feature_names.PROPELLER_OPTIMIZE_THINLTO_COMPILE_ACTIONS))
 
 def get_linkstamp_compile_variables(
         source_file,

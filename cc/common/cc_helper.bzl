@@ -15,7 +15,9 @@
 
 load("//cc:action_names.bzl", "ACTION_NAMES")
 load("//cc:find_cc_toolchain.bzl", "CC_TOOLCHAIN_TYPE")
+load("//cc/common:feature_names.bzl", "feature_names")
 load("//cc/private:paths.bzl", "is_path_absolute")
+load("//cc/private:visibility.bzl", "PUBLIC_IF_NOT_GOOGLE")
 load("//cc/private/rules_impl:objc_common.bzl", "objc_common")
 load(":cc_common.bzl", "cc_common")
 load(
@@ -34,9 +36,8 @@ load(
     _should_stamp = "should_stamp",
 )
 load(":cc_info.bzl", "CcInfo")
-load(":visibility.bzl", "INTERNAL_VISIBILITY")
 
-visibility(INTERNAL_VISIBILITY)
+visibility(PUBLIC_IF_NOT_GOOGLE)
 
 linker_mode = struct(
     LINKING_DYNAMIC = "dynamic_linking_mode",
@@ -239,6 +240,21 @@ def _collect_library_hidden_top_level_artifacts(
 
     return depset(transitive = artifacts_to_force_builder)
 
+def _create_dynamic_libraries_copy_actions(ctx, binary, dynamic_libraries_for_runtime):
+    result = []
+    for lib in depset(dynamic_libraries_for_runtime).to_list():
+        # If the binary and the DLL are not in the same directory, copy the DLL
+        # to the binary's directory.
+        if lib.dirname != binary.dirname:
+            copy = ctx.actions.declare_file(lib.basename, sibling = binary)
+            ctx.actions.symlink(output = copy, target_file = lib, progress_message = "Copying Execution Dynamic Library")
+            result.append(copy)
+        else:
+            # If the library is already in the same directory as the binary, we don't need to copy it,
+            # but we still add it to the result.
+            result.append(lib)
+    return depset(result)
+
 def _get_dynamic_libraries_for_runtime(cc_linking_context, linking_statically):
     libraries = []
     for linker_input in cc_linking_context.linker_inputs.to_list():
@@ -286,7 +302,7 @@ def _build_linking_context_from_libraries(ctx, libraries):
 
 def _dll_hash_suffix(ctx, feature_configuration, cpp_config):
     if cpp_config.dynamic_mode() != "OFF":
-        if cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "targets_windows"):
+        if feature_configuration.is_enabled(feature_names.TARGETS_WINDOWS):
             if not hasattr(ctx.attr, "win_def_file") or ctx.file.win_def_file == None:
                 # Note: ctx.label.workspace_name strips leading @,
                 # which is different from the native behavior.
@@ -407,8 +423,8 @@ def _get_windows_def_file_for_linking(ctx, custom_def_file, generated_def_file, 
         return _gen_empty_def_file(ctx)
 
 def _should_generate_def_file(ctx, feature_configuration):
-    windows_export_all_symbols_enabled = cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "windows_export_all_symbols")
-    no_windows_export_all_symbols_enabled = cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "no_windows_export_all_symbols")
+    windows_export_all_symbols_enabled = feature_configuration.is_enabled(feature_names.WINDOWS_EXPORT_ALL_SYMBOLS)
+    no_windows_export_all_symbols_enabled = feature_configuration.is_enabled(feature_names.NO_WINDOWS_EXPORT_ALL_SYMBOLS)
     return windows_export_all_symbols_enabled and (not no_windows_export_all_symbols_enabled) and (ctx.attr.win_def_file == None)
 
 def _generate_def_file(ctx, def_parser, object_files, dll_name, cc_toolchain, feature_configuration):
@@ -573,7 +589,7 @@ def _get_static_mode_params_for_dynamic_library_libraries(libs):
     return linker_inputs
 
 def _create_strip_action(ctx, cc_toolchain, cpp_config, input, output, feature_configuration):
-    if cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "no_stripping"):
+    if feature_configuration.is_enabled(feature_names.NO_STRIPPING):
         ctx.actions.symlink(
             output = output,
             target_file = input,
@@ -813,7 +829,7 @@ def _should_use_pic(ctx, cc_toolchain, feature_configuration):
     return ctx.fragments.cpp.force_pic() or (
         cc_toolchain.needs_pic_for_dynamic_libraries(feature_configuration = feature_configuration) and (
             ctx.var["COMPILATION_MODE"] != "opt" or
-            cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "prefer_pic_for_opt_binaries")
+            feature_configuration.is_enabled(feature_names.PREFER_PIC_FOR_OPT_BINARIES)
         )
     )
 
@@ -885,11 +901,10 @@ def _check_cpp_modules(ctx, feature_configuration):
         return
     if not ctx.fragments.cpp.experimental_cpp_modules():
         fail("requires --experimental_cpp_modules", attr = "module_interfaces")
-    if not cc_common.is_enabled(
-        feature_configuration = feature_configuration,
-        feature_name = "cpp_modules",
+    if not feature_configuration.is_enabled(
+        feature_names.CPP_MODULES,
     ):
-        fail("to use C++ modules, the feature cpp_modules must be enabled")
+        fail("to use C++ modules, the feature {} must be enabled".format(feature_names.CPP_MODULES))
 
 def _expand_make_variables_for_copts(ctx, tokenization, unexpanded_tokens, additional_make_variable_substitutions):
     tokens = []
@@ -908,14 +923,119 @@ def _expand_make_variables_for_copts(ctx, tokenization, unexpanded_tokens, addit
                 tokens.append(_expand(ctx, token, additional_make_variable_substitutions, targets = targets))
     return tokens
 
-def _get_copts(ctx, feature_configuration, additional_make_variable_substitutions, attr = "copts", requested_features = None):
+def _matches_disallowed_copt(flag, disallowed_flags):
+    """Returns True if flag equals a disallowed flag or has a disallowed prefix."""
+    for disallowed in disallowed_flags:
+        if flag == disallowed or (
+            disallowed.endswith("=") and flag.startswith(disallowed)
+        ):
+            return True
+    return False
+
+def _verify_no_disallowed_copts(
+        ctx,
+        copts,
+        attr_name,
+        disallowed_copts_infos = [],
+        command_line_copts = None):
+    """Fails the build if copts contain any disallowed compiler flags."""
+    if not disallowed_copts_infos:
+        return
+
+    violations = []
+    for info in disallowed_copts_infos:
+        if not hasattr(info, "flags") or not info.flags:
+            continue
+
+        # Check if target is exempt under this policy's allowlist
+        allowlist = getattr(info, "allowlist", None)
+        if allowlist != None and allowlist.contains(ctx.label):
+            continue
+
+        allowlist_target_label = getattr(info, "allowlist_target_label", None)
+        error_message = getattr(info, "error_message", None)
+
+        # Pair each set of flags with a description of where it came from.
+        flag_sources = [("attribute '{}'".format(attr_name), copts)]
+        if getattr(info, "verify_command_line", False) and command_line_copts:
+            flag_sources.extend([
+                ("'--copt' flag", command_line_copts.copts),
+                ("'--cxxopt' flag", command_line_copts.cxxopts),
+                ("'--conlyopt' flag", command_line_copts.conlyopts),
+            ])
+
+        for source, flags in flag_sources:
+            for flag in flags:
+                if _matches_disallowed_copt(flag, info.flags):
+                    violations.append((flag, allowlist_target_label, error_message, source))
+
+    if violations:
+        formatted_violations = []
+        for flag, allowlist_target_label, error_message, source in violations:
+            allowlist_clause = (
+                " (target is not in the allowlist '{}')".format(
+                    allowlist_target_label,
+                ) if allowlist_target_label else ""
+            )
+            error_clause = (
+                ": {}".format(error_message) if error_message else ""
+            )
+            formatted_violations.append(
+                "- Flag '{}' in {}{}{}".format(
+                    flag,
+                    source,
+                    allowlist_clause,
+                    error_clause,
+                ),
+            )
+        fail(
+            """
+[DISALLOWED COPTS ERROR] Target '{}' specifies disallowed compiler flag(s):
+  {}
+""".format(
+                ctx.label,
+                "\n  ".join(formatted_violations),
+            ),
+            stack_trace = False,
+        )
+
+def _get_copts(
+        ctx,
+        feature_configuration,
+        additional_make_variable_substitutions,
+        attr = "copts",
+        requested_features = None,
+        disallowed_copts_infos = []):
     if not hasattr(ctx.attr, attr):
         fail("could not find rule attribute named: '{}'".format(attr))
     if requested_features == None:
         requested_features = ctx.features
     attribute_copts = getattr(ctx.attr, attr)
-    tokenization = not (cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "no_copts_tokenization") or "no_copts_tokenization" in requested_features)
+
+    # Only read the command-line options when a policy asks for them; this runs
+    # for every C++ target, once per copts-like attribute.
+    command_line_copts = None
+    for info in disallowed_copts_infos:
+        if getattr(info, "verify_command_line", False):
+            cpp_fragment = ctx.fragments.cpp
+            command_line_copts = struct(
+                copts = cpp_fragment.copts,
+                cxxopts = cpp_fragment.cxxopts,
+                conlyopts = cpp_fragment.conlyopts,
+            )
+            break
+
+    tokenization = not (feature_configuration.is_enabled(feature_names.NO_COPTS_TOKENIZATION) or feature_names.NO_COPTS_TOKENIZATION in requested_features)
     expanded_attribute_copts = _expand_make_variables_for_copts(ctx, tokenization, attribute_copts, additional_make_variable_substitutions)
+
+    _verify_no_disallowed_copts(
+        ctx,
+        expanded_attribute_copts,
+        attr,
+        disallowed_copts_infos = disallowed_copts_infos,
+        command_line_copts = command_line_copts,
+    )
+
     return expanded_attribute_copts
 
 # Tries to expand a single make variable from token.
@@ -957,12 +1077,6 @@ def _defines(ctx, additional_make_variable_substitutions):
 def _local_defines(ctx, additional_make_variable_substitutions):
     return _defines_attribute(ctx, additional_make_variable_substitutions, "local_defines", getattr(ctx.attr, "additional_compiler_inputs", []))
 
-def _map_to_list(m):
-    result = []
-    for k, v in m.items():
-        result.append((k, v))
-    return result
-
 def _calculate_artifact_label_map(attr_list, attr_name):
     """
     Converts a label_list attribute into a list of (Artifact, Label) tuples.
@@ -990,13 +1104,13 @@ def _get_srcs(ctx):
     if not hasattr(ctx.attr, "srcs"):
         return []
     artifact_label_map = _calculate_artifact_label_map(ctx.attr.srcs, "srcs")
-    return _map_to_list(artifact_label_map)
+    return artifact_label_map.items()
 
 def _get_cpp_module_interfaces(ctx):
     if not hasattr(ctx.attr, "module_interfaces"):
         return []
     artifact_label_map = _calculate_artifact_label_map(ctx.attr.module_interfaces, "module_interfaces")
-    return _map_to_list(artifact_label_map)
+    return artifact_label_map.items()
 
 # Returns a list of (Artifact, Label) tuples. Each tuple represents an input source
 # file and the label of the rule that generates it (or the label of the source file itself if it
@@ -1010,7 +1124,7 @@ def _get_private_hdrs(ctx):
             for artifact in src[DefaultInfo].files.to_list():
                 if "." + artifact.extension in extensions.CC_HEADER:
                     artifact_label_map[artifact] = src.label
-    return _map_to_list(artifact_label_map)
+    return artifact_label_map.items()
 
 # Returns the files from headers and does some checks.
 def _get_public_hdrs(ctx):
@@ -1023,7 +1137,7 @@ def _get_public_hdrs(ctx):
                 if _check_file_extension(artifact, extensions.DISALLOWED_HDRS_FILES, True):
                     continue
                 artifact_label_map[artifact] = hdr.label
-    return _map_to_list(artifact_label_map)
+    return artifact_label_map.items()
 
 def _linkopts(ctx, additional_make_variable_substitutions, cc_toolchain):
     linkopts = getattr(ctx.attr, "linkopts", [])
@@ -1150,6 +1264,7 @@ cc_helper = struct(
     get_coverage_environment = _get_coverage_environment,
     create_cc_instrumented_files_info = _create_cc_instrumented_files_info,
     get_dynamic_libraries_for_runtime = _get_dynamic_libraries_for_runtime,
+    create_dynamic_libraries_copy_actions = _create_dynamic_libraries_copy_actions,
     build_output_groups_for_emitting_compile_providers = _build_output_groups_for_emitting_compile_providers,
     merge_cc_debug_contexts = _merge_cc_debug_contexts,
     get_providers = _get_providers,

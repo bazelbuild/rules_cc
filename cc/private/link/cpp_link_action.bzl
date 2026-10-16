@@ -212,31 +212,31 @@ def link_action(
         stamping,
         feature_configuration,
         cc_toolchain,
-        "Linking %{output}",  # progress_message
+        progress_message = "Linking %{output}",
         # Inputs:
-        object_file_inputs,
-        non_code_inputs,
-        libraries_to_link,
-        linkstamp_map,
-        linkstamp_object_artifacts,
-        linkstamp_object_file_inputs,
-        user_link_flags,
+        object_file_inputs = object_file_inputs,
+        non_code_inputs = non_code_inputs,
+        libraries_to_link = libraries_to_link,
+        linkstamp_map = linkstamp_map,
+        linkstamp_object_artifacts = linkstamp_object_artifacts,
+        linkstamp_object_file_inputs = linkstamp_object_file_inputs,
+        user_link_flags = user_link_flags,
         # Custom user input files and variables:
-        additional_linker_inputs,
-        build_variables,
+        additional_linker_inputs = additional_linker_inputs,
+        additional_build_variables = build_variables,
         # Outputs:
-        output,
-        interface_output,
-        dynamic_library_solib_symlink_output,
-        action_outputs,
+        output = output,
+        interface_output = interface_output,
+        dynamic_library_solib_symlink_output = dynamic_library_solib_symlink_output,
+        action_outputs = action_outputs,
         # Originating from private APIs:
-        use_test_only_flags,
-        whole_archive,
-        native_deps,
-        additional_linkstamp_defines,
+        use_test_only_flags = use_test_only_flags,
+        whole_archive = whole_archive,
+        native_deps = native_deps,
+        additional_linkstamp_defines = additional_linkstamp_defines,
         # LTO:
-        lto_mapping,
-        allow_lto_indexing,
+        lto_mapping = lto_mapping,
+        allow_lto_indexing = allow_lto_indexing,
     )
 
     return output_library, interface_output_library
@@ -257,7 +257,7 @@ def _map_linkstamps_to_outputs(actions, linkstamps, output):
     """
     map = {}
 
-    stamp_output_dir = paths.join(paths.dirname(output.short_path), "_objs", output.basename)
+    stamp_output_dir = paths.join(paths.dirname(root_relative_path(output)), "_objs", output.basename)
     linkstamps = set(linkstamps)
     seen_linkstamp_sources = set()
     for linkstamp in linkstamps:
@@ -267,7 +267,7 @@ def _map_linkstamps_to_outputs(actions, linkstamps, output):
         linkstamp_file = linkstamp.file()
         stamp_output_path = paths.join(
             stamp_output_dir,
-            paths.replace_extension(linkstamp_file.short_path, ".o"),
+            paths.replace_extension(root_relative_path(linkstamp_file), ".o"),
         )
         stamp_output_file = actions.declare_shareable_artifact(stamp_output_path)
         map[linkstamp] = stamp_output_file

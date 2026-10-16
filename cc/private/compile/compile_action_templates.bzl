@@ -20,6 +20,7 @@ load(
     "CPP_SOURCE_TYPE_SOURCE",
     artifact_category = "artifact_category_names",
 )
+load("//cc/common:feature_names.bzl", "feature_names")
 load("//cc/common:semantics.bzl", cc_semantics = "semantics")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private/compile:cc_compilation_helper.bzl", "dotd_files_enabled", "serialized_diagnostics_file_enabled")
@@ -96,7 +97,7 @@ def create_compile_action_templates(
             language = language,
         )
     else:  # CPP_SOURCE_TYPE_SOURCE
-        lto_output_enabled = feature_configuration.is_enabled("thin_lto")
+        lto_output_enabled = feature_configuration.is_enabled(feature_names.THIN_LTO)
         if generate_no_pic_action:
             _create_compile_action_template(
                 action_construction_context = action_construction_context,

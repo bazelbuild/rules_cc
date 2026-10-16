@@ -17,6 +17,7 @@ The cc_common.create_library_to_link function.
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("//cc/common:cc_helper_internal.bzl", "is_versioned_shared_library", "path_contains_up_level_references")
+load("//cc/common:feature_names.bzl", "feature_names")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private/compile:lto_compilation_context.bzl", _EMPTY_LTO = "EMPTY_LTO_COMPILATION_CONTEXT")
 load("//cc/private/link:dynamic_library_symlink.bzl", "dynamic_library_symlink", "dynamic_library_symlink2")
@@ -236,7 +237,7 @@ def create_library_to_link(
             fail("If you pass 'dynamic_library', you must also pass a 'cc_toolchain'")
         if not feature_configuration:
             fail("If you pass 'dynamic_library', you must also pass a 'feature_configuration'")
-        if not feature_configuration.is_enabled("targets_windows"):
+        if not feature_configuration.is_enabled(feature_names.TARGETS_WINDOWS):
             resolved_symlink_dynamic_library = dynamic_library
             if dynamic_library_symlink_path:
                 if dynamic_library.short_path.startswith("_solib_"):
@@ -251,7 +252,7 @@ def create_library_to_link(
             fail("If you pass 'interface_library', you must also pass a 'cc_toolchain'")
         if not feature_configuration:
             fail("If you pass 'interface_library', you must also pass a 'feature_configuration'")
-        if not feature_configuration.is_enabled("targets_windows"):
+        if not feature_configuration.is_enabled(feature_names.TARGETS_WINDOWS):
             resolved_symlink_interface_library = interface_library
             if interface_library_symlink_path:
                 if interface_library.short_path.startswith("_solib_"):

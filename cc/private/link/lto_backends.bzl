@@ -32,6 +32,7 @@ step process:
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("//cc/common:cc_helper_internal.bzl", "should_create_per_object_debug_info")
+load("//cc/common:feature_names.bzl", "feature_names")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private/rules_impl:native_cc_common.bzl", _cc_common_internal = "native_cc_common")
 
@@ -226,7 +227,7 @@ def create_shared_non_lto_artifacts(
         return {}
 
     lto_output_root_prefix = "shared.nonlto"
-    if feature_configuration.is_enabled("use_lto_native_object_directory"):
+    if feature_configuration.is_enabled(feature_names.USE_LTO_NATIVE_OBJECT_DIRECTORY):
         lto_obj_root_prefix = "shared.nonlto-obj"
     else:
         lto_obj_root_prefix = "shared.nonlto"
@@ -282,7 +283,7 @@ def setup_common_lto_variables(
     )
 
     # Add the context sensitive instrument path to the backend.
-    if feature_configuration.is_enabled("cs_fdo_instrument"):
+    if feature_configuration.is_enabled(feature_names.CS_FDO_INSTRUMENT):
         build_variables["cs_fdo_instrument_path"] = cc_toolchain._cpp_configuration.cs_fdo_instrument()
 
     build_variables = _cc_internal.combine_cc_toolchain_variables(
@@ -359,7 +360,10 @@ def create_lto_backend_artifacts(
     # imports files
     index_obj = lto_output_root_prefix + "/" + bitcode_file.path
 
-    additional_inputs = depset(additional_inputs, transitive = [cc_toolchain._compiler_files])
+    # LTO backend compiles operate on already-preprocessed LLVM bitcode and do not include headers,
+    # so prefer compiler_files_without_includes to avoid staging toolchain and sysroot headers.
+    compiler_files = cc_toolchain._compiler_files_without_includes or cc_toolchain._compiler_files
+    additional_inputs = depset(additional_inputs, transitive = [compiler_files])
 
     imports, index, dwo_file = None, None, None
     if bitcode_file.is_directory:
@@ -407,7 +411,7 @@ def create_lto_backend_artifacts(
             all_bitcode_files,
             dwo_file,
             use_pic,
-            None,  # bitcode_file_path
+            bitcode_file_path = None,
         )
 
     return LtoBackendArtifactsInfo(
@@ -430,9 +434,9 @@ def _add_profile_for_lto_backend(additional_inputs, fdo_context, feature_configu
     if propeller_optimize_info != None and propeller_optimize_info.ld_profile != None:
         build_variables["propeller_optimize_ld_path"] = propeller_optimize_info.ld_profile
         additional_inputs.append(propeller_optimize_info.ld_profile)
-    if not feature_configuration.is_enabled("autofdo") and \
-       not feature_configuration.is_enabled("cs_fdo_optimize") and \
-       not feature_configuration.is_enabled("xbinaryfdo"):
+    if not feature_configuration.is_enabled(feature_names.AUTOFDO) and \
+       not feature_configuration.is_enabled(feature_names.CS_FDO_OPTIMIZE) and \
+       not feature_configuration.is_enabled(feature_names.XBINARYFDO):
         return
 
     branch_fdo_profile = getattr(fdo_context, "branch_fdo_profile", None)
@@ -509,7 +513,7 @@ def _paths_build_variables(feature_configuration, index, object_file, dwo_file, 
     else:
         # An empty input indicates not to perform cross-module optimization.
         build_variables["thinlto_index"] = (
-            "NUL" if feature_configuration.is_enabled("targets_windows") else "/dev/null"
+            "NUL" if feature_configuration.is_enabled(feature_names.TARGETS_WINDOWS) else "/dev/null"
         )
 
     # The output from the LTO backend step is a native object file.

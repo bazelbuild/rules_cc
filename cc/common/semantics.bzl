@@ -91,7 +91,7 @@ def _get_coverage_attrs():
             cfg = config.exec(exec_group = "test"),
         ),
         "_collect_cc_coverage": attr.label(
-            default = Label("//cc/private/coverage:collect_cc_coverage"),
+            default = Label("//cc/coverage:collect_cc_coverage"),
             executable = True,
             cfg = config.exec(exec_group = "test"),
         ),
@@ -103,10 +103,8 @@ def _get_coverage_env(ctx):
 def _get_implementation_deps_allowed_attr():
     return {}
 
-def _check_can_use_implementation_deps(ctx):
-    experimental_cc_implementation_deps = ctx.fragments.cpp.experimental_cc_implementation_deps()
-    if (not experimental_cc_implementation_deps and ctx.attr.implementation_deps):
-        fail("requires --experimental_cc_implementation_deps", attr = "implementation_deps")
+def _check_can_use_implementation_deps(_):
+    return True
 
 _WINDOWS_PLATFORM = Label("@platforms//os:windows")  # Resolve the label within builtins context
 

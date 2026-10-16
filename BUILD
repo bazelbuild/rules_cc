@@ -51,7 +51,6 @@ filegroup(
     srcs = [
         "BUILD",
         "MODULE.bazel",
-        "MODULE.bazel.lock",
         "//cc:srcs",
     ],
     visibility = ["//:__subpackages__"],
