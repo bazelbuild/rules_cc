@@ -479,16 +479,24 @@ def _setup_fdo_build_variables(
 
     if (branch_fdo_profile and
         auxiliary_fdo_inputs_list and
-        (
-            feature_configuration.is_enabled(feature_names.AUTOFDO) or
-            feature_configuration.is_enabled(feature_names.XBINARYFDO) or
-            (
-                feature_configuration.is_enabled(feature_names.FDO_OPTIMIZE) and
-                branch_fdo_profile.branch_fdo_mode in ("llvm_fdo", "llvm_cs_fdo")
-            )
-        )):
+        _uses_branch_fdo_profile(branch_fdo_profile.branch_fdo_mode, feature_configuration)):
         variables["fdo_profile_path"] = branch_fdo_profile.profile_artifact.path
     return variables
+
+def _uses_branch_fdo_profile(branch_fdo_mode, feature_configuration):
+    """Returns whether the enabled features consume the branch FDO profile.
+
+    The profile is only passed to compile actions (as `fdo_profile_path` and as
+    an input) when the toolchain feature that reads it is enabled.
+    """
+    if feature_configuration.is_enabled(feature_names.AUTOFDO):
+        return True
+    if feature_configuration.is_enabled(feature_names.XBINARYFDO):
+        return True
+    if (feature_configuration.is_enabled(feature_names.FDO_OPTIMIZE) and
+        branch_fdo_mode in ("llvm_fdo", "llvm_cs_fdo")):
+        return True
+    return False
 
 def _get_auxiliary_fdo_inputs_list(
         cc_toolchain,
@@ -517,8 +525,10 @@ def _get_auxiliary_fdo_inputs_list(
 
     branch_fdo_profile = getattr(fdo_context, "branch_fdo_profile", None)
 
-    # If --fdo_optimize was not specified, we don't have any additional inputs.
-    if branch_fdo_profile:
+    # Only add the profile when the enabled features read it, matching the
+    # condition under which `fdo_profile_path` is set.
+    if (branch_fdo_profile and
+        _uses_branch_fdo_profile(branch_fdo_profile.branch_fdo_mode, feature_configuration)):
         auxiliary_inputs.append(branch_fdo_profile.profile_artifact)
 
     return auxiliary_inputs
