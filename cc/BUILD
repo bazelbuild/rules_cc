@@ -30,6 +30,7 @@ filegroup(
 )
 
 exports_files([
+    "cc_toolchain_config_lib.bzli",
     "defs.bzl",
     "action_names.bzl",
     "system_library.bzl",

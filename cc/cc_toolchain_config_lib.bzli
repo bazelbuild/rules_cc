@@ -1,0 +1,265 @@
+# Copyright 2026 The Bazel Authors. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""Contracts for complete provider values produced by the configuration helpers.
+
+ActionConfigInfo also accepts the optional legacy config_name field.
+"""
+
+def env_entry(key: str, value: str, expand_if_available: str | None = ...) -> EnvEntryInfo: ...
+
+def variable_with_value(name: str, value: str) -> VariableWithValueInfo: ...
+
+def make_variable(name: str, value: str) -> MakeVariableInfo: ...
+
+def feature_set(features: list[str] = ...) -> FeatureSetInfo: ...
+
+def with_feature_set(features: list[str] = ..., not_features: list[str] = ...) -> WithFeatureSetInfo: ...
+
+def env_set(
+        actions: list[str],
+        env_entries: list[EnvEntryInfo] = ...,
+        with_features: list[WithFeatureSetInfo] = ...,
+) -> EnvSetInfo: ...
+
+def flag_group(
+        flags: list[str] = ...,
+        flag_groups: list[FlagGroupInfo] = ...,
+        iterate_over: str | None = ...,
+        expand_if_available: str | None = ...,
+        expand_if_not_available: str | None = ...,
+        expand_if_true: str | None = ...,
+        expand_if_false: str | None = ...,
+        expand_if_equal: VariableWithValueInfo | None = ...,
+) -> FlagGroupInfo: ...
+
+def flag_set(
+        actions: list[str] = ...,
+        with_features: list[WithFeatureSetInfo] = ...,
+        flag_groups: list[FlagGroupInfo] = ...,
+) -> FlagSetInfo: ...
+
+def feature(
+        name: str,
+        enabled: bool = ...,
+        flag_sets: list[FlagSetInfo] = ...,
+        env_sets: list[EnvSetInfo] = ...,
+        requires: list[FeatureSetInfo] = ...,
+        implies: list[str] = ...,
+        provides: list[str] = ...,
+) -> FeatureInfo: ...
+
+def tool_path(name: str, path: str) -> ToolPathInfo: ...
+
+def tool(
+        path: str | None = ...,
+        with_features: list[WithFeatureSetInfo] = ...,
+        execution_requirements: list[str] = ...,
+        tool: File | None = ...,
+) -> ToolInfo: ...
+
+def action_config(
+        action_name: str,
+        enabled: bool = ...,
+        tools: list[ToolInfo] = ...,
+        flag_sets: list[FlagSetInfo] = ...,
+        implies: list[str] = ...,
+) -> ActionConfigInfo: ...
+
+def artifact_name_pattern(
+        category_name: str,
+        prefix: str | None,
+        extension: str | None,
+) -> ArtifactNamePatternInfo: ...
+
+def EnvEntryInfo(
+        *,
+        key: str,
+        value: str,
+        expand_if_available: str | None,
+        type_name: Literal["env_entry"],
+) -> record[{
+    "key": str,
+    "value": str,
+    "expand_if_available": str | None,
+    "type_name": Literal["env_entry"],
+}]: ...
+
+def VariableWithValueInfo(
+        *,
+        name: str,
+        value: str,
+        type_name: Literal["variable_with_value"],
+) -> record[{
+    "name": str,
+    "value": str,
+    "type_name": Literal["variable_with_value"],
+}]: ...
+
+def MakeVariableInfo(
+        *,
+        name: str,
+        value: str,
+        type_name: Literal["make_variable"],
+) -> record[{
+    "name": str,
+    "value": str,
+    "type_name": Literal["make_variable"],
+}]: ...
+
+def FeatureSetInfo(
+        *,
+        features: list[str],
+        type_name: Literal["feature_set"],
+) -> record[{
+    "features": list[str],
+    "type_name": Literal["feature_set"],
+}]: ...
+
+def WithFeatureSetInfo(
+        *,
+        features: list[str],
+        not_features: list[str],
+        type_name: Literal["with_feature_set"],
+) -> record[{
+    "features": list[str],
+    "not_features": list[str],
+    "type_name": Literal["with_feature_set"],
+}]: ...
+
+def EnvSetInfo(
+        *,
+        actions: list[str],
+        env_entries: list[EnvEntryInfo],
+        with_features: list[WithFeatureSetInfo],
+        type_name: Literal["env_set"],
+) -> record[{
+    "actions": list[str],
+    "env_entries": list[EnvEntryInfo],
+    "with_features": list[WithFeatureSetInfo],
+    "type_name": Literal["env_set"],
+}]: ...
+
+def FlagGroupInfo(
+        *,
+        flags: list[str],
+        flag_groups: list[FlagGroupInfo],
+        iterate_over: str | None,
+        expand_if_available: str | None,
+        expand_if_not_available: str | None,
+        expand_if_true: str | None,
+        expand_if_false: str | None,
+        expand_if_equal: VariableWithValueInfo | None,
+        type_name: Literal["flag_group"],
+) -> record[{
+    "flags": list[str],
+    "flag_groups": list[FlagGroupInfo],
+    "iterate_over": str | None,
+    "expand_if_available": str | None,
+    "expand_if_not_available": str | None,
+    "expand_if_true": str | None,
+    "expand_if_false": str | None,
+    "expand_if_equal": VariableWithValueInfo | None,
+    "type_name": Literal["flag_group"],
+}]: ...
+
+def FlagSetInfo(
+        *,
+        actions: list[str],
+        with_features: list[WithFeatureSetInfo],
+        flag_groups: list[FlagGroupInfo],
+        type_name: Literal["flag_set"],
+) -> record[{
+    "actions": list[str],
+    "with_features": list[WithFeatureSetInfo],
+    "flag_groups": list[FlagGroupInfo],
+    "type_name": Literal["flag_set"],
+}]: ...
+
+def FeatureInfo(
+        *,
+        name: str,
+        enabled: bool,
+        flag_sets: list[FlagSetInfo],
+        env_sets: list[EnvSetInfo],
+        requires: list[FeatureSetInfo],
+        implies: list[str],
+        provides: list[str],
+        type_name: Literal["feature"],
+) -> record[{
+    "name": str,
+    "enabled": bool,
+    "flag_sets": list[FlagSetInfo],
+    "env_sets": list[EnvSetInfo],
+    "requires": list[FeatureSetInfo],
+    "implies": list[str],
+    "provides": list[str],
+    "type_name": Literal["feature"],
+}]: ...
+
+def ToolPathInfo(
+        *,
+        name: str,
+        path: str,
+        type_name: Literal["tool_path"],
+) -> record[{
+    "name": str,
+    "path": str,
+    "type_name": Literal["tool_path"],
+}]: ...
+
+def ToolInfo(
+        *,
+        path: str | None,
+        tool: File | None,
+        with_features: list[WithFeatureSetInfo],
+        execution_requirements: list[str],
+        type_name: Literal["tool"],
+) -> record[{
+    "path": str | None,
+    "tool": File | None,
+    "with_features": list[WithFeatureSetInfo],
+    "execution_requirements": list[str],
+    "type_name": Literal["tool"],
+}]: ...
+
+def ActionConfigInfo(
+        *,
+        action_name: str,
+        enabled: bool,
+        tools: list[ToolInfo],
+        flag_sets: list[FlagSetInfo],
+        implies: list[str],
+        type_name: Literal["action_config"],
+        config_name: str = ...,
+) -> record[{
+    "action_name": str,
+    "enabled": bool,
+    "tools": list[ToolInfo],
+    "flag_sets": list[FlagSetInfo],
+    "implies": list[str],
+    "type_name": Literal["action_config"],
+}, ...]: ...
+
+def ArtifactNamePatternInfo(
+        *,
+        category_name: str,
+        prefix: str | None,
+        extension: str | None,
+        type_name: Literal["artifact_name_pattern"],
+) -> record[{
+    "category_name": str,
+    "prefix": str | None,
+    "extension": str | None,
+    "type_name": Literal["artifact_name_pattern"],
+}]: ...
