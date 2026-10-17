@@ -514,7 +514,6 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
         private_hdrs = cc_helper.get_private_hdrs(ctx),
         public_hdrs = cc_helper.get_public_hdrs(ctx),
         srcs = cc_helper.get_srcs(ctx),
-        module_interfaces = cc_helper.get_cpp_module_interfaces(ctx),
         compilation_contexts = compilation_context_deps,
         additional_inputs = ctx.files.additional_compiler_inputs,
     )
@@ -838,6 +837,7 @@ ALLOWED_SRC_FILES.extend(cc_helper.extensions.ALWAYSLINK_PIC_LIBRARY)
 ALLOWED_SRC_FILES.extend(cc_helper.extensions.SHARED_LIBRARY)
 ALLOWED_SRC_FILES.extend(cc_helper.extensions.OBJECT_FILE)
 ALLOWED_SRC_FILES.extend(cc_helper.extensions.PIC_OBJECT_FILE)
+ALLOWED_SRC_FILES.extend(cc_helper.extensions.CPP_MODULE_INTERFACE)
 
 def _impl(ctx):
     binary_info, providers = cc_binary_impl(ctx, [])

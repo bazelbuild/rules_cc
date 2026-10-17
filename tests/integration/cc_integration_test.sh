@@ -2336,16 +2336,16 @@ package(features = ["cpp_modules"])
 
 cc_library(
   name = "base",
-  module_interfaces = ["base.cppm"],
+  srcs = ["base.cppm"],
 )
 cc_library(
   name = "foo",
-  module_interfaces = ["foo.cppm"],
+  srcs = ["foo.cppm"],
   deps = [":base"]
 )
 cc_library(
   name = "bar",
-  module_interfaces = ["bar.cppm"],
+  srcs = ["bar.cppm"],
   deps = [":base"]
 )
 cc_binary(

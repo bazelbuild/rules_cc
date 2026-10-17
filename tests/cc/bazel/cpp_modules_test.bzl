@@ -15,7 +15,7 @@ def _setup_with_features_target(name, rule_fn, suffix):
     util.helper_target(
         rule_fn,
         name = name + suffix,
-        module_interfaces = [name + "/foo.cppm"],
+        srcs = [name + "/foo.cppm"],
     )
 
 def _test_cpp_modules_cc_library_configuration_with_features(name, **kwargs):
@@ -75,6 +75,69 @@ def _test_cpp_modules_with_features_impl(env, target):
     env.expect.that_target(target).action_named("CppAggregateDdi")
     env.expect.that_target(target).action_named("CppGenModmap")
 
+def _test_cpp_modules_module_interface_and_source_in_srcs(name, **kwargs):
+    util.empty_file(name + "/foo.cppm")
+    util.empty_file(name + "/bar.cc")
+    util.helper_target(
+        cc_library,
+        name = name + "_lib",
+        srcs = [
+            name + "/foo.cppm",
+            name + "/bar.cc",
+        ],
+    )
+    cc_analysis_test(
+        name = name,
+        target = name + "_lib",
+        impl = _test_cpp_modules_module_interface_and_source_in_srcs_impl,
+        test_features = ["cpp_modules"],
+        with_action_configs = [
+            ACTION_NAMES.cpp_module_deps_scanning,
+            ACTION_NAMES.cpp20_module_compile,
+        ],
+        config_settings = {
+            "//command_line_option:experimental_cpp_modules": True,
+        },
+        **kwargs
+    )
+
+def _test_cpp_modules_module_interface_and_source_in_srcs_impl(env, target):
+    compiled_srcs = {}
+    for action in target.actions:
+        if action.mnemonic == "CppCompile":
+            for input in action.inputs.to_list():
+                if input.extension in ["cc", "cppm"]:
+                    compiled_srcs[input.basename] = True
+    env.expect.that_collection(compiled_srcs.keys()).contains_exactly(["bar.cc", "foo.cppm"])
+
+def _test_cpp_modules_module_interface_is_instrumented(name, **kwargs):
+    util.helper_target(
+        cc_library,
+        name = name + "/instrumented",
+        srcs = [name + "/foo.cppm"],
+    )
+    cc_analysis_test(
+        name = name,
+        target = name + "/instrumented",
+        impl = _test_cpp_modules_module_interface_is_instrumented_impl,
+        test_features = ["cpp_modules"],
+        with_action_configs = [
+            ACTION_NAMES.cpp_module_deps_scanning,
+            ACTION_NAMES.cpp20_module_compile,
+        ],
+        config_settings = {
+            "//command_line_option:collect_code_coverage": True,
+            "//command_line_option:experimental_cpp_modules": True,
+            "//command_line_option:instrumentation_filter": "/instrumented$",
+        },
+        **kwargs
+    )
+
+def _test_cpp_modules_module_interface_is_instrumented_impl(env, target):
+    env.expect.that_target(target).provider(
+        InstrumentedFilesInfo,
+    ).instrumented_files().contains_predicate(matching.file_basename_equals("foo.cppm"))
+
 def _setup_duplicated_interfaces_target(name, rule_fn, suffix):
     util.empty_file(name + "/a.cppm")
     util.helper_target(
@@ -90,7 +153,7 @@ def _setup_duplicated_interfaces_target(name, rule_fn, suffix):
     util.helper_target(
         rule_fn,
         name = name + suffix,
-        module_interfaces = [
+        srcs = [
             name + "_a1",
             name + "_a2",
         ],
@@ -166,6 +229,8 @@ def cpp_modules_tests(name, **kwargs):
             _test_cpp_modules_cc_library_configuration_with_features,
             _test_cpp_modules_cc_binary_configuration_with_features,
             _test_cpp_modules_cc_test_configuration_with_features,
+            _test_cpp_modules_module_interface_and_source_in_srcs,
+            _test_cpp_modules_module_interface_is_instrumented,
             _test_same_module_interfaces_file_in_cc_library_twice,
             _test_same_module_interfaces_file_in_cc_binary_twice,
             _test_same_module_interfaces_file_in_cc_test_twice,
