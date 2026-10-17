@@ -1,3 +1,6 @@
+[analysis]
+strict-generic-narrowing = true
+
 [type-interfaces]
 "cc/cc_toolchain_config_lib.bzl" = "cc/cc_toolchain_config_lib.bzli"
 
