@@ -23,6 +23,7 @@ explicit-any = "error"
 non-static-type = "error"
 blanket-ignore-comment = "error"
 possibly-unresolved-reference = "error"
+possibly-missing-attribute = "error"
 division-by-zero = "error"
 
 [[stub-packages]]
