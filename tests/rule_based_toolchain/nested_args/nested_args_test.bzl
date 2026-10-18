@@ -122,6 +122,12 @@ def _format_args_test(env, targets):
         "file",
     ])
 
+    for target, message in [
+        (targets.empty_files, "should be either a variable, a directory, or a single file"),
+        (targets.unsupported_setting, "had an unsupported build setting type list"),
+    ]:
+        _expect_that_formatted(env, ["{value}"], {"value": target}).err().contains(message)
+
     res = _expect_that_formatted(
         env,
         ["{var}", "{var}"],
@@ -276,6 +282,8 @@ def _nested_make_vars_test(env, targets):
     nested.legacy_flag_group().equals(flag_group(flags = ["--path=/usr/local", "-DFOO"]))
 
 TARGETS = [
+    ":empty_files",
+    ":unsupported_setting",
     ":foo",
     ":my_list",
     ":nested_with_make_vars",
