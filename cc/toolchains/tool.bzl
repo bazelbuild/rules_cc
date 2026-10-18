@@ -81,6 +81,7 @@ _cc_tool = rule(
     attrs = {
         "src": attr.label(
             allow_files = True,
+            mandatory = True,
             doc = """The underlying binary that this tool represents.
 
 Usually just a single prebuilt (eg. @toolchain//:bin/clang), but may be any
@@ -188,7 +189,7 @@ cc_tool(
 def cc_tool(
         *,
         name,
-        src = None,
+        src,
         data = None,
         allowlist_include_directories = None,
         env = None,
