@@ -402,7 +402,7 @@ def format_list(args, format, must_use = [], fail = fail):
       A string defined to be compatible with flag groups.
     """
     formatted = []
-    used_vars = {}
+    used_vars = {}  # type: dict[str, None]
 
     for arg in args:
         formatted.append(_format_string(arg, format, used_vars, fail))
@@ -429,7 +429,7 @@ def format_dict_values(env, format, must_use = [], fail = fail):
       The environment variables with values defined to be compatible with flag groups.
     """
     formatted = {}
-    used_vars = {}
+    used_vars = {}  # type: dict[str, None]
 
     for key, value in env.items():
         formatted[key] = _format_string(value, format, used_vars, fail)

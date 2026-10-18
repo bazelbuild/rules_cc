@@ -20,9 +20,16 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
-      - uses: tamird/sty@2047adc3c9cd1a3f2a305d9713e6cd5c0494fc9c
-        continue-on-error: true
+      - uses: tamird/sty@15120ea73388bb93f0d72b1a5f4c0b5e4117d7f9
         with:
+          audit-loads: true
           bazel-version: '9.3.0'
           files: |
             cc/cc_toolchain_config_lib.bzl
+            cc/toolchains/cc_toolchain_info.bzl
+            cc/toolchains/impl/collect.bzl
+            cc/toolchains/impl/label_utils.bzl
+            cc/toolchains/impl/legacy_converter.bzl
+            cc/toolchains/impl/nested_args.bzl
+            cc/toolchains/tool.bzl
+            cc/toolchains/tool_map.bzl

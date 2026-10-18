@@ -1,0 +1,288 @@
+"""Provider values shared by rule-based toolchain implementations."""
+
+load("@bazel_skylib//rules/directory:providers.bzl", "DirectoryInfo")
+load("//cc:cc_toolchain_config_lib.bzli", "FlagGroupInfo")
+
+type TypeRequirement = struct[{"msg": str, "valid_types": list[str], "after_option_unwrap": bool}]
+type ActionArgs = struct[{"action": ActionTypeInfo, "args": Sequence[ArgsInfo], "files": depset[File]}]
+
+def ActionTypeInfo(
+        *,
+        label: Label,
+        name: str,
+) -> record[{
+    "label": Label,
+    "name": str,
+}]: ...
+
+def ActionTypeSetInfo(
+        *,
+        label: Label,
+        actions: depset[ActionTypeInfo],
+) -> record[{
+    "label": Label,
+    "actions": depset[ActionTypeInfo],
+}]: ...
+
+def ArtifactCategoryInfo(
+        *,
+        label: Label,
+        name: str,
+) -> record[{
+    "label": Label,
+    "name": str,
+}]: ...
+
+def ArtifactNamePatternInfo(
+        *,
+        label: Label,
+        category: ArtifactCategoryInfo,
+        prefix: str,
+        extension: str,
+) -> record[{
+    "label": Label,
+    "category": ArtifactCategoryInfo,
+    "prefix": str,
+    "extension": str,
+}]: ...
+
+def VariableInfo(
+        *,
+        name: str,
+        label: Label,
+        actions: depset[ActionTypeInfo] | None,
+        type: object,
+) -> record[{
+    "name": str,
+    "label": Label,
+    "actions": depset[ActionTypeInfo] | None,
+    "type": object,
+}]: ...
+
+def BuiltinVariablesInfo(
+        *,
+        variables: dict[str, VariableInfo],
+) -> record[{
+    "variables": dict[str, VariableInfo],
+}]: ...
+
+def NestedArgsInfo(
+        *,
+        label: Label,
+        nested: Sequence[NestedArgsInfo],
+        iterate_over: str | None,
+        files: depset[File],
+        requires_types: dict[str, list[TypeRequirement]],
+        legacy_flag_group: FlagGroupInfo,
+        unwrap_options: list[str],
+) -> record[{
+    "label": Label,
+    "nested": Sequence[NestedArgsInfo],
+    "iterate_over": str | None,
+    "files": depset[File],
+    "requires_types": dict[str, list[TypeRequirement]],
+    "legacy_flag_group": FlagGroupInfo,
+    "unwrap_options": list[str],
+}]: ...
+
+def EnvInfo(
+        *,
+        label: Label,
+        entries: dict[str, str],
+        requires_not_none: str | None,
+) -> record[{
+    "label": Label,
+    "entries": dict[str, str],
+    "requires_not_none": str | None,
+}]: ...
+
+def ArgsInfo(
+        *,
+        label: Label,
+        actions: depset[ActionTypeInfo],
+        requires_any_of: Sequence[FeatureConstraintInfo],
+        nested: NestedArgsInfo | None,
+        files: depset[File],
+        env: EnvInfo,
+        allowlist_include_directories: depset[DirectoryInfo],
+        allowlist_absolute_include_directories: depset[str],
+) -> record[{
+    "label": Label,
+    "actions": depset[ActionTypeInfo],
+    "requires_any_of": Sequence[FeatureConstraintInfo],
+    "nested": NestedArgsInfo | None,
+    "files": depset[File],
+    "env": EnvInfo,
+    "allowlist_include_directories": depset[DirectoryInfo],
+    "allowlist_absolute_include_directories": depset[str],
+}]: ...
+
+def ArgsListInfo(
+        *,
+        label: Label,
+        args: Sequence[ArgsInfo],
+        files: depset[File],
+        by_action: Sequence[ActionArgs],
+        allowlist_include_directories: depset[DirectoryInfo],
+        allowlist_absolute_include_directories: depset[str],
+) -> record[{
+    "label": Label,
+    "args": Sequence[ArgsInfo],
+    "files": depset[File],
+    "by_action": Sequence[ActionArgs],
+    "allowlist_include_directories": depset[DirectoryInfo],
+    "allowlist_absolute_include_directories": depset[str],
+}]: ...
+
+def FeatureInfo(
+        *,
+        label: Label,
+        name: str,
+        enabled: bool,
+        args: ArgsListInfo,
+        implies: depset[FeatureInfo],
+        requires_any_of: Sequence[FeatureSetInfo],
+        mutually_exclusive: Sequence[MutuallyExclusiveCategoryInfo],
+        external: bool,
+        overridable: bool,
+        overrides: FeatureInfo | None,
+        allowlist_include_directories: depset[DirectoryInfo],
+        allowlist_absolute_include_directories: depset[str],
+) -> record[{
+    "label": Label,
+    "name": str,
+    "enabled": bool,
+    "args": ArgsListInfo,
+    "implies": depset[FeatureInfo],
+    "requires_any_of": Sequence[FeatureSetInfo],
+    "mutually_exclusive": Sequence[MutuallyExclusiveCategoryInfo],
+    "external": bool,
+    "overridable": bool,
+    "overrides": FeatureInfo | None,
+    "allowlist_include_directories": depset[DirectoryInfo],
+    "allowlist_absolute_include_directories": depset[str],
+}]: ...
+
+def FeatureSetInfo(
+        *,
+        label: Label,
+        features: depset[FeatureInfo],
+) -> record[{
+    "label": Label,
+    "features": depset[FeatureInfo],
+}]: ...
+
+def FeatureConstraintInfo(
+        *,
+        label: Label,
+        all_of: depset[FeatureInfo],
+        none_of: depset[FeatureInfo],
+) -> record[{
+    "label": Label,
+    "all_of": depset[FeatureInfo],
+    "none_of": depset[FeatureInfo],
+}]: ...
+
+def MakeVariableInfo(
+        *,
+        label: Label,
+        key: str,
+        value: str,
+) -> record[{
+    "label": Label,
+    "key": str,
+    "value": str,
+}]: ...
+
+def ExecutionRequirementsInfo(
+        *,
+        label: Label,
+        requirements: Sequence[str],
+) -> record[{
+    "label": Label,
+    "requirements": Sequence[str],
+}]: ...
+
+def MutuallyExclusiveCategoryInfo(
+        *,
+        label: Label,
+        name: str,
+) -> record[{
+    "label": Label,
+    "name": str,
+}]: ...
+
+def ToolInfo(
+        *,
+        label: Label,
+        exe: File,
+        runfiles: runfiles,
+        execution_requirements: Sequence[str],
+        env: dict[str, str],
+        allowlist_include_directories: depset[DirectoryInfo],
+        capabilities: Sequence[ToolCapabilityInfo],
+) -> record[{
+    "label": Label,
+    "exe": File,
+    "runfiles": runfiles,
+    "execution_requirements": Sequence[str],
+    "env": dict[str, str],
+    "allowlist_include_directories": depset[DirectoryInfo],
+    "capabilities": Sequence[ToolCapabilityInfo],
+}]: ...
+
+def ToolCapabilityInfo(
+        *,
+        label: Label,
+        feature: FeatureInfo,
+) -> record[{
+    "label": Label,
+    "feature": FeatureInfo,
+}]: ...
+
+def ToolConfigInfo(
+        *,
+        label: Label,
+        configs: dict[ActionTypeInfo, ToolInfo],
+) -> record[{
+    "label": Label,
+    "configs": dict[ActionTypeInfo, ToolInfo],
+}]: ...
+
+def LegacyToolInfo(
+        *,
+        label: Label,
+        name: str,
+        path: str,
+) -> record[{
+    "label": Label,
+    "name": str,
+    "path": str,
+}]: ...
+
+def ToolchainConfigInfo(
+        *,
+        label: Label,
+        features: Sequence[FeatureInfo],
+        enabled_features: Sequence[FeatureInfo],
+        tool_map: ToolConfigInfo,
+        args: ArgsListInfo,
+        artifact_name_patterns: Sequence[ArtifactNamePatternInfo],
+        make_variables: Sequence[MakeVariableInfo],
+        files: dict[ActionTypeInfo, depset[File]],
+        allowlist_include_directories: depset[DirectoryInfo],
+        allowlist_absolute_include_directories: depset[str],
+        legacy_tools: Sequence[LegacyToolInfo],
+) -> record[{
+    "label": Label,
+    "features": Sequence[FeatureInfo],
+    "enabled_features": Sequence[FeatureInfo],
+    "tool_map": ToolConfigInfo,
+    "args": ArgsListInfo,
+    "artifact_name_patterns": Sequence[ArtifactNamePatternInfo],
+    "make_variables": Sequence[MakeVariableInfo],
+    "files": dict[ActionTypeInfo, depset[File]],
+    "allowlist_include_directories": depset[DirectoryInfo],
+    "allowlist_absolute_include_directories": depset[str],
+    "legacy_tools": Sequence[LegacyToolInfo],
+}]: ...

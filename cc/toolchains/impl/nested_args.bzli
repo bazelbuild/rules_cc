@@ -1,0 +1,47 @@
+"""Formatting and validation of nested toolchain arguments."""
+
+load("//cc/toolchains:cc_toolchain_info.bzli", "NestedArgsInfo")
+
+type _Fail = Callable[[str], None]
+type _RawString = struct[{"__raw_string": str}]
+type _Format = Mapping[str, Target | _RawString]
+type _Attrs = struct[{
+    "args": list[str],
+    "format": dict[Target, str],
+    "nested": list[Target],
+    "data": list[Target],
+    "iterate_over": Target | None,
+    "requires_not_none": Target | None,
+    "requires_none": Target | None,
+    "requires_true": Target | None,
+    "requires_false": Target | None,
+    "requires_equal": Target | None,
+    "requires_equal_value": str,
+}, ...]
+
+def _var(target: Target | None) -> str | None: ...
+def nested_args_provider_from_ctx(ctx: ctx[object, _Attrs], maybe_used_vars: Sequence[str] = ...) -> NestedArgsInfo: ...
+def nested_args_provider(
+        *,
+        label: Label,
+        args: Sequence[str] = ...,
+        nested: Sequence[NestedArgsInfo] = ...,
+        format: Mapping[Target, str] = ...,
+        files: depset[File] = ...,
+        iterate_over: Target | None = ...,
+        requires_not_none: str | None = ...,
+        requires_none: str | None = ...,
+        requires_true: str | None = ...,
+        requires_false: str | None = ...,
+        requires_equal: str | None = ...,
+        requires_equal_value: str = ...,
+        maybe_used_vars: Sequence[str] = ...,
+        make_variables: Mapping[str, str] = ...,
+        fail: _Fail = ...,
+) -> NestedArgsInfo: ...
+def _escape(s: str) -> str: ...
+def _format_build_setting(value: object, label: Label, report_error: _Fail = ...) -> str: ...
+def _format_target(target: Target | _RawString, report_error: _Fail = ...) -> str: ...
+def _format_string(arg: str, format: _Format, used_vars: dict[str, None], fail: _Fail = ...) -> str: ...
+def format_list(args: Iterable[str], format: _Format, must_use: Sequence[str] = ..., fail: _Fail = ...) -> tuple[list[str], list[str]]: ...
+def format_dict_values(env: Mapping[str, str], format: _Format, must_use: Sequence[str] = ..., fail: _Fail = ...) -> tuple[dict[str, str], list[str]]: ...

@@ -12,6 +12,16 @@ exports_files(
     visibility = ["//docs:__pkg__"],
 )
 
+exports_files(
+    [
+        "collect.bzli",
+        "label_utils.bzli",
+        "legacy_converter.bzli",
+        "nested_args.bzli",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 bzl_library(
     name = "toolchain_impl_rules",
     srcs = glob(["*.bzl"]),
