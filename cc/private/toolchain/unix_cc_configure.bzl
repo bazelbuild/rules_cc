@@ -19,11 +19,11 @@ load(
     "auto_configure_fail",
     "auto_configure_warning",
     "auto_configure_warning_maybe",
+    "copy_file",
     "escape_string",
     "execute",
     "get_env_var",
     "get_starlark_list",
-    "resolve_labels",
     "split_escaped",
     "which",
     "write_builtin_include_directory_paths",
@@ -35,8 +35,13 @@ def _uniq(iterable):
     unique_elements = {element: None for element in iterable}
     return unique_elements.keys()
 
-def _generate_system_module_map(repository_ctx, dirs, script_path):
-    return execute(repository_ctx, [script_path] + dirs)
+def _generate_system_module_map(repository_ctx, dirs):
+    # The script has to be present on disk to be run.
+    script = "generate_system_module_map.sh"
+    repository_ctx.template(script, Label("@rules_cc//cc/private/toolchain:generate_system_module_map.sh"))
+    module_map = execute(repository_ctx, [repository_ctx.path(script)] + dirs)
+    repository_ctx.delete(script)
+    return module_map
 
 def _prepare_include_path(repo_ctx, path):
     """Resolve include path before outputting it into the crosstool.
@@ -382,25 +387,15 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
         cpu_value: The CPU value.
         overridden_tools: A dictionary of overridden tools.
     """
-    paths = resolve_labels(repository_ctx, [
-        "@rules_cc//cc/private/toolchain:BUILD.tpl",
-        "@rules_cc//cc/private/toolchain:generate_system_module_map.sh",
-        "@rules_cc//cc/private/toolchain:armeabi_cc_toolchain_config.bzl",
-        "@rules_cc//cc/private/toolchain:unix_cc_toolchain_config.bzl",
-        "@rules_cc//cc/private/toolchain:linux_cc_wrapper.sh.tpl",
-        "@rules_cc//cc/private/toolchain:validate_static_library.sh.tpl",
-        "@rules_cc//cc/private/toolchain:osx_cc_wrapper.sh.tpl",
-        "@rules_cc//cc/private/toolchain:clang_deps_scanner_wrapper.sh.tpl",
-        "@rules_cc//cc/private/toolchain:gcc_deps_scanner_wrapper.sh.tpl",
-    ])
-
-    repository_ctx.symlink(
-        paths["@rules_cc//cc/private/toolchain:unix_cc_toolchain_config.bzl"],
+    copy_file(
+        repository_ctx,
+        Label("@rules_cc//cc/private/toolchain:unix_cc_toolchain_config.bzl"),
         "cc_toolchain_config.bzl",
     )
 
-    repository_ctx.symlink(
-        paths["@rules_cc//cc/private/toolchain:armeabi_cc_toolchain_config.bzl"],
+    copy_file(
+        repository_ctx,
+        Label("@rules_cc//cc/private/toolchain:armeabi_cc_toolchain_config.bzl"),
         "armeabi_cc_toolchain_config.bzl",
     )
 
@@ -487,7 +482,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     if "nm" in tool_paths and "c++filt" in tool_paths:
         repository_ctx.template(
             "validate_static_library.sh",
-            paths["@rules_cc//cc/private/toolchain:validate_static_library.sh.tpl"],
+            Label("@rules_cc//cc/private/toolchain:validate_static_library.sh.tpl"),
             {
                 "%{c++filt}": escape_string(str(repository_ctx.path(tool_paths["c++filt"]))),
                 # Certain weak symbols are otherwise listed with type T in the output of nm on macOS.
@@ -502,7 +497,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     )
     repository_ctx.template(
         "cc_wrapper.sh",
-        paths[cc_wrapper_src],
+        Label(cc_wrapper_src),
         {
             "%{cc}": escape_string(str(cc)),
             "%{env}": escape_string(get_env(repository_ctx)),
@@ -519,7 +514,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
         deps_scanner = "/".join(path_arr)
     repository_ctx.template(
         "deps_scanner_wrapper.sh",
-        paths[deps_scanner_wrapper_src],
+        Label(deps_scanner_wrapper_src),
         {
             "%{cc}": escape_string(str(cc)),
             "%{deps_scanner}": escape_string(deps_scanner),
@@ -661,7 +656,6 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
         repository_ctx.file("module.modulemap", _generate_system_module_map(
             repository_ctx,
             builtin_include_directories,
-            paths["@rules_cc//cc/private/toolchain:generate_system_module_map.sh"],
         ))
     extra_flags_per_feature = {}
     if is_clang:
@@ -683,7 +677,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     write_builtin_include_directory_paths(repository_ctx, cc, builtin_include_directories)
     repository_ctx.template(
         "BUILD",
-        paths["@rules_cc//cc/private/toolchain:BUILD.tpl"],
+        Label("@rules_cc//cc/private/toolchain:BUILD.tpl"),
         # @unsorted-dict-items
         {
             "%{abi_libc_version}": escape_string(get_env_var(

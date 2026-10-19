@@ -37,6 +37,19 @@ def resolve_labels(repository_ctx, labels):
     """
     return dict([(label, repository_ctx.path(Label(label))) for label in labels])
 
+def copy_file(repository_ctx, src, dest):
+    """Copies a file into the repository.
+
+    Unlike repository_ctx.symlink, this doesn't require the repository
+    containing the file to be present on disk.
+
+    Args:
+      repository_ctx: The repository context.
+      src: The Label of the file to copy.
+      dest: The path of the copy relative to the repository root.
+    """
+    repository_ctx.template(dest, src, executable = False)
+
 def escape_string(arg):
     """Escape percent sign (%) in the string so it can appear in the Crosstool."""
     if arg != None:
