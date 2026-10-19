@@ -17,6 +17,9 @@
 def resolve_labels(repository_ctx, labels):
     """Resolves a collection of labels to their paths.
 
+    Deprecated: This function is no longer used by rules_cc and will be removed
+    in the future. Pass labels to repository_ctx methods directly instead.
+
     Label resolution can cause the evaluation of Starlark functions to restart.
     For functions with side-effects (like the auto-configuration functions, which
     inspect the system and touch the file system), such restarts are costly.
