@@ -20,17 +20,6 @@ def resolve_labels(repository_ctx, labels):
     Deprecated: This function is no longer used by rules_cc and will be removed
     in the future. Pass labels to repository_ctx methods directly instead.
 
-    Label resolution can cause the evaluation of Starlark functions to restart.
-    For functions with side-effects (like the auto-configuration functions, which
-    inspect the system and touch the file system), such restarts are costly.
-    We cannot avoid the restarts, but we can minimize their penalty by resolving
-    all labels upfront.
-
-    Among other things, doing less work on restarts can cut analysis times by
-    several seconds and may also prevent tickling kernel conditions that cause
-    build failures.  See https://github.com/bazelbuild/bazel/issues/5196 for
-    more details.
-
     Args:
       repository_ctx: The context with which to resolve the labels.
       labels: Labels to be resolved expressed as a list of strings.
