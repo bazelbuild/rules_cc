@@ -947,11 +947,6 @@ def _verify_no_disallowed_copts(
         if not hasattr(info, "flags") or not info.flags:
             continue
 
-        # Check if target is exempt under this policy's allowlist
-        allowlist = getattr(info, "allowlist", None)
-        if allowlist != None and allowlist.contains(ctx.label):
-            continue
-
         allowlist_target_label = getattr(info, "allowlist_target_label", None)
         error_message = getattr(info, "error_message", None)
 
@@ -964,10 +959,23 @@ def _verify_no_disallowed_copts(
                 ("'--conlyopt' flag", command_line_copts.conlyopts),
             ])
 
-        for source, flags in flag_sources:
-            for flag in flags:
-                if _matches_disallowed_copt(flag, info.flags):
-                    violations.append((flag, allowlist_target_label, error_message, source))
+        matches = [
+            (flag, source)
+            for source, flags in flag_sources
+            for flag in flags
+            if _matches_disallowed_copt(flag, info.flags)
+        ]
+        if not matches:
+            continue
+
+        # Check the allowlist only after a match: lookups scan "//pkg/..."
+        # entries linearly, and most targets use no disallowed flags.
+        allowlist = getattr(info, "allowlist", None)
+        if allowlist != None and allowlist.contains(ctx.label):
+            continue
+
+        for flag, source in matches:
+            violations.append((flag, allowlist_target_label, error_message, source))
 
     if violations:
         formatted_violations = []
