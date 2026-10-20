@@ -24,3 +24,6 @@ jobs:
         with:
           audit-loads: true
           bazel-version: '9.3.0'
+          files: |
+            cc/toolchains/impl/libc_version.bzl
+            cc/toolchains/impl/markdown_helpers.bzl
