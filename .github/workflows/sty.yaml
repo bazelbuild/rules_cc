@@ -39,3 +39,4 @@ jobs:
             cc/toolchains/legacy_tool.bzl
             cc/toolchains/make_variable.bzl
             cc/toolchains/tool_capability.bzl
+            cc/use_cc_toolchain.bzl
