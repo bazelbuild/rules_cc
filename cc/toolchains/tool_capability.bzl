@@ -22,6 +22,7 @@ load(
 )
 
 def _cc_tool_capability_impl(ctx):
+    # type: (...) -> list[ToolCapabilityInfo | FeatureConstraintInfo]
     ft = FeatureInfo(
         name = ctx.attr.feature_name or ctx.label.name,
         label = ctx.label,
