@@ -25,6 +25,7 @@ jobs:
           audit-loads: true
           bazel-version: '9.3.0'
           files: |
+            cc/private/paths.bzl
             cc/toolchains/actions.bzl
             cc/toolchains/args_list.bzl
             cc/toolchains/artifacts.bzl
