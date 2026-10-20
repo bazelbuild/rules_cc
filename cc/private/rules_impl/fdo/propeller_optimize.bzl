@@ -20,6 +20,7 @@ PropellerOptimizeInfo = provider(
 )
 
 def _impl(ctx):
+    # type: (...) -> PropellerOptimizeInfo
     return PropellerOptimizeInfo(
         cc_profile = ctx.file.cc_profile,
         ld_profile = ctx.file.ld_profile,
