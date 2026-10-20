@@ -22,8 +22,6 @@ load(":objc_common.bzl", "objc_common")
 load(":objc_compilation_artifacts_info.bzl", "CompilationArtifactsInfo")
 load(":objc_intermediate_artifacts.bzl", "create_intermediate_artifacts")
 
-XcodeVersionInfo = apple_common.XcodeVersionConfig
-
 def _build_variable_extensions(ctx, arc_enabled):
     extensions = {}
     if hasattr(ctx.attr, "pch") and ctx.attr.pch != None:
@@ -282,13 +280,7 @@ def _get_non_arc_srcs(ctx):
         if DefaultInfo in src:
             for artifact in src[DefaultInfo].files.to_list():
                 artifact_label_map[artifact] = src.label
-    return _map_to_list(artifact_label_map)
-
-def _map_to_list(m):
-    result = []
-    for k, v in m.items():
-        result.append((k, v))
-    return result
+    return artifact_label_map.items()
 
 def _cc_compile_and_link(
         srcs,

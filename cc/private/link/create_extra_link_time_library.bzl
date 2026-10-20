@@ -22,8 +22,8 @@ This file is extremely widely loaded (due to being used by CcInfo),
 do not load others unless absolutely necessary.
 """
 
-load("//cc/common:visibility.bzl", "check_private_api")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
+load("//cc/private:visibility.bzl", "check_private_api")
 
 # An implementation of ExtraLinkTimeLibrary that uses functions and data passed in from Starlark.
 

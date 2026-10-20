@@ -155,16 +155,16 @@ def create_link_variables(
     vars = setup_common_linking_variables(
         cc_toolchain,
         feature_configuration,
-        [],  # libraries_to_link
-        runtime_library_search_directories,
-        library_search_directories,
-        user_link_flags,
-        param_file,
-        is_using_linker,
-        is_linking_dynamic_library,
-        must_keep_debug,
-        use_test_only_flags,
-        is_static_linking_mode,
+        libraries_to_link = [],
+        runtime_library_search_directories = runtime_library_search_directories,
+        library_search_directories = library_search_directories,
+        user_link_flags = user_link_flags,
+        param_file = param_file,
+        is_using_linker = is_using_linker,
+        is_linking_dynamic_library = is_linking_dynamic_library,
+        must_keep_debug = must_keep_debug,
+        use_test_only_flags = use_test_only_flags,
+        is_static_linking_mode = is_static_linking_mode,
     )
 
     # output exec path

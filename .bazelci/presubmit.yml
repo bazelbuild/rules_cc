@@ -62,19 +62,19 @@
 buildifier: 8.5.1
 
 tasks:
-  ubuntu2004_docs:
+  ubuntu_docs:
     name: Docs
-    platform: ubuntu2004
+    platform: ubuntu2404
     build_targets:
       - "//docs/..."
     test_targets:
       - "//docs/..."
 
 # Bazel@HEAD
-  ubuntu2004_head:
-    name: Ubuntu 20.04 (Bazel HEAD)
+  ubuntu_head:
+    name: Ubuntu (Bazel HEAD)
     bazel: last_green
-    platform: ubuntu2004
+    platform: ubuntu2404
     build_targets: *build_targets
     test_targets: *test_targets
     coverage_flags: *common_coverage_flags
@@ -111,10 +111,10 @@ tasks:
     coverage_targets: *coverage_targets
 
   # Bazel@rolling
-  ubuntu2004_rolling:
-    name: Ubuntu 20.04 (Bazel rolling)
+  ubuntu_rolling:
+    name: Ubuntu (Bazel rolling)
     bazel: rolling
-    platform: ubuntu2004
+    platform: ubuntu2404
     build_targets: *build_targets
     test_targets: *test_targets
     coverage_flags: *common_coverage_flags
@@ -152,10 +152,10 @@ tasks:
     # coverage_targets: *coverage_targets
 
 # Bazel 7
-  ubuntu2004_bazel_7:
-    name: Ubuntu 20.04 (Bazel 7)
+  ubuntu_bazel_7:
+    name: Ubuntu (Bazel 7)
     bazel: 7.x
-    platform: ubuntu2004
+    platform: ubuntu2404
     build_targets: *build_targets_bazel_less_than_9
     test_targets: *test_targets_bazel_less_than_9
     coverage_flags: *common_coverage_flags
@@ -193,10 +193,10 @@ tasks:
     test_flags: *windows_test_flags
 
 # Bazel 8
-  ubuntu2004_bazel_8:
-    name: Ubuntu 20.04 (Bazel 8)
+  ubuntu_bazel_8:
+    name: Ubuntu (Bazel 8)
     bazel: 8.x
-    platform: ubuntu2004
+    platform: ubuntu2404
     build_targets: *build_targets_bazel_less_than_9
     test_targets: *test_targets_bazel_less_than_9
     coverage_flags: *common_coverage_flags
@@ -230,10 +230,10 @@ tasks:
     coverage_targets: *test_targets_bazel_less_than_9
 
 # Bazel 9
-  ubuntu2004:
-    name: Ubuntu 20.04 (Bazel 9)
+  ubuntu:
+    name: Ubuntu (Bazel 9)
     bazel: 9.x
-    platform: ubuntu2004
+    platform: ubuntu2404
     build_targets: *build_targets
     test_targets: *test_targets
     coverage_flags: *common_coverage_flags
@@ -282,9 +282,9 @@ tasks:
     test_targets: *test_targets
 
   ubuntu_bzlmod:
-    name: Ubuntu 20.04 (Bazel 9, bzlmod)
+    name: Ubuntu (Bazel 9, bzlmod)
     bazel: 9.x
-    platform: ubuntu2004
+    platform: ubuntu2404
     build_flags:
       - "--enable_bzlmod"
       - "--ignore_dev_dependency"
@@ -293,7 +293,7 @@ tasks:
   ubuntu_rule_based_toolchains_bazel_7:
     name: Ubuntu rule-based toolchains (Bazel 7)
     bazel: 7.x
-    platform: ubuntu1804
+    platform: ubuntu2404
     <<: *rule_based_toolchain_config
     test_targets:
       - "//..."
@@ -301,7 +301,7 @@ tasks:
   ubuntu_rule_based_toolchains_bazel_8:
     name: Ubuntu rule-based toolchains (Bazel 8)
     bazel: 8.x
-    platform: ubuntu1804
+    platform: ubuntu2404
     <<: *rule_based_toolchain_config
     test_targets:
       - "//..."
@@ -309,7 +309,7 @@ tasks:
   ubuntu_rule_based_toolchains_bazel_9:
     name: Ubuntu rule-based toolchains (Bazel 9)
     bazel: 9.x
-    platform: ubuntu1804
+    platform: ubuntu2404
     <<: *rule_based_toolchain_config
     test_targets:
       - "//..."

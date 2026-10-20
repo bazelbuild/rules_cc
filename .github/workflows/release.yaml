@@ -23,9 +23,29 @@ permissions:
   attestations: write
   contents: write
 jobs:
+  check-commit-status:
+    name: Check commit status
+    runs-on: ubuntu-latest
+    permissions:
+      statuses: read
+    steps:
+      - name: Require a green commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          status="$(gh api \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/status" \
+            --jq '.state')"
+          if [[ "${status}" != "success" ]]; then
+            echo "::error::Commit ${GITHUB_SHA} is not green (combined status: ${status})."
+            exit 1
+          fi
   release:
+    needs: check-commit-status
     uses: bazel-contrib/.github/.github/workflows/release_ruleset.yaml@v7.2.3
     with:
+      bazel_test_command: "true"
       prerelease: false
       release_files: rules_cc-*.tar.gz
       tag_name: ${{ inputs.tag_name || github.ref_name }}

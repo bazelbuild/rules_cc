@@ -62,3 +62,9 @@ cc_args(
     iterate_over = "//cc/toolchains/variables:unfiltered_compile_flags",
     requires_not_none = "//cc/toolchains/variables:unfiltered_compile_flags",
 )
+
+filegroup(
+    name = "srcs",
+    srcs = ["BUILD"],
+    visibility = ["//cc/toolchains/args:__pkg__"],
+)

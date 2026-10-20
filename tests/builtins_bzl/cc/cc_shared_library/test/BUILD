@@ -552,6 +552,19 @@ exports_test(
     ],
 )
 
+exports_test(
+    name = "external_select_exports_filter_exports_test",
+    bazel_only = True,
+    # target = "external_export_so",  # copybara-comment-this-out-please
+    target = "@cross_repo_test//:bar_so",  # copybara-uncomment-this-please
+    targets_that_should_be_claimed_to_be_exported = [
+        # buildifier: disable=canonical-repository
+        "@@test_repo+//:bar",  # copybara-uncomment-this-please
+        # buildifier: disable=canonical-repository
+        "@@test_repo+//:bar_wrapper",  # copybara-uncomment-this-please
+    ],
+)
+
 pdb_test(
     name = "pdb_test",
     target = ":foo_so",

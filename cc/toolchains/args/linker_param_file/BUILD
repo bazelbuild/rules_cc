@@ -27,3 +27,9 @@ cc_args(
     format = {"param_file": "//cc/toolchains/variables:linker_param_file"},
     requires_not_none = "//cc/toolchains/variables:linker_param_file",
 )
+
+filegroup(
+    name = "srcs",
+    srcs = ["BUILD"],
+    visibility = ["//cc/toolchains/args:__pkg__"],
+)

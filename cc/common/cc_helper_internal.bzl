@@ -19,8 +19,8 @@ Only use those within C++ implementation. The others need to go through cc_commo
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("//cc/common:feature_names.bzl", "feature_names")
-load("//cc/common:visibility.bzl", _CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES = "CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES", _PRIVATE_STARLARKIFICATION_ALLOWLIST = "PRIVATE_STARLARKIFICATION_ALLOWLIST", _check_private_api = "check_private_api", _wrap_with_check_private_api = "wrap_with_check_private_api")
 load("//cc/private:paths.bzl", "is_path_absolute")
+load("//cc/private:visibility.bzl", _CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES = "CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES", _PRIVATE_STARLARKIFICATION_ALLOWLIST = "PRIVATE_STARLARKIFICATION_ALLOWLIST", _check_private_api = "check_private_api", _wrap_with_check_private_api = "wrap_with_check_private_api")
 
 check_private_api = _check_private_api
 wrap_with_check_private_api = _wrap_with_check_private_api
