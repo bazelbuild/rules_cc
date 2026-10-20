@@ -17,6 +17,7 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 exports_files(
     [
         "cc_toolchain_info.bzli",
+        "directory_tool.bzli",
         "tool.bzli",
         "tool_map.bzli",
     ],

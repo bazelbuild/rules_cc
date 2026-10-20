@@ -1,0 +1,17 @@
+"""Tools extracted from directories."""
+
+load("//cc/toolchains:tool.bzl", _cc_tool = "cc_tool")
+
+type _Strings = Iterable[str] | depset[str]
+type _StringsInput = _Strings | select[_Strings | None] | None
+type _Bool = bool | Literal[0, 1]
+
+def cc_directory_tool(
+    name: str,
+    directory: str | Label | select[str | Label | None],
+    executable: str,
+    data: _StringsInput = ...,
+    exclude: _StringsInput = ...,
+    allow_empty: _Bool | select[_Bool | None] | None = ...,
+    **kwargs: Unpack[KeywordArgs[_cc_tool, "name", "src", "data"]],
+) -> None: ...
