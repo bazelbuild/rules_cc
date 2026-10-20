@@ -5,11 +5,11 @@ load("//cc/toolchains:cc_toolchain_info.bzli", "NestedArgsInfo")
 type _Fail = Callable[[str], None]
 type _RawString = struct[{"__raw_string": str}]
 type _Format = Mapping[str, Target | _RawString]
-type _Attrs = struct[{
+type _Attrs[T: Target] = struct[{
     "args": list[str],
-    "format": dict[Target, str],
-    "nested": list[Target],
-    "data": list[Target],
+    "format": Mapping[T, str],
+    "nested": Sequence[Target],
+    "data": Sequence[Target],
     "iterate_over": Target | None,
     "requires_not_none": Target | None,
     "requires_none": Target | None,
@@ -20,13 +20,13 @@ type _Attrs = struct[{
 }, ...]
 
 def _var(target: Target | None) -> str | None: ...
-def nested_args_provider_from_ctx(ctx: ctx[object, _Attrs], maybe_used_vars: Sequence[str] = ...) -> NestedArgsInfo: ...
-def nested_args_provider(
+def nested_args_provider_from_ctx[T: Target](ctx: ctx[object, _Attrs[T]], maybe_used_vars: Sequence[str] = ...) -> NestedArgsInfo: ...
+def nested_args_provider[T: Target](
         *,
         label: Label,
         args: Sequence[str] = ...,
         nested: Sequence[NestedArgsInfo] = ...,
-        format: Mapping[Target, str] = ...,
+        format: Mapping[T, str] = ...,
         files: depset[File] = ...,
         iterate_over: Target | None = ...,
         requires_not_none: str | None = ...,
