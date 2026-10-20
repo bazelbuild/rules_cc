@@ -36,7 +36,9 @@ jobs:
             cc/toolchains/impl/external_feature.bzl
             cc/toolchains/impl/libc_version.bzl
             cc/toolchains/impl/markdown_helpers.bzl
+            cc/toolchains/legacy_file_group.bzl
             cc/toolchains/legacy_tool.bzl
             cc/toolchains/make_variable.bzl
+            cc/toolchains/mutually_exclusive_category.bzl
             cc/toolchains/tool_capability.bzl
             cc/use_cc_toolchain.bzl
