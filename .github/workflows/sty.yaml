@@ -25,8 +25,16 @@ jobs:
           audit-loads: true
           bazel-version: '9.3.0'
           files: |
+            cc/toolchains/actions.bzl
+            cc/toolchains/args_list.bzl
+            cc/toolchains/artifacts.bzl
+            cc/toolchains/feature.bzl
+            cc/toolchains/feature_constraint.bzl
+            cc/toolchains/feature_set.bzl
             cc/toolchains/impl/cc_artifact_category.bzl
             cc/toolchains/impl/external_feature.bzl
             cc/toolchains/impl/libc_version.bzl
             cc/toolchains/impl/markdown_helpers.bzl
+            cc/toolchains/legacy_tool.bzl
+            cc/toolchains/make_variable.bzl
             cc/toolchains/tool_capability.bzl
