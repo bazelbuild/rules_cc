@@ -607,15 +607,7 @@ def _impl(ctx):
                     ] if ctx.attr.conly_flags else []),
                 ),
                 flag_set(
-                    actions = [
-                        ACTION_NAMES.linkstamp_compile,
-                        ACTION_NAMES.cpp_compile,
-                        ACTION_NAMES.cpp_header_parsing,
-                        ACTION_NAMES.cpp_module_compile,
-                        ACTION_NAMES.cpp_module_codegen,
-                        ACTION_NAMES.lto_backend,
-                        ACTION_NAMES.clif_match,
-                    ],
+                    actions = all_cpp_compile_actions + [ACTION_NAMES.lto_backend],
                     flag_groups = ([
                         flag_group(
                             flags = ctx.attr.cxx_flags,
@@ -1666,15 +1658,7 @@ def _impl(ctx):
                         ] if ctx.attr.conly_flags else []),
                     ),
                     flag_set(
-                        actions = [
-                            ACTION_NAMES.linkstamp_compile,
-                            ACTION_NAMES.cpp_compile,
-                            ACTION_NAMES.cpp_header_parsing,
-                            ACTION_NAMES.cpp_module_compile,
-                            ACTION_NAMES.cpp_module_codegen,
-                            ACTION_NAMES.lto_backend,
-                            ACTION_NAMES.clif_match,
-                        ],
+                        actions = all_cpp_compile_actions + [ACTION_NAMES.lto_backend],
                         flag_groups = ([
                             flag_group(
                                 flags = ctx.attr.cxx_flags,
