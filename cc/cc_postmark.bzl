@@ -14,11 +14,7 @@
 
 """PostMark is not implemented in Bazel."""
 
-def _get_postmark_attrs():
-    return {}
-
-def _postmark_initializer(**kwargs):
-    return kwargs
+load("//cc:cc_postmark_initializers.bzl", _get_postmark_attrs = "get_postmark_attrs", _postmark_initializer = "postmark_initializer")
 
 def _add_postmark_action(
         ctx,  # @unused
