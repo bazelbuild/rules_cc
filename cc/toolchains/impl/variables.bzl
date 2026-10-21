@@ -176,7 +176,7 @@ def get_type(*, name, variables, overrides, actions, args_label, nested_label, f
             # buildifier: disable=unreachable
             return types.void
 
-        type = overrides.get(full, type["kv"][part])
+        type = overrides[full] if full in overrides else type["kv"][part]
         parent = full
 
     return type
