@@ -1,0 +1,36 @@
+"""Objective-C compilation and linking information."""
+
+# The provider and initializer need separate declarations; keep their signatures and fields in sync.
+def ObjcInfo(
+    j2objc_library: depset[File] = ...,
+    module_map: depset[File] = ...,
+    source: depset[File] = ...,
+    strict_include: depset[str] = ...,
+    umbrella_header: depset[File] = ...,
+    providers: Iterable[ObjcInfo] = ...,
+) -> record[{
+    "direct_module_maps": list[File],
+    "direct_sources": list[File],
+    "j2objc_library": depset[File],
+    "module_map": depset[File],
+    "source": depset[File],
+    "strict_include": depset[str],
+    "umbrella_header": depset[File],
+}]: ...
+
+def _objcinfo_init(
+    j2objc_library: depset[File] = ...,
+    module_map: depset[File] = ...,
+    source: depset[File] = ...,
+    strict_include: depset[str] = ...,
+    umbrella_header: depset[File] = ...,
+    providers: Iterable[ObjcInfo] = ...,
+) -> dict[{
+    "direct_module_maps": list[File],
+    "direct_sources": list[File],
+    "j2objc_library": depset[File],
+    "module_map": depset[File],
+    "source": depset[File],
+    "strict_include": depset[str],
+    "umbrella_header": depset[File],
+}]: ...

@@ -5,6 +5,7 @@ require-valid-suppressions = true
 [type-interfaces]
 "cc/cc_postmark_initializers.bzl" = "cc/cc_postmark_initializers.bzli"
 "cc/cc_toolchain_config_lib.bzl" = "cc/cc_toolchain_config_lib.bzli"
+"cc/private/objc_info.bzl" = "cc/private/objc_info.bzli"
 
 "cc/toolchains/cc_toolchain_info.bzl" = "cc/toolchains/cc_toolchain_info.bzli"
 "cc/toolchains/directory_tool.bzl" = "cc/toolchains/directory_tool.bzli"
