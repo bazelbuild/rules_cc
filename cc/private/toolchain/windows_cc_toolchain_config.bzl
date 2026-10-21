@@ -1743,7 +1743,6 @@ def _impl(ctx):
         name = "windows_quoting_for_param_files",
         enabled = _use_msvc_toolchain(ctx),
     )
-    features.append(windows_quoting_for_param_files_feature)
 
     # Tell bazel we support C++ modules now
     cpp_modules_feature = feature(
@@ -1791,7 +1790,7 @@ def _impl(ctx):
         ],
         enabled = True,
     )
-    features.extend([cpp_modules_feature, cpp_module_modmap_file_feature, cpp20_module_compile_flags_feature])
+    features.extend([windows_quoting_for_param_files_feature, cpp_modules_feature, cpp_module_modmap_file_feature, cpp20_module_compile_flags_feature])
 
     extra_rules_based_features = depset(ctx.attr.extra_enabled_features + ctx.attr.extra_known_features)
     features.extend([convert_feature(extra_feature[FeatureInfo], enabled = extra_feature in ctx.attr.extra_enabled_features) for extra_feature in extra_rules_based_features.to_list()])
