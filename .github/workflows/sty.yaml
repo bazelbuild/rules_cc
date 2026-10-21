@@ -26,6 +26,7 @@ jobs:
           bazel-version: '9.3.0'
           files: |
             cc/action_names.bzl
+            cc/cc_postmark.bzl
             cc/common/feature_names.bzl
             cc/private/cc_shared_library_info.bzl
             cc/private/debug_package_info.bzl

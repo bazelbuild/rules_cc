@@ -21,9 +21,11 @@ def _add_postmark_action(
         cc_toolchain,  # @unused
         binary,  # @unused
         output_binary_for_linking):  # @unused
+    # type: (object, object, object, object) -> None
     pass
 
 def _get_use_postmark(ctx):  # @unused
+    # type: (object) -> Literal[False]
     return False
 
 postmark = struct(
