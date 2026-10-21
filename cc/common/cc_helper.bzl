@@ -897,10 +897,18 @@ def _report_invalid_options(cc_toolchain, cpp_config):
         fail("The selected toolchain does not support setting --grte_top (it doesn't specify builtin_sysroot).")
 
 def _check_cpp_modules(ctx, feature_configuration):
-    if len(ctx.files.module_interfaces) == 0:
+    module_interfaces = [
+        src
+        for src in ctx.files.srcs
+        if _check_file_extension(src, extensions.CPP_MODULE_INTERFACE, False)
+    ]
+    if not module_interfaces:
         return
     if not ctx.fragments.cpp.experimental_cpp_modules():
-        fail("requires --experimental_cpp_modules", attr = "module_interfaces")
+        fail(
+            "C++20 module interface '{}' requires --experimental_cpp_modules".format(module_interfaces[0].short_path),
+            attr = "srcs",
+        )
     if not feature_configuration.is_enabled(
         feature_names.CPP_MODULES,
     ):
@@ -1104,11 +1112,13 @@ def _calculate_artifact_label_map(attr_list, attr_name):
     for attr in attr_list:
         if DefaultInfo in attr:
             for artifact in attr[DefaultInfo].files.to_list():
-                if "." + artifact.extension not in extensions.CC_HEADER:
+                extension = "." + artifact.extension
+                if extension not in extensions.CC_HEADER:
                     old_label = artifact_label_map.get(artifact, None)
                     artifact_label_map[artifact] = attr.label
                     if old_label != None and old_label != attr.label and (
-                        "." + artifact.extension in extensions.CC_AND_OBJC or attr_name == "module_interfaces"
+                        extension in extensions.CC_AND_OBJC or
+                        extension in extensions.CPP_MODULE_INTERFACE
                     ):
                         fail(
                             "Artifact '{}' is duplicated (through '{}' and '{}')".format(artifact, old_label, attr),
@@ -1120,12 +1130,6 @@ def _get_srcs(ctx):
     if not hasattr(ctx.attr, "srcs"):
         return []
     artifact_label_map = _calculate_artifact_label_map(ctx.attr.srcs, "srcs")
-    return artifact_label_map.items()
-
-def _get_cpp_module_interfaces(ctx):
-    if not hasattr(ctx.attr, "module_interfaces"):
-        return []
-    artifact_label_map = _calculate_artifact_label_map(ctx.attr.module_interfaces, "module_interfaces")
     return artifact_label_map.items()
 
 # Returns a list of (Artifact, Label) tuples. Each tuple represents an input source
@@ -1193,7 +1197,8 @@ def _create_cc_instrumented_files_info(ctx, cc_config, cc_toolchain, feature_con
                         extensions.C_SOURCE + \
                         extensions.CC_HEADER + \
                         extensions.ASSEMBLER_WITH_C_PREPROCESSOR + \
-                        extensions.ASSEMBLER
+                        extensions.ASSEMBLER + \
+                        extensions.CPP_MODULE_INTERFACE
     coverage_environment = {}
     if ctx.configuration.coverage_enabled:
         coverage_environment = _get_coverage_environment(ctx, cc_config, cc_toolchain, feature_configuration)
@@ -1267,7 +1272,6 @@ cc_helper = struct(
     defines = _defines,
     local_defines = _local_defines,
     get_srcs = _get_srcs,
-    get_cpp_module_interfaces = _get_cpp_module_interfaces,
     get_private_hdrs = _get_private_hdrs,
     get_public_hdrs = _get_public_hdrs,
     is_code_coverage_enabled = _is_code_coverage_enabled,
