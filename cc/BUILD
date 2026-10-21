@@ -30,6 +30,7 @@ filegroup(
 )
 
 exports_files([
+    "cc_postmark_initializers.bzli",
     "cc_toolchain_config_lib.bzli",
     "defs.bzl",
     "action_names.bzl",
