@@ -38,6 +38,7 @@ jobs:
             cc/private/rules_impl/fdo/propeller_optimize.bzl
             cc/private/rules_impl/native_cc_common.bzl
             cc/toolchains/actions.bzl
+            cc/toolchains/args/libraries_to_link/private/library_link_args.bzl
             cc/toolchains/args_list.bzl
             cc/toolchains/artifacts.bzl
             cc/toolchains/fdo_prefetch_hints.bzl
