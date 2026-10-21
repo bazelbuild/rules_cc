@@ -79,6 +79,8 @@ Returns the current `CcToolchainInfo`.
         if not CC_TOOLCHAIN_TYPE in ctx.toolchains:
             fail("In order to use find_cc_toolchain, your rule has to depend on C++ toolchain. See find_cc_toolchain.bzl docs for details.")
         toolchain_info = ctx.toolchains[CC_TOOLCHAIN_TYPE]
+        if hasattr(toolchain_info, "cc_provider_in_toolchain") and hasattr(toolchain_info, "cc"):
+            toolchain_info = toolchain_info.cc
         if toolchain_info == None:
             if not mandatory:
                 return None
@@ -86,8 +88,6 @@ Returns the current `CcToolchainInfo`.
             # No cpp toolchain was found, so report an error.
             fail("Unable to find a CC toolchain using toolchain resolution. Target: %s, Platform: %s, Exec platform: %s" %
                  (ctx.label, ctx.fragments.platform.platform, ctx.fragments.platform.host_platform))
-        if hasattr(toolchain_info, "cc_provider_in_toolchain") and hasattr(toolchain_info, "cc"):
-            return toolchain_info.cc
         return toolchain_info
 
     # Fall back to the legacy implicit attribute lookup.

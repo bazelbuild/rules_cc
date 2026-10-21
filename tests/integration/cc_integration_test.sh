@@ -2113,6 +2113,41 @@ function test_find_optional_cpp_toolchain_not_present() {
    assert_contains "Toolchain not found" bazel-bin/pkg/my_rule
 }
 
+function test_find_cc_toolchain_rejects_empty_wrapped_provider() {
+  is_bazel || return 0
+  mkdir -p pkg
+  cat > pkg/rules.bzl <<'EOF'
+load("@rules_cc//cc:find_cc_toolchain.bzl", "find_cc_toolchain", "use_cc_toolchain")
+
+def _empty_toolchain_impl(ctx):
+    return [platform_common.ToolchainInfo(cc_provider_in_toolchain = True, cc = None)]
+
+empty_toolchain = rule(implementation = _empty_toolchain_impl)
+
+def _consumer_impl(ctx):
+    if find_cc_toolchain(ctx, mandatory = False) != None:
+        fail("Expected an empty optional C++ toolchain")
+    find_cc_toolchain(ctx)
+    return []
+
+consumer = rule(implementation = _consumer_impl, toolchains = use_cc_toolchain())
+EOF
+  cat > pkg/BUILD <<'EOF'
+load(":rules.bzl", "consumer", "empty_toolchain")
+
+empty_toolchain(name = "empty_impl")
+toolchain(
+    name = "empty",
+    toolchain = ":empty_impl",
+    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+)
+consumer(name = "consumer")
+EOF
+  bazel build //pkg:consumer --extra_toolchains=//pkg:empty &> "$TEST_log" && \
+    fail "Expected the mandatory C++ toolchain lookup to fail"
+  expect_log "Unable to find a CC toolchain using toolchain resolution"
+}
+
 function test_no_cpp_stdlib_linked_to_c_library() {
   
   mkdir -p pkg
