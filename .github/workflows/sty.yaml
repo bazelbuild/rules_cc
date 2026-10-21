@@ -63,3 +63,4 @@ jobs:
             cc/toolchains/providers.bzl
             cc/toolchains/tool_capability.bzl
             cc/use_cc_toolchain.bzl
+            local_bazel.bzl
