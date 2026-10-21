@@ -679,6 +679,12 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
         ])
         if "-fno-cxx-modules" not in result.stderr:
             extra_flags_per_feature["use_module_maps"] = ["-Xclang", "-fno-cxx-modules"]
+    elif _is_gcc(repository_ctx, cc):
+        # GCC 15 renamed -fmodules-ts to -fmodules, which GCC 14 doesn't support.
+        # https://patchwork.ozlabs.org/project/gcc/patch/20241009225246.2770766-4-jason@redhat.com/
+        extra_flags_per_feature["cpp_module_modmap_file"] = (
+            ["-fmodules"] if _is_compiler_option_supported(repository_ctx, cc, "-fmodules") else ["-fmodules-ts"]
+        )
 
     write_builtin_include_directory_paths(repository_ctx, cc, builtin_include_directories)
     repository_ctx.template(

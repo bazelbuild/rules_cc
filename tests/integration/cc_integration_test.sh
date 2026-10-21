@@ -2400,6 +2400,88 @@ EOF
   expect_log "17 disk cache hit"
 }
 
+function test_cpp20_modules_with_gcc() {
+  type -P gcc || return 0
+  # GCC supports C++20 modules with -fdeps-format=p1689r5 since version 14
+  gcc_major_version=$(gcc -dumpversion | cut -d. -f1)
+  if [[ "$gcc_major_version" -lt 14 ]]; then
+    return 0
+  fi
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    return 0
+  fi
+
+  cat > BUILD <<'EOF'
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_binary")
+
+package(features = ["cpp_modules"])
+
+cc_library(
+  name = "base",
+  module_interfaces = ["base.cppm"],
+)
+cc_library(
+  name = "foo",
+  module_interfaces = ["foo.cppm"],
+  deps = [":base"]
+)
+cc_library(
+  name = "bar",
+  module_interfaces = ["bar.cppm"],
+  deps = [":base"]
+)
+cc_binary(
+  name = "main",
+  srcs = ["main.cc"],
+  deps = [":foo", ":bar"]
+)
+EOF
+  cat > main.cc <<'EOF'
+import foo;
+import bar;
+
+void f() {
+  f_foo();
+  f_bar();
+}
+
+int main() {
+  f();
+  return 0;
+}
+EOF
+  cat > foo.cppm <<'EOF'
+export module foo;
+import base;
+
+export void f_foo() {
+  f_base();
+}
+EOF
+  cat > bar.cppm <<'EOF'
+export module bar;
+import base;
+
+export void f_bar() {
+  f_base();
+}
+EOF
+  cat > base.cppm <<'EOF'
+export module base;
+
+export void f_base() {
+}
+EOF
+
+  export CC=gcc
+  bazel build //:main --experimental_cpp_modules --repo_env=CC=gcc --copt=-std=c++20 --disk_cache=disk &> $TEST_log || fail "Expected build C++20 Modules success with compiler 'gcc'"
+
+  # Verify that the build can hit the cache without action cycles.
+  bazel clean || fail "Expected clean success"
+  bazel build //:main --experimental_cpp_modules --repo_env=CC=gcc --copt=-std=c++20 --disk_cache=disk &> $TEST_log || fail "Expected build C++20 Modules success with compiler 'gcc'"
+  expect_log "17 disk cache hit"
+}
+
 function test_external_repo_lto() {
   type -P clang || return 0
   is_bazel || return 0
