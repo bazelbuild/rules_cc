@@ -26,6 +26,7 @@ jobs:
           bazel-version: '9.3.0'
           files: |
             cc/private/paths.bzl
+            cc/private/rules_impl/failing_cc_proto_library.bzl
             cc/private/rules_impl/fdo/fdo_prefetch_hints.bzl
             cc/private/rules_impl/fdo/fdo_profile.bzl
             cc/private/rules_impl/fdo/memprof_profile.bzl
