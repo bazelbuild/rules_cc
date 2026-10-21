@@ -42,6 +42,7 @@ jobs:
             cc/toolchains/fdo_profile.bzl
             cc/toolchains/feature.bzl
             cc/toolchains/feature_constraint.bzl
+            cc/toolchains/feature_injection.bzl
             cc/toolchains/feature_set.bzl
             cc/toolchains/impl/cc_artifact_category.bzl
             cc/toolchains/impl/external_feature.bzl
@@ -53,5 +54,6 @@ jobs:
             cc/toolchains/memprof_profile.bzl
             cc/toolchains/mutually_exclusive_category.bzl
             cc/toolchains/propeller_optimize.bzl
+            cc/toolchains/providers.bzl
             cc/toolchains/tool_capability.bzl
             cc/use_cc_toolchain.bzl
