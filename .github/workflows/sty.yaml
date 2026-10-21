@@ -25,12 +25,16 @@ jobs:
           audit-loads: true
           bazel-version: '9.3.0'
           files: |
+            cc/private/cc_shared_library_info.bzl
+            cc/private/debug_package_info.bzl
+            cc/private/graph_node_info.bzl
             cc/private/paths.bzl
             cc/private/rules_impl/failing_cc_proto_library.bzl
             cc/private/rules_impl/fdo/fdo_prefetch_hints.bzl
             cc/private/rules_impl/fdo/fdo_profile.bzl
             cc/private/rules_impl/fdo/memprof_profile.bzl
             cc/private/rules_impl/fdo/propeller_optimize.bzl
+            cc/private/rules_impl/native_cc_common.bzl
             cc/toolchains/actions.bzl
             cc/toolchains/args_list.bzl
             cc/toolchains/artifacts.bzl
