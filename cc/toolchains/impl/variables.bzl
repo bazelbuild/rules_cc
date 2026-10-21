@@ -137,12 +137,13 @@ def get_type(*, name, variables, overrides, actions, args_label, nested_label, f
         # buildifier: disable=unreachable
         return types.void
 
-    if variables[outer].actions != None:
-        valid_actions = variables[outer].actions.to_list()
+    variable = variables[outer]
+    if variable.actions != None:
+        valid_actions = variable.actions.to_list()
         for action in actions:
             if action not in valid_actions:
                 fail("The variable {var} is inaccessible from the action {action}. This is required because it is referenced in {nested_label}, which is included by {args_label}, which references that action".format(
-                    var = variables[outer].label,
+                    var = variable.label,
                     nested_label = nested_label,
                     args_label = args_label,
                     action = action.label,
@@ -151,7 +152,7 @@ def get_type(*, name, variables, overrides, actions, args_label, nested_label, f
                 # buildifier: disable=unreachable
                 return types.void
 
-    type = overrides.get(outer, variables[outer].type)
+    type = overrides.get(outer, variable.type)
 
     parent = outer
     for part in name.split(".")[1:]:
