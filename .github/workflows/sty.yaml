@@ -25,6 +25,8 @@ jobs:
           audit-loads: true
           bazel-version: '9.3.0'
           files: |
+            cc/action_names.bzl
+            cc/common/feature_names.bzl
             cc/private/cc_shared_library_info.bzl
             cc/private/debug_package_info.bzl
             cc/private/graph_node_info.bzl
