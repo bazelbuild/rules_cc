@@ -1476,7 +1476,7 @@ EOF
 
 function test_env_inherit_cc_test() {
   
-  mkdir pkg
+  mkdir -p pkg
   cat > pkg/BUILD <<EOF
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 cc_test(
@@ -1504,7 +1504,7 @@ EOF
 
 function test_env_attr_cc_binary() {
   
-  mkdir pkg
+  mkdir -p pkg
   cat > pkg/BUILD <<EOF
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 cc_binary(
@@ -1942,7 +1942,7 @@ function test_cc_toolchain_asan_feature() {
   __is_installed "lib$feature" || return 0
 
   
-  mkdir pkg
+  mkdir -p pkg
   cat > pkg/BUILD <<EOF
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 cc_binary(
@@ -1979,7 +1979,7 @@ function test_cc_toolchain_tsan_feature() {
   __is_installed "lib$feature" || return 0
 
   
-  mkdir pkg
+  mkdir -p pkg
   cat > pkg/BUILD <<EOF
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 cc_binary(
