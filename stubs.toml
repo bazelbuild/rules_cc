@@ -11,6 +11,7 @@ format-version = 1
 "cc/toolchains/impl/label_utils.bzl" = "cc/toolchains/impl/label_utils.bzli"
 "cc/toolchains/impl/legacy_converter.bzl" = "cc/toolchains/impl/legacy_converter.bzli"
 "cc/toolchains/impl/nested_args.bzl" = "cc/toolchains/impl/nested_args.bzli"
+"cc/toolchains/impl/variables.bzl" = "cc/toolchains/impl/variables.bzli"
 "cc/toolchains/nested_args.bzl" = "cc/toolchains/nested_args.bzli"
 "cc/toolchains/tool.bzl" = "cc/toolchains/tool.bzli"
 "cc/toolchains/tool_map.bzl" = "cc/toolchains/tool_map.bzli"

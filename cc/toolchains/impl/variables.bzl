@@ -49,11 +49,16 @@ types = struct(
     ),
 )
 
+def _decode_variable_type(encoded):
+    # cc_variable is the sole writer of the private rule's JSON attribute.
+    return json.decode(encoded)  # ty: ignore[non-static-type, unsound-return-statement]
+
 def _cc_variable_impl(ctx):
+    # type: (...) -> list[VariableInfo]
     return [VariableInfo(
         name = ctx.label.name,
         label = ctx.label,
-        type = json.decode(ctx.attr.type),
+        type = _decode_variable_type(ctx.attr.type),
         actions = collect_action_types(ctx.attr.actions) if ctx.attr.actions else None,
     )]
 
@@ -66,7 +71,7 @@ _cc_variable = rule(
     provides = [VariableInfo],
 )
 
-def cc_variable(name, type, **kwargs):
+def cc_variable(name, type, *, actions = [], **kwargs):
     """Exposes a toolchain variable to use in toolchain argument expansions.
 
     This internal rule exposes [toolchain variables](https://bazel.build/docs/cc-toolchain-config-reference#cctoolchainconfiginfo-build-variables)
@@ -92,11 +97,13 @@ def cc_variable(name, type, **kwargs):
         name: (str) The name of the outer variable, and the rule.
         type: The type of the variable, constructed using `types` factory in
             [@rules_cc//cc/toolchains/impl:variables.bzl](https://github.com/bazelbuild/rules_cc/tree/main/cc/toolchains/impl/variables.bzl).
+        actions: The actions for which the variable is available.
         **kwargs: [common attributes](https://bazel.build/reference/be/common-definitions#common-attributes) that should be applied to this rule.
     """
-    _cc_variable(name = name, type = json.encode(type), **kwargs)
+    _cc_variable(name = name, type = json.encode(type), actions = actions, **kwargs)
 
 def _cc_builtin_variables_impl(ctx):
+    # type: (...) -> list[BuiltinVariablesInfo]
     return [BuiltinVariablesInfo(variables = {
         variable.name: variable
         for variable in collect_provider(ctx.attr.srcs, VariableInfo)

@@ -872,7 +872,7 @@ Generated rules:
 <pre>
 load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_variable")
 
-cc_variable(<a href="#cc_variable-name">name</a>, <a href="#cc_variable-type">type</a>, <a href="#cc_variable-kwargs">**kwargs</a>)
+cc_variable(<a href="#cc_variable-name">name</a>, <a href="#cc_variable-type">type</a>, *, <a href="#cc_variable-actions">actions</a>, <a href="#cc_variable-kwargs">**kwargs</a>)
 </pre>
 
 Exposes a toolchain variable to use in toolchain argument expansions.
@@ -904,6 +904,7 @@ cc_variable(
 | :------------- | :------------- | :------------- |
 | <a id="cc_variable-name"></a>name |  (str) The name of the outer variable, and the rule.   |  none |
 | <a id="cc_variable-type"></a>type |  The type of the variable, constructed using `types` factory in [@rules_cc//cc/toolchains/impl:variables.bzl](https://github.com/bazelbuild/rules_cc/tree/main/cc/toolchains/impl/variables.bzl).   |  none |
+| <a id="cc_variable-actions"></a>actions |  The actions for which the variable is available.   |  `[]` |
 | <a id="cc_variable-kwargs"></a>kwargs |  [common attributes](https://bazel.build/reference/be/common-definitions#common-attributes) that should be applied to this rule.   |  none |
 
 

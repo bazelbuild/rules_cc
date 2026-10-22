@@ -18,6 +18,7 @@ exports_files(
         "label_utils.bzli",
         "legacy_converter.bzli",
         "nested_args.bzli",
+        "variables.bzli",
     ],
     visibility = ["//visibility:public"],
 )

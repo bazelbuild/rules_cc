@@ -5,6 +5,10 @@ load("//cc:cc_toolchain_config_lib.bzli", "FlagGroupInfo")
 
 type TypeRequirement = struct[{"msg": str, "valid_types": list[str], "after_option_unwrap": bool}]
 type ActionArgs = struct[{"action": ActionTypeInfo, "args": Sequence[ArgsInfo], "files": depset[File]}]
+type LeafVariableType = dict[{"name": Literal["unknown", "void", "string", "bool", "file", "directory"], "repr": str}]
+type ElementVariableType = dict[{"name": Literal["option", "list"], "repr": str, "elements": VariableType}]
+type StructVariableType = dict[{"name": Literal["struct"], "repr": str, "kv": dict[str, VariableType]}]
+type VariableType = LeafVariableType | ElementVariableType | StructVariableType
 
 def ActionTypeInfo(
         *,
@@ -51,12 +55,12 @@ def VariableInfo(
         name: str,
         label: Label,
         actions: depset[ActionTypeInfo] | None,
-        type: object,
+        type: VariableType,
 ) -> record[{
     "name": str,
     "label": Label,
     "actions": depset[ActionTypeInfo] | None,
-    "type": object,
+    "type": VariableType,
 }]: ...
 
 def BuiltinVariablesInfo(
