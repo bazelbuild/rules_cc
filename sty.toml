@@ -2,22 +2,6 @@
 strict-generic-narrowing = true
 require-valid-suppressions = true
 
-[type-interfaces]
-"cc/cc_postmark_initializers.bzl" = "cc/cc_postmark_initializers.bzli"
-"cc/cc_toolchain_config_lib.bzl" = "cc/cc_toolchain_config_lib.bzli"
-"cc/private/objc_info.bzl" = "cc/private/objc_info.bzli"
-
-"cc/toolchains/cc_toolchain_info.bzl" = "cc/toolchains/cc_toolchain_info.bzli"
-"cc/toolchains/directory_tool.bzl" = "cc/toolchains/directory_tool.bzli"
-"cc/toolchains/impl/legacy_converter.bzl" = "cc/toolchains/impl/legacy_converter.bzli"
-
-"cc/toolchains/impl/collect.bzl" = "cc/toolchains/impl/collect.bzli"
-"cc/toolchains/impl/nested_args.bzl" = "cc/toolchains/impl/nested_args.bzli"
-"cc/toolchains/impl/label_utils.bzl" = "cc/toolchains/impl/label_utils.bzli"
-"cc/toolchains/nested_args.bzl" = "cc/toolchains/nested_args.bzli"
-"cc/toolchains/tool.bzl" = "cc/toolchains/tool.bzli"
-"cc/toolchains/tool_map.bzl" = "cc/toolchains/tool_map.bzli"
-
 [rules]
 missing-parameter-annotation = "error"
 missing-return-annotation = "error"
@@ -30,6 +14,9 @@ blanket-ignore-comment = "error"
 possibly-unresolved-reference = "error"
 possibly-missing-attribute = "error"
 division-by-zero = "error"
+
+[[stub-packages]]
+manifest = "stubs.toml"
 
 [[stub-packages]]
 manifest = "@bazel_skylib//:stubs.toml"

@@ -1,10 +1,5 @@
 format-version = 1
 
-[source]
-repository = "@rules_cc"
-module = "rules_cc"
-versions = ["0.0.0"]
-
 [files]
 "cc/cc_postmark_initializers.bzl" = "cc/cc_postmark_initializers.bzli"
 "cc/cc_toolchain_config_lib.bzl" = "cc/cc_toolchain_config_lib.bzli"
