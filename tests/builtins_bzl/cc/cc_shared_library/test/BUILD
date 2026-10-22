@@ -158,7 +158,7 @@ cc_library(
         "direct_so_file_cc_lib2.h",
         "foo.cc",
     ] + select({
-        "@platforms//os:linux": [":renamed_so_file_copy.so"],
+        "@platforms//os:linux": [":copy/renamed_so_file.so"],
         "//conditions:default": [],
     }),
     hdrs = ["foo.h"],
@@ -398,7 +398,7 @@ cc_shared_library(
 genrule(
     name = "check_file_named_correctly",
     srcs = ["just_main_output_renamed"],
-    outs = ["renamed_so_file_copy.so"],
+    outs = ["copy/renamed_so_file.so"],
     cmd = "cp $$(dirname $(execpath :just_main_output_renamed))/renamed_so_file.so $@",
 )
 

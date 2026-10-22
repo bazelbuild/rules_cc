@@ -256,7 +256,7 @@ def _runfiles_test_impl(env, target):
         matching.str_endswith("_Sbuiltins_Ubzl_Scc_Scc_Ushared_Ulibrary_Stest/libdirect_so_file.so"),
         matching.str_endswith("_Sbuiltins_Ubzl_Scc_Scc_Ushared_Ulibrary_Stest/libfoo_so.so"),
         matching.str_endswith("_Sbuiltins_Ubzl_Scc_Scc_Ushared_Ulibrary_Stest/libprivate_lib_so.so"),
-        matching.str_endswith("_Sbuiltins_Ubzl_Scc_Scc_Ushared_Ulibrary_Stest/renamed_so_file_copy.so"),
+        matching.str_endswith("_Sbuiltins_Ubzl_Scc_Scc_Ushared_Ulibrary_Stest_Scopy/renamed_so_file.so"),
         matching.str_endswith("_Sbuiltins_Ubzl_Scc_Scc_Ushared_Ulibrary_Stest3/libdiff_pkg_so.so"),
     ])
 
