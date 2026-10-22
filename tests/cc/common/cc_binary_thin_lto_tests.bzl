@@ -200,10 +200,10 @@ def _test_thin_lto_index_uses_its_action_tool(name, **kwargs):
 
 def _test_thin_lto_index_uses_its_action_tool_impl(env, target):
     index_action = env.expect.that_target(target).action_named("CppLTOIndexing")
-    env.expect.that_str(index_action.actual.argv[0]).equals("tests/cc/testutil/toolchains/lto_index_tool")
+    index_action.argv().offset(0, factory = subjects.str).equals("tests/cc/testutil/toolchains/lto_index_tool")
 
     link_action = env.expect.that_target(target).action_named("CppLink")
-    env.expect.that_str(link_action.actual.argv[0]).equals("tests/cc/testutil/toolchains/link_executable_tool")
+    link_action.argv().offset(0, factory = subjects.str).equals("tests/cc/testutil/toolchains/link_executable_tool")
 
 def _test_thin_lto_merged_object_uses_toolchain_extension(name, **kwargs):
     util.helper_target(
