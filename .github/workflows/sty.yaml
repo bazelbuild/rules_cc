@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
-      - uses: tamird/sty@237989337e3970e5e072717edadfc6b066e30fe6
+      - uses: tamird/sty@38d0d855aa4033b83ba4d2ca4747e90c495677aa
         with:
           audit-loads: true
           bazel-version: '9.3.0'
@@ -40,6 +40,7 @@ jobs:
             cc/private/rules_impl/fdo/memprof_profile.bzl
             cc/private/rules_impl/fdo/propeller_optimize.bzl
             cc/private/rules_impl/native_cc_common.bzl
+            cc/private/toolchain/cc_configure.bzl
             cc/toolchains/actions.bzl
             cc/toolchains/args/libraries_to_link/private/library_link_args.bzl
             cc/toolchains/args_list.bzl

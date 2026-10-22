@@ -375,6 +375,7 @@ def _find_generic(repository_ctx, name, env_name, overridden_tools, warn = False
     return result
 
 def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
+    # type: (repository_ctx, str, Mapping[str, str | path]) -> None
     """Configure C++ toolchain on Unix platforms.
 
     Args:

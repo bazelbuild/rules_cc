@@ -45,6 +45,7 @@ def escape_string(arg):
         return None
 
 def split_escaped(string, delimiter):
+    # type: (str, str) -> list[str]
     """Split string on the delimiter unless %-escaped.
 
     Examples:
@@ -75,7 +76,7 @@ def split_escaped(string, delimiter):
 
     i = 0
     result = []
-    accumulator = []
+    accumulator = []  # type: list[str]
     length = len(string)
     delimiter_length = len(delimiter)
 
@@ -106,12 +107,14 @@ def split_escaped(string, delimiter):
     return result
 
 def auto_configure_fail(msg):
+    # type: (object) -> Never
     """Output failure message when auto configuration fails."""
     red = "\033[0;31m"
     no_color = "\033[0m"
     fail("\n%sAuto-Configuration Error:%s %s\n" % (red, no_color, msg))
 
 def auto_configure_warning(msg):
+    # type: (object) -> None
     """Output warning message during auto configuration."""
     yellow = "\033[1;33m"
     no_color = "\033[0m"
@@ -137,8 +140,7 @@ def get_env_var(repository_ctx, name, default = None, enable_warning = True):
         if enable_warning:
             auto_configure_warning("'%s' environment variable is not set, using '%s' as default" % (name, default))
         return default
-    auto_configure_fail("'%s' environment variable is not set" % name)
-    return None
+    return auto_configure_fail("'%s' environment variable is not set" % name)
 
 def which(repository_ctx, cmd, default = None):
     """A wrapper around repository_ctx.which() to provide a fallback value. Doesn't %-escape the value!
@@ -170,8 +172,7 @@ def which_cmd(repository_ctx, cmd, default = None):
     if default != None:
         auto_configure_warning("Cannot find %s in PATH, using '%s' as default.\nPATH=%s" % (cmd, default, path))
         return default
-    auto_configure_fail("Cannot find %s in PATH, please make sure %s is installed and add its directory in PATH.\nPATH=%s" % (cmd, cmd, path))
-    return str(result)
+    return auto_configure_fail("Cannot find %s in PATH, please make sure %s is installed and add its directory in PATH.\nPATH=%s" % (cmd, cmd, path))
 
 def execute(
         repository_ctx,
@@ -223,6 +224,7 @@ def execute(
     return stripped_stdout
 
 def get_cpu_value(repository_ctx):
+    # type: (repository_ctx) -> str
     """Compute the cpu_value based on the OS name. Doesn't %-escape the result!
 
     Args:
@@ -262,26 +264,31 @@ def get_cpu_value(repository_ctx):
     return "k8" if arch in ["amd64", "x86_64", "x64"] else "piii"
 
 def is_cc_configure_debug(repository_ctx):
+    # type: (repository_ctx) -> bool
     """Returns True if CC_CONFIGURE_DEBUG is set to 1."""
     env = repository_ctx.os.environ
     return "CC_CONFIGURE_DEBUG" in env and env["CC_CONFIGURE_DEBUG"] == "1"
 
 def build_flags(flags):
+    # type: (Iterable[str]) -> str
     """Convert `flags` to a string of flag fields."""
     return "\n".join(["        flag: '" + flag + "'" for flag in flags])
 
 def get_starlark_list(values):
+    # type: (Collection[str]) -> str
     """Convert a list of string into a string that can be passed to a rule attribute."""
     if not values:
         return ""
     return "\"" + "\",\n    \"".join(values) + "\""
 
 def auto_configure_warning_maybe(repository_ctx, msg):
+    # type: (repository_ctx, object) -> None
     """Output warning message when CC_CONFIGURE_DEBUG is enabled."""
     if is_cc_configure_debug(repository_ctx):
         auto_configure_warning(msg)
 
 def write_builtin_include_directory_paths(repository_ctx, cc, directories, file_suffix = ""):
+    # type: (repository_ctx, object, Iterable[str], str) -> None
     """Generate output file named 'builtin_include_directory_paths' in the root of the repository."""
     if get_env_var(repository_ctx, "BAZEL_IGNORE_SYSTEM_HEADERS_VERSIONS", "0", False) == "1":
         repository_ctx.file(

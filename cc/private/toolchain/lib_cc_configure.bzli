@@ -1,0 +1,52 @@
+"""Type contracts for C++ toolchain configuration helpers."""
+
+def resolve_labels[T: str | Label](repository_ctx: repository_ctx, labels: Iterable[T]) -> dict[T, path]: ...
+
+@overload
+def escape_string(arg: None) -> None: ...
+@overload
+def escape_string(arg: str) -> str: ...
+@overload
+def escape_string(arg: object) -> str | None: ...
+def escape_string(arg: object) -> str | None: ...
+
+def get_env_var[T = Never](
+    repository_ctx: repository_ctx,
+    name: str,
+    default: T | None = ...,
+    enable_warning: bool = ...,
+) -> str | T: ...
+
+def which[T = Never](
+    repository_ctx: repository_ctx,
+    cmd: str,
+    default: T | None = ...,
+) -> str | T | None: ...
+
+def which_cmd[T = Never](
+    repository_ctx: repository_ctx,
+    cmd: str,
+    default: T | None = ...,
+) -> str | T: ...
+
+class _EnvironmentSchema[V](TypedDict, extra_items=ReadOnly[V]): ...
+
+type _Environment[K: str, V] = dict[K, V] | _EnvironmentSchema[V]
+
+# The wrapper forwards its environment to Bazel. Derive the accepted value
+# type from the repository context, since it varies across Bazel releases.
+class _Executable[K: str, V](Protocol):
+    def execute(
+        self,
+        __arguments: Sequence[str | Label | path],
+        *,
+        environment: _Environment[K, V] = ...,
+    ) -> exec_result: ...
+
+def execute[K: str = str, V = str](
+    repository_ctx: Intersection[repository_ctx, _Executable[K, V]],
+    command: Sequence[str | Label | path],
+    environment: _Environment[K, V] | None = ...,
+    expect_failure: bool = ...,
+    expect_empty_output: bool = ...,
+) -> str: ...

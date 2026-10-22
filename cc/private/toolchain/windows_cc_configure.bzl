@@ -902,6 +902,7 @@ def _get_copts(repository_ctx):
     return copts_vars
 
 def configure_windows_toolchain(repository_ctx):
+    # type: (repository_ctx) -> None
     """Configure C++ toolchain on Windows.
 
     Args:
