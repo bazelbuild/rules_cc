@@ -25,7 +25,7 @@ types: struct[{
     "struct": _StructFactory,
 }]
 
-type _Labels = Iterable[Label | str] | depset[Label | str] | None
+type _Labels = Collection[Label | str] | depset[Label | str] | None
 
 def _decode_variable_type(encoded: str) -> VariableType: ...
 
@@ -42,7 +42,7 @@ def get_type(
         name: str,
         variables: Mapping[str, VariableInfo],
         overrides: Mapping[str, VariableType],
-        actions: Iterable[ActionTypeInfo],
+        actions: Collection[ActionTypeInfo],
         args_label: Label,
         nested_label: Label,
         fail: Callable[[str], object],

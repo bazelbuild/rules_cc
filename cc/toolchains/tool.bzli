@@ -3,7 +3,7 @@
 load("//cc/toolchains:cc_toolchain_info.bzli", "ToolInfo")
 
 type _LabelInput = str | Label | select[str | Label | None]
-type _Labels = Iterable[str | Label] | depset[str | Label]
+type _Labels = Collection[str | Label] | depset[str | Label]
 type _LabelsInput = _Labels | select[_Labels | None] | None
 type _EnvironmentInput = Mapping[str, str] | select[Mapping[str, str] | None] | None
 type _Attrs = struct[{

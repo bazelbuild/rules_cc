@@ -51,6 +51,11 @@ def collect_defaultinfo(targets):
 def _make_collector(field):
     def collector(targets, direct = [], transitive = []):
         # type: (Sequence[Target], Sequence[T], list[depset[T]]) -> depset[T]
+        # TODO(https://github.com/bazelbuild/bazel/issues/32021): make this an
+        # annotation once supported Bazel versions have element-typed depsets,
+        # source type parameters, and admit Target values in sequences.
+        # Target admission: https://github.com/bazelbuild/bazel/issues/32024
+        # The first issue covers only the depset requirement.
         # Avoid mutating what was passed in.
         transitive = transitive[:]
         for target in targets:
@@ -136,6 +141,9 @@ def collect_args_lists(targets, label):
         transitive_files.extend([args_info.files for args_info in args_list.args])
         for value in args_list.by_action:
             action_args = []  # type: list[ArgsInfo]
+
+            # TODO(https://github.com/bazelbuild/bazel/issues/32021): make this an
+            # annotation when supported Bazel versions expose element-typed depsets.
             action_files = []  # type: list[depset[File]]
             out = by_action.setdefault(
                 value.action,

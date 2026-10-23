@@ -2,7 +2,7 @@
 
 type _Label = str | Label
 type _LabelInput = _Label | select[_Label | None] | None
-type _ListInput[T] = Iterable[T] | depset[T] | select[Iterable[T] | depset[T] | None] | None
+type _ListInput[T] = Collection[T] | depset[T] | select[Collection[T] | depset[T] | None] | None
 type _StringInput = str | select[str | None] | None
 
 def cc_nested_args(

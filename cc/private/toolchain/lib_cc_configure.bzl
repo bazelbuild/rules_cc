@@ -225,6 +225,8 @@ def execute(
 
 def get_cpu_value(repository_ctx):
     # type: (repository_ctx) -> str
+    # TODO(https://github.com/bazelbuild/bazel/issues/32020): make this an
+    # annotation when supported Bazel versions expose a repository context type.
     """Compute the cpu_value based on the OS name. Doesn't %-escape the result!
 
     Args:
@@ -265,12 +267,14 @@ def get_cpu_value(repository_ctx):
 
 def is_cc_configure_debug(repository_ctx):
     # type: (repository_ctx) -> bool
+    # TODO(https://github.com/bazelbuild/bazel/issues/32020): make this an
+    # annotation when supported Bazel versions expose a repository context type.
     """Returns True if CC_CONFIGURE_DEBUG is set to 1."""
     env = repository_ctx.os.environ
     return "CC_CONFIGURE_DEBUG" in env and env["CC_CONFIGURE_DEBUG"] == "1"
 
 def build_flags(flags):
-    # type: (Iterable[str]) -> str
+    # type: (Collection[str]) -> str
     """Convert `flags` to a string of flag fields."""
     return "\n".join(["        flag: '" + flag + "'" for flag in flags])
 
@@ -283,12 +287,16 @@ def get_starlark_list(values):
 
 def auto_configure_warning_maybe(repository_ctx, msg):
     # type: (repository_ctx, object) -> None
+    # TODO(https://github.com/bazelbuild/bazel/issues/32020): make this an
+    # annotation when supported Bazel versions expose a repository context type.
     """Output warning message when CC_CONFIGURE_DEBUG is enabled."""
     if is_cc_configure_debug(repository_ctx):
         auto_configure_warning(msg)
 
 def write_builtin_include_directory_paths(repository_ctx, cc, directories, file_suffix = ""):
-    # type: (repository_ctx, object, Iterable[str], str) -> None
+    # type: (repository_ctx, object, Collection[str], str) -> None
+    # TODO(https://github.com/bazelbuild/bazel/issues/32020): make this an
+    # annotation when supported Bazel versions expose a repository context type.
     """Generate output file named 'builtin_include_directory_paths' in the root of the repository."""
     if get_env_var(repository_ctx, "BAZEL_IGNORE_SYSTEM_HEADERS_VERSIONS", "0", False) == "1":
         repository_ctx.file(

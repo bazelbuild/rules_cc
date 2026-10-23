@@ -7,7 +7,7 @@ def ObjcInfo(
     source: depset[File] = ...,
     strict_include: depset[str] = ...,
     umbrella_header: depset[File] = ...,
-    providers: Iterable[ObjcInfo] = ...,
+    providers: Collection[ObjcInfo] = ...,
 ) -> record[{
     "direct_module_maps": list[File],
     "direct_sources": list[File],
@@ -24,7 +24,7 @@ def _objcinfo_init(
     source: depset[File] = ...,
     strict_include: depset[str] = ...,
     umbrella_header: depset[File] = ...,
-    providers: Iterable[ObjcInfo] = ...,
+    providers: Collection[ObjcInfo] = ...,
 ) -> dict[{
     "direct_module_maps": list[File],
     "direct_sources": list[File],

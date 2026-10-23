@@ -2,7 +2,7 @@
 
 load("//cc/toolchains:tool.bzl", _cc_tool = "cc_tool")
 
-type _Strings = Iterable[str] | depset[str]
+type _Strings = Collection[str] | depset[str]
 type _StringsInput = _Strings | select[_Strings | None] | None
 type _Bool = bool | Literal[0, 1]
 

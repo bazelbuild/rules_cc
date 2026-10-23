@@ -47,6 +47,8 @@ def _lookup_env_var(env, name):
 
 def _get_env_var(repository_ctx, name):
     # type: (repository_ctx, str) -> str | None
+    # TODO(https://github.com/bazelbuild/bazel/issues/32020): make this an
+    # annotation when supported Bazel versions expose a repository context type.
     """Returns a value from an environment variable."""
     return _lookup_env_var(repository_ctx.os.environ, name)[1]
 
@@ -880,6 +882,8 @@ def _get_msvc_deps_scanner_vars(repository_ctx, paths, template_vars, target_arc
 
 def _get_env_options(repository_ctx, name):
     # type: (repository_ctx, str) -> list[str]
+    # TODO(https://github.com/bazelbuild/bazel/issues/32020): make this an
+    # annotation when supported Bazel versions expose a repository context type.
     return split_escaped(_get_env_var(repository_ctx, name) or "", ":")
 
 def _get_copts(repository_ctx):
@@ -903,6 +907,8 @@ def _get_copts(repository_ctx):
 
 def configure_windows_toolchain(repository_ctx):
     # type: (repository_ctx) -> None
+    # TODO(https://github.com/bazelbuild/bazel/issues/32020): make this an
+    # annotation when supported Bazel versions expose a repository context type.
     """Configure C++ toolchain on Windows.
 
     Args:
