@@ -1850,6 +1850,18 @@ def _impl(ctx):
         enabled = False,
     )
 
+    if ctx.attr.compiler == "clang":
+        cpp_module_modmap_flags = ["@%{cpp_module_modmap_file}"]
+    elif ctx.attr.compiler == "gcc":
+        # GCC needs -fmodules (-fmodules-ts before GCC 15) to compile modules,
+        # and -Mno-modules to not write module dependencies, which Bazel cannot
+        # parse, to the .d file.
+        cpp_module_modmap_flags = ctx.attr.extra_flags_per_feature.get("cpp_module_modmap_file", ["-fmodules-ts"]) + [
+            "-Mno-modules",
+            "-fmodule-mapper=%{cpp_module_modmap_file}",
+        ]
+    else:
+        cpp_module_modmap_flags = ["-fmodule-mapper=%{cpp_module_modmap_file}"]
     cpp_module_modmap_file_feature = feature(
         name = "cpp_module_modmap_file",
         flag_sets = [
@@ -1861,7 +1873,7 @@ def _impl(ctx):
                 ],
                 flag_groups = [
                     flag_group(
-                        flags = ["@%{cpp_module_modmap_file}" if ctx.attr.compiler == "clang" else "-fmodule-mapper=%{cpp_module_modmap_file}"],
+                        flags = cpp_module_modmap_flags,
                         expand_if_available = "cpp_module_modmap_file",
                     ),
                 ],
