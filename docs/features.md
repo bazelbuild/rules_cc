@@ -546,6 +546,11 @@ headers only need a `strip_include_prefix` (without an
 the include paths directly and uses the original headers. This reduces
 path lengths and can help avoid long path issues on Windows.
 
+Libraries that strip to the same directory also share one include path.
+Without this feature, each gets its own `_virtual_includes` directory in
+dependency order, so adding a dependency can reorder the include flags of
+every compile above it and change its cache key.
+
 The only downside of this feature is that if you disable sandboxing
 non-declared headers can be included that are in the same directory as
 the one being added to the include path. This would still be caught by
