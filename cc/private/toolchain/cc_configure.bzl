@@ -14,11 +14,7 @@
 """Rules for configuring the C++ toolchain (experimental)."""
 
 load("@bazel_features//:features.bzl", "bazel_features")
-load(
-    ":lib_cc_configure.bzl",
-    "get_cpu_value",
-    "resolve_labels",
-)
+load(":lib_cc_configure.bzl", "copy_file", "get_cpu_value")
 load(":unix_cc_configure.bzl", "configure_unix_toolchain")
 load(":windows_cc_configure.bzl", "configure_windows_toolchain")
 
@@ -52,13 +48,10 @@ def cc_autoconf_toolchains_impl(repository_ctx):
             build_path = "@rules_cc//cc/private/toolchain:BUILD.windows_toolchains.tpl"
         else:
             build_path = "@rules_cc//cc/private/toolchain:BUILD.toolchains.tpl"
-        paths = resolve_labels(repository_ctx, [
-            build_path,
-        ])
 
         repository_ctx.template(
             "BUILD",
-            paths[build_path],
+            Label(build_path),
             {"%{name}": get_cpu_value(repository_ctx)},
         )
     else:
@@ -89,28 +82,18 @@ def cc_autoconf_impl(repository_ctx, overriden_tools = dict()):
     """
     cpu_value = get_cpu_value(repository_ctx)
     if _should_disable_toolchain(repository_ctx):
-        paths = resolve_labels(repository_ctx, [
-            "@rules_cc//cc/private/toolchain:BUILD.empty.tpl",
-            "@rules_cc//cc/private/toolchain:empty_cc_toolchain_config.bzl",
-        ])
-        repository_ctx.symlink(paths["@rules_cc//cc/private/toolchain:empty_cc_toolchain_config.bzl"], "cc_toolchain_config.bzl")
-        repository_ctx.template("BUILD", paths["@rules_cc//cc/private/toolchain:BUILD.empty.tpl"], {
+        copy_file(repository_ctx, Label("@rules_cc//cc/private/toolchain:empty_cc_toolchain_config.bzl"), "cc_toolchain_config.bzl")
+        repository_ctx.template("BUILD", Label("@rules_cc//cc/private/toolchain:BUILD.empty.tpl"), {
             "%{cpu}": get_cpu_value(repository_ctx),
         })
     elif cpu_value == "freebsd" or cpu_value == "openbsd":
-        paths = resolve_labels(repository_ctx, [
-            "@rules_cc//cc/private/toolchain:BUILD.static.bsd",
-            "@rules_cc//cc/private/toolchain:armeabi_cc_toolchain_config.bzl",
-            "@rules_cc//cc/private/toolchain:bsd_cc_toolchain_config.bzl",
-        ])
-
         # This is defaulting to a static crosstool. We should eventually
         # autoconfigure this platform too. Theoretically, FreeBSD and OpenBSD
         # should be straightforward to add but we cannot run them in a Docker
         # container so skipping until we have proper tests for these platforms.
-        repository_ctx.symlink(paths["@rules_cc//cc/private/toolchain:armeabi_cc_toolchain_config.bzl"], "armeabi_cc_toolchain_config.bzl")
-        repository_ctx.symlink(paths["@rules_cc//cc/private/toolchain:bsd_cc_toolchain_config.bzl"], "cc_toolchain_config.bzl")
-        repository_ctx.symlink(paths["@rules_cc//cc/private/toolchain:BUILD.static.bsd"], "BUILD")
+        copy_file(repository_ctx, Label("@rules_cc//cc/private/toolchain:armeabi_cc_toolchain_config.bzl"), "armeabi_cc_toolchain_config.bzl")
+        copy_file(repository_ctx, Label("@rules_cc//cc/private/toolchain:bsd_cc_toolchain_config.bzl"), "cc_toolchain_config.bzl")
+        copy_file(repository_ctx, Label("@rules_cc//cc/private/toolchain:BUILD.static.bsd"), "BUILD")
     elif cpu_value in ["x64_windows", "arm64_windows"]:
         # TODO(ibiryukov): overriden_tools are only supported in configure_unix_toolchain.
         # We might want to add that to Windows too(at least for msys toolchain).
