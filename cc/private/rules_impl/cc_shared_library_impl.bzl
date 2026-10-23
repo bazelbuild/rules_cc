@@ -17,7 +17,7 @@
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("//cc:find_cc_toolchain.bzl", "find_cc_toolchain")
 load("//cc/common:cc_common.bzl", "cc_common")
-load("//cc/common:cc_helper.bzl", "cc_helper")
+load("//cc/common:cc_helper.bzl", "artifact_category", "cc_helper")
 load("//cc/common:cc_info.bzl", "CcInfo")
 load("//cc/common:cc_shared_library_info.bzl", "CcSharedLibraryInfo")
 load("//cc/common:feature_names.bzl", "feature_names")
@@ -690,12 +690,21 @@ def _cc_shared_library_impl(ctx):
                     if library.objects != None:
                         object_files.extend(library.objects)
 
-        generated_def_file = None
+        # The LIBRARY statement of the DEF file determines the DLL name that the import library
+        # refers to, so it has to match the actual output file.
+        if main_output:
+            dll_name = main_output.basename
+        else:
+            dll_name = paths.basename(cc_common.get_artifact_name_for_category(
+                cc_toolchain = cc_toolchain,
+                category = artifact_category.DYNAMIC_LIBRARY,
+                output_name = ctx.label.name,
+            ))
         generated_def_file = cc_helper.generate_def_file(
             ctx,
             ctx.file._def_parser,
             object_files,
-            ctx.label.name,
+            dll_name,
             cc_toolchain,
             feature_configuration,
         )
