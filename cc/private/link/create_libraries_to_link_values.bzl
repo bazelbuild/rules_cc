@@ -66,7 +66,7 @@ def add_object_files_to_link(object_files, libraries_to_link_values):
             libraries_to_link_values.append(
                 _NamedLibraryInfo(
                     type = _TYPE.OBJECT_FILE,
-                    name = object_file.path,
+                    name = object_file,
                     is_whole_archive = False,
                 ),
             )
@@ -236,7 +236,7 @@ def _add_static_library_to_link(
                     libraries_to_link_values.append(
                         _NamedLibraryInfo(
                             type = _TYPE.OBJECT_FILE,
-                            name = object.path,
+                            name = object,
                             is_whole_archive = True,
                         ),
                     )
@@ -252,7 +252,7 @@ def _add_static_library_to_link(
         libraries_to_link_values.append(
             _NamedLibraryInfo(
                 type = _TYPE.STATIC_LIBRARY,
-                name = library_file.path,
+                name = library_file,
                 is_whole_archive = input_is_whole_archive,
             ),
         )
@@ -301,7 +301,7 @@ def _add_dynamic_library_to_link(
             _VersionedLibraryInfo(
                 type = _TYPE.VERSIONED_DYNAMIC_LIBRARY,
                 name = name,
-                path = input_file.path,
+                path = input_file,
                 is_whole_archive = False,
             ),
         )
@@ -313,7 +313,7 @@ def _add_dynamic_library_to_link(
         libraries_to_link_values.append(
             _NamedLibraryInfo(
                 type = _TYPE.INTERFACE_LIBRARY,
-                name = input_file.path,
+                name = input_file,
                 is_whole_archive = False,
             ),
         )
