@@ -85,6 +85,7 @@ filegroup(
         "//cc/toolchains/args/shared_flag:srcs",
         "//cc/toolchains/args/soname_flags:srcs",
         "//cc/toolchains/args/static_libgcc:srcs",
+        "//cc/toolchains/args/std:srcs",
         "//cc/toolchains/args/strip_debug_symbols:srcs",
         "//cc/toolchains/args/strip_flags:srcs",
         "//cc/toolchains/args/thin_lto:srcs",

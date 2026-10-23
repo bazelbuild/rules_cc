@@ -324,6 +324,65 @@ targets.
 This feature should be off by default and turned on at the project /
 target level.
 
+### Language standard features
+
+`rules_cc` ships features for selecting the C and C++ language standard in
+[`//cc/toolchains/args/std`](../cc/toolchains/args/std/BUILD). Each feature is
+named after the value it passes to the compiler's `-std=` flag:
+
+- C: `c89`, `c99`, `c11`, `c17`, `c23`, and the GNU dialects `gnu89`,
+  `gnu99`, `gnu11`, `gnu17`, `gnu23`. These apply to C compile actions.
+- C++: `c++98`, `c++11`, `c++14`, `c++17`, `c++20`, `c++23`, `c++26`, and
+  the GNU dialects `gnu++98`, `gnu++11`, `gnu++14`, `gnu++17`, `gnu++20`,
+  `gnu++23`, `gnu++26`. These apply to C++ compile actions, including
+  Objective-C++ and C++20 module actions, but not the LTO backend.
+
+`rules_cc` does not read these features itself; they exist so that toolchains
+and users share a common vocabulary. Users enable them per target with
+`features = ["c++20"]` or globally with `--features=c++20`.
+
+The auto-configured toolchain (`@local_config_cc`) knows all of these names on
+Linux, macOS, BSD and Windows. On MSVC and clang-cl the features come from
+[`//cc/toolchains/args/std/msvc`](../cc/toolchains/args/std/msvc/BUILD) and
+emit `/std:` flags instead; only the standards MSVC supports exist there (`c11`,
+`c17`, `c23`, `c++14`, `c++17`, `c++20`, `c++23`, `c++26`), with `c23`, `c++23`
+and `c++26` mapping to `/std:clatest` and `/std:c++latest`. Selecting a
+standard replaces the MSVC default `/std:c++17`. On unix and mingw the selected
+`-std=` flag is passed after the toolchain default (`-std=c++17` from
+`BAZEL_CXXOPTS`, `-std=gnu++14` on mingw) and takes precedence.
+
+Only one C standard and one C++ standard may be enabled at a time. Enabling two
+(for example a toolchain default of `c++17` plus a target requesting `c++20`)
+is an error, so toolchains should make these features *known* rather than
+*enabled*, and express their default with a `cc_args` that only applies when
+no standard has been selected:
+
+```bzl
+cc_args(
+    name = "default_cpp_std",
+    actions = ["@rules_cc//cc/toolchains/args/std:cpp_std_actions"],
+    args = ["-std=c++17"],
+    requires_any_of = ["@rules_cc//cc/toolchains/args/std:cpp_std_unspecified"],
+)
+
+cc_toolchain(
+    name = "my_toolchain",
+    args = [":default_cpp_std"],
+    known_features = ["@rules_cc//cc/toolchains/args/std:all_std_features"],
+    ...
+)
+```
+
+`:all_c_std_features` and `:all_cpp_std_features` are also available if a
+toolchain only wants to expose one language. Rule-based toolchains wrapping
+MSVC or clang-cl should use the same targets under
+`//cc/toolchains/args/std/msvc`. Legacy Starlark toolchains built on the
+auto-configured `cc_toolchain_config` rules can pass either feature set via
+`extra_known_features`.
+
+Note that the newest spellings (`c23`, `c++26`, and their GNU variants)
+require a recent compiler (GCC 14 / Clang 18 or newer).
+
 ### LTO features
 
 Bazel / `rules_cc` have many special features for LTO behavior:
