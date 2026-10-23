@@ -27,14 +27,44 @@ filegroup(
         "**/*.bzl",
         "**/BUILD",
     ]),
-    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "fdo_rules",
+    actual = ":fdo_context",
+    deprecation = "Use //cc/private/rules_impl/fdo:fdo_context instead.",
 )
 
 bzl_library(
-    name = "fdo_rules",
-    srcs = glob(["*.bzl"]),
-    visibility = [
-        "//cc:__subpackages__",
-        "//tools/build_defs/go/internal:__subpackages__",
+    name = "fdo_context",
+    srcs = ["fdo_context.bzl"],
+    deps = [
+        ":fdo_prefetch_hints",
+        ":fdo_profile",
+        ":memprof_profile",
+        ":propeller_optimize",
+        "//cc:action_names",
+        "//cc/common:cc_common",
+        "@bazel_skylib//lib:paths",
     ],
+)
+
+bzl_library(
+    name = "fdo_prefetch_hints",
+    srcs = ["fdo_prefetch_hints.bzl"],
+)
+
+bzl_library(
+    name = "fdo_profile",
+    srcs = ["fdo_profile.bzl"],
+)
+
+bzl_library(
+    name = "memprof_profile",
+    srcs = ["memprof_profile.bzl"],
+)
+
+bzl_library(
+    name = "propeller_optimize",
+    srcs = ["propeller_optimize.bzl"],
 )

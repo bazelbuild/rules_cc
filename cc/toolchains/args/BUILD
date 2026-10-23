@@ -1,3 +1,4 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//cc/toolchains:feature.bzl", "cc_feature")
 load("//cc/toolchains:feature_set.bzl", "cc_feature_set")
 
@@ -89,4 +90,10 @@ filegroup(
         "//cc/toolchains/args/strip_flags:srcs",
         "//cc/toolchains/args/thin_lto:srcs",
     ],
+)
+
+bzl_library(
+    name = "sysroot",
+    srcs = ["sysroot.bzl"],
+    deps = ["//cc/toolchains:args"],
 )

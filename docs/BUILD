@@ -36,7 +36,7 @@ stardoc(
     out = "raw_generated_toolchain_api.md",
     input = "//cc/toolchains/impl:documented_api.bzl",
     deps = [
-        "//cc/toolchains:toolchain_rules",
+        "//cc/toolchains/impl:documented_api",
     ],
 )
 

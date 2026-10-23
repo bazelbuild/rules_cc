@@ -91,24 +91,100 @@ filegroup(
     srcs = ["link_dynamic_library.sh"],
 )
 
-bzl_library(
-    name = "cc_configure_bzl",
-    srcs = [
-        "cc_configure.bzl",
-        "lib_cc_configure.bzl",
-        "unix_cc_configure.bzl",
-        "windows_cc_configure.bzl",
-    ],
-)
-
-filegroup(
-    name = "lib_cc_configure",
-    srcs = ["lib_cc_configure.bzl"],
-)
-
 alias(
     name = "compiler",
     actual = "//cc/compiler",
 )
 
 cc_flags_supplier(name = "cc_flags")
+
+alias(
+    name = "cc_configure_bzl",
+    actual = ":cc_configure",
+    deprecation = "Use //cc/private/toolchain:cc_configure instead.",
+)
+
+bzl_library(
+    name = "armeabi_cc_toolchain_config",
+    srcs = ["armeabi_cc_toolchain_config.bzl"],
+    deps = [
+        "//cc:cc_toolchain_config_lib",
+        "//cc/common:cc_common",
+        "//cc/toolchains:cc_toolchain_config_info",
+    ],
+)
+
+bzl_library(
+    name = "bsd_cc_toolchain_config",
+    srcs = ["bsd_cc_toolchain_config.bzl"],
+    deps = [
+        "//cc:action_names",
+        "//cc:cc_toolchain_config_lib",
+        "//cc/common:cc_common",
+        "//cc/toolchains:cc_toolchain_config_info",
+    ],
+)
+
+bzl_library(
+    name = "cc_configure",
+    srcs = ["cc_configure.bzl"],
+    deps = [
+        ":lib_cc_configure",
+        ":unix_cc_configure",
+        ":windows_cc_configure",
+        "@bazel_features//:features",
+    ],
+)
+
+bzl_library(
+    name = "empty_cc_toolchain_config",
+    srcs = ["empty_cc_toolchain_config.bzl"],
+    deps = [
+        "//cc/common:cc_common",
+        "//cc/toolchains:cc_toolchain_config_info",
+    ],
+)
+
+bzl_library(
+    name = "unix_cc_configure",
+    srcs = ["unix_cc_configure.bzl"],
+    deps = [":lib_cc_configure"],
+)
+
+bzl_library(
+    name = "unix_cc_toolchain_config",
+    srcs = ["unix_cc_toolchain_config.bzl"],
+    deps = [
+        "//cc:action_names",
+        "//cc:cc_toolchain_config_lib",
+        "//cc/common:cc_common",
+        "//cc/toolchains:cc_toolchain_config_info",
+        "//cc/toolchains:feature_injection",
+        "@bazel_features//private:bzl_files",
+        "@bazel_skylib//rules:common_settings",
+    ],
+)
+
+bzl_library(
+    name = "windows_cc_configure",
+    srcs = ["windows_cc_configure.bzl"],
+    deps = [":lib_cc_configure"],
+)
+
+bzl_library(
+    name = "windows_cc_toolchain_config",
+    srcs = ["windows_cc_toolchain_config.bzl"],
+    deps = [
+        "//cc:action_names",
+        "//cc:cc_toolchain_config_lib",
+        "//cc/common:cc_common",
+        "//cc/toolchains:cc_toolchain_config_info",
+        "//cc/toolchains:feature_injection",
+        "@bazel_features//:features",
+    ],
+)
+
+bzl_library(
+    name = "lib_cc_configure",
+    srcs = ["lib_cc_configure.bzl"],
+)
