@@ -28,8 +28,13 @@ jobs:
             cc/action_names.bzl
             cc/cc_import.bzl
             cc/cc_postmark.bzl
+            cc/cc_rules_extension_support.bzl
             cc/cc_shared_library.bzl
+            cc/common/cc_shared_library_info.bzl
+            cc/common/debug_package_info.bzl
             cc/common/feature_names.bzl
+            cc/common/objc_info.bzl
+            cc/private/cc_shared_library_hint_info.bzl
             cc/private/cc_shared_library_info.bzl
             cc/private/debug_package_info.bzl
             cc/private/graph_node_info.bzl
@@ -45,6 +50,9 @@ jobs:
             cc/toolchains/args/libraries_to_link/private/library_link_args.bzl
             cc/toolchains/args_list.bzl
             cc/toolchains/artifacts.bzl
+            cc/toolchains/cc_toolchain.bzl
+            cc/toolchains/cc_toolchain_alias.bzl
+            cc/toolchains/cc_toolchain_config_info.bzl
             cc/toolchains/fdo_prefetch_hints.bzl
             cc/toolchains/fdo_profile.bzl
             cc/toolchains/feature.bzl
@@ -65,3 +73,6 @@ jobs:
             cc/toolchains/tool_capability.bzl
             cc/use_cc_toolchain.bzl
             local_bazel.bzl
+            tests/cc/testutil/toolchains/features.bzl
+            tests/load_from_macro/tags.bzl
+            tests/rule_based_toolchain/legacy_features_as_args/goldens
