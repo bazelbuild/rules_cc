@@ -51,6 +51,7 @@ def cc_toolchain(
         static_runtime_lib = None,
         supports_header_parsing = False,
         supports_param_files = False,
+        compiler_files_without_includes = None,
         compiler = "",
         cpu = "",
         target_libc = None,
@@ -145,6 +146,9 @@ def cc_toolchain(
             See
             [`cc_toolchain.supports_param_files`](https://bazel.build/reference/be/c-cpp#cc_toolchain.supports_param_files)
             for more information.
+        compiler_files_without_includes: (Label) Toolchain files required for compile actions
+            when include scanning is enabled. Include compiler tools and other mandatory inputs,
+            excluding headers that the scanner can discover.
         compiler: (str) The type of compiler used by this toolchain (e.g. "gcc", "clang"). The current
             toolchain's compiler is exposed to `@rules_cc//cc/private/toolchain:compiler
             (compiler_flag)` as a flag value.
@@ -209,6 +213,7 @@ def cc_toolchain(
             static_runtime_lib = static_runtime_lib,
             supports_header_parsing = supports_header_parsing,
             supports_param_files = supports_param_files,
+            compiler_files_without_includes = compiler_files_without_includes,
             visibility = cc_toolchain_visibility,
             **kwargs
         )
@@ -255,6 +260,7 @@ def cc_toolchain(
         static_runtime_lib = static_runtime_lib,
         supports_header_parsing = supports_header_parsing,
         supports_param_files = supports_param_files,
+        compiler_files_without_includes = compiler_files_without_includes,
         # This is required for Bazel versions <= 7.x.x. It is ignored in later versions.
         exec_transition_for_inputs = False,
         visibility = cc_toolchain_visibility,
