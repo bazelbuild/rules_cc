@@ -1,0 +1,5 @@
+"""Execution requirements supplied to the toolchain tests."""
+
+load("//cc/toolchains:providers.bzl", "ExecutionRequirementsInfo")
+
+def _test_execution_requirements_impl(ctx) -> list[ExecutionRequirementsInfo]: ...

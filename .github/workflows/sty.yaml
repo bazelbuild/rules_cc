@@ -75,4 +75,7 @@ jobs:
             local_bazel.bzl
             tests/cc/testutil/toolchains/features.bzl
             tests/load_from_macro/tags.bzl
+            tests/rule_based_toolchain/args/make_var_provider.bzl
+            tests/rule_based_toolchain/helpers.bzl
             tests/rule_based_toolchain/legacy_features_as_args/goldens
+            tests/rule_based_toolchain/tool/execution_requirements.bzl

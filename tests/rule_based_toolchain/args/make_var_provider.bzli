@@ -1,0 +1,3 @@
+"""Make variables supplied to the toolchain tests."""
+
+def _make_var_provider_impl(ctx) -> list[TemplateVariableInfo]: ...
