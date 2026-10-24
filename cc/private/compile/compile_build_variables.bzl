@@ -53,6 +53,8 @@ _VARS = struct(
     DEPENDENT_MODULE_MAP_FILES = "dependent_module_map_files",
     # Variable for the collection of module files.
     MODULE_FILES = "module_files",
+    # Variable for the collection of "<module name>=<module file>" strings, one per module file.
+    MODULE_FILE_NAMES = "module_file_names",
     # Variable for the collection of macros defined for preprocessor. */
     PREPROCESSOR_DEFINES = "preprocessor_defines",
     # Variable for the gcov coverage file path.

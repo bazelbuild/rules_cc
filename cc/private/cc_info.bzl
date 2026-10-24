@@ -57,6 +57,8 @@ CcCompilationContextInfo = provider(
         "_non_code_inputs": "Internal.",
         "_transitive_modules": "Internal",
         "_transitive_pic_modules": "Internal",
+        "_transitive_module_names": "Internal",  # "<module name>=<module file>" per _transitive_modules entry
+        "_transitive_pic_module_names": "Internal",
         "_module_map": "Internal",
         "_virtual_to_original_headers": "Internal",
         "_modules_info_files": "Internal",
@@ -132,6 +134,8 @@ EMPTY_COMPILATION_CONTEXT = CcCompilationContextInfo(
     _non_code_inputs = depset(),
     _transitive_modules = depset(),
     _transitive_pic_modules = depset(),
+    _transitive_module_names = depset(),
+    _transitive_pic_module_names = depset(),
     _direct_module_maps = depset(),
     _modules_info_files = depset(),
     _pic_modules_info_files = depset(),
@@ -451,6 +455,8 @@ def create_compilation_context(
         _non_code_inputs = depset(non_code_inputs),
         _transitive_modules = depset(),
         _transitive_pic_modules = depset(),
+        _transitive_module_names = depset(),
+        _transitive_pic_module_names = depset(),
         _direct_module_maps = depset(),
         _header_info = header_info,
         _modules_info_files = depset(),
@@ -509,18 +515,30 @@ def _merge_compilation_contexts(*, compilation_context = EMPTY_COMPILATION_CONTE
         merged_deps = merged_header_infos,
     )
 
+    # Beside each module file, "<module name>=<module file>" for a toolchain
+    # that loads module files by name (-fmodule-file=<name>=<file>). The name
+    # is the module map's, which the file's owner does not determine: a
+    # separate module is named "<name>.sep", and compile() may be given a
+    # name other than the target's.
     transitive_modules_artifacts = []
     transitive_pic_modules_artifacts = []
+    transitive_module_names = []
+    transitive_pic_module_names = []
     for dep in all_deps:
         dep_header_info = dep._header_info
+        module_name = get_module_map_name(dep._module_map) if dep._module_map else None
         if dep_header_info.header_module:
             transitive_modules_artifacts.append(dep_header_info.header_module)
+            transitive_module_names.append(module_name + "=" + dep_header_info.header_module.path)
         if dep_header_info.separate_module:
             transitive_modules_artifacts.append(dep_header_info.separate_module)
+            transitive_module_names.append(module_name + ".sep=" + dep_header_info.separate_module.path)
         if dep_header_info.pic_header_module:
             transitive_pic_modules_artifacts.append(dep_header_info.pic_header_module)
+            transitive_pic_module_names.append(module_name + "=" + dep_header_info.pic_header_module.path)
         if dep_header_info.separate_pic_module:
             transitive_pic_modules_artifacts.append(dep_header_info.separate_pic_module)
+            transitive_pic_module_names.append(module_name + ".sep=" + dep_header_info.separate_pic_module.path)
 
     return CcCompilationContextInfo(
         includes = _flat_depset(
@@ -556,8 +574,13 @@ def _merge_compilation_contexts(*, compilation_context = EMPTY_COMPILATION_CONTE
         _module_map = compilation_context._module_map,
         _exporting_module_maps = exporting_module_maps,
         _exporting_module_map_files = exporting_module_map_files,
+        # Every dependency's module map is an input, so that a compile that
+        # loads module files by name (-fmodule-file=<name>=<file>) can map an
+        # include to a module reached through a dependency that compiles no
+        # module: a module map names its dependencies' maps with `extern
+        # module`, and clang maps an include only through a map it has parsed.
         _non_code_inputs = depset(
-            direct = compilation_context._non_code_inputs.to_list(),
+            direct = compilation_context._non_code_inputs.to_list() + [dep._module_map.file for dep in all_deps if dep._module_map],
             transitive = [dep._non_code_inputs for dep in all_deps],
         ),
         _virtual_to_original_headers = depset(
@@ -574,6 +597,14 @@ def _merge_compilation_contexts(*, compilation_context = EMPTY_COMPILATION_CONTE
         _transitive_pic_modules = depset(
             transitive_pic_modules_artifacts,
             transitive = [dep._transitive_pic_modules for dep in all_deps],
+        ),
+        _transitive_module_names = depset(
+            transitive_module_names,
+            transitive = [dep._transitive_module_names for dep in all_deps],
+        ),
+        _transitive_pic_module_names = depset(
+            transitive_pic_module_names,
+            transitive = [dep._transitive_pic_module_names for dep in all_deps],
         ),
         _modules_info_files = depset(
             transitive = [compilation_context._modules_info_files] + [dep._modules_info_files for dep in all_deps],
@@ -637,6 +668,8 @@ def create_compilation_context_with_extra_header_tokens(
         _non_code_inputs = cc_compilation_context._non_code_inputs,
         _transitive_modules = cc_compilation_context._transitive_modules,
         _transitive_pic_modules = cc_compilation_context._transitive_pic_modules,
+        _transitive_module_names = cc_compilation_context._transitive_module_names,
+        _transitive_pic_module_names = cc_compilation_context._transitive_pic_module_names,
         _direct_module_maps = cc_compilation_context._direct_module_maps,
         _header_info = cc_compilation_context._header_info,
         _modules_info_files = cc_compilation_context._modules_info_files,
@@ -687,6 +720,8 @@ def create_cc_compilation_context_with_cpp20_modules(
         _non_code_inputs = cc_compilation_context._non_code_inputs,
         _transitive_modules = cc_compilation_context._transitive_modules,
         _transitive_pic_modules = cc_compilation_context._transitive_pic_modules,
+        _transitive_module_names = cc_compilation_context._transitive_module_names,
+        _transitive_pic_module_names = cc_compilation_context._transitive_pic_module_names,
         _direct_module_maps = cc_compilation_context._direct_module_maps,
         _header_info = cc_compilation_context._header_info,
         _module_files = depset(cpp_module_files, transitive = [cc_compilation_context._module_files]),

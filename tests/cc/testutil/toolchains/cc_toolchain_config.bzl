@@ -232,6 +232,11 @@ _use_header_modules_feature = feature(
                     iterate_over = "module_files",
                     flags = ["module_file:%{module_files}"],
                 ),
+                flag_group(
+                    expand_if_available = "module_file_names",
+                    iterate_over = "module_file_names",
+                    flags = ["module_file_name:%{module_file_names}"],
+                ),
             ],
         ),
     ],
