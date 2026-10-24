@@ -410,7 +410,11 @@ filegroup(
 
 cc_shared_library(
     name = "renamed_so_file",
-    features = ["windows_export_all_symbols"],
+    features = [
+        # This library is copied to a different basename above.
+        "-set_soname",
+        "windows_export_all_symbols",
+    ],
     shared_lib_name = "renamed_so_file.so",
     deps = [
         ":direct_so_file_cc_lib2",
