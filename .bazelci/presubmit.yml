@@ -44,6 +44,8 @@
   # Test failures are not collected under `coverage` invocations.
   # https://github.com/bazelbuild/continuous-integration/issues/1838
   ? "--test_output=errors"
+  # verify_coverage.sh reads the merged per-invocation report this produces.
+  ? "--combined_report=lcov"
 
 .windows_coverage_flags: &windows_coverage_flags
   <<: *common_coverage_flags
@@ -51,6 +53,36 @@
   # Starting in Bazel 9 coverage collection causes some tests to fail.
   # https://github.com/bazelbuild/rules_cc/issues/613
   ? "--test_env=IGNORE_COVERAGE_COLLECTION_FAILURES=1"
+
+# Assert that `bazel coverage` actually collected something; see
+# .bazelci/verify_coverage.sh for why the check is a named source file rather
+# than a per-test assertion. //tests/coverage is a fixture kept buildable on
+# every Bazel version and platform for exactly this purpose, so the check does
+# not depend on whichever other tests happen to be instrumented, gated, or
+# renamed. Bazel never instruments a test's own sources
+# (`--instrument_test_targets` defaults to false), which is why the named file
+# is the fixture's library rather than its test. Before Bazel 9 `cc_test` is
+# the native rule and runs Bazel's own collector, so those jobs verify the
+# coverage pipeline; from Bazel 9 on they verify //cc/coverage's collector.
+#
+# The hook is commented out on jobs where coverage is known not to work, for
+# reasons outside this repository:
+#  * macOS resolves apple_support's toolchain. Its default gcov-style
+#    instrumentation cannot be collected there: Apple's gcov is `llvm-cov gcov`,
+#    which has no output format Bazel's merger reads, and the .gcda files land
+#    where GCOV_PREFIX_STRIP=3 (sized for Linux's /proc/self/cwd) cannot match
+#    them. The LLVM route (`--experimental_use_llvm_covmap` plus
+#    `--experimental_generate_llvm_lcov`) is implemented by //cc/coverage's
+#    collector, but it requires the toolchain to provide llvm-cov and
+#    llvm-profdata through LLVM_COV / LLVM_PROFDATA, and apple_support 2.8.0
+#    declares no tool paths for them, so the collector fails.
+#    Once the toolchain provides them, add those two flags to the macOS jobs
+#    on Bazel 9+ and enable the hook.
+#  * Coverage collection on Windows is already known to be unreliable -- see
+#    the IGNORE_COVERAGE_COLLECTION_FAILURES escape hatch above and
+#    https://github.com/bazelbuild/rules_cc/issues/613.
+.verify_coverage: &verify_coverage
+  - "./.bazelci/verify_coverage.sh --expect=tests/coverage/lib.c"
 
 .rule_based_toolchain_config: &rule_based_toolchain_config
     working_directory: examples/rule_based_toolchain
@@ -79,6 +111,7 @@ tasks:
     test_targets: *test_targets
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets
+    post_shell_commands: *verify_coverage
   macos_intel_head:
     name: MacOS Intel (Bazel HEAD)
     bazel: last_green
@@ -91,6 +124,7 @@ tasks:
     test_flags: *macos_test_flags
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets
+    # post_shell_commands: *verify_coverage  # Coverage does not work here; see .verify_coverage.
   macos_head:
     name: MacOS (Bazel HEAD)
     bazel: last_green
@@ -100,6 +134,7 @@ tasks:
     test_flags: *macos_test_flags
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets
+    # post_shell_commands: *verify_coverage  # Coverage does not work here; see .verify_coverage.
   windows_head:
     name: Windows (Bazel HEAD)
     bazel: last_green
@@ -109,6 +144,7 @@ tasks:
     test_flags: *windows_test_flags
     coverage_flags: *windows_coverage_flags
     coverage_targets: *coverage_targets
+    # post_shell_commands: *verify_coverage  # Coverage does not work here; see .verify_coverage.
 
   # Bazel@rolling
   ubuntu_rolling:
@@ -119,6 +155,7 @@ tasks:
     test_targets: *test_targets
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets
+    post_shell_commands: *verify_coverage
   macos_intel_rolling:
     name: MacOS Intel (Bazel rolling)
     bazel: rolling
@@ -131,6 +168,7 @@ tasks:
     test_flags: *macos_test_flags
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets
+    # post_shell_commands: *verify_coverage  # Coverage does not work here; see .verify_coverage.
   macos_rolling:
     name: MacOS (Bazel rolling)
     bazel: rolling
@@ -140,6 +178,7 @@ tasks:
     test_flags: *macos_test_flags
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets
+    # post_shell_commands: *verify_coverage  # Coverage does not work here; see .verify_coverage.
   windows_rolling:
     name: Windows (Bazel rolling)
     bazel: rolling
@@ -160,6 +199,7 @@ tasks:
     test_targets: *test_targets_bazel_less_than_9
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets_bazel_less_than_9
+    post_shell_commands: *verify_coverage
   macos_intel_bazel_7:
     name: MacOS Intel (Bazel 7)
     bazel: 7.x
@@ -171,6 +211,7 @@ tasks:
     test_flags: *macos_test_flags
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets_bazel_less_than_9
+    # post_shell_commands: *verify_coverage  # Coverage does not work here; see .verify_coverage.
   macos_bazel_7:
     name: MacOS (Bazel 7)
     bazel: 7.x
@@ -182,6 +223,7 @@ tasks:
     test_flags: *macos_test_flags
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets_bazel_less_than_9
+    # post_shell_commands: *verify_coverage  # Coverage does not work here; see .verify_coverage.
   windows_bazel_7:
     name: Windows (Bazel 7)
     bazel: 7.x
@@ -201,6 +243,7 @@ tasks:
     test_targets: *test_targets_bazel_less_than_9
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets_bazel_less_than_9
+    post_shell_commands: *verify_coverage
   macos_intel_bazel_8:
     name: MacOS Intel (Bazel 8)
     bazel: 8.x
@@ -210,6 +253,7 @@ tasks:
     test_flags: *macos_test_flags
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets_bazel_less_than_9
+    # post_shell_commands: *verify_coverage  # Coverage does not work here; see .verify_coverage.
   macos_bazel_8:
     name: MacOS (Bazel 8)
     bazel: 8.x
@@ -219,6 +263,7 @@ tasks:
     test_flags: *macos_test_flags
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets_bazel_less_than_9
+    # post_shell_commands: *verify_coverage  # Coverage does not work here; see .verify_coverage.
   windows_bazel_8:
     name: Windows (Bazel 8)
     bazel: 8.x
@@ -228,6 +273,7 @@ tasks:
     test_flags: *windows_test_flags
     coverage_flags: *windows_coverage_flags
     coverage_targets: *test_targets_bazel_less_than_9
+    # post_shell_commands: *verify_coverage  # Coverage does not work here; see .verify_coverage.
 
 # Bazel 9
   ubuntu:
@@ -238,6 +284,7 @@ tasks:
     test_targets: *test_targets
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets
+    post_shell_commands: *verify_coverage
   macos_intel:
     name: MacOS Intel (Bazel 9)
     bazel: 9.x
@@ -247,6 +294,7 @@ tasks:
     test_flags: *macos_test_flags
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets
+    # post_shell_commands: *verify_coverage  # Coverage does not work here; see .verify_coverage.
   macos:
     name: MacOS (Bazel 9)
     bazel: 9.x
@@ -256,6 +304,7 @@ tasks:
     test_flags: *macos_test_flags
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets
+    # post_shell_commands: *verify_coverage  # Coverage does not work here; see .verify_coverage.
   windows:
     name: Windows (Bazel 9)
     bazel: 9.x
@@ -264,6 +313,7 @@ tasks:
     test_flags: *windows_test_flags
     coverage_flags: *windows_coverage_flags
     coverage_targets: *test_targets
+    # post_shell_commands: *verify_coverage  # Coverage does not work here; see .verify_coverage.
 
   # Same target set as the `windows` task, with the auto-configured toolchain
   # switched over to clang-cl.exe/lld-link.exe/llvm-lib.exe instead of MSVC.
