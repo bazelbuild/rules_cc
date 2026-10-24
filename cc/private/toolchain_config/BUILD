@@ -14,6 +14,8 @@
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
+exports_files(["legacy_features.bzli"])
+
 bzl_library(
     name = "toolchain_config_bzl",
     srcs = glob(["*.bzl"]),
@@ -41,6 +43,7 @@ filegroup(
     name = "srcs",
     srcs = glob([
         "**/*.bzl",
+        "**/*.bzli",
         "**/BUILD",
     ]),
     visibility = ["//visibility:public"],
