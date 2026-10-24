@@ -19,7 +19,7 @@ cc_feature(
 
 cc_args(
     name = "includes_flags",
-    actions = ["//cc/toolchains/actions:source_compile_actions"],
+    actions = ["//cc/toolchains/actions:source_compile_actions_without_assemble"],
     args = [
         "-include",
         "{includes}",
@@ -42,7 +42,7 @@ cc_feature(
 
 cc_args(
     name = "quote_include_paths_flags",
-    actions = ["//cc/toolchains/actions:source_compile_actions"],
+    actions = ["//cc/toolchains/actions:source_compile_actions_without_assemble"],
     args = [
         "-iquote",
         "{quote_include_paths}",
@@ -53,7 +53,7 @@ cc_args(
 
 cc_args(
     name = "include_paths_flags",
-    actions = ["//cc/toolchains/actions:source_compile_actions"],
+    actions = ["//cc/toolchains/actions:source_compile_actions_without_assemble"],
     args = [
         "-I{include_paths}",
     ],
@@ -63,7 +63,7 @@ cc_args(
 
 cc_args(
     name = "system_include_paths_flags",
-    actions = ["//cc/toolchains/actions:source_compile_actions"],
+    actions = ["//cc/toolchains/actions:source_compile_actions_without_assemble"],
     args = [
         "-isystem",
         "{system_include_paths}",
@@ -74,7 +74,7 @@ cc_args(
 
 cc_args(
     name = "framework_include_paths_flags",
-    actions = ["//cc/toolchains/actions:source_compile_actions"],
+    actions = ["//cc/toolchains/actions:source_compile_actions_without_assemble"],
     args = [
         "-F{framework_include_paths}",
     ],

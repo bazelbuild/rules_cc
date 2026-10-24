@@ -11,7 +11,11 @@ cc_feature(
 
 cc_args(
     name = "random_seed",
-    actions = ["//cc/toolchains/actions:compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:c_compile_actions",
+        "//cc/toolchains/actions:cpp_compile_actions",
+        "//cc/toolchains/actions:objc_compile",
+    ],
     args = ["-frandom-seed={output_file}"],
     format = {"output_file": "//cc/toolchains/variables:output_file"},
     requires_not_none = "//cc/toolchains/variables:output_file",
