@@ -660,7 +660,7 @@ toolchain(
     exec_compatible_with = [
         "@platforms//cpu:x86_64",
         "@platforms//os:windows",
-        "@rules_cc//cc/private/toolchain:clang-cl",
+        "@rules_cc//cc/compiler:clang-cl_constraint",
     ],
     target_compatible_with = [
         "@platforms//cpu:x86_64",
@@ -732,7 +732,7 @@ toolchain(
     name = "cc-toolchain-arm64_windows-clang-cl",
     exec_compatible_with = [
         "@platforms//os:windows",
-        "@rules_cc//cc/private/toolchain:clang-cl",
+        "@rules_cc//cc/compiler:clang-cl_constraint",
     ],
     target_compatible_with = [
         "@platforms//cpu:arm64",
