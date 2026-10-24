@@ -88,15 +88,14 @@ using the C/C++ compiler.
     "module_interfaces": attr.label_list(
         allow_files = True,
         doc = """
-The list of files are regarded as C++20 Modules Interface.
+The list of C++20 module interface source files.
 
 <p>
-C++ Standard has no restriction about module interface file extension
-<ul>
-<li>Clang use cppm </li>
-<li>GCC can use any source file extension </li>
-<li>MSVC use ixx </li>
-</ul>
+While C++ modules remain experimental, module interfaces must use one of these
+extensions: <code>.cppm</code>, <code>.ixx</code>, <code>.ccm</code>,
+<code>.cxxm</code>, <code>.c++m</code>, <code>.mpp</code>, or
+<code>.mxx</code>. These cover the common conventions used by Clang, GCC, and
+MSVC.
 </p>
 <p>The use is guarded by the flag
 <code>--experimental_cpp_modules</code>.</p>
