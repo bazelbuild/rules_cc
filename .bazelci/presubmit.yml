@@ -59,7 +59,8 @@
     build_targets:
       - "//..."
 
-buildifier: 8.5.1
+buildifier:
+  version: latest
 
 tasks:
   ubuntu_docs:
