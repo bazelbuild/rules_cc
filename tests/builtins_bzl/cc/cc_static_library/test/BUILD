@@ -34,9 +34,15 @@ cc_library(
     linkstatic = True,
 )
 
+filegroup(
+    name = "lib_only_static",
+    srcs = [":lib_only"],
+    output_group = "archive",
+)
+
 cc_import(
     name = "lib_only_static_lib",
-    static_library = ":lib_only",
+    static_library = ":lib_only_static",
 )
 
 cc_import(
