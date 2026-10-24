@@ -60,6 +60,20 @@ flag to your project's [`.bazelrc` file](https://bazel.build/run/bazelrc):
 --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
 ```
 
+The autoconfigured toolchain can also look for the C++ standard library modules
+the local compiler ships (libstdc++ or libc++) and expose them as
+`@local_config_cc//:std`. When enabled together with `cpp_modules`, the
+`std_module` feature adds this target to `cc_library`, `cc_binary`, and
+`cc_test`:
+
+```
+--repo_env=BAZEL_DETECT_STD_MODULE=1
+```
+
+Detection is opt-in: `@local_config_cc//:std` exists either way, but only a
+detected toolchain gives it `module_interfaces`, and analyzing those requires
+`--experimental_cpp_modules`. Enable it in builds that do use C++ modules.
+
 ## Hermetic toolchains
 
 Configuring a [hermetic](https://bazel.build/basics/hermeticity) toolchain makes

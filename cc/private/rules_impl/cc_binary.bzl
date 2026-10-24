@@ -63,6 +63,7 @@ be <code>main</code>.
         "cpp_link": exec_group(toolchains = use_cc_toolchain()),
     } | semantics.extra_exec_groups,
     toolchains = use_cc_toolchain() +
+                 semantics.get_std_module_toolchain() +
                  semantics.get_runtimes_toolchain(),
     provides = [CcInfo],
     executable = True,

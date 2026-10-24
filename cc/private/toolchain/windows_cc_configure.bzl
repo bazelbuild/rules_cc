@@ -22,6 +22,7 @@ load(
     "escape_string",
     "execute",
     "get_starlark_list",
+    "get_std_module_library",
     "resolve_labels",
     "split_escaped",
     "write_builtin_include_directory_paths",
@@ -878,6 +879,58 @@ def _get_msvc_deps_scanner_vars(repository_ctx, paths, template_vars, target_arc
         "%{msvc_deps_scanner_wrapper_path_" + target_arch + "}": "msvc_deps_scanner_wrapper_" + target_arch + ".bat",
     }
 
+def _find_std_module_interfaces(repository_ctx, vc_path):
+    """Detect the C++ standard-library module interfaces shipped by MSVC.
+
+    The STL ships std.ixx and std.compat.ixx next to a modules.json manifest
+    under <VC>/Tools/MSVC/<version>/modules/.
+
+    Returns:
+        The list of module interface paths, empty when detection was not
+        requested or no interfaces were discovered.
+    """
+
+    # Opt-in: a detected toolchain gives @local_config_cc//:std module
+    # interfaces, and analyzing those requires --experimental_cpp_modules.
+    if repository_ctx.os.environ.get("BAZEL_DETECT_STD_MODULE") != "1":
+        return []
+    if not vc_path:
+        return []
+    if _use_clang_cl(repository_ctx):
+        # clang-cl consumes the compiler-provided std module through its own
+        # manifests and cannot compile the MSVC STL module interfaces as
+        # shipped.
+        return []
+
+    full_version = _get_vc_full_version(repository_ctx, vc_path)
+    if not full_version:
+        return []
+    modules_dir = repository_ctx.path("%s/Tools/MSVC/%s/modules" % (vc_path, full_version))
+    manifest_path = modules_dir.get_child("modules.json")
+    if not manifest_path.exists:
+        return []
+
+    manifest = json.decode(repository_ctx.read(manifest_path))
+    interfaces = []
+    for source in manifest.get("module-sources", []):
+        source_path = modules_dir.get_child(source)
+        if source_path.exists:
+            interfaces.append(source_path)
+    return interfaces
+
+def _get_std_module_library(repository_ctx):
+    """Symlink the detected standard-module interfaces and render :std.
+
+    Returns:
+        The BUILD text of the @local_config_cc//:std target. With nothing
+        detected it is the empty fallback target, which keeps the companion
+        std-module toolchain resolvable.
+    """
+    interfaces = _find_std_module_interfaces(repository_ctx, find_vc_path(repository_ctx))
+    for interface in interfaces:
+        repository_ctx.symlink(interface, interface.basename)
+    return get_std_module_library([interface.basename for interface in interfaces])
+
 def _get_copts(repository_ctx):
     """Get the variables we need to populate the msys/mingw toolchains."""
     conly_opts = split_escaped(_get_env_var(
@@ -969,6 +1022,7 @@ def configure_windows_toolchain(repository_ctx):
     template_vars.update(_get_msvc_deps_scanner_vars(repository_ctx, paths, template_vars, "x86"))
     template_vars.update(_get_msvc_deps_scanner_vars(repository_ctx, paths, template_vars, "arm"))
     template_vars.update(_get_msvc_deps_scanner_vars(repository_ctx, paths, template_vars, "arm64"))
+    template_vars["%{std_module_library}"] = _get_std_module_library(repository_ctx)
     repository_ctx.template(
         "BUILD",
         paths["@rules_cc//cc/private/toolchain:BUILD.windows.tpl"],

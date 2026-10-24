@@ -23,6 +23,7 @@ load("//cc:objc_library.bzl", _objc_library = "objc_library")
 load("//cc/common:cc_common.bzl", _cc_common = "cc_common")
 load("//cc/common:cc_info.bzl", _CcInfo = "CcInfo")
 load("//cc/common:debug_package_info.bzl", _DebugPackageInfo = "DebugPackageInfo")
+load("//cc/private/rules_impl:cc_std_module_library.bzl", _cc_std_module_library = "cc_std_module_library")
 load("//cc/private/rules_impl:failing_cc_proto_library.bzl", "CC_PROTO_LIBRARY_DEPRECATION", _cc_proto_library = "cc_proto_library")
 load("//cc/toolchains:cc_flags_supplier.bzl", _cc_flags_supplier = "cc_flags_supplier")
 load("//cc/toolchains:cc_toolchain.bzl", _cc_toolchain = "cc_toolchain")
@@ -31,6 +32,7 @@ load("//cc/toolchains:cc_toolchain_suite.bzl", _cc_toolchain_suite = "cc_toolcha
 load("//cc/toolchains:compiler_flag.bzl", _compiler_flag = "compiler_flag")
 load("//cc/toolchains:fdo_prefetch_hints.bzl", _fdo_prefetch_hints = "fdo_prefetch_hints")
 load("//cc/toolchains:fdo_profile.bzl", _fdo_profile = "fdo_profile")
+load("//cc/toolchains:std_module_toolchain.bzl", _std_module_toolchain = "std_module_toolchain")
 
 # Rules
 
@@ -39,6 +41,7 @@ cc_binary = _cc_binary
 cc_test = _cc_test
 cc_import = _cc_import
 cc_shared_library = _cc_shared_library
+cc_std_module_library = _cc_std_module_library
 
 objc_library = _objc_library
 objc_import = _objc_import
@@ -70,6 +73,7 @@ fdo_prefetch_hints = _fdo_prefetch_hints
 cc_toolchain_suite = _cc_toolchain_suite
 compiler_flag = _compiler_flag
 cc_flags_supplier = _cc_flags_supplier
+std_module_toolchain = _std_module_toolchain
 
 # Modules and providers
 

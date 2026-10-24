@@ -23,6 +23,7 @@ load(
     "execute",
     "get_env_var",
     "get_starlark_list",
+    "get_std_module_library",
     "resolve_labels",
     "split_escaped",
     "which",
@@ -345,6 +346,91 @@ def _get_compiler_name(repository_ctx, cc):
     if _is_gcc(repository_ctx, cc):
         return "gcc"
     return "compiler"
+
+def _read_std_modules_manifest(repository_ctx, cc, manifest_path):
+    """Read standard module interfaces relative to the compiler path."""
+    compiler_path = repository_ctx.path(cc).realpath
+    manifest = json.decode(repository_ctx.read(manifest_path))
+    modules = []
+    for module in manifest.get("modules", []):
+        if not module.get("is-std-library", False):
+            continue
+        logical_name = module.get("logical-name")
+        source_path = module.get("source-path")
+        if not logical_name or not source_path:
+            continue
+        source = compiler_path.dirname.get_child(source_path)
+        if not source.exists:
+            continue
+
+        includedirs = []
+        for include_dir in module.get("local-arguments", {}).get("system-include-directories", []):
+            include_root = compiler_path.dirname.get_child(include_dir)
+            includedirs.append(include_root)
+
+        modules.append(struct(
+            path = source,
+            includedirs = includedirs,
+        ))
+    return modules
+
+def _find_std_module_via_modules_json(repository_ctx, cc, modules_json_name):
+    """Find standard-module interfaces from the compiler manifest.
+
+    Returns:
+        The list of module interfaces, empty when the compiler ships no
+        manifest for the standard library.
+    """
+    result = repository_ctx.execute([cc, "-print-file-name=" + modules_json_name])
+    if result.return_code != 0:
+        return []
+    manifest_name = result.stdout.strip()
+    if not manifest_name or manifest_name == modules_json_name:
+        # -print-file-name returns the bare name when the file is not found.
+        return []
+
+    manifest_path = repository_ctx.path(manifest_name)
+    if not manifest_path.exists:
+        return []
+    modules = _read_std_modules_manifest(repository_ctx, cc, manifest_path)
+    return modules
+
+def _linklibs_has_token(linklibs_str, token):
+    """Return True if token appears as a :-separated element of linklibs_str.
+
+    BAZEL_LINKLIBS is :-separated (e.g. "-lc++:-lm" or
+    "-Wl,--push-state,-as-needed,-lc++,-Wl,--pop-state:-lm"). A substring check
+    would false-positive on "-lc++fs" or miss edge cases inside
+    comma-joined linker flags; token matching is precise.
+    """
+    return token in split_escaped(linklibs_str, ":")
+
+def _find_std_module_interface(repository_ctx, cc):
+    """Detect C++ standard-library module interfaces.
+
+    Select libc++ when BAZEL_LINKLIBS contains the "-lc++" token; otherwise
+    select libstdc++. Discovery uses the compiler's -print-file-name for the
+    manifest and, when needed, for relative paths recorded in the manifest.
+
+    Returns:
+        The list of module interfaces, empty when detection was not requested or
+        none were discovered.
+    """
+
+    # Opt-in: a detected toolchain gives @local_config_cc//:std module
+    # interfaces, and analyzing those requires --experimental_cpp_modules.
+    if repository_ctx.os.environ.get("BAZEL_DETECT_STD_MODULE") != "1":
+        return []
+
+    modules_json_name = "libstdc++.modules.json"
+    linklibs = repository_ctx.os.environ.get("BAZEL_LINKLIBS", "")
+    if _linklibs_has_token(linklibs, "-lc++"):
+        modules_json_name = "libc++.modules.json"
+    return _find_std_module_via_modules_json(
+        repository_ctx,
+        cc,
+        modules_json_name,
+    )
 
 def _find_generic(repository_ctx, name, env_name, overridden_tools, warn = False, silent = False):
     """Find a generic C++ toolchain tool. Doesn't %-escape the result."""
@@ -681,6 +767,25 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
             extra_flags_per_feature["use_module_maps"] = ["-Xclang", "-fno-cxx-modules"]
 
     write_builtin_include_directory_paths(repository_ctx, cc, builtin_include_directories)
+
+    std_module_interfaces = _find_std_module_interface(repository_ctx, cc)
+    symlinked = {}
+    for module in std_module_interfaces:
+        if module.path not in symlinked:
+            repository_ctx.symlink(module.path, module.path.basename)
+            symlinked[module.path] = True
+        for includedir in module.includedirs:
+            for subdir in includedir.readdir():
+                if subdir not in symlinked:
+                    repository_ctx.symlink(subdir, subdir.basename)
+                    symlinked[subdir] = True
+
+    std_module_library = get_std_module_library(
+        [module.path.basename for module in std_module_interfaces],
+        hdrs = ["std/**", "std.compat/**"] if is_clang else [],
+        copts = ["-Wno-reserved-module-identifier"] if is_clang else [],
+    )
+
     repository_ctx.template(
         "BUILD",
         paths["@rules_cc//cc/private/toolchain:BUILD.tpl"],
@@ -773,6 +878,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
             ) + link_opts),
             "%{link_libs}": get_starlark_list(link_libs),
             "%{modulemap}": ("\":module.modulemap\"" if generate_modulemap else "None"),
+            "%{std_module_library}": std_module_library,
             "%{name}": cpu_value,
             "%{opt_compile_flags}": get_starlark_list(
                 [

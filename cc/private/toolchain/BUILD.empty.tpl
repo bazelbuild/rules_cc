@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_std_module_library")
 load("@rules_cc//cc/toolchains:cc_toolchain.bzl", "cc_toolchain")
 load("@rules_cc//cc/toolchains:cc_toolchain_suite.bzl", "cc_toolchain_suite")
 load(":cc_toolchain_config.bzl", "cc_toolchain_config")
@@ -25,6 +26,11 @@ cc_library(
 
 cc_library(
     name = "malloc",
+)
+
+cc_std_module_library(
+    name = "std",
+    tags = ["no_implicit_std_module"],
 )
 
 filegroup(

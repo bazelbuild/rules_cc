@@ -48,6 +48,7 @@ bzl_library(
         "cc_shared_library.bzl",
         "cc_shared_library_impl.bzl",
         "cc_static_library.bzl",
+        "cc_std_module_library.bzl",
         "cc_test.bzl",
         "cc_test_impl.bzl",
         "objc_import.bzl",
