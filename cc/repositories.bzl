@@ -6,5 +6,5 @@ def rules_cc_dependencies():
     pass
 
 # buildifier: disable=unnamed-macro
-def rules_cc_toolchains(*args):
-    cc_configure(*args)
+def rules_cc_toolchains():
+    cc_configure()

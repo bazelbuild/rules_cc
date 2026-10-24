@@ -180,7 +180,7 @@ def _system_library_impl(repo_ctx):
     # The problem is that the quote-includes are assumed to be
     # in the same directory as the header they are included from -
     # they have no subdir prefix ("SDL2/") in their paths
-    include_subdirs = {}
+    include_subdirs = {}  # type: dict[str, None]
     for hdr in hdr_names:
         path_segments = hdr.split("/")
         path_segments.pop()

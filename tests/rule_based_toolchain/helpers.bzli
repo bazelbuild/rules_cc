@@ -1,0 +1,3 @@
+"""Path substitutions expected by the toolchain tests."""
+
+def path_pattern(p: str) -> str: ...

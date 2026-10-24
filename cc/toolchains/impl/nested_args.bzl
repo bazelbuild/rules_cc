@@ -305,13 +305,14 @@ def _escape(s):
 
 _SUPPORTED_BUILD_SETTING_TYPES = ["string", "bool", "int", "Label"]
 
-def _format_build_setting(value, label, fail = fail):
+def _format_build_setting(value, label, report_error = fail):
     if type(value) in _SUPPORTED_BUILD_SETTING_TYPES:
         return _escape(str(value))
 
-    fail("%s had an unsupported build setting type %s. Only string, bool, int, or Label values may be formatted." % (label, type(value)))
+    report_error("%s had an unsupported build setting type %s. Only string, bool, int, or Label values may be formatted." % (label, type(value)))
+    return ""
 
-def _format_target(target, fail = fail):
+def _format_target(target, report_error = fail):
     # NOTE: This is for use with ctx.var where we don't have a variable, but we
     # also don't want to allow arbitrary strings. See args.bzl for usage.
     if hasattr(target, "__raw_string"):
@@ -322,7 +323,7 @@ def _format_target(target, fail = fail):
         return _format_build_setting(
             target[BuildSettingInfo].value,
             target.label,
-            fail = fail,
+            report_error = report_error,
         )
 
     path = None
@@ -333,9 +334,10 @@ def _format_target(target, fail = fail):
         if len(files) == 1:
             path = files[0].path
     if path == None:
-        fail("%s should be either a variable, a directory, or a single file." % target.label)
+        report_error("%s should be either a variable, a directory, or a single file." % target.label)
+        return ""
     if "}" in path:
-        fail("The path %r of target %s used with 'format' cannot contain } because it would interfere with the formatting." % (
+        report_error("The path %r of target %s used with 'format' cannot contain } because it would interfere with the formatting." % (
             path,
             target.label,
         ))
@@ -373,7 +375,7 @@ def _format_string(arg, format, used_vars, fail = fail):
             else:
                 used_vars[variable] = None
                 has_format = True
-                out.append(_format_target(format[variable], fail = fail))
+                out.append(_format_target(format[variable], report_error = fail))
                 upto += len(variable) + 2
 
         elif arg[upto] == "}":
@@ -400,7 +402,7 @@ def format_list(args, format, must_use = [], fail = fail):
       A string defined to be compatible with flag groups.
     """
     formatted = []
-    used_vars = {}
+    used_vars = {}  # type: dict[str, None]
 
     for arg in args:
         formatted.append(_format_string(arg, format, used_vars, fail))
@@ -427,7 +429,7 @@ def format_dict_values(env, format, must_use = [], fail = fail):
       The environment variables with values defined to be compatible with flag groups.
     """
     formatted = {}
-    used_vars = {}
+    used_vars = {}  # type: dict[str, None]
 
     for key, value in env.items():
         formatted[key] = _format_string(value, format, used_vars, fail)

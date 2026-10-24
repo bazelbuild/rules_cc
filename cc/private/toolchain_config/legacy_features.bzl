@@ -27,6 +27,8 @@ load(
     "with_feature_set",
 )
 
+_NO_FLAGS = []  # type: list[str]
+
 def get_legacy_features(ctx, platform, existing_feature_names, linker_tool_path):
     """The features added to all legacy toolchains
 
@@ -622,7 +624,7 @@ def get_legacy_features(ctx, platform, existing_feature_names, linker_tool_path)
                             expand_if_available = "output_execpath",
                             flags = _platform_specific_value(
                                 platform,
-                                linux = [],
+                                linux = _NO_FLAGS,
                                 mac = ["-o"],
                             ) + [
                                 "%{output_execpath}",
@@ -1371,7 +1373,7 @@ def get_legacy_action_configs(
                         flags = ["-S"] + _platform_specific_value(
                             platform,
                             linux = ["-p"],
-                            mac = [],
+                            mac = _NO_FLAGS,
                         ) + ["-o", "%{output_file}"],
                     ),
                     flag_group(

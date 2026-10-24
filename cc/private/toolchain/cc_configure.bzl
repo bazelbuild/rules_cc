@@ -23,6 +23,9 @@ load(":unix_cc_configure.bzl", "configure_unix_toolchain")
 load(":windows_cc_configure.bzl", "configure_windows_toolchain")
 
 def _should_disable_toolchain(repository_ctx):
+    # type: (repository_ctx) -> bool
+    # TODO(https://github.com/bazelbuild/bazel/issues/32020): make this an
+    # annotation when supported Bazel versions expose a repository context type.
     """Returns true if the toolchain should be disabled based on environment variables."""
     env = repository_ctx.os.environ
     if env.get("BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN") == "1":
@@ -39,6 +42,9 @@ def _should_disable_toolchain(repository_ctx):
     return False
 
 def cc_autoconf_toolchains_impl(repository_ctx):
+    # type: (repository_ctx) -> repo_metadata | None
+    # TODO(https://github.com/bazelbuild/bazel/issues/32020): make this an
+    # annotation when supported Bazel versions expose context and metadata types.
     """Generate BUILD file with 'toolchain' targets for the local host C++ toolchain.
 
     Args:
@@ -78,6 +84,9 @@ cc_autoconf_toolchains = repository_rule(
 )
 
 def cc_autoconf_impl(repository_ctx, overriden_tools = dict()):
+    # type: (repository_ctx, Mapping[str, str | path]) -> repo_metadata | None
+    # TODO(https://github.com/bazelbuild/bazel/issues/32020): make this an
+    # annotation when supported Bazel versions expose context and metadata types.
     """Generate BUILD file with 'cc_toolchain' targets for the local host C++ toolchain.
 
     Args:
@@ -180,6 +189,7 @@ cc_autoconf = repository_rule(
 
 # buildifier: disable=unnamed-macro
 def cc_configure():
+    # type: () -> None
     """A C++ configuration rules that generate the crosstool file."""
     cc_autoconf_toolchains(name = "local_config_cc_toolchains")
     cc_autoconf(name = "local_config_cc")

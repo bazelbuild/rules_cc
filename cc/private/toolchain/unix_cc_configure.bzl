@@ -375,6 +375,9 @@ def _find_generic(repository_ctx, name, env_name, overridden_tools, warn = False
     return result
 
 def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
+    # type: (repository_ctx, str, Mapping[str, str | path]) -> None
+    # TODO(https://github.com/bazelbuild/bazel/issues/32020): make this an
+    # annotation when supported Bazel versions expose a repository context type.
     """Configure C++ toolchain on Unix platforms.
 
     Args:

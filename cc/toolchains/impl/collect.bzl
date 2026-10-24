@@ -48,19 +48,25 @@ def collect_defaultinfo(targets):
     """
     return collect_provider(targets, DefaultInfo)
 
-def _make_collector(provider, field):
+def _make_collector(field):
     def collector(targets, direct = [], transitive = []):
+        # type: (Sequence[Target], Sequence[T], list[depset[T]]) -> depset[T]
+        # TODO(https://github.com/bazelbuild/bazel/issues/32021): make this an
+        # annotation once supported Bazel versions have element-typed depsets,
+        # source type parameters, and admit Target values in sequences.
+        # Target admission: https://github.com/bazelbuild/bazel/issues/32024
+        # The first issue covers only the depset requirement.
         # Avoid mutating what was passed in.
         transitive = transitive[:]
-        for value in collect_provider(targets, provider):
-            transitive.append(getattr(value, field))
+        for target in targets:
+            transitive.append(field(target))
         return depset(direct = direct, transitive = transitive)
 
     return collector
 
-collect_action_types = _make_collector(ActionTypeSetInfo, "actions")
-collect_features = _make_collector(FeatureSetInfo, "features")
-collect_files = _make_collector(DefaultInfo, "files")
+collect_action_types = _make_collector(lambda target: target[ActionTypeSetInfo].actions)
+collect_features = _make_collector(lambda target: target[FeatureSetInfo].features)
+collect_files = _make_collector(lambda target: target.files)
 
 def collect_data(ctx, targets):
     """Collects from a 'data' attribute.
@@ -127,16 +133,21 @@ def collect_args_lists(targets, label):
         together.
     """
     args = []
-    by_action = {}
+    by_action = {}  # type: dict[ActionTypeInfo, _ActionAccumulator]
     transitive_files = []
     for target in targets:
         args_list = target[ArgsListInfo]
         args.extend(args_list.args)
         transitive_files.extend([args_info.files for args_info in args_list.args])
         for value in args_list.by_action:
+            action_args = []  # type: list[ArgsInfo]
+
+            # TODO(https://github.com/bazelbuild/bazel/issues/32021): make this an
+            # annotation when supported Bazel versions expose element-typed depsets.
+            action_files = []  # type: list[depset[File]]
             out = by_action.setdefault(
                 value.action,
-                struct(args = [], transitive_files = [], action = value.action),
+                struct(args = action_args, transitive_files = action_files, action = value.action),
             )
             out.args.extend(value.args)
             out.transitive_files.append(value.files)

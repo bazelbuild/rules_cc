@@ -53,3 +53,10 @@ use_repo(compat, "cc_compatibility_proxy")
 local_bazel_import = use_repo_rule("//:local_bazel.bzl", "local_bazel_import")
 
 local_bazel_import(name = "local_bazel")
+
+# Use provider contracts while bazelbuild/bazel-skylib#641 is in review.
+git_override(
+    module_name = "bazel_skylib",
+    commit = "c0108ada4fedbdfc5164cfa657867fba4e9669dc",
+    remote = "https://github.com/tamird/bazel-skylib.git",
+)

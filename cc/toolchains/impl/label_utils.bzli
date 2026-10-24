@@ -1,0 +1,6 @@
+"""Normalized labels with their original positions."""
+
+def deduplicate_label_list(name: str, labels: Sequence[str | Label]) -> struct[{
+    "labels": list[Label],
+    "indexes": list[int],
+}]: ...
