@@ -17,11 +17,15 @@ cc_feature(
     name = "pic_feature",
     args = [":pic_flags"],
     overrides = "//cc/toolchains/features/legacy:pic",
+    visibility = ["//:__subpackages__"],
 )
 
 cc_args(
     name = "pic_flags",
-    actions = ["//cc/toolchains/actions:compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:compile_actions",
+        "//cc/toolchains/actions:cpp20_module_actions",
+    ],
     args = ["-fPIC"],
     requires_not_none = "//cc/toolchains/variables:pic",
 )

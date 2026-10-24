@@ -1,3 +1,4 @@
+load("//cc/toolchains/args:sysroot.bzl", "cc_sysroot")
 load(":compare_feature.bzl", "compare_cc_feature_implementation", "compare_feature_implementation")
 load(":goldens/macos/archiver_flags.bzl", _MACOS_ARCHIVER_FLAGS = "GOLDEN")
 load(":goldens/macos/force_pic_flags.bzl", _MACOS_FORCE_PIC_FLAGS = "GOLDEN")
@@ -5,11 +6,20 @@ load(":goldens/macos/libraries_to_link.bzl", _MACOS_LIBRARIES_TO_LINK = "GOLDEN"
 load(":goldens/macos/runtime_library_search_directories.bzl", _MACOS_RUNTIME_LIBRARY_SEARCH_DIRECTORIES = "GOLDEN")
 load(":goldens/macos/thin_lto.bzl", _MACOS_THIN_LTO = "GOLDEN")
 load(":goldens/unix/archiver_flags.bzl", _UNIX_ARCHIVER_FLAGS = "GOLDEN")
+load(":goldens/unix/external_include_paths.bzl", _UNIX_EXTERNAL_INCLUDE_PATHS = "GOLDEN")
 load(":goldens/unix/force_pic_flags.bzl", _UNIX_FORCE_PIC_FLAGS = "GOLDEN")
+load(":goldens/unix/include_paths.bzl", _UNIX_INCLUDE_PATHS = "GOLDEN")
+load(":goldens/unix/includes.bzl", _UNIX_INCLUDES = "GOLDEN")
+load(":goldens/unix/layering_check.bzl", _UNIX_LAYERING_CHECK = "GOLDEN")
 load(":goldens/unix/libraries_to_link.bzl", _UNIX_LIBRARIES_TO_LINK = "GOLDEN")
 load(":goldens/unix/linker_param_file.bzl", _UNIX_LINKER_PARAM_FILE = "GOLDEN")
+load(":goldens/unix/per_object_debug_info.bzl", _UNIX_PER_OBJECT_DEBUG_INFO = "GOLDEN")
+load(":goldens/unix/pic.bzl", _UNIX_PIC = "GOLDEN")
+load(":goldens/unix/preprocessor_defines.bzl", _UNIX_PREPROCESSOR_DEFINES = "GOLDEN")
+load(":goldens/unix/random_seed.bzl", _UNIX_RANDOM_SEED = "GOLDEN")
 load(":goldens/unix/runtime_library_search_directories.bzl", _UNIX_RUNTIME_LIBRARY_SEARCH_DIRECTORIES = "GOLDEN")
 load(":goldens/unix/shared_flag.bzl", _UNIX_SHARED_FLAG = "GOLDEN")
+load(":goldens/unix/sysroot.bzl", _UNIX_SYSROOT = "GOLDEN")
 load(":goldens/windows/def_file_gnu.bzl", _WINDOWS_DEF_FILE_GNU = "GOLDEN")
 load(":goldens/windows/libraries_to_link.bzl", _WINDOWS_LIBRARIES_TO_LINK = "GOLDEN")
 load(":goldens/windows/thin_lto.bzl", _WINDOWS_THIN_LTO = "GOLDEN")
@@ -154,4 +164,79 @@ compare_cc_feature_implementation(
     actual_implementation = "//cc/toolchains/args/thin_lto:feature",
     expected = _WINDOWS_THIN_LTO,
     platform = ":windows",
+)
+
+# The compile args C++20 module actions share. Bazel's CppActionConfigs.java
+# predates those actions, so these goldens follow the legacy features in
+# unix_cc_toolchain_config instead: module compiles and dependency scans get
+# what preprocessing needs, and module codegen gets what code generation needs.
+
+cc_sysroot(
+    name = "sysroot",
+    sysroot = "//tests/rule_based_toolchain/testdata:directory",
+)
+
+compare_cc_feature_implementation(
+    name = "includes_unix_test",
+    actual_implementation = "//cc/toolchains/args/include_flags:includes_feature",
+    expected = _UNIX_INCLUDES,
+    platform = ":linux",
+)
+
+compare_cc_feature_implementation(
+    name = "include_paths_unix_test",
+    actual_implementation = "//cc/toolchains/args/include_flags:include_paths_feature",
+    expected = _UNIX_INCLUDE_PATHS,
+    platform = ":linux",
+)
+
+compare_feature_implementation(
+    name = "external_include_paths_unix_test",
+    actual_implementation = "//cc/toolchains/args/external_include_paths",
+    expected = _UNIX_EXTERNAL_INCLUDE_PATHS,
+    feature_name = "external_include_paths_test",
+    platform = ":linux",
+)
+
+compare_cc_feature_implementation(
+    name = "preprocessor_defines_unix_test",
+    actual_implementation = "//cc/toolchains/args/preprocessor_defines:feature",
+    expected = _UNIX_PREPROCESSOR_DEFINES,
+    platform = ":linux",
+)
+
+compare_cc_feature_implementation(
+    name = "pic_unix_test",
+    actual_implementation = "//cc/toolchains/args/pic_flags:pic_feature",
+    expected = _UNIX_PIC,
+    platform = ":linux",
+)
+
+compare_cc_feature_implementation(
+    name = "random_seed_unix_test",
+    actual_implementation = "//cc/toolchains/args/random_seed:feature",
+    expected = _UNIX_RANDOM_SEED,
+    platform = ":linux",
+)
+
+compare_cc_feature_implementation(
+    name = "per_object_debug_info_unix_test",
+    actual_implementation = "//cc/toolchains/args/fission_flags:per_object_debug_info_feature",
+    expected = _UNIX_PER_OBJECT_DEBUG_INFO,
+    platform = ":linux",
+)
+
+compare_cc_feature_implementation(
+    name = "layering_check_unix_test",
+    actual_implementation = "//cc/toolchains/args/layering_check",
+    expected = _UNIX_LAYERING_CHECK,
+    platform = ":linux",
+)
+
+compare_feature_implementation(
+    name = "sysroot_unix_test",
+    actual_implementation = ":sysroot",
+    expected = _UNIX_SYSROOT,
+    feature_name = "sysroot_test",
+    platform = ":linux",
 )
