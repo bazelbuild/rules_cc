@@ -193,6 +193,9 @@ def _compare_components(component1, component2):
     cmp_result = _cmp(component1.first_number, component2.first_number)
     if cmp_result:
         return cmp_result
+    if bool(component1.alpha_sequence) != bool(component2.alpha_sequence):
+        # A release follows all prereleases with the same leading number.
+        return -1 if component1.alpha_sequence else 1
     cmp_result = _cmp(component1.alpha_sequence, component2.alpha_sequence)
     if cmp_result:
         return cmp_result
