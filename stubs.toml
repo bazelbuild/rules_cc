@@ -6,6 +6,7 @@ format-version = 1
 "cc/private/objc_info.bzl" = "cc/private/objc_info.bzli"
 "cc/private/toolchain/lib_cc_configure.bzl" = "cc/private/toolchain/lib_cc_configure.bzli"
 "cc/private/toolchain_config/legacy_features.bzl" = "cc/private/toolchain_config/legacy_features.bzli"
+"cc/system_library.bzl" = "cc/system_library.bzli"
 "cc/toolchains/cc_toolchain_info.bzl" = "cc/toolchains/cc_toolchain_info.bzli"
 "cc/toolchains/directory_tool.bzl" = "cc/toolchains/directory_tool.bzli"
 "cc/toolchains/impl/collect.bzl" = "cc/toolchains/impl/collect.bzli"
