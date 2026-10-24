@@ -50,6 +50,7 @@ cc_feature_set(
         ":static_linking_mode",
         ":dynamic_linking_mode",
         ":static_link_cpp_runtimes",
+        "//cc/toolchains/args/external_include_paths:feature",
     ],
     visibility = ["//visibility:private"],
 )
