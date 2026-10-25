@@ -18,3 +18,21 @@ load("@rules_cc//cc/toolchains/impl:legacy_converter.bzl", _convert_feature = "c
 
 convert_feature = _convert_feature
 FeatureInfo = _FeatureInfo
+
+def convert_extra_features(*, enabled, known):
+    """Returns legacy feature definitions for the injected feature targets.
+
+    Args:
+      enabled: Feature targets whose definitions should be enabled.
+      known: Additional feature targets whose definitions should be available.
+
+    Returns:
+      The converted definitions. External feature targets refer to definitions
+      supplied elsewhere, so they do not contribute a definition here.
+    """
+    features = []
+    for target in depset(enabled + known).to_list():
+        feature = _convert_feature(target[_FeatureInfo], enabled = target in enabled)
+        if feature != None:
+            features.append(feature)
+    return features
