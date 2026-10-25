@@ -15,7 +15,7 @@
 """Tests for Objective-C compilation artifacts."""
 
 load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
-load("//cc/private/rules_impl:objc_compilation_artifacts_info.bzl", "CompilationArtifactsInfo")
+load("//cc/private/rules_impl:objc_compilation_artifacts_info.bzl", "CompilationArtifactsInfo")  # buildifier: disable=bzl-visibility
 
 def _header_only_impl(ctx):
     env = unittest.begin(ctx)
