@@ -147,9 +147,8 @@ tasks:
     build_targets: *build_targets
     test_targets: *test_targets
     test_flags: *windows_test_flags
-    # TODO(pzembrod): reenable once Commit #53428ca hits Bazel ROLLING - should be within 08/2026
-    # coverage_flags: *windows_coverage_flags
-    # coverage_targets: *coverage_targets
+    coverage_flags: *windows_coverage_flags
+    coverage_targets: *coverage_targets
 
 # Bazel 7
   ubuntu_bazel_7:
