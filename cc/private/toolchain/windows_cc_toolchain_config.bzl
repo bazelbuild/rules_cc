@@ -177,6 +177,11 @@ def _impl(ctx):
                 prefix = "",
                 extension = ".exe",
             ),
+            artifact_name_pattern(
+                category_name = "dynamic_library",
+                prefix = "lib",
+                extension = ".dll",
+            ),
         ]
 
     if _use_msvc_toolchain(ctx):
