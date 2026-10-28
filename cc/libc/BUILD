@@ -19,8 +19,10 @@ this package in their select() statements.
 
 Toolchains not shipped with Bazel are encouraged to use the same names to
 identify C standard libraries as used below, but this is not enforced. A
-toolchain's `target_libc` value may carry a semantic version suffix in the form
-(e.g. "glibc-2.31"), which is ignored when matching the config settings below.
+toolchain's `target_libc` value may carry a version suffix (e.g. "glibc-2.31").
+It is ignored by the config settings for C standard libraries below, but
+determines whether the config settings for glibc versions (e.g.
+`glibc_at_least_2.31`) match.
 
 Example:
 
@@ -40,7 +42,8 @@ If multiple targets use the same set of conditionally enabled flags, this can be
 simplified by extracting the select expression into a Starlark constant.
 """
 
-load("//cc/toolchains:libc_flag.bzl", "libc_flag")
+load("//cc/toolchains:libc_flag.bzl", "libc_flag", "libc_version_flag")
+load("//cc/toolchains/impl:libc_version.bzl", "GLIBC_VERSIONS")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -55,6 +58,47 @@ config_setting(
     name = "glibc",
     flag_values = {":libc": "glibc"},
 )
+
+# For each glibc version starting with 2.15, `glibc_at_least_<version>` (e.g.
+# `glibc_at_least_2.33`) matches if the current toolchain targets at least that
+# version of glibc, as indicated by the version suffix of its `target_libc` value
+# (e.g. "glibc-2.35"). None of them match if the toolchain doesn't indicate a
+# version. Each of them is a specialization of `glibc` and of the settings for
+# lower versions, so a select() can contain several of them:
+#
+#   local_defines = select({
+#       "//cc/libc:glibc_at_least_2.33": ["HAVE_MALLINFO=1", "HAVE_MALLINFO2=1"],
+#       "//cc/libc:glibc": ["HAVE_MALLINFO=1"],
+#       "//conditions:default": [],
+#   }),
+[
+    libc_version_flag(
+        name = "_glibc_at_least_" + version,
+        libc = ":libc",
+        libc_name = "glibc",
+        min_version = version,
+        visibility = ["//visibility:private"],
+    )
+    for version in GLIBC_VERSIONS
+]
+
+[
+    config_setting(
+        name = "glibc_at_least_" + version,
+        # Matching the flags of all lower versions makes this setting a
+        # specialization of theirs.
+        flag_values = dict(
+            [(":libc", "glibc")] + [
+                (
+                    ":_glibc_at_least_" + lower_version,
+                    "true",
+                )
+                for lower_version in GLIBC_VERSIONS[:i + 1]
+            ],
+        ),
+    )
+    for i, version in enumerate(GLIBC_VERSIONS)
+]
 
 # musl libc (https://musl.libc.org). Also used by Emscripten and, in the form
 # of the derived wasi-libc, by WASI toolchains.

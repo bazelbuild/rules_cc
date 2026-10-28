@@ -154,9 +154,11 @@ def cc_toolchain(
             ones in the wild.
         target_libc: (str) The name of the C standard library targeted by this toolchain
             (e.g. "glibc", "musl"), optionally followed by a version suffix (e.g.
-            "glibc-2.2.2"). The current toolchain's C standard library is exposed to
-            `select()` statements via the config settings in `@rules_cc//cc/libc`. If not provided,
-            a best effort default is selected.
+            "glibc-2.31"). The current toolchain's C standard library is exposed to
+            `select()` statements via the config settings in `@rules_cc//cc/libc`. For glibc, these
+            include settings for minimum versions (e.g. `glibc_at_least_2.31`), which only match if
+            the version suffix is provided. If not provided, a best effort default without a version
+            is selected.
         target_system_name: (str) The target system name for this toolchain. Bazel doesn't use this
             but starlark rules can read this value through `toolchain_info.target_gnu_system_name`.
             This string is commonly the target triple you would pass to `clang -target` (e.g. "x86_64-unknown-linux-gnu").

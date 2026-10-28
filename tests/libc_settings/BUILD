@@ -13,11 +13,23 @@
 # limitations under the License.
 
 load("//cc:cc_binary.bzl", "cc_binary")
+load("//cc:cc_test.bzl", "cc_test")
+load(":glibc_version_test.bzl", "glibc_at_least_minor_defines", "glibc_version_test_suite")
 load(":libc_flag_test.bzl", "libc_flag_test_suite")
 
 licenses(["notice"])
 
 libc_flag_test_suite(name = "libc_flag_tests")
+
+glibc_version_test_suite(name = "glibc_version_tests")
+
+# Verifies that the glibc version reported by the current toolchain isn't newer
+# than its headers.
+cc_test(
+    name = "glibc_headers_test",
+    srcs = ["glibc_headers_test.cc"],
+    local_defines = glibc_at_least_minor_defines(),
+)
 
 cc_binary(
     name = "main",

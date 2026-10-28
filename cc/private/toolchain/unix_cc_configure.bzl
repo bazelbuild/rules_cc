@@ -59,13 +59,31 @@ def _prepare_include_path(repo_ctx, path):
         return path[len(repo_root):]
     return path
 
+def _glibc_with_version(macros):
+    """Returns "glibc" with the version suffix defined by the given macros.
+
+    Args:
+        macros: The macros defined by a glibc header, as printed by `-E -dM`.
+    """
+    version = {}
+    for line in macros.splitlines():
+        words = line.split(" ")
+        if len(words) == 3 and words[0] == "#define" and words[1] in ("__GLIBC__", "__GLIBC_MINOR__"):
+            version[words[1]] = words[2]
+    major = version.get("__GLIBC__", "")
+    minor = version.get("__GLIBC_MINOR__", "")
+    if major.isdigit() and minor.isdigit():
+        return "glibc-%s.%s" % (major, minor)
+    return "glibc"
+
 def _get_target_libc(repository_ctx, cc, darwin, compile_opts):
     """Detect the C standard library targeted by the compiler.
 
     Returns one of the canonical names used by the config_settings in
     @rules_cc//cc/libc if the C standard library is recognized and "unknown"
-    otherwise. Can be overridden via the BAZEL_TARGET_LIBC environment
-    variable.
+    otherwise. For glibc, the name carries the version of its headers as a
+    suffix (e.g. "glibc-2.39"). Can be overridden via the BAZEL_TARGET_LIBC
+    environment variable.
 
     Args:
         repository_ctx: The repository context.
@@ -95,6 +113,8 @@ def _get_target_libc(repository_ctx, cc, darwin, compile_opts):
             ("__NetBSD__", "netbsd"),
         ]:
             if ("#define %s " % macro) in result.stdout:
+                if libc == "glibc":
+                    return _glibc_with_version(result.stdout)
                 return libc
 
     # musl intentionally doesn't define an identifying macro, but is usually
