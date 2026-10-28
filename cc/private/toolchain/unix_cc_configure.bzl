@@ -561,7 +561,13 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     if not gold_or_lld_linker_path:
         ld_path = repository_ctx.path(tool_paths["ld"])
         if ld_path.dirname != cc_path.dirname:
-            bin_search_flags.append("-B" + str(ld_path.dirname))
+            bin_search_flags.append("-B" + escape_string(str(ld_path.dirname)))
+    elif not gold_or_lld_linker_path.startswith("/"):
+        ld_binary = repository_ctx.which("ld." + gold_or_lld_linker_path) or repository_ctx.which(gold_or_lld_linker_path)
+        if ld_binary:
+            ld_path = repository_ctx.path(ld_binary)
+            if ld_path.dirname != cc_path.dirname:
+                bin_search_flags.append("-B" + escape_string(str(ld_path.dirname)))
     force_linker_flags = []
     if gold_or_lld_linker_path:
         force_linker_flags.append("-fuse-ld=" + gold_or_lld_linker_path)

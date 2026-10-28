@@ -16,6 +16,10 @@ MOCK_EMPTY_ALLOWLIST_TOOLCHAINS = [
     "//tests/cc/testutil/toolchains:cc-toolchain-k8-with-empty-allowlist",
 ]
 
+MOCK_TARGET_ALLOWLIST_TOOLCHAINS = [
+    "//tests/cc/testutil/toolchains:cc-toolchain-k8-with-target-allowlist",
+]
+
 def cc_analysis_test(name, with_features = None, test_features = [], with_action_configs = [], **kwargs):
     """Runs an analysis_test with the a mock C++ toolchain.
 

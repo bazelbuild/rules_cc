@@ -147,9 +147,8 @@ tasks:
     build_targets: *build_targets
     test_targets: *test_targets
     test_flags: *windows_test_flags
-    # TODO(pzembrod): reenable once Commit #53428ca hits Bazel ROLLING - should be within 08/2026
-    # coverage_flags: *windows_coverage_flags
-    # coverage_targets: *coverage_targets
+    coverage_flags: *windows_coverage_flags
+    coverage_targets: *coverage_targets
 
 # Bazel 7
   ubuntu_bazel_7:
@@ -230,7 +229,7 @@ tasks:
     coverage_targets: *test_targets_bazel_less_than_9
 
 # Bazel 9
-  ubuntu:
+  ubuntu_bazel_9:
     name: Ubuntu (Bazel 9)
     bazel: 9.x
     platform: ubuntu2404
@@ -238,7 +237,7 @@ tasks:
     test_targets: *test_targets
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets
-  macos_intel:
+  macos_intel_bazel_9:
     name: MacOS Intel (Bazel 9)
     bazel: 9.x
     platform: macos
@@ -247,7 +246,7 @@ tasks:
     test_flags: *macos_test_flags
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets
-  macos:
+  macos_bazel_9:
     name: MacOS (Bazel 9)
     bazel: 9.x
     platform: macos_arm64
@@ -256,9 +255,50 @@ tasks:
     test_flags: *macos_test_flags
     coverage_flags: *common_coverage_flags
     coverage_targets: *coverage_targets
-  windows:
+  windows_bazel_9:
     name: Windows (Bazel 9)
     bazel: 9.x
+    platform: windows
+    build_targets: *build_targets
+    test_targets: *test_targets
+    test_flags: *windows_test_flags
+    coverage_flags: *windows_coverage_flags
+    coverage_targets: *test_targets
+
+# Bazel 10
+  ubuntu_bazel_10:
+    name: Ubuntu (Bazel 10)
+    bazel: 10.*  # TODO(pzembrod): Change to 10.x after 10.0.0 is released. Same for other jobs.
+    platform: ubuntu2404
+    build_targets: *build_targets
+    test_targets: *test_targets
+    coverage_flags: *common_coverage_flags
+    coverage_targets: *coverage_targets
+  macos_intel_bazel_10:
+    name: MacOS Intel (Bazel 10)
+    bazel: 10.*
+    platform: macos
+    environment:
+      ANDROID_HOME: ""
+      ANDROID_NDK_HOME: ""
+    build_targets: *build_targets
+    test_targets: *test_targets
+    test_flags: *macos_test_flags
+    coverage_flags: *common_coverage_flags
+    coverage_targets: *coverage_targets
+  macos_bazel_10:
+    name: MacOS (Bazel 10)
+    bazel: 10.*
+    platform: macos_arm64
+    build_targets: *build_targets
+    test_targets: *test_targets
+    test_flags: *macos_test_flags
+    coverage_flags: *common_coverage_flags
+    coverage_targets: *coverage_targets
+  windows_bazel_10:
+    name: Windows (Bazel 10)
+    bazel: 10.*
+    platform: windows
     build_targets: *build_targets
     test_targets: *test_targets
     test_flags: *windows_test_flags

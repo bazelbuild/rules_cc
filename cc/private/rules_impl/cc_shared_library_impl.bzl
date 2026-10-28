@@ -293,9 +293,9 @@ def _check_if_target_under_path(value, pattern):
 
     return pattern.package == value.package and pattern.name == value.name
 
-def _check_if_target_should_be_exported_with_filter(target, current_label, exports_filter):
+def _check_if_target_should_be_exported_with_filter(ctx, target, exports_filter):
     for export_filter in exports_filter:
-        export_filter_label = current_label.relative(export_filter)
+        export_filter_label = ctx.package_relative_label(export_filter)
         if _check_if_target_under_path(target, export_filter_label):
             return True
 
@@ -478,8 +478,8 @@ def _filter_inputs(
                     linker_input,
                 )
             if _check_if_target_should_be_exported_with_filter(
+                ctx,
                 linker_input.owner,
-                ctx.label,
                 ctx.attr.exports_filter,
             ):
                 exports[owner] = True

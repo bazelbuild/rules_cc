@@ -947,14 +947,6 @@ def _verify_no_disallowed_copts(
         if not hasattr(info, "flags") or not info.flags:
             continue
 
-        # Check if target is exempt under this policy's allowlist
-        allowlist = getattr(info, "allowlist", None)
-        if allowlist != None and allowlist.contains(ctx.label):
-            continue
-
-        allowlist_target_label = getattr(info, "allowlist_target_label", None)
-        error_message = getattr(info, "error_message", None)
-
         # Pair each set of flags with a description of where it came from.
         flag_sources = [("attribute '{}'".format(attr_name), copts)]
         if getattr(info, "verify_command_line", False) and command_line_copts:
@@ -964,18 +956,42 @@ def _verify_no_disallowed_copts(
                 ("'--conlyopt' flag", command_line_copts.conlyopts),
             ])
 
-        for source, flags in flag_sources:
-            for flag in flags:
-                if _matches_disallowed_copt(flag, info.flags):
-                    violations.append((flag, allowlist_target_label, error_message, source))
+        matches = [
+            (flag, source)
+            for source, flags in flag_sources
+            for flag in flags
+            if _matches_disallowed_copt(flag, info.flags)
+        ]
+        if not matches:
+            continue
+
+        # Check the allowlists only after a match: package allowlist lookups
+        # scan "//pkg/..." entries linearly, and most targets use no disallowed
+        # flags.
+        package_allowlist = getattr(info, "package_allowlist", getattr(info, "allowlist", None))
+        if package_allowlist != None and package_allowlist.contains(ctx.label):
+            continue
+
+        target_allowlist = getattr(info, "target_allowlist", None)
+
+        if target_allowlist != None and (
+            str(ctx.label) in target_allowlist or
+            str(ctx.label).lstrip("@") in target_allowlist
+        ):
+            continue
+
+        policy_label = getattr(info, "policy_label", getattr(info, "allowlist_target_label", None))
+        error_message = getattr(info, "error_message", None)
+        for flag, source in matches:
+            violations.append((flag, policy_label, error_message, source))
 
     if violations:
         formatted_violations = []
-        for flag, allowlist_target_label, error_message, source in violations:
-            allowlist_clause = (
-                " (target is not in the allowlist '{}')".format(
-                    allowlist_target_label,
-                ) if allowlist_target_label else ""
+        for flag, policy_label, error_message, source in violations:
+            policy_clause = (
+                " disallowed by '{}'".format(
+                    policy_label,
+                ) if policy_label else ""
             )
             error_clause = (
                 ": {}".format(error_message) if error_message else ""
@@ -984,7 +1000,7 @@ def _verify_no_disallowed_copts(
                 "- Flag '{}' in {}{}{}".format(
                     flag,
                     source,
-                    allowlist_clause,
+                    policy_clause,
                     error_clause,
                 ),
             )

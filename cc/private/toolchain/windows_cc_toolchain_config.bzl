@@ -607,15 +607,7 @@ def _impl(ctx):
                     ] if ctx.attr.conly_flags else []),
                 ),
                 flag_set(
-                    actions = [
-                        ACTION_NAMES.linkstamp_compile,
-                        ACTION_NAMES.cpp_compile,
-                        ACTION_NAMES.cpp_header_parsing,
-                        ACTION_NAMES.cpp_module_compile,
-                        ACTION_NAMES.cpp_module_codegen,
-                        ACTION_NAMES.lto_backend,
-                        ACTION_NAMES.clif_match,
-                    ],
+                    actions = all_cpp_compile_actions + [ACTION_NAMES.lto_backend],
                     flag_groups = ([
                         flag_group(
                             flags = ctx.attr.cxx_flags,
@@ -1666,15 +1658,7 @@ def _impl(ctx):
                         ] if ctx.attr.conly_flags else []),
                     ),
                     flag_set(
-                        actions = [
-                            ACTION_NAMES.linkstamp_compile,
-                            ACTION_NAMES.cpp_compile,
-                            ACTION_NAMES.cpp_header_parsing,
-                            ACTION_NAMES.cpp_module_compile,
-                            ACTION_NAMES.cpp_module_codegen,
-                            ACTION_NAMES.lto_backend,
-                            ACTION_NAMES.clif_match,
-                        ],
+                        actions = all_cpp_compile_actions + [ACTION_NAMES.lto_backend],
                         flag_groups = ([
                             flag_group(
                                 flags = ctx.attr.cxx_flags,
@@ -1739,6 +1723,11 @@ def _impl(ctx):
     if "dumpbin" in ctx.attr.tool_paths:
         make_variables.append(make_variable(name = "DUMPBIN", value = ctx.attr.tool_paths["dumpbin"]))
 
+    windows_quoting_for_param_files_feature = feature(
+        name = "windows_quoting_for_param_files",
+        enabled = _use_msvc_toolchain(ctx),
+    )
+
     # Tell bazel we support C++ modules now
     cpp_modules_feature = feature(
         name = "cpp_modules",
@@ -1785,7 +1774,7 @@ def _impl(ctx):
         ],
         enabled = True,
     )
-    features.extend([cpp_modules_feature, cpp_module_modmap_file_feature, cpp20_module_compile_flags_feature])
+    features.extend([windows_quoting_for_param_files_feature, cpp_modules_feature, cpp_module_modmap_file_feature, cpp20_module_compile_flags_feature])
 
     extra_rules_based_features = depset(ctx.attr.extra_enabled_features + ctx.attr.extra_known_features)
     features.extend([convert_feature(extra_feature[FeatureInfo], enabled = extra_feature in ctx.attr.extra_enabled_features) for extra_feature in extra_rules_based_features.to_list()])

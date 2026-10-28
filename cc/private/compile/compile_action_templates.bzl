@@ -13,18 +13,25 @@
 # limitations under the License.
 """Tree artifact compilation actions"""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
     "//cc/common:cc_helper_internal.bzl",
     "CPP_SOURCE_TYPE_HEADER",
     "CPP_SOURCE_TYPE_SOURCE",
+    "extensions",
     artifact_category = "artifact_category_names",
 )
 load("//cc/common:feature_names.bzl", "feature_names")
 load("//cc/common:semantics.bzl", cc_semantics = "semantics")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
-load("//cc/private/compile:cc_compilation_helper.bzl", "dotd_files_enabled", "serialized_diagnostics_file_enabled")
-load("//cc/private/compile:compile_build_variables.bzl", "get_copts", "get_specific_compile_build_variables")
+load("//cc/private/compile:cc_compilation_helper.bzl", "dotd_files_enabled", "serialized_diagnostics_file_enabled", "use_dotd_file")
+load(
+    "//cc/private/compile:compile_build_variables.bzl",
+    "get_copts",
+    "get_specific_compile_build_variables",
+    "get_template_added_build_variables",
+)
 
 # buildifier: disable=function-docstring
 def create_compile_action_templates(
@@ -193,29 +200,250 @@ def _create_compile_action_template(
     )
     if lto_output_enabled:
         outputs["lto_compilation_context"][output_dir] = (lto_index_tree_artifact, all_copts)
-    _cc_internal.create_cc_compile_action_template(
-        action_construction_context = action_construction_context,
-        cc_compilation_context = cc_compilation_context,
-        cc_toolchain = cc_toolchain,
-        configuration = configuration,
-        feature_configuration = feature_configuration,
-        compile_build_variables = _cc_internal.combine_cc_toolchain_variables(
-            common_compile_build_variables,
-            specific_compile_build_variables,
-        ),
-        source = source_dir,
-        additional_compilation_inputs = additional_compilation_inputs,
-        additional_include_scanning_roots = additional_include_scanning_roots,
-        use_pic = use_pic,
-        output_categories = output_categories,
-        output_files = output_dir,
-        dotd_tree_artifact = dotd_tree_artifact,
-        diagnostics_tree_artifact = diagnostics_tree_artifact,
-        lto_indexing_tree_artifact = lto_index_tree_artifact,
-        needs_include_validation = cc_semantics.needs_include_validation(language),
-        toolchain_type = cc_semantics.toolchain,
-    )
+
+    if bazel_features.cc._map_directory_supports_cc_compile:
+        _starlark_create_cc_compile_action_template(
+            action_construction_context = action_construction_context,
+            cc_compilation_context = cc_compilation_context,
+            cc_toolchain = cc_toolchain,
+            configuration = configuration,
+            feature_configuration = feature_configuration,
+            compile_build_variables = _cc_internal.combine_cc_toolchain_variables(
+                common_compile_build_variables,
+                specific_compile_build_variables,
+            ),
+            source_dir = source_dir,
+            additional_compilation_inputs = additional_compilation_inputs,
+            additional_include_scanning_roots = additional_include_scanning_roots,
+            use_pic = use_pic,
+            output_categories = output_categories,
+            output_dir = output_dir,
+            dotd_tree_artifact = dotd_tree_artifact,
+            diagnostics_tree_artifact = diagnostics_tree_artifact,
+            lto_indexing_tree_artifact = lto_index_tree_artifact,
+            needs_include_validation = cc_semantics.needs_include_validation(language),
+            toolchain_type = cc_semantics.toolchain,
+        )
+    else:
+        _cc_internal.create_cc_compile_action_template(
+            action_construction_context = action_construction_context,
+            cc_compilation_context = cc_compilation_context,
+            cc_toolchain = cc_toolchain,
+            configuration = configuration,
+            feature_configuration = feature_configuration,
+            compile_build_variables = _cc_internal.combine_cc_toolchain_variables(
+                common_compile_build_variables,
+                specific_compile_build_variables,
+            ),
+            source = source_dir,
+            additional_compilation_inputs = additional_compilation_inputs,
+            additional_include_scanning_roots = additional_include_scanning_roots,
+            use_pic = use_pic,
+            output_categories = output_categories,
+            output_files = output_dir,
+            dotd_tree_artifact = dotd_tree_artifact,
+            diagnostics_tree_artifact = diagnostics_tree_artifact,
+            lto_indexing_tree_artifact = lto_index_tree_artifact,
+            needs_include_validation = cc_semantics.needs_include_validation(language),
+            toolchain_type = cc_semantics.toolchain,
+        )
     outputs[outputs_key].append(output_dir)
+
+def _starlark_create_cc_compile_action_template(
+        *,
+        action_construction_context,
+        cc_compilation_context,
+        cc_toolchain,
+        configuration,
+        feature_configuration,
+        compile_build_variables,
+        source_dir,
+        additional_compilation_inputs,
+        additional_include_scanning_roots,
+        use_pic,
+        output_categories,
+        output_dir,
+        dotd_tree_artifact,
+        diagnostics_tree_artifact,
+        lto_indexing_tree_artifact,
+        needs_include_validation,
+        toolchain_type):
+    # The setting of additional_inputs is important to prevent build failures stating that a file
+    # "wasn't declared as input of map_directory()". This happens if an artifact's metadata is
+    # pruned because no action declared to consume it - an "orphaned" file.
+    # This is esp. true for cc_compilation_context.headers:
+    # Even though cc_compilation_context is passed into map_directory() via additional_params,
+    # the headers within it must also be added to additional_inputs so that map_directory() can
+    # declare it is consuming these files, and thus their metadata is not pruned.
+    # See b/527759856 for more details.
+    additional_inputs = {
+        "headers": (
+            depset(additional_compilation_inputs, transitive = [cc_compilation_context.headers]) if additional_compilation_inputs else cc_compilation_context.headers
+        ),
+        "direct_module_maps": cc_compilation_context._direct_module_maps,
+        "non_code_inputs": cc_compilation_context._non_code_inputs,
+    }
+    if cc_compilation_context._module_map and cc_compilation_context._module_map.file:
+        additional_inputs["module_map"] = cc_compilation_context._module_map.file
+    if feature_configuration.is_enabled(feature_names.USE_HEADER_MODULES):
+        additional_inputs["transitive_modules"] = (
+            cc_compilation_context._transitive_pic_modules if use_pic else cc_compilation_context._transitive_modules
+        )
+        separate_module = (
+            cc_compilation_context._header_info.separate_pic_module if use_pic else cc_compilation_context._header_info.separate_module
+        )
+        if separate_module:
+            additional_inputs["separate_module"] = separate_module
+
+    tools = {
+        "compiler_files": cc_toolchain._compiler_files,
+        "compiler_files_without_includes": cc_toolchain._compiler_files_without_includes,
+    }
+    if cc_toolchain._grep_includes:
+        tools["grep_includes"] = cc_toolchain._grep_includes
+
+    additional_params = dict(
+        cc_compilation_context = cc_compilation_context,  #  struct
+        cc_toolchain = cc_toolchain,  # struct
+        configuration = configuration,  # BuildConfigurationApi
+        feature_configuration = feature_configuration,  # FeatureConfigurationApi
+        compile_build_variables = compile_build_variables,  # CcToolchainVariablesApi
+        additional_compilation_inputs = additional_compilation_inputs,  # list of File
+        additional_include_scanning_roots = additional_include_scanning_roots,  # list of File
+        use_pic = use_pic,  # boolean
+        output_categories = output_categories,  # list of strings
+        dotd_tree_artifact = dotd_tree_artifact,  # Artifact|NoneType
+        diagnostics_tree_artifact = diagnostics_tree_artifact,  # Artifact|NoneType
+        lto_indexing_tree_artifact = lto_indexing_tree_artifact,  # Artifact|NoneType
+        needs_include_validation = needs_include_validation,  # boolean
+        toolchain_type = toolchain_type,  # string
+        should_compile_headers = feature_configuration.is_enabled("parse_headers"),  # boolean
+    )
+
+    output_directories = {"out_dir": output_dir}
+    if dotd_tree_artifact:
+        output_directories["dotd_out_dir"] = dotd_tree_artifact
+    if diagnostics_tree_artifact:
+        output_directories["diagnostics_out_dir"] = diagnostics_tree_artifact
+    if lto_indexing_tree_artifact:
+        output_directories["lto_indexing_out_dir"] = lto_indexing_tree_artifact
+
+    action_construction_context.actions.map_directory(
+        implementation = _template_impl,
+        input_directories = {"in_dir": source_dir},
+        output_directories = output_directories,
+        additional_inputs = additional_inputs,
+        additional_params = additional_params,
+        mnemonic = "CcCompileActionTemplate",
+        tools = tools,
+        toolchain = cc_semantics.toolchain,
+    )
+
+def _template_impl(
+        template_ctx,
+        input_directories,
+        output_directories,
+        additional_inputs,  # @unused
+        tools,  # @unused
+        additional_params):
+    # additional_inputs isn't used inside _template_impl() because the contained files are covered
+    # by input discovery via include scanning.
+    # But additional_inputs must be passed into map_directory() so the inputs are know to bazel and
+    # their metadata isn't pruned as orphaned input files.
+    in_dir = input_directories["in_dir"]
+    out_dir = output_directories["out_dir"]
+
+    source_files = []
+    private_headers = []
+
+    for input_file in in_dir.children:
+        extension_with_dot = "." + input_file.extension
+        is_header = extension_with_dot in extensions.CC_HEADER
+        is_textual_include = extension_with_dot in extensions.CC_TEXTUAL_INCLUDE
+        is_source = extension_with_dot in extensions.CC_AND_OBJC_SOURCE
+
+        if is_header:
+            private_headers.append(input_file)
+        if is_source or (is_header and additional_params["should_compile_headers"] and not is_textual_include):
+            source_files.append(input_file)
+        elif not is_header:
+            fail(("Artifact '%s' expanded from the directory artifact '%s' is neither header nor source file." +
+                  " input_file.extension = %s") % (input_file.path, in_dir.directory.path, input_file.extension))
+
+    private_headers_depset = depset(direct = private_headers)
+
+    for source_file in source_files:
+        output_file_name = _compute_output_file_name(
+            source_file,
+            additional_params["output_categories"],
+            additional_params["cc_toolchain"],
+        )
+        output_file = template_ctx.declare_file(output_file_name, directory = out_dir)
+        dotd_file = None
+        if (
+            additional_params["dotd_tree_artifact"] and
+            use_dotd_file(additional_params["feature_configuration"], source_file)
+        ):
+            dotd_file = template_ctx.declare_file(
+                output_file_name + ".d",
+                directory = additional_params["dotd_tree_artifact"],
+            )
+        diagnostics_file = None
+        if additional_params["diagnostics_tree_artifact"]:
+            diagnostics_file = template_ctx.declare_file(
+                output_file_name + ".dia",
+                directory = additional_params["diagnostics_tree_artifact"],
+            )
+        lto_indexing_file = None
+        if additional_params["lto_indexing_tree_artifact"]:
+            lto_index_file_name = paths.replace_extension(output_file_name, ".indexing.o")
+            lto_indexing_file = template_ctx.declare_file(
+                lto_index_file_name,
+                directory = additional_params["lto_indexing_tree_artifact"],
+            )
+
+        added_build_variables = get_template_added_build_variables(
+            source_file = source_file,
+            output_file = output_file,
+            dotd_file = dotd_file,
+            diagnostics_file = diagnostics_file,
+            lto_indexing_file = lto_indexing_file,
+        )
+
+        compile_build_variables = _cc_internal.combine_cc_toolchain_variables(
+            additional_params["compile_build_variables"],
+            added_build_variables,
+        )
+
+        _cc_internal.create_cc_compile_action(
+            action_construction_context = template_ctx,
+            cc_compilation_context = additional_params["cc_compilation_context"],
+            cc_toolchain = additional_params["cc_toolchain"],
+            configuration = additional_params["configuration"],
+            feature_configuration = additional_params["feature_configuration"],
+            additional_compilation_inputs = additional_params["additional_compilation_inputs"],
+            additional_include_scanning_roots = additional_params["additional_include_scanning_roots"],
+            source = source_file,
+            output_file = output_file,
+            diagnostics_file = diagnostics_file,
+            dotd_file = dotd_file,
+            use_pic = additional_params["use_pic"],
+            lto_indexing_file = lto_indexing_file,
+            compile_build_variables = compile_build_variables,
+            needs_include_validation = additional_params["needs_include_validation"],
+            toolchain_type = additional_params["toolchain_type"],
+            additional_prunable_headers = private_headers_depset,
+        )
+
+def _compute_output_file_name(input_file, output_categories, cc_toolchain):
+    output_file_name = paths.split_extension(input_file.tree_relative_path)[0]
+    for category in output_categories:
+        output_file_name = _cc_internal.get_artifact_name_for_category(
+            cc_toolchain = cc_toolchain,
+            category = category,
+            output_name = output_file_name,
+        )
+    return output_file_name
 
 def _declare_compile_output_tree_artifact(
         ctx,

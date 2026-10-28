@@ -2106,11 +2106,12 @@ def _impl(ctx):
     extra_args = {}
     if bazel_features.cc.cc_common_is_in_rules_cc:
         allowlist = ctx.attr.allowlist_provider[PackageSpecificationInfo] if ctx.attr.allowlist_provider != None else None
-        allowlist_target_label = ctx.attr.allowlist_target_label or (str(ctx.attr.allowlist_provider.label) if ctx.attr.allowlist_provider else None)
         extra_args["disallowed_copts_infos"] = [struct(
             flags = ctx.attr.disallowed_copts,
+            package_allowlist = allowlist,
             allowlist = allowlist,
-            allowlist_target_label = allowlist_target_label,
+            target_allowlist = ctx.attr.target_allowlist if ctx.attr.target_allowlist else None,
+            policy_label = str(ctx.label),
             error_message = ctx.attr.error_message or None,
         )]
 
@@ -2156,7 +2157,7 @@ cc_toolchain_config = rule(
         "artifact_name_patterns": attr.string_list_dict(),
         "disallowed_copts": attr.string_list(default = ["-w", "-Wno-error"]),
         "allowlist_provider": attr.label(providers = [PackageSpecificationInfo]),
-        "allowlist_target_label": attr.string(),
+        "target_allowlist": attr.string_list(),
         "error_message": attr.string(),
         "cc_target_os": attr.string(),
         "builtin_sysroot": attr.string(default = "/usr/grte/v1"),

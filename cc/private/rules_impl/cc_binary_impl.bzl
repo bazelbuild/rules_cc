@@ -703,10 +703,15 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
         dwp_exec_group = "cpp_dwp",
     )
     explicit_dwp_file = dwp_file
+    materialize_dwo_files = False
     if not cc_helper.should_create_per_object_debug_info(feature_configuration, cpp_config):
         explicit_dwp_file = None
     elif cc_helper.should_create_test_dwp_for_statically_linked_test(ctx.attr._is_test, linking_mode, cpp_config):
         files_to_build_list.append(dwp_file)
+    elif is_dbg_build:
+        # If fission is enabled, and this is a debug build, and we are not creating a DWP file,
+        # materialize DWO files into their own output_group.
+        materialize_dwo_files = True
 
     # If the binary is linked dynamically and COPY_DYNAMIC_LIBRARIES_TO_BINARY is enabled, collect
     # all the dynamic libraries we need at runtime. Then copy these libraries next to the binary.
@@ -769,6 +774,13 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
         output_groups["def_file"] = depset([generated_def_file])
     if linkmap:
         output_groups["linkmap"] = depset([linkmap])
+
+    if materialize_dwo_files and dwo_files:
+        output_groups["dwo_files"] = dwo_files
+    else:
+        # Some configurations always request dwo_files.
+        # If we do not create them, set an empty depset to avoid a warning.
+        output_groups["dwo_files"] = depset()
 
     if cc_linking_outputs_binary_library != None:
         # For consistency and readability.

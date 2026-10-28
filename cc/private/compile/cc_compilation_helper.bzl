@@ -16,6 +16,7 @@
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
     "//cc/common:cc_helper_internal.bzl",
+    "extensions",
     "get_relative_path",
     "package_source_root",
     "repository_exec_path",
@@ -721,6 +722,16 @@ def dotd_files_enabled(language, cpp_configuration, feature_configuration):
         not feature_configuration.is_enabled(feature_names.PARSE_SHOWINCLUDES) and
         not feature_configuration.is_enabled(feature_names.NO_DOTD_FILE)
     )
+
+# buildifier: disable=function-docstring
+def use_dotd_file(feature_configuration, source_file):
+    extension = "." + source_file.extension if source_file.extension else ""
+    header_discover_required = extension not in (extensions.ASSEMBLER + extensions.CPP_MODULE)
+    use_header_modules = (
+        feature_configuration.is_enabled(feature_names.USE_HEADER_MODULES) and
+        extension in (extensions.CC_SOURCE + extensions.CC_HEADER + extensions.CPP_MODULE_MAP)
+    )
+    return header_discover_required and not use_header_modules
 
 # buildifier: disable=function-docstring
 def serialized_diagnostics_file_enabled(feature_configuration):

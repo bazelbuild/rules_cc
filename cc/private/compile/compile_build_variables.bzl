@@ -479,16 +479,24 @@ def _setup_fdo_build_variables(
 
     if (branch_fdo_profile and
         auxiliary_fdo_inputs_list and
-        (
-            feature_configuration.is_enabled(feature_names.AUTOFDO) or
-            feature_configuration.is_enabled(feature_names.XBINARYFDO) or
-            (
-                feature_configuration.is_enabled(feature_names.FDO_OPTIMIZE) and
-                branch_fdo_profile.branch_fdo_mode in ("llvm_fdo", "llvm_cs_fdo")
-            )
-        )):
+        _uses_branch_fdo_profile(branch_fdo_profile.branch_fdo_mode, feature_configuration)):
         variables["fdo_profile_path"] = branch_fdo_profile.profile_artifact.path
     return variables
+
+def _uses_branch_fdo_profile(branch_fdo_mode, feature_configuration):
+    """Returns whether the enabled features consume the branch FDO profile.
+
+    The profile is only passed to compile actions (as `fdo_profile_path` and as
+    an input) when the toolchain feature that reads it is enabled.
+    """
+    if feature_configuration.is_enabled(feature_names.AUTOFDO):
+        return True
+    if feature_configuration.is_enabled(feature_names.XBINARYFDO):
+        return True
+    if (feature_configuration.is_enabled(feature_names.FDO_OPTIMIZE) and
+        branch_fdo_mode in ("llvm_fdo", "llvm_cs_fdo")):
+        return True
+    return False
 
 def _get_auxiliary_fdo_inputs_list(
         cc_toolchain,
@@ -517,8 +525,10 @@ def _get_auxiliary_fdo_inputs_list(
 
     branch_fdo_profile = getattr(fdo_context, "branch_fdo_profile", None)
 
-    # If --fdo_optimize was not specified, we don't have any additional inputs.
-    if branch_fdo_profile:
+    # Only add the profile when the enabled features read it, matching the
+    # condition under which `fdo_profile_path` is set.
+    if (branch_fdo_profile and
+        _uses_branch_fdo_profile(branch_fdo_profile.branch_fdo_mode, feature_configuration)):
         auxiliary_inputs.append(branch_fdo_profile.profile_artifact)
 
     return auxiliary_inputs
@@ -628,5 +638,37 @@ def _compute_all_linkstamp_defines(
         additional_linkstamp_defines = additional_linkstamp_defines,
     )
     return _stamps_to_defines(stamps)
+
+def get_template_added_build_variables(
+        source_file,
+        output_file,
+        dotd_file = None,
+        diagnostics_file = None,
+        lto_indexing_file = None):
+    """Returns variables for a compile action template.
+
+    These variables are a function of the specific source file being compiled.
+
+    Args:
+        source_file: (File) The source file to be compiled.
+        output_file: (File) The output object file.
+        dotd_file: (File) The dependency file, enables .d file generation.
+        diagnostics_file: (File) The serialized diagnostics file, enables .dia file generation.
+        lto_indexing_file: (File) The minimized LTO indexing bitcode file.
+
+    Returns:
+        (CcToolchainVariables) containing the variables for the template.
+    """
+    added_build_variables = {
+        _VARS.SOURCE_FILE: source_file,
+        _VARS.OUTPUT_FILE: output_file,
+    }
+    if dotd_file:
+        added_build_variables[_VARS.DEPENDENCY_FILE] = dotd_file
+    if diagnostics_file:
+        added_build_variables[_VARS.SERIALIZED_DIAGNOSTICS_FILE] = diagnostics_file
+    if lto_indexing_file:
+        added_build_variables[_VARS.LTO_INDEXING_BITCODE_FILE] = lto_indexing_file
+    return _cc_internal.cc_toolchain_variables(vars = added_build_variables)
 
 COMPILE_BUILD_VARIABLES = _VARS
