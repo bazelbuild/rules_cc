@@ -41,7 +41,7 @@ load(
     "get_module_map_name",
 )
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
-load("//cc/private/compile:cc_compilation_helper.bzl", "cc_compilation_helper", "dotd_files_enabled", "serialized_diagnostics_file_enabled", _use_dotd_file = "use_dotd_file")
+load("//cc/private/compile:cc_compilation_helper.bzl", "cc_compilation_helper", "dotd_files_enabled", "serialized_diagnostics_file_enabled")
 load("//cc/private/compile:cc_compilation_outputs.bzl", "create_compilation_outputs_internal")
 load("//cc/private/compile:compile_action_templates.bzl", "create_compile_action_templates")
 load(
@@ -2166,6 +2166,15 @@ def _get_compile_output_file(ctx, label, *, output_name, configuration):
         configuration = configuration,
     )
     return file
+
+def _use_dotd_file(feature_configuration, source_file):
+    extension = "." + source_file.extension if source_file.extension else ""
+    header_discover_required = extension not in (extensions.ASSEMBLER + extensions.CPP_MODULE)
+    use_header_modules = (
+        feature_configuration.is_enabled(feature_names.USE_HEADER_MODULES) and
+        extension in extensions.CC_SOURCE + extensions.CC_HEADER + extensions.CPP_MODULE_MAP
+    )
+    return header_discover_required and not use_header_modules
 
 def _calculate_output_name_map_by_type(sources, prefix_dir):
     return (
