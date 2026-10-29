@@ -15,6 +15,9 @@
 """Repository rule for importing the copy of Bazel on the user's PATH."""
 
 def _local_bazel_import_impl(repository_ctx):
+    # type: (...) -> repo_metadata | None
+    # TODO(https://github.com/bazelbuild/bazel/issues/32020): make this an
+    # annotation when supported Bazel versions expose metadata types.
     if "windows" in repository_ctx.os.name.lower():
         bazel_real = "bazel-real.exe"
         bazel_name = "bazel.exe"

@@ -1,0 +1,34 @@
+"""Tools, their execution inputs, and forwarded rule attributes."""
+
+load("//cc/toolchains:cc_toolchain_info.bzli", "ToolInfo")
+
+type _LabelInput = str | Label | select[str | Label | None]
+type _Labels = Collection[str | Label] | depset[str | Label]
+type _LabelsInput = _Labels | select[_Labels | None] | None
+type _EnvironmentInput = Mapping[str, str] | select[Mapping[str, str] | None] | None
+type _Attrs = struct[{
+    "src": Target,
+    "data": Sequence[Target],
+    "format_keys": list[str],
+    "format_values": Sequence[Target],
+    "format_value_indexes": list[int],
+    "env": dict[str, str],
+    "execution_requirements": Sequence[Target],
+    "tags": list[str],
+    "allowlist_include_directories": Sequence[Target],
+    "capabilities": Sequence[Target],
+}, ...]
+
+def _cc_tool_impl(ctx: ctx[object, _Attrs]) -> list[ToolInfo | DefaultInfo]: ...
+def cc_tool(
+    *,
+    name: str,
+    src: _LabelInput,
+    data: _LabelsInput = ...,
+    allowlist_include_directories: _LabelsInput = ...,
+    env: _EnvironmentInput = ...,
+    execution_requirements: _LabelsInput = ...,
+    format: Mapping[str, str | Label] = ...,
+    capabilities: _LabelsInput = ...,
+    **kwargs: Unpack[CommonExecutableRuleAttrs],
+) -> None: ...

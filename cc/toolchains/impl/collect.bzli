@@ -1,0 +1,11 @@
+"""Typed collections of toolchain provider values."""
+
+load("//cc/toolchains:cc_toolchain_info.bzli", "ActionTypeInfo", "ArgsInfo", "ArgsListInfo", "ToolInfo")
+
+type _ActionAccumulator = struct[{"action": ActionTypeInfo, "args": list[ArgsInfo], "transitive_files": list[depset[File]]}]
+
+class _Collector[T](Protocol):
+    def __call__(self, targets: Sequence[Target], direct: Sequence[T] = ..., transitive: list[depset[T]] = ...) -> depset[T]: ...
+
+def collect_provider[P](targets: Sequence[Target], provider: Provider[P]) -> list[P]: ...
+def _make_collector[T](field: Callable[[Target], depset[T]]) -> _Collector[T]: ...

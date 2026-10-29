@@ -33,7 +33,7 @@ def _cc_tool_impl(ctx):
     else:
         fail("Expected cc_tool's src attribute to be either an executable or a single file")
 
-    format_targets = {}
+    format_targets = {}  # type: dict[str, Target]
     for i in range(len(ctx.attr.format_keys)):
         format_targets[ctx.attr.format_keys[i]] = ctx.attr.format_values[ctx.attr.format_value_indexes[i]]
     env, _ = format_dict_values(
@@ -45,7 +45,9 @@ def _cc_tool_impl(ctx):
     for info in collect_provider(ctx.attr.execution_requirements, ExecutionRequirementsInfo):
         execution_requirements.extend(info.requirements)
 
-    runfiles = collect_data(ctx, ctx.attr.data + [ctx.attr.src])
+    inputs = list(ctx.attr.data)
+    inputs.append(ctx.attr.src)
+    runfiles = collect_data(ctx, inputs)
     tool = ToolInfo(
         label = ctx.label,
         exe = exe,
@@ -81,6 +83,7 @@ _cc_tool = rule(
     attrs = {
         "src": attr.label(
             allow_files = True,
+            mandatory = True,
             doc = """The underlying binary that this tool represents.
 
 Usually just a single prebuilt (eg. @toolchain//:bin/clang), but may be any
@@ -188,7 +191,7 @@ cc_tool(
 def cc_tool(
         *,
         name,
-        src = None,
+        src,
         data = None,
         allowlist_include_directories = None,
         env = None,

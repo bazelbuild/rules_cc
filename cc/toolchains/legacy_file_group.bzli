@@ -1,0 +1,12 @@
+"""Action labels grouped by the legacy attributes of cc_toolchain."""
+
+LEGACY_FILE_GROUPS: dict[{
+    "ar_files": list[Label],
+    "as_files": list[Label],
+    "compiler_files": list[Label],
+    "coverage_files": list[Label],
+    "dwp_files": list[Label],
+    "linker_files": list[Label],
+    "objcopy_files": list[Label],
+    "strip_files": list[Label],
+}]

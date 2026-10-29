@@ -3,6 +3,7 @@
 visibility("//cc/...")
 
 def starlark_doc_extract_helper(**kwargs):
+    # type: (**Unpack[KeywordArgs[native.starlark_doc_extract]]) -> None
     """Creates a starlark_doc_extract target if the native rule is available
 
     Args:

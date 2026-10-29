@@ -20,6 +20,7 @@ load("//cc/toolchains/impl:collect.bzl", "collect_action_types")
 visibility("private")
 
 def _generate_action_type_set_impl(ctx):
+    # type: (...) -> DefaultInfo
     out = ctx.actions.declare_file(ctx.attr.output.name)
     actions = sorted([
         action.name

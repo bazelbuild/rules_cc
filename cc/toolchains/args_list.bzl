@@ -20,6 +20,7 @@ load(
 load(":cc_toolchain_info.bzl", "ArgsListInfo")
 
 def _cc_args_list_impl(ctx):
+    # type: (...) -> list[ArgsListInfo]
     return [collect_args_lists(ctx.attr.args, ctx.label)]
 
 cc_args_list = rule(

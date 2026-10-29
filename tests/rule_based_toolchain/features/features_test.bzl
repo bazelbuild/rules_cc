@@ -143,6 +143,8 @@ def _external_feature_is_a_feature_test(env, targets):
         FeatureInfo,
     )
     external_feature.name().equals("builtin_feature")
+    external_feature.args().allowlist_include_directories().contains_exactly([])
+    external_feature.args().allowlist_absolute_include_directories().contains_exactly([])
 
     # It's not a string, but we don't have a factory for the type.
     env.expect.that_str(convert_feature(external_feature.actual)).equals(None)
