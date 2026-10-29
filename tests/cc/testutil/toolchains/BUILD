@@ -59,6 +59,11 @@ string_flag(
     build_setting_default = "",
 )
 
+string_list_flag(
+    name = "dynamic_library_pattern",
+    build_setting_default = [],
+)
+
 # "everything" is a filegroup that the implementation of --grte_top (more specifically, the
 # LibcTopLabelConverter in
 # third_party/bazel/src/main/java/com/google/devtools/build/lib/rules/cpp/CppOptions.java)

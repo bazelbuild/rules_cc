@@ -337,6 +337,105 @@ def _test_generated_def_file_uses_toolchain_action_impl(env, target):
         matching.contains("def_parser_tool"),
     )
 
+def _cc_shared_library_generated_def_file_test(
+        name,
+        expected_dll_name,
+        shared_lib_name = None,
+        dynamic_library_pattern = None,
+        **kwargs):
+    util.helper_target(
+        cc_library,
+        name = name + "/foo",
+        srcs = ["foo.cc"],
+    )
+    shared_lib_kwargs = {}
+    if shared_lib_name != None:
+        shared_lib_kwargs["shared_lib_name"] = shared_lib_name
+    util.helper_target(
+        cc_shared_library,
+        name = name + "/foo_shared",
+        deps = [name + "/foo"],
+        **shared_lib_kwargs
+    )
+    config_settings = {}
+    if dynamic_library_pattern != None:
+        config_settings[str(Label("//tests/cc/testutil/toolchains:dynamic_library_pattern"))] = dynamic_library_pattern
+    cc_analysis_test(
+        name = name,
+        impl = _cc_shared_library_generated_def_file_test_impl,
+        target = name + "/foo_shared",
+        test_features = [
+            FEATURE_NAMES.copy_dynamic_libraries_to_binary,
+            FEATURE_NAMES.targets_windows,
+            FEATURE_NAMES.windows_export_all_symbols,
+        ],
+        with_action_configs = [ACTION_NAMES.generate_def_file],
+        config_settings = config_settings,
+        attrs = {
+            "expected_dll_name": attr.string(),
+        },
+        attr_values = {
+            "expected_dll_name": expected_dll_name,
+        },
+        **kwargs
+    )
+
+def _cc_shared_library_generated_def_file_test_impl(env, target):
+    def_file_short_path = "{}/{}.gen.def".format(target.label.package, target.label.name)
+    def_action = _generated_def_file_action(env, target)
+    def_action.argv().contains_at_least_predicates([
+        matching.contains("def_parser_tool"),
+        matching.str_endswith(def_file_short_path),
+        matching.equals_wrapper(env.ctx.attr.expected_dll_name),
+    ]).in_order()
+    env.expect.that_target(target).output_group("def_file").contains_exactly([
+        "{package}/{name}.gen.def",
+    ])
+    link_action = env.expect.that_target(target).action_named("CppLink")
+    link_action.inputs().contains("{package}/{name}.gen.def")
+    link_action.outputs().contains_predicate(
+        matching.file_basename_equals(env.ctx.attr.expected_dll_name),
+    )
+
+def _test_cc_shared_library_generated_def_file_default_dll_name(name, **kwargs):
+    _cc_shared_library_generated_def_file_test(
+        name,
+        expected_dll_name = "libfoo_shared.so",
+        **kwargs
+    )
+
+def _test_cc_shared_library_generated_def_file_mingw_dll_pattern(name, **kwargs):
+    _cc_shared_library_generated_def_file_test(
+        name,
+        expected_dll_name = "libfoo_shared.dll",
+        dynamic_library_pattern = ["lib", ".dll"],
+        **kwargs
+    )
+
+def _test_cc_shared_library_generated_def_file_msvc_dll_pattern(name, **kwargs):
+    _cc_shared_library_generated_def_file_test(
+        name,
+        expected_dll_name = "foo_shared.dll",
+        dynamic_library_pattern = ["", ".dll"],
+        **kwargs
+    )
+
+def _test_cc_shared_library_generated_def_file_shared_lib_name(name, **kwargs):
+    _cc_shared_library_generated_def_file_test(
+        name,
+        expected_dll_name = "custom_foo.pyd",
+        shared_lib_name = "custom_foo.pyd",
+        **kwargs
+    )
+
+def _test_cc_shared_library_generated_def_file_shared_lib_name_with_subdir(name, **kwargs):
+    _cc_shared_library_generated_def_file_test(
+        name,
+        expected_dll_name = "custom_foo.dll",
+        shared_lib_name = "subdir/custom_foo.dll",
+        **kwargs
+    )
+
 def _test_duplicate_linkopts(name, **kwargs):
     util.helper_target(
         cc_library,
@@ -2088,6 +2187,11 @@ def cc_binary_configured_target_tests(name):
             _test_system_include_paths_reclassifies_local_includes_without_propagation,
             _test_generated_def_file_uses_toolchain_action,  # copybara-uncomment-this-please
             _test_generated_def_file_uses_default_tool,  # copybara-uncomment-this-please
+            _test_cc_shared_library_generated_def_file_default_dll_name,
+            _test_cc_shared_library_generated_def_file_mingw_dll_pattern,
+            _test_cc_shared_library_generated_def_file_msvc_dll_pattern,
+            _test_cc_shared_library_generated_def_file_shared_lib_name,
+            _test_cc_shared_library_generated_def_file_shared_lib_name_with_subdir,
             _test_linker_toolchain_feature,
             _test_link_staticness_binary_static_dynamic_mode_default,
             _test_link_staticness_hello_test_dynamic_mode_default,

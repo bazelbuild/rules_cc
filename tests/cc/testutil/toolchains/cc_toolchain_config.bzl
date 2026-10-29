@@ -2057,6 +2057,9 @@ def _impl(ctx):
     object_file_extension = ctx.attr._object_file_extension[BuildSettingInfo].value
     if object_file_extension:
         artifact_name_patterns.append(_get_artifact_name_pattern("object_file", "", object_file_extension))
+    dynamic_library_pattern = ctx.attr._dynamic_library_pattern[BuildSettingInfo].value
+    if dynamic_library_pattern:
+        artifact_name_patterns.append(_get_artifact_name_pattern("dynamic_library", dynamic_library_pattern[0], dynamic_library_pattern[1]))
 
     action_configs = []
 
@@ -2167,6 +2170,7 @@ cc_toolchain_config = rule(
         "_with_features": attr.label(default = Label("//tests/cc/testutil/toolchains:with_features")),
         "_with_action_configs": attr.label(default = Label("//tests/cc/testutil/toolchains:with_action_configs")),
         "_object_file_extension": attr.label(default = Label("//tests/cc/testutil/toolchains:object_file_extension")),
+        "_dynamic_library_pattern": attr.label(default = Label("//tests/cc/testutil/toolchains:dynamic_library_pattern")),
     },
     provides = [CcToolchainConfigInfo],
     executable = True,
