@@ -20,6 +20,7 @@ FdoPrefetchHintsInfo = provider(
 )
 
 def _impl(ctx):
+    # type: (...) -> FdoPrefetchHintsInfo
     return FdoPrefetchHintsInfo(artifact = ctx.file.profile)
 
 fdo_prefetch_hints = rule(

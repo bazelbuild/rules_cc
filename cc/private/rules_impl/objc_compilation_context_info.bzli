@@ -1,0 +1,35 @@
+"""Inputs and fields of the Objective-C compilation context provider."""
+
+class _StrictIncludes(Protocol):
+    @property
+    def strict_include(self) -> depset[str]: ...
+
+# TODO(https://github.com/bazelbuild/bazel/issues/31770): annotate the Objective-C provider initializer result
+# in Starlark once Bazel supports dictionaries with named, typed keys.
+type _Fields = dict[{
+    "defines": Sequence[str],
+    "public_hdrs": Sequence[File],
+    "public_textual_hdrs": Collection[File],
+    "private_hdrs": Collection[File],
+    "includes": Sequence[str],
+    "system_includes": Sequence[str],
+    "quote_includes": Sequence[str],
+    "direct_cc_compilation_contexts": Collection[CompilationContext],
+    "cc_compilation_contexts": list[CompilationContext],
+    "implementation_cc_compilation_contexts": Sequence[CompilationContext],
+    "strict_dependency_includes": list[str],
+}]
+
+def _objc_compilation_context_info_init(
+    defines: Sequence[str] = ...,
+    public_hdrs: Sequence[File] = ...,
+    public_textual_hdrs: Collection[File] = ...,
+    private_hdrs: Collection[File] = ...,
+    includes: Sequence[str] = ...,
+    system_includes: Sequence[str] = ...,
+    quote_includes: Sequence[str] = ...,
+    direct_cc_compilation_contexts: Collection[CompilationContext] = ...,
+    cc_compilation_contexts: list[CompilationContext] = ...,
+    implementation_cc_compilation_contexts: Sequence[CompilationContext] = ...,
+    providers: Collection[_StrictIncludes] = ...,
+) -> _Fields: ...

@@ -1,0 +1,5 @@
+"""Action set golden file test declarations."""
+
+type _LabelInput = str | Label | select[str | Label]
+
+def action_type_set_diff_test(name: str, action_type_set: _LabelInput, expected: _LabelInput) -> None: ...

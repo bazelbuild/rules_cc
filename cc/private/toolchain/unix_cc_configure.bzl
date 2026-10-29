@@ -17,9 +17,8 @@
 load(
     ":lib_cc_configure.bzl",
     "auto_configure_fail",
-    "auto_configure_warning",
     "auto_configure_warning_maybe",
-    "escape_string",
+    "escape_percent",
     "execute",
     "get_env_var",
     "get_starlark_list",
@@ -32,8 +31,7 @@ load(
 def _uniq(iterable):
     """Remove duplicates from a list."""
 
-    unique_elements = {element: None for element in iterable}
-    return unique_elements.keys()
+    return {element: None for element in iterable}.keys()
 
 def _generate_system_module_map(repository_ctx, dirs, script_path):
     return execute(repository_ctx, [script_path] + dirs)
@@ -78,7 +76,7 @@ def _get_target_libc(repository_ctx, cc, darwin, compile_opts):
         return "macosx"
     libc = get_env_var(repository_ctx, "BAZEL_TARGET_LIBC", "", False)
     if libc:
-        return escape_string(libc)
+        return escape_percent(libc)
 
     # Preprocessing any standard library header defines macros that identify
     # most implementations.
@@ -115,33 +113,38 @@ def _find_tool(repository_ctx, tool, overridden_tools):
         return overridden_tools[tool]
     return which(repository_ctx, tool, "/usr/bin/" + tool)
 
+# TODO(https://github.com/bazelbuild/bazel/issues/32020): use a source annotation once Bazel exposes these context and metadata types.
 def _get_tool_paths(repository_ctx, overridden_tools):
+    # type: (repository_ctx, Mapping[str, str | path | None]) -> dict[str, str]
     """Compute the %-escaped path to the various tools"""
-    return dict({
-        k: escape_string(_find_tool(repository_ctx, k, overridden_tools))
-        for k in [
-            "ar",
-            "ld",
-            "llvm-cov",
-            "llvm-profdata",
-            "cpp",
-            "gcc",
-            "dwp",
-            "gcov",
-            "nm",
-            "objcopy",
-            "objdump",
-            "strip",
-            "c++filt",
-        ]
-    }.items())
+    paths = {}
+    for name in [
+        "ar",
+        "ld",
+        "llvm-cov",
+        "llvm-profdata",
+        "cpp",
+        "gcc",
+        "dwp",
+        "gcov",
+        "nm",
+        "objcopy",
+        "objdump",
+        "strip",
+        "c++filt",
+    ]:
+        tool = _find_tool(repository_ctx, name, overridden_tools)
+        if tool != None:
+            paths[name] = escape_percent(str(tool))
+    return paths
 
 def _escaped_cplus_include_paths(repository_ctx):
+    # type: (repository_ctx) -> list[str]
     """Use ${CPLUS_INCLUDE_PATH} to compute the %-escaped list of flags for cxxflag."""
     if "CPLUS_INCLUDE_PATH" in repository_ctx.os.environ:
         result = []
         for p in repository_ctx.os.environ["CPLUS_INCLUDE_PATH"].split(":"):
-            p = escape_string(str(repository_ctx.path(p)))  # Normalize the path
+            p = escape_percent(str(repository_ctx.path(p)))  # Normalize the path
             result.append("-I" + p)
         return result
     else:
@@ -154,6 +157,7 @@ _OSX_FRAMEWORK_SUFFIX = " (framework directory)"
 _OSX_FRAMEWORK_SUFFIX_LEN = len(_OSX_FRAMEWORK_SUFFIX)
 
 def _cxx_inc_convert(path):
+    # type: (str) -> str
     """Convert path returned by cc -E xc++ in a complete path. Doesn't %-escape the path!"""
     path = path.strip()
     if path.endswith(_OSX_FRAMEWORK_SUFFIX):
@@ -288,6 +292,7 @@ def _get_no_canonical_prefixes_opt(repository_ctx, cc):
     return opt
 
 def get_env(repository_ctx):
+    # type: (repository_ctx) -> str
     """Convert the environment in a list of export if in Homebrew. Doesn't %-escape the result!
 
     Args:
@@ -306,6 +311,7 @@ def get_env(repository_ctx):
         return ""
 
 def _coverage_flags(repository_ctx, darwin):
+    # type: (repository_ctx, bool) -> tuple[str, str]
     use_llvm_cov = "1" == get_env_var(
         repository_ctx,
         "BAZEL_USE_LLVM_NATIVE_COVERAGE",
@@ -346,8 +352,8 @@ def _get_compiler_name(repository_ctx, cc):
         return "gcc"
     return "compiler"
 
-def _find_generic(repository_ctx, name, env_name, overridden_tools, warn = False, silent = False):
-    """Find a generic C++ toolchain tool. Doesn't %-escape the result."""
+def _find_generic(repository_ctx, name, env_name, overridden_tools, on_missing = auto_configure_fail):
+    """Return the tool without %-escaping it, or call on_missing with the lookup error."""
 
     if name in overridden_tools:
         return overridden_tools[name]
@@ -367,14 +373,17 @@ def _find_generic(repository_ctx, name, env_name, overridden_tools, warn = False
     if result == None:
         msg = ("Cannot find %s or %s%s; either correct your path or set the %s" +
                " environment variable") % (name, env_name, env_value_with_paren, env_name)
-        if warn:
-            if not silent:
-                auto_configure_warning(msg)
-        else:
-            auto_configure_fail(msg)
+        return on_missing(msg)
     return result
 
+def _allow_missing_tool(_message):
+    # type: (str) -> None
+    return None
+
 def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
+    # type: (repository_ctx, str, Mapping[str, str | path]) -> None
+    # TODO(https://github.com/bazelbuild/bazel/issues/32020): make this an
+    # annotation when supported Bazel versions expose a repository context type.
     """Configure C++ toolchain on Unix platforms.
 
     Args:
@@ -412,62 +421,37 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
 
     cc = _find_generic(repository_ctx, "gcc", "CC", overridden_tools)
     is_clang = _is_clang(repository_ctx, cc)
-    overridden_tools = dict(overridden_tools)
-    overridden_tools["gcc"] = cc
-    overridden_tools["gcov"] = _find_generic(
-        repository_ctx,
-        "gcov",
-        "GCOV",
-        overridden_tools,
-        warn = True,
-        silent = True,
-    )
-    overridden_tools["llvm-cov"] = _find_generic(
-        repository_ctx,
-        "llvm-cov",
-        "BAZEL_LLVM_COV",
-        overridden_tools,
-        warn = True,
-        silent = True,
-    )
-    overridden_tools["llvm-profdata"] = _find_generic(
-        repository_ctx,
-        "llvm-profdata",
-        "BAZEL_LLVM_PROFDATA",
-        overridden_tools,
-        warn = True,
-        silent = True,
-    )
-    overridden_tools["ar"] = _find_generic(
-        repository_ctx,
-        "ar",
-        "AR",
-        overridden_tools,
-        warn = True,
-        silent = True,
-    )
+    optional_tools = {
+        name: _find_generic(repository_ctx, name, env, overridden_tools, on_missing = _allow_missing_tool)
+        for name, env in [
+            ("gcov", "GCOV"),
+            ("llvm-cov", "BAZEL_LLVM_COV"),
+            ("llvm-profdata", "BAZEL_LLVM_PROFDATA"),
+            ("ar", "AR"),
+        ]
+    }
+    tool_overrides = dict(overridden_tools) | {"gcc": cc} | optional_tools
     libtool = _find_generic(
         repository_ctx,
         "libtool",
         "LIBTOOL",
-        overridden_tools,
-        warn = not darwin,
-        silent = True,
+        tool_overrides,
+        on_missing = auto_configure_fail if darwin else _allow_missing_tool,
     )
     if darwin:
-        overridden_tools["gcc"] = "cc_wrapper.sh"
+        tool_overrides["gcc"] = "cc_wrapper.sh"
         xcrun = repository_ctx.which("xcrun")
         if xcrun:
             for tool_name in ["llvm-cov", "llvm-profdata"]:
-                if overridden_tools.get(tool_name) == None:
+                if tool_overrides.get(tool_name) == None:
                     xcrun_result = repository_ctx.execute([xcrun, "--find", tool_name])
                     if xcrun_result.return_code == 0:
-                        overridden_tools[tool_name] = xcrun_result.stdout.strip()
+                        tool_overrides[tool_name] = xcrun_result.stdout.strip()
 
     auto_configure_warning_maybe(repository_ctx, "CC used: " + str(cc))
-    tool_paths = _get_tool_paths(repository_ctx, overridden_tools)
+    tool_paths = _get_tool_paths(repository_ctx, tool_overrides)
     if libtool:
-        tool_paths["libtool"] = escape_string(libtool)
+        tool_paths["libtool"] = escape_percent(str(libtool))
     tool_paths["cpp-module-deps-scanner"] = "deps_scanner_wrapper.sh"
 
     toolchain_features = []
@@ -477,7 +461,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     # The parse_header tool needs to be a wrapper around the compiler as it has
     # to touch the output file.
     tool_paths["parse_headers"] = "cc_wrapper.sh"
-    cc_toolchain_identifier = escape_string(get_env_var(
+    cc_toolchain_identifier = escape_percent(get_env_var(
         repository_ctx,
         "CC_TOOLCHAIN_NAME",
         "local",
@@ -489,10 +473,10 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
             "validate_static_library.sh",
             paths["@rules_cc//cc/private/toolchain:validate_static_library.sh.tpl"],
             {
-                "%{c++filt}": escape_string(str(repository_ctx.path(tool_paths["c++filt"]))),
+                "%{c++filt}": escape_percent(str(repository_ctx.path(tool_paths["c++filt"]))),
                 # Certain weak symbols are otherwise listed with type T in the output of nm on macOS.
                 "%{nm_extra_args}": "--no-weak" if darwin else "",
-                "%{nm}": escape_string(str(repository_ctx.path(tool_paths["nm"]))),
+                "%{nm}": escape_percent(str(repository_ctx.path(tool_paths["nm"]))),
             },
         )
         tool_paths["validate_static_library"] = "validate_static_library.sh"
@@ -504,8 +488,8 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
         "cc_wrapper.sh",
         paths[cc_wrapper_src],
         {
-            "%{cc}": escape_string(str(cc)),
-            "%{env}": escape_string(get_env(repository_ctx)),
+            "%{cc}": escape_percent(str(cc)),
+            "%{env}": escape_percent(get_env(repository_ctx)),
         },
     )
     deps_scanner_wrapper_src = (
@@ -517,14 +501,14 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
         if sibling_deps_scanner.exists:
             deps_scanner = str(sibling_deps_scanner)
         else:
-            deps_scanner = which(repository_ctx, "clang-scan-deps", deps_scanner)
+            deps_scanner = which(repository_ctx, "clang-scan-deps") or deps_scanner
     repository_ctx.template(
         "deps_scanner_wrapper.sh",
         paths[deps_scanner_wrapper_src],
         {
-            "%{cc}": escape_string(str(cc)),
-            "%{deps_scanner}": escape_string(deps_scanner),
-            "%{env}": escape_string(get_env(repository_ctx)),
+            "%{cc}": escape_percent(str(cc)),
+            "%{deps_scanner}": escape_percent(deps_scanner),
+            "%{env}": escape_percent(get_env(repository_ctx)),
         },
     )
 
@@ -555,20 +539,20 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     cc_path = repository_ctx.path(cc)
     if not str(cc_path).startswith(str(repository_ctx.path(".")) + "/"):
         # cc is outside the repository, set -B
-        bin_search_flags = ["-B" + escape_string(str(cc_path.dirname))]
+        bin_search_flags = ["-B" + escape_percent(str(cc_path.dirname))]
     else:
         # cc is inside the repository, don't set -B.
-        bin_search_flags = []
+        bin_search_flags = []  # type: list[string]
     if not gold_or_lld_linker_path:
         ld_path = repository_ctx.path(tool_paths["ld"])
         if ld_path.dirname != cc_path.dirname:
-            bin_search_flags.append("-B" + escape_string(str(ld_path.dirname)))
+            bin_search_flags.append("-B" + escape_percent(str(ld_path.dirname)))
     elif not gold_or_lld_linker_path.startswith("/"):
         ld_binary = repository_ctx.which("ld." + gold_or_lld_linker_path) or repository_ctx.which(gold_or_lld_linker_path)
         if ld_binary:
             ld_path = repository_ctx.path(ld_binary)
             if ld_path.dirname != cc_path.dirname:
-                bin_search_flags.append("-B" + escape_string(str(ld_path.dirname)))
+                bin_search_flags.append("-B" + escape_percent(str(ld_path.dirname)))
     force_linker_flags = []
     if gold_or_lld_linker_path:
         force_linker_flags.append("-fuse-ld=" + gold_or_lld_linker_path)
@@ -693,13 +677,13 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
         paths["@rules_cc//cc/private/toolchain:BUILD.tpl"],
         # @unsorted-dict-items
         {
-            "%{abi_libc_version}": escape_string(get_env_var(
+            "%{abi_libc_version}": escape_percent(get_env_var(
                 repository_ctx,
                 "ABI_LIBC_VERSION",
                 "local",
                 False,
             )),
-            "%{abi_version}": escape_string(get_env_var(
+            "%{abi_version}": escape_percent(get_env_var(
                 repository_ctx,
                 "ABI_VERSION",
                 "local",
@@ -735,7 +719,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
                     "-fno-omit-frame-pointer",
                 ],
             ),
-            "%{compiler}": escape_string(get_env_var(
+            "%{compiler}": escape_percent(get_env_var(
                 repository_ctx,
                 "BAZEL_COMPILER",
                 _get_compiler_name(repository_ctx, cc),
@@ -750,7 +734,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
             "%{fastbuild_compile_flags}": get_starlark_list([]),
             "%{dbg_compile_flags}": get_starlark_list(["-g"]),
             "%{extra_flags_per_feature}": repr(extra_flags_per_feature),
-            "%{host_system_name}": escape_string(get_env_var(
+            "%{host_system_name}": escape_percent(get_env_var(
                 repository_ctx,
                 "BAZEL_HOST_SYSTEM",
                 "local",
@@ -767,11 +751,10 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
             ) + (
                 [
                     "-headerpad_max_install_names",
-                ] if darwin else [
+                ] if darwin else _add_compiler_option_if_supported(
                     # Gold linker only? Can we enable this by default?
                     # "-Wl,--warn-execstack",
                     # "-Wl,--detect-odr-violations"
-                ] + _add_compiler_option_if_supported(
                     # Have gcc return the exit code from ld.
                     repository_ctx,
                     cc,
@@ -824,21 +807,21 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
                 "--start-lib",
             ) else "False",
             "%{toolchain_features}": get_starlark_list(toolchain_features),
-            "%{target_cpu}": escape_string(get_env_var(
+            "%{target_cpu}": escape_percent(get_env_var(
                 repository_ctx,
                 "BAZEL_TARGET_CPU",
                 cpu_value,
                 False,
             )),
             "%{target_libc}": _get_target_libc(repository_ctx, cc, darwin, all_compile_opts + conly_opts),
-            "%{target_system_name}": escape_string(get_env_var(
+            "%{target_system_name}": escape_percent(get_env_var(
                 repository_ctx,
                 "BAZEL_TARGET_SYSTEM",
                 "local",
                 False,
             )),
             "%{tool_paths}": ",\n        ".join(
-                ['"%s": "%s"' % (k, v) for k, v in tool_paths.items() if v != None],
+                ['"%s": "%s"' % (k, v) for k, v in tool_paths.items()],
             ),
             "%{unfiltered_compile_flags}": get_starlark_list(
                 _get_no_canonical_prefixes_opt(repository_ctx, cc) + [

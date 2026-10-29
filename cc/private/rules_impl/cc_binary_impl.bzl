@@ -813,12 +813,14 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
         runfiles = runfiles,
         executable = binary,
     )
+
+    # TODO(https://github.com/bazelbuild/bazel/issues/32085): Use Bazel's type.
     result = [
         cc_info,
         instrumented_files_provider,
         debug_package_info,
         OutputGroupInfo(**output_groups),
-    ]
+    ]  # type: list[ProviderInstance]
     if cc_launcher_info != None:
         result.append(cc_launcher_info)
     return binary_info, result

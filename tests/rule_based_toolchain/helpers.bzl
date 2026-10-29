@@ -18,6 +18,7 @@ load("@bazel_features//:features.bzl", "bazel_features")
 visibility("//tests/rule_based_toolchain/...")
 
 def path_pattern(p):
+    # type: (str) -> str
     """Wraps a path with %{path:...} when supported by Bazel.
 
     Mirrors the behavior of cc/toolchains/impl/nested_args.bzl's _format_target.

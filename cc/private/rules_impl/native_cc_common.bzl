@@ -14,5 +14,7 @@
 #
 """Native implementation of cc_common."""
 
+# Bazel's API metadata omits private members such as empty_variables and
+# legacy_cc_flags_make_variable_do_not_use.
 # buildifier: disable=native-cc-common
-native_cc_common = cc_common
+native_cc_common = cc_common  # ty: ignore[non-static-type]

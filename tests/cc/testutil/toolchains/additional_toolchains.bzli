@@ -1,0 +1,3 @@
+"""Additional mock toolchain labels used by the C++ analysis tests."""
+
+ADDITIONAL_MOCK_TOOLCHAINS: list[str]

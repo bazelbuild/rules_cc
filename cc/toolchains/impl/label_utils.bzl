@@ -14,6 +14,7 @@
 """Helpers for passing possibly duplicated labels through rule attributes."""
 
 def deduplicate_label_list(name, labels):
+    # type: (str, Sequence[str | Label]) -> struct[{'labels': list[Label], 'indexes': list[int]}]
     """Deduplicates a label list while preserving the original indexes.
 
     Args:
