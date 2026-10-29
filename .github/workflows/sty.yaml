@@ -1,0 +1,102 @@
+name: Starlark types
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sty:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: List maintained Starlark implementations
+        run: git ls-files -- '*.bzl' > "$RUNNER_TEMP/sty-files"
+      - uses: tamird/sty@2ab74c830937d3ca85165ca0e9a02a42400ad9e5
+        with:
+          audit-loads: true
+          bazel-version: '9.3.0'
+          advisory-files-from: ${{ runner.temp }}/sty-files
+          advisory-bazel-load-context: '@cross_repo_test//toolchain_include_dirs:toolchain_config'
+          advisory-require-bazel-load-context: tests/builtins_bzl/cc/cc_shared_library/test2/toolchain_include_dirs/cc_toolchain_config.bzl
+          files: |
+            cc/BUILD
+            cc/action_names.bzl
+            cc/cc_import.bzl
+            cc/cc_postmark.bzl
+            cc/cc_rules_extension_support.bzl
+            cc/cc_shared_library.bzl
+            cc/common/BUILD
+            cc/common/cc_shared_library_info.bzl
+            cc/common/debug_package_info.bzl
+            cc/common/feature_names.bzl
+            cc/common/objc_info.bzl
+            cc/extensions.bzl
+            cc/private/cc_shared_library_hint_info.bzl
+            cc/private/cc_shared_library_info.bzl
+            cc/private/debug_package_info.bzl
+            cc/private/graph_node_info.bzl
+            cc/private/paths.bzl
+            cc/private/rules_impl/failing_cc_proto_library.bzl
+            cc/private/rules_impl/fdo/fdo_prefetch_hints.bzl
+            cc/private/rules_impl/fdo/fdo_profile.bzl
+            cc/private/rules_impl/fdo/memprof_profile.bzl
+            cc/private/rules_impl/fdo/propeller_optimize.bzl
+            cc/private/rules_impl/native_cc_common.bzl
+            cc/private/rules_impl/objc_compilation_context_info.bzl
+            cc/private/toolchain/cc_configure.bzl
+            cc/private/toolchain/unix_cc_configure.bzl
+            cc/repositories.bzl
+            cc/starlark_doc_extract_helper.bzl
+            cc/toolchains/actions.bzl
+            cc/toolchains/actions/BUILD
+            cc/toolchains/args/BUILD
+            cc/toolchains/args/libraries_to_link/private/library_link_args.bzl
+            cc/toolchains/args_list.bzl
+            cc/toolchains/artifacts.bzl
+            cc/toolchains/capabilities/BUILD
+            cc/toolchains/cc_toolchain.bzl
+            cc/toolchains/cc_toolchain_alias.bzl
+            cc/toolchains/cc_toolchain_config_info.bzl
+            cc/toolchains/fdo_prefetch_hints.bzl
+            cc/toolchains/fdo_profile.bzl
+            cc/toolchains/feature.bzl
+            cc/toolchains/feature_constraint.bzl
+            cc/toolchains/feature_injection.bzl
+            cc/toolchains/feature_set.bzl
+            cc/toolchains/features/BUILD
+            cc/toolchains/features/legacy/BUILD
+            cc/toolchains/impl/cc_artifact_category.bzl
+            cc/toolchains/impl/external_feature.bzl
+            cc/toolchains/impl/label_utils.bzl
+            cc/toolchains/impl/libc_version.bzl
+            cc/toolchains/impl/markdown_helpers.bzl
+            cc/toolchains/legacy_file_group.bzl
+            cc/toolchains/legacy_tool.bzl
+            cc/toolchains/make_variable.bzl
+            cc/toolchains/memprof_profile.bzl
+            cc/toolchains/mutually_exclusive_category.bzl
+            cc/toolchains/propeller_optimize.bzl
+            cc/toolchains/providers.bzl
+            cc/toolchains/tool_capability.bzl
+            cc/toolchains/variables/BUILD
+            cc/use_cc_toolchain.bzl
+            local_bazel.bzl
+            tests/cc/testutil/toolchains/additional_toolchains.bzl
+            tests/cc/testutil/toolchains/features.bzl
+            tests/load_from_macro/tags.bzl
+            tests/rule_based_toolchain/action_type_sets
+            tests/rule_based_toolchain/args/make_var_provider.bzl
+            tests/rule_based_toolchain/helpers.bzl
+            tests/rule_based_toolchain/legacy_features_as_args/goldens
+            tests/rule_based_toolchain/tool/execution_requirements.bzl
