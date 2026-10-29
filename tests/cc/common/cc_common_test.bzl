@@ -7,6 +7,7 @@ load("@rules_testing//lib:util.bzl", "TestingAspectInfo", "util")
 load("//cc:cc_binary.bzl", "cc_binary")
 load("//cc:cc_library.bzl", "cc_library")
 load("//cc/common:cc_info.bzl", "CcInfo")
+load("//cc/private/link:create_extra_link_time_library.bzl", "build_libraries", "create_extra_link_time_libraries", "create_extra_link_time_library", "merge_extra_link_time_libraries")
 load("//tests/cc/testutil:cc_analysis_test.bzl", "cc_analysis_test")
 load("//tests/cc/testutil:cc_info_subject.bzl", "cc_info_subject")
 
@@ -707,6 +708,131 @@ def _test_alwayslink_yields_lo_impl(env, target):
     files = [f.basename for f in target[DefaultInfo].files.to_list()]
     env.expect.that_collection(files).contains("libalways_link.lo")
 
+_ExtraLinkTimeLibraryTestInfo = provider(fields = ["stamp_infos"])
+
+def _build_extra_link_time_library(_ctx, _static_mode, _for_dynamic_library, inputs):
+    return struct(
+        linker_input = depset(),
+        runtime_library = depset(),
+        additional_stamp_info = inputs.to_list(),
+    )
+
+def _top_level_extra_link_time_library_impl(ctx):
+    first = create_extra_link_time_library(
+        build_library_func = _build_extra_link_time_library,
+        inputs = depset(["first"]),
+    )
+    second = create_extra_link_time_library(
+        build_library_func = _build_extra_link_time_library,
+        inputs = depset(["second"]),
+    )
+    libraries = merge_extra_link_time_libraries([
+        create_extra_link_time_libraries(first),
+        create_extra_link_time_libraries(second),
+    ])
+    result = build_libraries(libraries.libraries, ctx, False, False)
+    return [_ExtraLinkTimeLibraryTestInfo(stamp_infos = result.additional_stamp_infos)]
+
+_top_level_extra_link_time_library = rule(
+    implementation = _top_level_extra_link_time_library_impl,
+)
+
+def _nested_extra_link_time_library_impl(ctx):
+    def nested_build_library(_ctx, _static_mode, _for_dynamic_library):
+        return struct(
+            linker_input = depset(),
+            runtime_library = depset(),
+        )
+
+    library = create_extra_link_time_library(
+        build_library_func = nested_build_library,
+    )
+    build_libraries([library], ctx, False, False)
+    return []
+
+_nested_extra_link_time_library = rule(
+    implementation = _nested_extra_link_time_library_impl,
+)
+
+def _invalid_extra_link_time_library_impl(ctx):
+    create_extra_link_time_library(build_library_func = struct if ctx.attr.builtin else None)
+    return []
+
+_invalid_extra_link_time_library = rule(
+    implementation = _invalid_extra_link_time_library_impl,
+    attrs = {"builtin": attr.bool()},
+)
+
+def _test_top_level_extra_link_time_library(name):
+    util.helper_target(
+        _top_level_extra_link_time_library,
+        name = name + "/library",
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_top_level_extra_link_time_library_impl,
+        target = name + "/library",
+    )
+
+def _test_top_level_extra_link_time_library_impl(env, target):
+    env.expect.that_target(target).failures().contains_exactly([])
+    stamp_infos = target[_ExtraLinkTimeLibraryTestInfo].stamp_infos
+    env.expect.that_collection(stamp_infos).has_size(1)
+    env.expect.that_collection(stamp_infos[0]).contains_exactly(["first", "second"])
+
+def _test_nested_extra_link_time_library(name):
+    util.helper_target(
+        _nested_extra_link_time_library,
+        name = name + "/library",
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_nested_extra_link_time_library_impl,
+        target = name + "/library",
+        expect_failure = True,
+    )
+
+def _test_nested_extra_link_time_library_impl(env, target):
+    env.expect.that_target(target).failures().contains_predicate(
+        matching.custom(
+            "contains 'must be declared by a top-level def statement'",
+            lambda message: "must be declared by a top-level def statement" in message,
+        ),
+    )
+
+def _test_builtin_extra_link_time_library(name):
+    util.helper_target(
+        _invalid_extra_link_time_library,
+        name = name + "/library",
+        builtin = True,
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_invalid_extra_link_time_library_impl,
+        target = name + "/library",
+        expect_failure = True,
+    )
+
+def _test_none_extra_link_time_library(name):
+    util.helper_target(
+        _invalid_extra_link_time_library,
+        name = name + "/library",
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_invalid_extra_link_time_library_impl,
+        target = name + "/library",
+        expect_failure = True,
+    )
+
+def _test_invalid_extra_link_time_library_impl(env, target):
+    env.expect.that_target(target).failures().contains_predicate(
+        matching.custom(
+            "contains 'build_library_func must be a Starlark function'",
+            lambda message: "build_library_func must be a Starlark function" in message,
+        ),
+    )
+
 def cc_common_tests(name):
     tests = [
         _test_same_cc_file_twice,
@@ -732,6 +858,10 @@ def cc_common_tests(name):
     ]
     if bazel_features.cc.cc_common_is_in_rules_cc:
         tests.extend([
+            _test_top_level_extra_link_time_library,
+            _test_nested_extra_link_time_library,
+            _test_builtin_extra_link_time_library,
+            _test_none_extra_link_time_library,
             _test_strip_include_prefix_uses_virtual_includes_by_default,
             _test_strip_include_prefix_no_virtual_includes_when_enabled,
             _test_strip_include_prefix_with_include_prefix_uses_virtual_includes,
