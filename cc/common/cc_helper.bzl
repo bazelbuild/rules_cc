@@ -257,26 +257,16 @@ def _create_dynamic_libraries_copy_actions(ctx, binary, dynamic_libraries_for_ru
     return depset(result)
 
 def _get_dynamic_libraries_for_runtime(cc_linking_context, linking_statically):
-    libraries = []
-    for linker_input in cc_linking_context.linker_inputs.to_list():
-        libraries.extend(linker_input.libraries)
-
     dynamic_libraries_for_runtime = []
-    for library in libraries:
-        artifact = _get_dynamic_library_for_runtime_or_none(library, linking_statically)
-        if artifact != None:
-            dynamic_libraries_for_runtime.append(artifact)
+    for linker_input in cc_linking_context.linker_inputs.to_list():
+        for library in linker_input.libraries:
+            if library.dynamic_library == None:
+                continue
+            if linking_statically and (library.static_library != None or library.pic_static_library != None):
+                continue
+            dynamic_libraries_for_runtime.append(library.dynamic_library)
 
     return dynamic_libraries_for_runtime
-
-def _get_dynamic_library_for_runtime_or_none(library, linking_statically):
-    if library.dynamic_library == None:
-        return None
-
-    if linking_statically and (library.static_library != None or library.pic_static_library != None):
-        return None
-
-    return library.dynamic_library
 
 def _collect_native_cc_libraries(deps, libraries):
     _CcNativeLibraryInfo = cc_common.get_cc_native_library_info_provider()
