@@ -1,0 +1,23 @@
+"""Nested command-line arguments."""
+
+type _Label = str | Label
+type _LabelInput = _Label | select[_Label | None] | None
+type _ListInput[T] = Collection[T] | depset[T] | select[Collection[T] | depset[T] | None] | None
+type _StringInput = str | select[str | None] | None
+
+def cc_nested_args(
+    *,
+    name: str,
+    args: _ListInput[str] = ...,
+    data: _ListInput[_Label] = ...,
+    format: Mapping[str, _Label] = ...,
+    iterate_over: _LabelInput = ...,
+    nested: _ListInput[_Label] = ...,
+    requires_not_none: _LabelInput = ...,
+    requires_none: _LabelInput = ...,
+    requires_true: _LabelInput = ...,
+    requires_false: _LabelInput = ...,
+    requires_equal: _LabelInput = ...,
+    requires_equal_value: _StringInput = ...,
+    **kwargs: Unpack[CommonRuleAttrs],
+) -> None: ...

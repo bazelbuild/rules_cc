@@ -20,6 +20,7 @@ MemProfProfileInfo = provider(
 )
 
 def _impl(ctx):
+    # type: (...) -> MemProfProfileInfo
     return MemProfProfileInfo(
         artifact = ctx.file.profile,
         changelist = ctx.attr.changelist,

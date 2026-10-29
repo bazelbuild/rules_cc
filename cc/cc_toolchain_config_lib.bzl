@@ -14,30 +14,35 @@
 """ A library of functions creating structs for CcToolchainConfigInfo."""
 
 def _check_is_none(obj, parameter_name, method_name):
+    # type: (object, str, str) -> None
     if obj != None:
         fail("{} parameter of {} should be None, found {}."
             .format(parameter_name, method_name, type(obj)))
 
 def _check_is_none_or_right_type(obj, obj_of_right_type, parameter_name, method_name):
+    # type: (object, object, str, str) -> None
     if obj != None:
         _check_same_type(obj, obj_of_right_type, parameter_name, method_name)
 
 def _check_right_type(obj, expected_type, parameter_name, method_name):
+    # type: (object, str, str, str) -> None
     if type(obj) != expected_type:
         fail("{} parameter of {} should be a {}, found {}."
             .format(parameter_name, method_name, expected_type, type(obj)))
 
 def _check_same_type(obj, obj_of_right_type, parameter_name, method_name):
+    # type: (object, object, str, str) -> None
     _check_right_type(obj, type(obj_of_right_type), parameter_name, method_name)
 
 def _check_is_nonempty_string(obj, parameter_name, method_name):
+    # type: (object, str, str) -> None
     _check_same_type(obj, "", parameter_name, method_name)
     if obj == "":
         fail("{} parameter of {} must be a nonempty string."
             .format(parameter_name, method_name))
 
 def _check_is_nonempty_list(obj, parameter_name, method_name):
-    _check_same_type(obj, [], parameter_name, method_name)
+    _check_right_type(obj, "list", parameter_name, method_name)
     if len(obj) == 0:
         fail("{} parameter of {} must be a nonempty list."
             .format(parameter_name, method_name))
@@ -48,6 +53,7 @@ EnvEntryInfo = provider(
 )
 
 def env_entry(key, value, expand_if_available = None):
+    # type: (str, str, str | None) -> EnvEntryInfo
     """ A key/value pair to be added as an environment variable.
 
     The returned EnvEntry provider finds its use in EnvSet creation through
@@ -81,6 +87,7 @@ VariableWithValueInfo = provider(
 )
 
 def variable_with_value(name, value):
+    # type: (str, str) -> VariableWithValueInfo
     """ Represents equality check between a variable and a certain value.
 
     The returned provider finds its use through flag_group.expand_if_equal,
@@ -108,6 +115,7 @@ MakeVariableInfo = provider(
 )
 
 def make_variable(name, value):
+    # type: (str, str) -> MakeVariableInfo
     """ A make variable that is made accessible to rules."""
     _check_is_nonempty_string(name, "name", "make_variable")
     _check_is_nonempty_string(value, "value", "make_variable")
@@ -123,6 +131,7 @@ FeatureSetInfo = provider(
 )
 
 def feature_set(features = []):
+    # type: (list[str]) -> FeatureSetInfo
     """ A set of features.
 
     Used to support logical 'and' when specifying feature requirements in a
@@ -134,7 +143,7 @@ def feature_set(features = []):
     Returns:
         A FeatureSetInfo provider.
     """
-    _check_same_type(features, [], "features", "feature_set")
+    _check_right_type(features, "list", "features", "feature_set")
     return FeatureSetInfo(features = features, type_name = "feature_set")
 
 WithFeatureSetInfo = provider(
@@ -143,6 +152,7 @@ WithFeatureSetInfo = provider(
 )
 
 def with_feature_set(features = [], not_features = []):
+    # type: (list[str], list[str]) -> WithFeatureSetInfo
     """ A set of positive and negative features.
 
     This stanza will evaluate to true when every 'feature' is enabled, and
@@ -155,8 +165,8 @@ def with_feature_set(features = [], not_features = []):
     Returns:
         A WithFeatureSetInfo provider.
     """
-    _check_same_type(features, [], "features", "with_feature_set")
-    _check_same_type(not_features, [], "not_features", "with_feature_set")
+    _check_right_type(features, "list", "features", "with_feature_set")
+    _check_right_type(not_features, "list", "not_features", "with_feature_set")
     return WithFeatureSetInfo(
         features = features,
         not_features = not_features,
@@ -169,6 +179,7 @@ EnvSetInfo = provider(
 )
 
 def env_set(actions, env_entries = [], with_features = []):
+    # type: (list[str], list[EnvEntryInfo], list[WithFeatureSetInfo]) -> EnvSetInfo
     """ Groups a set of environment variables to apply for certain actions.
 
     EnvSet providers are passed to feature() and action_config(), to be applied to
@@ -190,8 +201,8 @@ def env_set(actions, env_entries = [], with_features = []):
         An EnvSetInfo provider.
     """
     _check_is_nonempty_list(actions, "actions", "env_set")
-    _check_same_type(env_entries, [], "env_entries", "env_set")
-    _check_same_type(with_features, [], "with_features", "env_set")
+    _check_right_type(env_entries, "list", "env_entries", "env_set")
+    _check_right_type(with_features, "list", "with_features", "env_set")
     return EnvSetInfo(
         actions = actions,
         env_entries = env_entries,
@@ -223,6 +234,7 @@ def flag_group(
         expand_if_true = None,
         expand_if_false = None,
         expand_if_equal = None):
+    # type: (list[str], list[FlagGroupInfo], str | None, str | None, str | None, str | None, str | None, VariableWithValueInfo | None) -> FlagGroupInfo
     """ A group of flags. Supports parametrization via variable expansion.
 
     To expand a variable of list type, flag_group has to be annotated with
@@ -292,8 +304,8 @@ def flag_group(
         A FlagGroupInfo provider.
     """
 
-    _check_same_type(flags, [], "flags", "flag_group")
-    _check_same_type(flag_groups, [], "flag_groups", "flag_group")
+    _check_right_type(flags, "list", "flags", "flag_group")
+    _check_right_type(flag_groups, "list", "flag_groups", "flag_group")
     if len(flags) > 0 and len(flag_groups) > 0:
         fail("flag_group must not contain both a flag and another flag_group.")
     if len(flags) == 0 and len(flag_groups) == 0:
@@ -335,6 +347,7 @@ def flag_set(
         actions = [],
         with_features = [],
         flag_groups = []):
+    # type: (list[str], list[WithFeatureSetInfo], list[FlagGroupInfo]) -> FlagSetInfo
     """ A set of flags to be expanded in the command line for specific actions.
 
     Args:
@@ -351,9 +364,9 @@ def flag_set(
     Returns:
         A FlagSetInfo provider.
     """
-    _check_same_type(actions, [], "actions", "flag_set")
-    _check_same_type(with_features, [], "with_features", "flag_set")
-    _check_same_type(flag_groups, [], "flag_groups", "flag_set")
+    _check_right_type(actions, "list", "actions", "flag_set")
+    _check_right_type(with_features, "list", "with_features", "flag_set")
+    _check_right_type(flag_groups, "list", "flag_groups", "flag_set")
     return FlagSetInfo(
         actions = actions,
         with_features = with_features,
@@ -383,6 +396,7 @@ def feature(
         requires = [],
         implies = [],
         provides = []):
+    # type: (str, bool, list[FlagSetInfo], list[EnvSetInfo], list[FeatureSetInfo], list[str], list[str]) -> FeatureInfo
     """ Contains all flag specifications for one feature.
 
     Args:
@@ -421,11 +435,11 @@ def feature(
         A FeatureInfo provider.
     """
     _check_same_type(enabled, True, "enabled", "feature")
-    _check_same_type(flag_sets, [], "flag_sets", "feature")
-    _check_same_type(env_sets, [], "env_sets", "feature")
-    _check_same_type(requires, [], "requires", "feature")
-    _check_same_type(provides, [], "provides", "feature")
-    _check_same_type(implies, [], "implies", "feature")
+    _check_right_type(flag_sets, "list", "flag_sets", "feature")
+    _check_right_type(env_sets, "list", "env_sets", "feature")
+    _check_right_type(requires, "list", "requires", "feature")
+    _check_right_type(provides, "list", "provides", "feature")
+    _check_right_type(implies, "list", "implies", "feature")
     return FeatureInfo(
         name = name,
         enabled = enabled,
@@ -443,6 +457,7 @@ ToolPathInfo = provider(
 )
 
 def tool_path(name, path):
+    # type: (str, str) -> ToolPathInfo
     """ Tool locations.
 
     Args:
@@ -475,6 +490,7 @@ ToolInfo = provider(
 )
 
 def tool(path = None, with_features = [], execution_requirements = [], tool = None):
+    # type: (str | None, list[WithFeatureSetInfo], list[str], File | None) -> ToolInfo
     """ Describes a tool associated with a crosstool action config.
 
     Args:
@@ -507,8 +523,8 @@ def tool(path = None, with_features = [], execution_requirements = [], tool = No
         _check_is_none(path, "path", "tool")
         _check_right_type(tool, "File", "tool", "tool")
 
-    _check_same_type(with_features, [], "with_features", "tool")
-    _check_same_type(execution_requirements, [], "execution_requirements", "tool")
+    _check_right_type(with_features, "list", "with_features", "tool")
+    _check_right_type(execution_requirements, "list", "execution_requirements", "tool")
     return ToolInfo(
         path = path,
         tool = tool,
@@ -536,6 +552,7 @@ def action_config(
         tools = [],
         flag_sets = [],
         implies = []):
+    # type: (str, bool, list[ToolInfo], list[FlagSetInfo], list[str]) -> ActionConfigInfo
     """ Configuration of a Bazel action.
 
     An action config corresponds to a Bazel action, and allows selection of
@@ -566,9 +583,9 @@ def action_config(
     """
     _check_is_nonempty_string(action_name, "name", "action_config")
     _check_same_type(enabled, True, "enabled", "action_config")
-    _check_same_type(tools, [], "tools", "action_config")
-    _check_same_type(flag_sets, [], "flag_sets", "action_config")
-    _check_same_type(implies, [], "implies", "action_config")
+    _check_right_type(tools, "list", "tools", "action_config")
+    _check_right_type(flag_sets, "list", "flag_sets", "action_config")
+    _check_right_type(implies, "list", "implies", "action_config")
     return ActionConfigInfo(
         action_name = action_name,
         enabled = enabled,
@@ -589,6 +606,7 @@ ArtifactNamePatternInfo = provider(
 )
 
 def artifact_name_pattern(category_name, prefix, extension):
+    # type: (str, str | None, str | None) -> ArtifactNamePatternInfo
     """ The name for an artifact of a given category of input or output artifacts to an action.
 
     Args:
@@ -617,7 +635,9 @@ def artifact_name_pattern(category_name, prefix, extension):
     )
 
 def _is_gcc_compiler(compiler):
+    # type: (str) -> bool
     return "gcc" in compiler
 
 def get_profile_correction_flags(ctx):
+    # type: (ctx[object, struct[{'compiler': NotRequired[str]}, ...]]) -> list[str]
     return ["-fprofile-correction"] if hasattr(ctx.attr, "compiler") and _is_gcc_compiler(ctx.attr.compiler) else []

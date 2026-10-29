@@ -1,0 +1,12 @@
+"""The association between toolchain actions and executable tools."""
+
+load("//cc/toolchains:cc_toolchain_info.bzli", "ActionTypeInfo", "ActionTypeSetInfo", "ToolConfigInfo", "ToolInfo")
+
+type _Attrs = struct[{
+    "actions": Sequence[Target],
+    "tools": Sequence[Target],
+    "tool_index_for_action": list[int],
+}, ...]
+
+def _cc_tool_map_impl(ctx: ctx[object, _Attrs]) -> list[ToolConfigInfo]: ...
+def cc_tool_map[K: str | Label](name: str, tools: Mapping[K, str | Label], **kwargs: Unpack[CommonRuleAttrs]) -> None: ...

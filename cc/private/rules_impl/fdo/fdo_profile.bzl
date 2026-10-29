@@ -26,6 +26,7 @@ FdoProfileInfo = provider(
 )
 
 def _impl(ctx):
+    # type: (...) -> FdoProfileInfo
     return FdoProfileInfo(
         artifact = ctx.file.profile,
         proto_profile_artifact = ctx.file.proto_profile,

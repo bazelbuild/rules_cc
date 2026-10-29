@@ -14,6 +14,7 @@
 """Paths utility functions."""
 
 def is_path_absolute(path):
+    # type: (str) -> bool
     """Checks whether a path is absolute or not.
 
     Note that is does not take the execution platform into account.

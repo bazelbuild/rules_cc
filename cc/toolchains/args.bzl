@@ -164,6 +164,7 @@ Roughly equivalent to ctx.actions.args()
 Examples:
     cc_args(
         name = "warnings_as_errors",
+        actions = ["//cc/toolchains/actions:compile_actions"],
         args = ["-Werror"],
     )
 """,
@@ -172,7 +173,7 @@ Examples:
 def cc_args(
         *,
         name,
-        actions = None,
+        actions,
         allowlist_include_directories = None,
         allowlist_absolute_include_directories = None,
         args = None,

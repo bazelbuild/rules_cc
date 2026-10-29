@@ -30,8 +30,8 @@ def _cc_tool_map_impl(ctx):
     tools = collect_tools(ctx, ctx.attr.tools)
     action_sets = collect_provider(ctx.attr.actions, ActionTypeSetInfo)
 
-    action_to_tool = {}
-    action_to_as = {}
+    action_to_tool = {}  # type: dict[ActionTypeInfo, ToolInfo]
+    action_to_as = {}  # type: dict[ActionTypeInfo, ActionTypeSetInfo]
     for i in range(len(action_sets)):
         action_set = action_sets[i]
         tool = tools[ctx.attr.tool_index_for_action[i]]

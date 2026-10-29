@@ -1,0 +1,49 @@
+"""Toolchain variable descriptors."""
+
+load(
+    "//cc/toolchains:cc_toolchain_info.bzli",
+    "ActionTypeInfo",
+    "ElementVariableType",
+    "LeafVariableType",
+    "StructVariableType",
+    "VariableInfo",
+    "VariableType",
+)
+
+class _StructFactory(Protocol):
+    def __call__(self, **fields: VariableType) -> StructVariableType: ...
+
+types: struct[{
+    "unknown": LeafVariableType,
+    "void": LeafVariableType,
+    "string": LeafVariableType,
+    "bool": LeafVariableType,
+    "file": LeafVariableType,
+    "directory": LeafVariableType,
+    "option": Callable[[VariableType], ElementVariableType],
+    "list": Callable[[VariableType], ElementVariableType],
+    "struct": _StructFactory,
+}]
+
+type _Labels = Collection[Label | str] | depset[Label | str] | None
+
+def _decode_variable_type(encoded: str) -> VariableType: ...
+
+def cc_variable(
+        name: str,
+        type: VariableType,
+        *,
+        actions: _Labels | select[_Labels] = ...,
+        **kwargs: Unpack[CommonRuleAttrs],
+) -> None: ...
+
+def get_type(
+        *,
+        name: str,
+        variables: Mapping[str, VariableInfo],
+        overrides: Mapping[str, VariableType],
+        actions: Collection[ActionTypeInfo],
+        args_label: Label,
+        nested_label: Label,
+        fail: Callable[[str], object],
+) -> VariableType: ...

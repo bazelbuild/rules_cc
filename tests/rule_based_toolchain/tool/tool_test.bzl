@@ -58,6 +58,14 @@ def _wrapped_tool_includes_runfiles_test(env, targets):
         _BIN,
     ])
 
+def _tool_capability_has_no_include_directories_test(env, targets):
+    feature = env.expect.that_value(
+        value = targets.tool[ToolInfo].capabilities[0].feature,
+        factory = subjects.FeatureInfo,
+    )
+    feature.allowlist_absolute_include_directories().contains_exactly([])
+    feature.args().allowlist_absolute_include_directories().contains_exactly([])
+
 def _tool_with_allowlist_include_directories_test(env, targets):
     tool = env.expect.that_target(targets.tool_with_allowlist_include_directories).provider(ToolInfo)
     tool.allowlist_include_directories().contains_exactly([_TOOL_DIRECTORY])
@@ -145,6 +153,7 @@ TESTS = {
     "tool_test": lambda env, targets: _tool_test(env, targets.tool),
     "directory_tool_test": lambda env, targets: _tool_test(env, targets.directory_tool),
     "wrapped_tool_includes_runfiles_test": _wrapped_tool_includes_runfiles_test,
+    "tool_capability_has_no_include_directories_test": _tool_capability_has_no_include_directories_test,
     "collect_tools_collects_tools_test": _collect_tools_collects_tools_test,
     "collect_tools_collects_binaries_test": _collect_tools_collects_binaries_test,
     "collect_tools_collects_single_files_test": _collect_tools_collects_single_files_test,
