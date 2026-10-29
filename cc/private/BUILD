@@ -18,6 +18,8 @@ package(
     default_visibility = ["//visibility:public"],
 )
 
+exports_files(["objc_info.bzli"])
+
 filegroup(
     name = "bzl_srcs",
     srcs = glob([
@@ -37,6 +39,7 @@ filegroup(
         "**/BUILD",
         "*.bzl",
     ]) + [
+        "objc_info.bzli",
         "//cc/private/bazel7:BUILD",
         "//cc/private/compile:srcs",
         "//cc/private/link:srcs",
