@@ -216,7 +216,7 @@ def _is_linker_option_supported(repository_ctx, cc, force_linker_flags, option, 
 def _is_oso_prefix_supported(repository_ctx, ld):
     return repository_ctx.execute([ld, "-v", "-oso_prefix", "."]).return_code == 0
 
-def _find_linker_path(repository_ctx, cc, linker, is_clang):
+def _find_linker_flags(repository_ctx, cc, linker, is_clang):
     """Checks if a given linker is supported by the C compiler.
 
     Args:
@@ -226,7 +226,7 @@ def _find_linker_path(repository_ctx, cc, linker, is_clang):
       is_clang: whether the compiler is known to be clang
 
     Returns:
-      String to put as value to -fuse-ld= flag, or None if linker couldn't be found.
+      List of flags selecting the linker, or None if linker couldn't be found.
     """
     result = repository_ctx.execute([
         cc,
@@ -245,7 +245,7 @@ def _find_linker_path(repository_ctx, cc, linker, is_clang):
         return None
 
     if not is_clang:
-        return linker
+        return ["-fuse-ld=" + linker]
 
     # Extract linker path from:
     # /usr/bin/clang ...
@@ -254,9 +254,22 @@ def _find_linker_path(repository_ctx, cc, linker, is_clang):
     # https://github.com/llvm/llvm-project/blob/85c78274358717e4d5d019a801decba5c1add484/clang/lib/Driver/Job.cpp#L207-L209
     invocations = [line for line in result.stderr.splitlines() if line.startswith(" \"")]
     if not invocations:
-        return linker
+        return ["-fuse-ld=" + linker]
     linker_command = invocations[-1]
-    return linker_command.strip().split(" ")[0].strip("\"'")
+    linker_path = linker_command.strip().split(" ")[0].strip("\"'")
+
+    # Clang uses the -fuse-ld= value as the linker flavor. --ld-path= (Clang 12+)
+    # specifies the path without losing the flavor.
+    flags = ["-fuse-ld=" + linker, "--ld-path=" + linker_path]
+    result = repository_ctx.execute([
+        cc,
+        str(repository_ctx.path("tools/cpp/empty.cc")),
+        "-o",
+        "/dev/null",
+    ] + flags)
+    if result.return_code != 0:
+        return ["-fuse-ld=" + linker_path]
+    return flags
 
 def _add_compiler_option_if_supported(repository_ctx, cc, option):
     """Returns `[option]` if supported, `[]` otherwise. Doesn't %-escape the option."""
@@ -548,9 +561,9 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
         False,
     ), ":")
 
-    gold_or_lld_linker_path = (
-        _find_linker_path(repository_ctx, cc, "lld", is_clang) or
-        _find_linker_path(repository_ctx, cc, "gold", is_clang)
+    gold_or_lld_linker_flags = (
+        _find_linker_flags(repository_ctx, cc, "lld", is_clang) or
+        _find_linker_flags(repository_ctx, cc, "gold", is_clang)
     )
     cc_path = repository_ctx.path(cc)
     if not str(cc_path).startswith(str(repository_ctx.path(".")) + "/"):
@@ -559,7 +572,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     else:
         # cc is inside the repository, don't set -B.
         bin_search_flags = []
-    if not gold_or_lld_linker_path:
+    if not gold_or_lld_linker_flags:
         ld_path = repository_ctx.path(tool_paths["ld"])
         if ld_path.dirname != cc_path.dirname:
             bin_search_flags.append("-B" + escape_string(str(ld_path.dirname)))
@@ -570,8 +583,8 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
             if ld_path.dirname != cc_path.dirname:
                 bin_search_flags.append("-B" + escape_string(str(ld_path.dirname)))
     force_linker_flags = []
-    if gold_or_lld_linker_path:
-        force_linker_flags.append("-fuse-ld=" + gold_or_lld_linker_path)
+    if gold_or_lld_linker_flags:
+        force_linker_flags.extend(gold_or_lld_linker_flags)
 
     # TODO: It's unclear why these flags aren't added on macOS.
     if bin_search_flags and not darwin:
