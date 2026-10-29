@@ -14,6 +14,8 @@
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
+exports_files(["objc_info.bzli"])
+
 filegroup(
     name = "bzl_srcs",
     srcs = glob([
@@ -34,6 +36,7 @@ filegroup(
         "**/BUILD",
         "*.bzl",
     ]) + [
+        "objc_info.bzli",
         "//cc/private/bazel7:BUILD",
         "//cc/private/compile:srcs",
         "//cc/private/link:srcs",
