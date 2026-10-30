@@ -33,7 +33,7 @@ load(
 )
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
-load("@rules_cc//cc/toolchains:feature_injection.bzl", "FeatureInfo", "convert_feature")
+load("@rules_cc//cc/toolchains:feature_injection.bzl", "FeatureInfo", "convert_extra_features")
 
 all_compile_actions = [
     ACTION_NAMES.c_compile,
@@ -1781,8 +1781,10 @@ def _impl(ctx):
     )
     features.extend([windows_quoting_for_param_files_feature, cpp_modules_feature, cpp_module_modmap_file_feature, cpp20_module_compile_flags_feature])
 
-    extra_rules_based_features = depset(ctx.attr.extra_enabled_features + ctx.attr.extra_known_features)
-    features.extend([convert_feature(extra_feature[FeatureInfo], enabled = extra_feature in ctx.attr.extra_enabled_features) for extra_feature in extra_rules_based_features.to_list()])
+    features.extend(convert_extra_features(
+        enabled = ctx.attr.extra_enabled_features,
+        known = ctx.attr.extra_known_features,
+    ))
 
     return cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
