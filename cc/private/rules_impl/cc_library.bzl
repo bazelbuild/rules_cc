@@ -394,7 +394,7 @@ the <a href="${link cc_binary.malloc}"><code>malloc</code></a>
 attribute of <a href="${link cc_binary}"><code>cc_binary</code></a>). Dependency
 linkopts take precedence over dependent linkopts (i.e. dependency linkopts
 appear later in the command line). Linkopts specified in
-<a href='../user-manual.html#flag--linkopt'><code>--linkopt</code></a>
+<a href='${link user-manual#linkopt}'><code>--linkopt</code></a>
 take precedence over rule linkopts.
 </p>
 <p>
