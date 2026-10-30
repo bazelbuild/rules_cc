@@ -20,7 +20,6 @@ flag_sets {
   actions: "assemble"
   actions: "c++-compile"
   actions: "c++-header-parsing"
-  actions: "c++-module-codegen"
   actions: "c++-module-compile"
   actions: "c++-module-deps-scanning"
   actions: "c++20-module-compile"
