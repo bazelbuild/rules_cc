@@ -15,5 +15,4 @@
 
 load("@cc_compatibility_proxy//:proxy.bzl", _cc_import = "cc_import")
 
-def cc_import(**kwargs):
-    _cc_import(**kwargs)
+cc_import = _cc_import

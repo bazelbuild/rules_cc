@@ -15,5 +15,4 @@
 
 load("@cc_compatibility_proxy//:proxy.bzl", _cc_shared_library = "cc_shared_library")
 
-def cc_shared_library(**kwargs):
-    _cc_shared_library(**kwargs)
+cc_shared_library = _cc_shared_library
