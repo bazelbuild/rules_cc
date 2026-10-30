@@ -25,6 +25,7 @@ load(
 )
 
 def _cc_feature_constraint_impl(ctx):
+    # type: (...) -> list[FeatureConstraintInfo]
     if ctx.attr.features:
         fail("Features is a reserved attribute in bazel. Use the attributes `all_of` and `none_of` for feature constraints")
     all_of = collect_provider(ctx.attr.all_of, FeatureConstraintInfo)

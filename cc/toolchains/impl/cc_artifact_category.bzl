@@ -21,6 +21,7 @@ visibility([
 ])
 
 def _cc_artifact_category_impl(ctx):
+    # type: (...) -> list[ArtifactCategoryInfo]
     return [
         ArtifactCategoryInfo(
             label = ctx.label,

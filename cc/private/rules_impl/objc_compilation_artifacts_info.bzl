@@ -53,12 +53,13 @@ def _compilation_artifacts_init(
     # Note: the condition under which we set an archive artifact needs to match the condition for
     # which we create the archive in compilation_support.bzl.  In particular, if srcs are all
     # headers, we don't generate an archive.
+    # TODO(https://github.com/bazelbuild/rules_cc/pull/967): handle omitted sources and artifacts.
     if (
         non_arc_srcs or
-        [s for s in srcs if s.is_directory or
+        [s for s in srcs if s.is_directory or  # ty: ignore[not-iterable]
                             s.extension in COMPILABLE_OR_PRECOMPILED_SRC_EXTENSIONS]
     ):
-        archive = intermediate_artifacts.archive()
+        archive = intermediate_artifacts.archive()  # ty: ignore[unresolved-attribute]
     else:
         archive = None
     return {

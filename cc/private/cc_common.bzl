@@ -252,7 +252,9 @@ def _create_compilation_context(
         system_includes = None,
         includes = None,
         quote_includes = None,
-        framework_includes = None,
+        # TODO(https://github.com/bazelbuild/bazel/issues/32021): make this an
+        # annotation when supported Bazel versions expose element-typed depsets.
+        framework_includes = None,  # type: depset[str] | None
         defines = None,
         local_defines = None,
         direct_textual_headers = [],

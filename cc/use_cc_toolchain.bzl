@@ -60,6 +60,7 @@ CC_TOOLCHAIN_ATTRS = {
 }
 
 def use_cc_toolchain(mandatory = True):
+    # type: (bool) -> list[toolchain_type]
     """
     Helper to depend on the cc toolchain.
 

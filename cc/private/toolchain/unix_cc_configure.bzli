@@ -1,0 +1,90 @@
+"""Contracts for discovering and configuring a local Unix C++ toolchain."""
+
+type _Executable = str | Label | path
+
+def _uniq[T: Hashable](iterable: Collection[T]) -> list[T]: ...
+
+def _generate_system_module_map[Dir: _Executable](
+    repository_ctx: repository_ctx,
+    dirs: list[Dir],
+    script_path: _Executable,
+) -> str: ...
+
+def _prepare_include_path(repo_ctx: repository_ctx, path: _Executable) -> str: ...
+
+def _get_target_libc(
+    repository_ctx: repository_ctx,
+    cc: _Executable,
+    darwin: bool,
+    compile_opts: list[str],
+) -> str: ...
+
+def _find_tool[T](
+    repository_ctx: repository_ctx,
+    tool: str,
+    overridden_tools: Mapping[str, T],
+) -> str | T | None: ...
+
+def _get_cxx_include_directories(
+    repository_ctx: repository_ctx,
+    print_resource_dir_supported: bool,
+    cc: _Executable,
+    lang_flag: str,
+    additional_flags: list[str] = ...,
+) -> list[str]: ...
+
+def _is_compiler_option_supported(
+    repository_ctx: repository_ctx,
+    cc: _Executable,
+    option: str,
+) -> bool: ...
+
+def _is_linker_option_supported(
+    repository_ctx: repository_ctx,
+    cc: _Executable,
+    force_linker_flags: list[str],
+    option: str,
+    pattern: str,
+) -> bool: ...
+
+def _is_oso_prefix_supported(repository_ctx: repository_ctx, ld: _Executable) -> bool: ...
+
+def _find_linker_path(
+    repository_ctx: repository_ctx,
+    cc: _Executable,
+    linker: str,
+    is_clang: bool,
+) -> str | None: ...
+
+def _add_compiler_option_if_supported(
+    repository_ctx: repository_ctx,
+    cc: _Executable,
+    option: str,
+) -> list[str]: ...
+
+def _add_linker_option_if_supported(
+    repository_ctx: repository_ctx,
+    cc: _Executable,
+    force_linker_flags: list[str],
+    option: str,
+    pattern: str,
+) -> list[str]: ...
+
+def _get_no_canonical_prefixes_opt(
+    repository_ctx: repository_ctx,
+    cc: _Executable,
+) -> list[str]: ...
+
+def _is_clang(repository_ctx: repository_ctx, cc: _Executable) -> bool: ...
+
+def _is_gcc(repository_ctx: repository_ctx, cc: _Executable) -> bool: ...
+
+def _get_compiler_name(repository_ctx: repository_ctx, cc: _Executable) -> str: ...
+
+def _find_generic[Override, Missing = Never](
+    repository_ctx: repository_ctx,
+    name: str,
+    env_name: str,
+    overridden_tools: Mapping[str, Override],
+    on_missing: Callable[[str], Missing] = ...,
+) -> Override | Missing | str | path: ...

@@ -8,13 +8,16 @@ ENV_VAR_SEPARATOR = ","
 ENV_VAR_ASSIGNMENT = "="
 
 def _make_flags(flag_values, flag):
+    # type: (Collection[str] | None, str) -> str
     flags = []
     if flag_values:
         for s in flag_values:
             flags.append(flag + s)
     return " ".join(flags)
 
+# TODO(https://github.com/bazelbuild/bazel/issues/32020): use a source annotation once Bazel exposes these context and metadata types.
 def _split_env_var(repo_ctx, var_name):
+    # type: (repository_ctx, str) -> dict[str, list[str]]
     value = repo_ctx.os.environ.get(var_name)
     if value:
         assignments = value.split(ENV_VAR_SEPARATOR)
@@ -36,12 +39,15 @@ def _split_env_var(repo_ctx, var_name):
         return {}
 
 def _get_list_from_env_var(repo_ctx, var_name, key):
+    # type: (repository_ctx, str, str) -> list[str]
     return _split_env_var(repo_ctx, var_name).get(key, default = [])
 
 def _execute_bash(repo_ctx, cmd):
+    # type: (repository_ctx, str) -> str
     return repo_ctx.execute(["/usr/bin/env", "bash", "-c", cmd]).stdout.strip("\n")
 
 def _find_linker(repo_ctx):
+    # type: (repository_ctx) -> str
     ld = _execute_bash(repo_ctx, "which ld")
     lld = _execute_bash(repo_ctx, "which lld")
     if ld:
@@ -52,6 +58,7 @@ def _find_linker(repo_ctx):
         fail("No linker found")
 
 def _find_compiler(repo_ctx):
+    # type: (repository_ctx) -> str
     gcc = _execute_bash(repo_ctx, "which g++")
     clang = _execute_bash(repo_ctx, "which clang++")
     if gcc:
@@ -62,6 +69,7 @@ def _find_compiler(repo_ctx):
         fail("No compiler found")
 
 def _find_lib_path(repo_ctx, lib_name, archive_names, lib_path_hints):
+    # type: (repository_ctx, str, Collection[str], list[str]) -> tuple[str, str] | tuple[None, None]
     override_paths = _get_list_from_env_var(
         repo_ctx,
         BAZEL_LIB_OVERRIDE_PATHS_ENV_VAR,
@@ -96,6 +104,7 @@ def _find_lib_path(repo_ctx, lib_name, archive_names, lib_path_hints):
     return (None, None)
 
 def _find_header_path(repo_ctx, lib_name, header_name, includes):
+    # type: (repository_ctx, str, str, list[str]) -> str | None
     override_paths = _get_list_from_env_var(
         repo_ctx,
         BAZEL_INCLUDE_OVERRIDE_PATHS_ENV_VAR,
@@ -180,7 +189,7 @@ def _system_library_impl(repo_ctx):
     # The problem is that the quote-includes are assumed to be
     # in the same directory as the header they are included from -
     # they have no subdir prefix ("SDL2/") in their paths
-    include_subdirs = {}
+    include_subdirs = {}  # type: dict[str, None]
     for hdr in hdr_names:
         path_segments = hdr.split("/")
         path_segments.pop()

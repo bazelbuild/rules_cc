@@ -19,6 +19,7 @@ load(":cc_toolchain_info.bzl", "ActionTypeInfo", "ActionTypeSetInfo")
 visibility("public")
 
 def _cc_action_type_impl(ctx):
+    # type: (...) -> list[ActionTypeInfo | ActionTypeSetInfo]
     action_type = ActionTypeInfo(label = ctx.label, name = ctx.attr.action_name)
     return [
         action_type,
@@ -62,6 +63,7 @@ cc_action_type(
 )
 
 def _cc_action_type_set_impl(ctx):
+    # type: (...) -> list[ActionTypeSetInfo]
     if not ctx.attr.actions and not ctx.attr.allow_empty:
         fail("Each cc_action_type_set must contain at least one action type.")
     actions = collect_action_types(ctx.attr.actions)

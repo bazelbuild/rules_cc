@@ -30,6 +30,9 @@ filegroup(
 )
 
 exports_files([
+    "cc_postmark_initializers.bzli",
+    "cc_toolchain_config_lib.bzli",
+    "system_library.bzli",
     "defs.bzl",
     "action_names.bzl",
     "system_library.bzl",
@@ -74,6 +77,7 @@ filegroup(
     testonly = 1,
     srcs = glob([
         "**/*.bzl",
+        "**/*.bzli",
         "**/BUILD",
     ]) + [
         "//cc/common:srcs",
