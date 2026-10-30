@@ -28,11 +28,15 @@ cc_feature(
     name = "per_object_debug_info_feature",
     args = [":per_object_debug_info_flags"],
     overrides = "//cc/toolchains/features/legacy:per_object_debug_info",
+    visibility = ["//:__subpackages__"],
 )
 
 cc_args(
     name = "per_object_debug_info_flags",
-    actions = ["//cc/toolchains/actions:compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:compile_actions",
+        "//cc/toolchains/actions:cpp20_module_codegen",
+    ],
     args = [
         "-gsplit-dwarf",
         "-g",
