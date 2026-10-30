@@ -98,6 +98,9 @@ def _compare_versions_with_alphanum_components_impl(ctx):
     v11 = "3.1.0"
     v12 = "3.1.1beta1"
     _assert_v1_less_v2(env, v11, v12)
+    _assert_v1_less_v2(env, "1.5beta2", "1.5")
+    _assert_v1_less_v2(env, "3.1.0alpha1", "3.1")
+    _assert_v1_equal_v2(env, "1.5beta2", "1.5beta2.0")
     return unittest.end(env)
 
 compare_versions_with_alphanum_components_test = unittest.make(_compare_versions_with_alphanum_components_impl)
