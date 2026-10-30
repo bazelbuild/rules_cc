@@ -6,9 +6,18 @@ load("@rules_testing//lib:truth.bzl", "matching")
 load("@rules_testing//lib:util.bzl", "TestingAspectInfo", "util")
 load("//cc:cc_binary.bzl", "cc_binary")
 load("//cc:cc_library.bzl", "cc_library")
+load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/common:cc_info.bzl", "CcInfo")
 load("//tests/cc/testutil:cc_analysis_test.bzl", "cc_analysis_test")
 load("//tests/cc/testutil:cc_info_subject.bzl", "cc_info_subject")
+
+def _test_create_linker_input_tuple_flags(env):
+    for flags in [
+        ("-framework", "Foo", "-framework", "Bar"),
+        [("-framework", "Foo"), ("-framework", "Bar")],
+    ]:
+        linker_input = cc_common.create_linker_input(owner = env.ctx.label, user_link_flags = flags)
+        env.expect.that_collection(linker_input.user_link_flags).contains_exactly(["-framework", "Foo", "-framework", "Bar"]).in_order()
 
 def _test_same_cc_file_twice(name):
     util.helper_target(
@@ -741,5 +750,6 @@ def cc_common_tests(name):
         ])
     test_suite(
         name = name,
+        basic_tests = [_test_create_linker_input_tuple_flags],
         tests = tests,
     )
