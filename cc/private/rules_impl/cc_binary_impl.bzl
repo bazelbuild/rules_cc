@@ -129,65 +129,68 @@ def _add_transitive_info_providers(ctx, cc_toolchain, cpp_config, feature_config
     output_groups["_validation"] = compilation_context.validation_artifacts
     return (cc_info, instrumented_files_provider, output_groups)
 
-def _collect_runfiles(ctx, feature_configuration, cc_toolchain, cpp_config, linking_context, libraries, cc_library_linking_outputs, linking_mode, transitive_artifacts, link_compile_output_separately):
+def _collect_runfiles(ctx, feature_configuration, cc_toolchain, linking_context, libraries, cc_library_linking_outputs, linking_mode, transitive_artifacts, link_compile_output_separately):
     # TODO(b/198254254): Add Legacyexternalrunfiles if necessary.
-    collect_coverage_objects = cpp_config.generate_llvm_lcov()
     runtime_objects_for_coverage = []
     builder_artifacts = []
-    builder_transitive_artifacts = [transitive_artifacts]
+    builder_transitive_artifacts = []
 
-    linking_statically = linking_mode != linker_mode.LINKING_DYNAMIC
-    if not linking_statically or collect_coverage_objects:
-        runtime_libraries = _collect_runtime_libraries(ctx, linking_context, linking_statically)
-        builder_transitive_artifacts.append(runtime_libraries)
-        if collect_coverage_objects:
-            runtime_objects_for_coverage.extend(runtime_libraries.to_list())
-    builder = ctx.runfiles(collect_default = True)
+    runtime_libraries = _collect_runtime_libraries(ctx, linking_context, linking_mode != linker_mode.LINKING_DYNAMIC)
+    builder = ctx.runfiles(transitive_files = runtime_libraries, collect_default = True)
 
+    runtime_objects_for_coverage.extend(runtime_libraries.to_list())
     dynamic_libraries_for_runtime = _get_dynamic_libraries_for_runtime(True, libraries)
-    if collect_coverage_objects:
-        runtime_objects_for_coverage.extend(dynamic_libraries_for_runtime)
+    runtime_objects_for_coverage.extend(dynamic_libraries_for_runtime)
 
+    builder_transitive_artifacts.extend(transitive_artifacts.to_list())
     builder_artifacts.extend(dynamic_libraries_for_runtime)
 
-    runfiles_data = []
+    runfiles_is_static = []
+    runfiles_is_not_static = []
     for transitive_info_collection in ctx.attr.data:
-        data_dynamic_libs = _runfiles_function(transitive_info_collection, False)
-        runfiles_data.append(ctx.runfiles(transitive_files = data_dynamic_libs))
-        if collect_coverage_objects:
-            runtime_objects_for_coverage.extend(data_dynamic_libs.to_list())
+        runfiles_is_static.append(ctx.runfiles(transitive_files = _runfiles_function(transitive_info_collection, True)))
+        runfiles_is_not_static.append(ctx.runfiles(transitive_files = _runfiles_function(transitive_info_collection, False)))
+        runtime_objects_for_coverage.extend(_runfiles_function(transitive_info_collection, True).to_list())
+        runtime_objects_for_coverage.extend(_runfiles_function(transitive_info_collection, False).to_list())
 
     for dynamic_dep in ctx.attr.dynamic_deps:
         builder = builder.merge(dynamic_dep[DefaultInfo].default_runfiles)
 
-    builder = builder.merge_all(runfiles_data)
+    builder = builder.merge_all(runfiles_is_static + runfiles_is_not_static)
     if linking_mode == linker_mode.LINKING_DYNAMIC:
         dynamic_runtime_lib = cc_toolchain.dynamic_runtime_lib(feature_configuration = feature_configuration)
-        builder_transitive_artifacts.append(dynamic_runtime_lib)
-        if collect_coverage_objects:
-            runtime_objects_for_coverage.extend(dynamic_runtime_lib.to_list())
+        dynamic_runtime_lib_list = dynamic_runtime_lib.to_list()
+        builder_transitive_artifacts.extend(dynamic_runtime_lib_list)
+        runtime_objects_for_coverage.extend(dynamic_runtime_lib_list)
 
     if link_compile_output_separately:
         if cc_library_linking_outputs != None and cc_library_linking_outputs.library_to_link != None and cc_library_linking_outputs.library_to_link.dynamic_library != None:
             builder_artifacts.append(cc_library_linking_outputs.library_to_link.dynamic_library)
-            if collect_coverage_objects:
-                runtime_objects_for_coverage.append(cc_library_linking_outputs.library_to_link.dynamic_library)
+            runtime_objects_for_coverage.append(cc_library_linking_outputs.library_to_link.dynamic_library)
 
     builder = builder.merge_all([
         _default_runfiles_function(ctx, runtime)
         for runtime in cc_helper.get_cc_runtimes(ctx, _is_link_shared(ctx))
+    ] + [
+        ctx.runfiles(transitive_files = _runfiles_function(runtime, linking_mode != linker_mode.LINKING_DYNAMIC))
+        for runtime in cc_helper.get_cc_runtimes(ctx, _is_link_shared(ctx))
     ])
 
-    return (builder.merge(ctx.runfiles(files = builder_artifacts, transitive_files = depset(transitive = builder_transitive_artifacts))), runtime_objects_for_coverage)
+    return (builder.merge(ctx.runfiles(files = builder_artifacts, transitive_files = depset(builder_transitive_artifacts))), runtime_objects_for_coverage)
+
+def _get_dynamic_library_for_runtime_or_none(library_to_link, link_statically):
+    if library_to_link.dynamic_library == None:
+        return None
+    if link_statically and (library_to_link.static_library != None or library_to_link.pic_static_library != None):
+        return None
+    return library_to_link.dynamic_library
 
 def _get_dynamic_libraries_for_runtime(link_statically, libraries):
     dynamic_libraries_for_runtime = []
     for library_to_link in libraries:
-        if library_to_link.dynamic_library == None:
-            continue
-        if link_statically and (library_to_link.static_library != None or library_to_link.pic_static_library != None):
-            continue
-        dynamic_libraries_for_runtime.append(library_to_link.dynamic_library)
+        artifact = _get_dynamic_library_for_runtime_or_none(library_to_link, link_statically)
+        if artifact != None:
+            dynamic_libraries_for_runtime.append(artifact)
     return dynamic_libraries_for_runtime
 
 def _get_providers(ctx):
@@ -737,7 +740,6 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
         ctx,
         feature_configuration,
         cc_toolchain,
-        cpp_config,
         deps_cc_linking_context,
         libraries,
         cc_linking_outputs,
