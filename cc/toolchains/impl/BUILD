@@ -18,6 +18,7 @@ bzl_library(
     visibility = ["//cc/toolchains:__subpackages__"],
     deps = [
         "//cc/common",
+        "//cc/private:paths_bzl",
         "@bazel_skylib//rules:common_settings",
     ],
 )
