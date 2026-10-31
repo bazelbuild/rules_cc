@@ -323,6 +323,13 @@ cc_variable(
     type = types.option(types.list(types.file)),
 )
 
+# `<module name>=<module file>` for each entry of `module_files`.
+cc_variable(
+    name = "module_file_names",
+    actions = ["//cc/toolchains/actions:compile_actions"],
+    type = types.option(types.list(types.string)),
+)
+
 cc_variable(
     name = "module_map_file",
     actions = ["//cc/toolchains/actions:compile_actions"],
@@ -647,6 +654,7 @@ cc_builtin_variables(
         ":linkstamp_paths",
         ":lto_indexing_bitcode_file",
         ":memprof_profile_changelist",
+        ":module_file_names",
         ":module_files",
         ":module_map_file",
         ":module_name",
