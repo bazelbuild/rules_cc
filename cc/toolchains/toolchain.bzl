@@ -46,6 +46,7 @@ def cc_toolchain(
         enabled_features = [],
         grep_includes = None,
         libc_top = None,
+        sysroot_path = "",
         module_map = None,
         dynamic_runtime_lib = None,
         static_runtime_lib = None,
@@ -122,6 +123,12 @@ def cc_toolchain(
             actions. See
             [`cc_toolchain.libc_top`](https://bazel.build/reference/be/c-cpp#cc_toolchain.libc_top)
             for more information.
+        sysroot_path: (str) A literal path that silently overrides the sysroot inferred from
+            `cc_sysroot` targets in this toolchain's args and features. Relative paths are
+            relative to the execution root. An empty value uses the inferred path. The override
+            only changes `CcToolchainInfo.sysroot`; arguments and action inputs are still
+            controlled by the `cc_sysroot` targets. Without an override, all collected sysroots
+            must have the same path, including those in features that are disabled.
         module_map: (Label) Module map artifact to be used for modular builds. See
             [`cc_toolchain.module_map`](https://bazel.build/reference/be/c-cpp#cc_toolchain.module_map)
             for more information.
@@ -205,6 +212,7 @@ def cc_toolchain(
             target_system_name = target_system_name,
             dynamic_runtime_lib = dynamic_runtime_lib,
             libc_top = libc_top,
+            sysroot_path = sysroot_path,
             module_map = module_map,
             static_runtime_lib = static_runtime_lib,
             supports_header_parsing = supports_header_parsing,
@@ -228,6 +236,7 @@ def cc_toolchain(
         cpu = cpu or _CPU,
         target_libc = target_libc,
         target_system_name = target_system_name,
+        sysroot_path = sysroot_path,
         visibility = ["//visibility:private"],
         **kwargs
     )
