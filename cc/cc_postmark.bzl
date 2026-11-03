@@ -24,6 +24,9 @@ def _add_postmark_action(
     # type: (object, object, object, object) -> None
     pass
 
+# The public toolchain never enables PostMark. A broader bool makes the
+# cc_binary branch that passes internal-only action keywords reachable.
+# TODO: Use bool when the public implementation supports that action.
 def _get_use_postmark(ctx):  # @unused
     # type: (object) -> Literal[False]
     return False
