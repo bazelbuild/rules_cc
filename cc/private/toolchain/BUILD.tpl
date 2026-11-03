@@ -17,7 +17,6 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc/toolchains:cc_toolchain.bzl", "cc_toolchain")
 load("@rules_cc//cc/toolchains:cc_toolchain_suite.bzl", "cc_toolchain_suite")
-load(":armeabi_cc_toolchain_config.bzl", "armeabi_cc_toolchain_config")
 load(":cc_toolchain_config.bzl", "cc_toolchain_config")
 
 package(default_visibility = ["//visibility:public"])
@@ -83,8 +82,6 @@ cc_toolchain_suite(
     toolchains = {
         "%{name}|%{compiler}": ":cc-compiler-%{name}",
         "%{name}": ":cc-compiler-%{name}",
-        "armeabi-v7a|compiler": ":cc-compiler-armeabi-v7a",
-        "armeabi-v7a": ":cc-compiler-armeabi-v7a",
     },
 )
 
@@ -134,21 +131,3 @@ cc_toolchain_config(
     extra_flags_per_feature = %{extra_flags_per_feature},
     features = [%{toolchain_features}],
 )
-
-# Android tooling requires a default toolchain for the armeabi-v7a cpu.
-cc_toolchain(
-    name = "cc-compiler-armeabi-v7a",
-    toolchain_identifier = "stub_armeabi-v7a",
-    toolchain_config = ":stub_armeabi-v7a",
-    all_files = ":empty",
-    ar_files = ":empty",
-    as_files = ":empty",
-    compiler_files = ":empty",
-    dwp_files = ":empty",
-    linker_files = ":empty",
-    objcopy_files = ":empty",
-    strip_files = ":empty",
-    supports_param_files = 1,
-)
-
-armeabi_cc_toolchain_config(name = "stub_armeabi-v7a")
