@@ -14,9 +14,6 @@
 """Module extension for cc auto configuration."""
 
 load("@bazel_features//:features.bzl", "bazel_features")
-
-#buildifier: disable=bzl-visibility
-load("@bazel_features//private:util.bzl", _bazel_version_ge = "ge")
 load("//cc/private/toolchain:cc_configure.bzl", "cc_autoconf", "cc_autoconf_toolchains")
 
 def _cc_configure_extension_impl(ctx):
@@ -30,7 +27,7 @@ def _cc_configure_extension_impl(ctx):
 cc_configure_extension = module_extension(implementation = _cc_configure_extension_impl)
 
 def _compatibility_proxy_repo_impl(rctx):
-    if _bazel_version_ge("9.0.0-pre.20250911"):
+    if bazel_features.cc.cc_common_is_in_rules_cc:
         rctx.file(
             "BUILD",
             """
