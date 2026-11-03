@@ -17,10 +17,10 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - uses: tamird/sty@d400a00807b3c7f7b2ac82bf1e1e6a16db0290e3
+      - uses: tamird/sty@sty-action-v0.2.0
         with:
           audit-loads: true
           bazel-version: '9.3.0'
