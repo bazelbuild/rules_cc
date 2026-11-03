@@ -40,7 +40,12 @@ _generate_action_type_set = rule(
     },
 )
 
+# TODO(https://github.com/bazelbuild/bazel/pull/30373): Use native type syntax
+# when Bazel 8.8 is the minimum supported version.
+# type _LabelInput = str | Label | select[str | Label]
+
 def action_type_set_diff_test(name, action_type_set, expected):
+    # type: (str, _LabelInput, _LabelInput) -> None
     output_filename = name + ".actual.txt"
     _generate_action_type_set(
         name = name + "_actual",

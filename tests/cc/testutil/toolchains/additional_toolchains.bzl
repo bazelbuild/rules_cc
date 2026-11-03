@@ -4,4 +4,6 @@ def mock_additional_toolchains():
     # type: () -> None
     pass
 
-ADDITIONAL_MOCK_TOOLCHAINS = []
+# TODO(https://github.com/bazelbuild/bazel/pull/30373): Use a variable annotation
+# when Bazel 8.8 is the minimum supported version.
+ADDITIONAL_MOCK_TOOLCHAINS = []  # type: list[str]
