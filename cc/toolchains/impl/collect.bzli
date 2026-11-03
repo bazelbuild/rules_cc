@@ -1,5 +1,8 @@
 """Typed collections of toolchain provider values."""
 
+# TODO(https://github.com/bazelbuild/starlark/pull/362): Move collect_provider into source when a function declaration can bind
+# P to its provider and result. A comment cannot bind P or declare the collector protocol.
+
 load("//cc/toolchains:cc_toolchain_info.bzli", "ActionTypeInfo", "ArgsInfo", "ArgsListInfo", "ToolInfo")
 
 type _ActionAccumulator = struct[{"action": ActionTypeInfo, "args": list[ArgsInfo], "transitive_files": list[depset[File]]}]

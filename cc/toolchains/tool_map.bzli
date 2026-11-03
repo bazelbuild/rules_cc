@@ -1,5 +1,8 @@
 """The association between toolchain actions and executable tools."""
 
+# TODO(https://github.com/bazelbuild/starlark/pull/362): Move cc_tool_map into source when its signature can bind K to the
+# key type of the caller’s tools dictionary. A signature comment cannot bind K.
+
 load("//cc/toolchains:cc_toolchain_info.bzli", "ActionTypeInfo", "ActionTypeSetInfo", "ToolConfigInfo", "ToolInfo")
 
 type _Attrs = struct[{

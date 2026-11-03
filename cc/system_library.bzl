@@ -136,7 +136,21 @@ def _find_header_path(repo_ctx, lib_name, header_name, includes):
             return result
     return None
 
+# TODO(https://github.com/bazelbuild/bazel/issues/32020): Use a native repository
+# context annotation for these attributes when supported Bazel versions expose it.
+# type _Attrs = struct[{
+#     "name": str,
+#     "includes": list[str],
+#     "hdrs": list[str],
+#     "optional_hdrs": list[str],
+#     "deps": list[str],
+#     "lib_path_hints": list[str],
+#     "static_lib_names": list[str],
+#     "shared_lib_names": list[str],
+# }, ...]
+
 def _system_library_impl(repo_ctx):
+    # type: (repository_ctx[_Attrs]) -> repo_metadata | None
     repo_name = repo_ctx.attr.name.split("+")[-1]
     includes = repo_ctx.attr.includes
     hdrs = repo_ctx.attr.hdrs

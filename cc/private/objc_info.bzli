@@ -1,5 +1,8 @@
 """Objective-C compilation and linking information."""
 
+# TODO(https://github.com/bazelbuild/bazel/issues/32207): Move the field types into the provider declaration when Bazel can
+# describe its result independently of the custom initializer inputs.
+
 # The provider and initializer need separate declarations; keep their signatures and fields in sync.
 def ObjcInfo(
     j2objc_library: depset[File] = ...,

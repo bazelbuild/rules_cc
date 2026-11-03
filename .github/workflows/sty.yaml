@@ -56,6 +56,7 @@ jobs:
             cc/private/toolchain/unix_cc_configure.bzl
             cc/repositories.bzl
             cc/starlark_doc_extract_helper.bzl
+            cc/system_library.bzl
             cc/toolchains/actions.bzl
             cc/toolchains/actions/BUILD
             cc/toolchains/args/BUILD
@@ -66,6 +67,7 @@ jobs:
             cc/toolchains/cc_toolchain.bzl
             cc/toolchains/cc_toolchain_alias.bzl
             cc/toolchains/cc_toolchain_config_info.bzl
+            cc/toolchains/directory_tool.bzl
             cc/toolchains/fdo_prefetch_hints.bzl
             cc/toolchains/fdo_profile.bzl
             cc/toolchains/feature.bzl
@@ -84,8 +86,10 @@ jobs:
             cc/toolchains/make_variable.bzl
             cc/toolchains/memprof_profile.bzl
             cc/toolchains/mutually_exclusive_category.bzl
+            cc/toolchains/nested_args.bzl
             cc/toolchains/propeller_optimize.bzl
             cc/toolchains/providers.bzl
+            cc/toolchains/tool.bzl
             cc/toolchains/tool_capability.bzl
             cc/toolchains/variables/BUILD
             cc/use_cc_toolchain.bzl
