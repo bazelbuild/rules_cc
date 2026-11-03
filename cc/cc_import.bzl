@@ -15,6 +15,8 @@
 
 load("@cc_compatibility_proxy//:proxy.bzl", _cc_import = "cc_import")
 
+# TODO(https://github.com/bazelbuild/bazel/issues/32343): Annotate **kwargs
+# when Bazel can derive them from the wrapped cc_import rule.
 def cc_import(**kwargs):
     # type: (**Unpack[KeywordArgs[_cc_import]]) -> None
     _cc_import(**kwargs)
