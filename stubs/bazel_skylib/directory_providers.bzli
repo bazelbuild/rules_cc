@@ -1,0 +1,26 @@
+# TODO(https://github.com/bazelbuild/bazel-skylib/pull/641): Remove this stub
+# when the selected Skylib release types DirectoryInfo.
+class _Glob(Protocol):
+    def __call__(self, include: Sequence[str], exclude: Sequence[str] = ..., allow_empty: bool = ...) -> depset[File]: ...
+
+type _Fields = dict[{
+    "entries": dict[str, File | DirectoryInfo],
+    "transitive_files": depset[File],
+    "path": str,
+    "human_readable": str,
+    "get_path": Callable[[str], File | DirectoryInfo],
+    "get_file": Callable[[str], File],
+    "get_subdirectory": Callable[[str], DirectoryInfo],
+    "glob": _Glob,
+}]
+
+def DirectoryInfo(**kwargs: Unpack[_Fields]) -> record[{
+    "entries": dict[str, File | DirectoryInfo],
+    "transitive_files": depset[File],
+    "path": str,
+    "human_readable": str,
+    "get_path": Callable[[str], File | DirectoryInfo],
+    "get_file": Callable[[str], File],
+    "get_subdirectory": Callable[[str], DirectoryInfo],
+    "glob": _Glob,
+}]: ...
