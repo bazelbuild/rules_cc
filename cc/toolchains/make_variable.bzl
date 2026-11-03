@@ -19,6 +19,7 @@ load(":cc_toolchain_info.bzl", "MakeVariableInfo")
 visibility("public")
 
 def _cc_make_variable_impl(ctx):
+    # type: (...) -> list[MakeVariableInfo]
     return [
         MakeVariableInfo(
             label = ctx.label,

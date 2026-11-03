@@ -16,7 +16,28 @@
 load("@bazel_skylib//rules/directory:glob.bzl", "directory_glob")
 load(":tool.bzl", "cc_tool")
 
-def cc_directory_tool(name, directory, executable, data = [], exclude = [], allow_empty = False, **kwargs):
+# TODO(https://github.com/bazelbuild/bazel/issues/32343): Type **kwargs on the
+# declaration when Bazel can refer to the remaining keywords of cc_tool.
+# type _Strings = Collection[str] | depset[str]
+# type _StringsInput = _Strings | select[_Strings | None] | None
+# type _Bool = bool | Literal[0, 1]
+
+def cc_directory_tool(
+        # type: str
+        name,
+        # type: str | Label | select[str | Label | None]
+        directory,
+        # type: str
+        executable,
+        # type: _StringsInput
+        data = [],
+        # type: _StringsInput
+        exclude = [],
+        # type: _Bool | select[_Bool | None] | None
+        allow_empty = False,
+        # type: Unpack[KeywordArgs[cc_tool, "name", "src", "data"]]
+        **kwargs):
+    # type: (...) -> None
     """A tool extracted from a directory.
 
     Args:

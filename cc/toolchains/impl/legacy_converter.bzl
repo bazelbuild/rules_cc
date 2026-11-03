@@ -155,7 +155,7 @@ def convert_capability(capability):
 
 def _convert_tool_map(tool_map, args_by_action):
     action_configs = []
-    caps = {}
+    caps = {}  # type: dict[ToolCapabilityInfo, None]
     for action_type, tool in tool_map.configs.items():
         action_args = args_by_action.get(action_type.name, default = None)
         flag_sets = action_args.flag_sets if action_args != None else []
@@ -194,9 +194,11 @@ def convert_toolchain(toolchain):
     # For that reason, there's additional logic in this function to ensure that the args are
     # attached to the action configs directly, as that is the only way to ensure the correct
     # ordering.
-    args_by_action = {}
+    args_by_action = {}  # type: dict[str, LegacyArgs]
     for a in toolchain.args.by_action:
-        args = args_by_action.setdefault(a.action.name, struct(flag_sets = [], env_sets = []))
+        flag_sets = []  # type: list[FlagSetInfo]
+        env_sets = []  # type: list[EnvSetInfo]
+        args = args_by_action.setdefault(a.action.name, struct(flag_sets = flag_sets, env_sets = env_sets))
         new_args = _convert_args_sequence(a.args, strip_actions = True)
         args.flag_sets.extend(new_args.flag_sets)
         args.env_sets.extend(new_args.env_sets)

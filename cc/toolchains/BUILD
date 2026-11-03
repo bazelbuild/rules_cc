@@ -14,6 +14,14 @@
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
+exports_files(
+    [
+        "cc_toolchain_info.bzli",
+        "tool_map.bzli",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 bzl_library(
     name = "toolchain_rules",
     srcs = glob(["*.bzl"]),
@@ -44,6 +52,7 @@ filegroup(
     name = "srcs",
     srcs = glob([
         "**/*.bzl",
+        "**/*.bzli",
         "**/BUILD",
     ]) + [
         "//cc/toolchains/actions:srcs",

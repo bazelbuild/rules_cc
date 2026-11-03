@@ -49,11 +49,16 @@ types = struct(
     ),
 )
 
+def _decode_variable_type(encoded):
+    # cc_variable is the sole writer of the private rule's JSON attribute.
+    return json.decode(encoded)  # ty: ignore[non-static-type, unsound-return-statement]
+
 def _cc_variable_impl(ctx):
+    # type: (...) -> list[VariableInfo]
     return [VariableInfo(
         name = ctx.label.name,
         label = ctx.label,
-        type = json.decode(ctx.attr.type),
+        type = _decode_variable_type(ctx.attr.type),
         actions = collect_action_types(ctx.attr.actions) if ctx.attr.actions else None,
     )]
 
@@ -66,7 +71,7 @@ _cc_variable = rule(
     provides = [VariableInfo],
 )
 
-def cc_variable(name, type, **kwargs):
+def cc_variable(name, type, *, actions = [], **kwargs):
     """Exposes a toolchain variable to use in toolchain argument expansions.
 
     This internal rule exposes [toolchain variables](https://bazel.build/docs/cc-toolchain-config-reference#cctoolchainconfiginfo-build-variables)
@@ -92,11 +97,13 @@ def cc_variable(name, type, **kwargs):
         name: (str) The name of the outer variable, and the rule.
         type: The type of the variable, constructed using `types` factory in
             [@rules_cc//cc/toolchains/impl:variables.bzl](https://github.com/bazelbuild/rules_cc/tree/main/cc/toolchains/impl/variables.bzl).
+        actions: The actions for which the variable is available.
         **kwargs: [common attributes](https://bazel.build/reference/be/common-definitions#common-attributes) that should be applied to this rule.
     """
-    _cc_variable(name = name, type = json.encode(type), **kwargs)
+    _cc_variable(name = name, type = json.encode(type), actions = actions, **kwargs)
 
 def _cc_builtin_variables_impl(ctx):
+    # type: (...) -> list[BuiltinVariablesInfo]
     return [BuiltinVariablesInfo(variables = {
         variable.name: variable
         for variable in collect_provider(ctx.attr.srcs, VariableInfo)
@@ -137,12 +144,13 @@ def get_type(*, name, variables, overrides, actions, args_label, nested_label, f
         # buildifier: disable=unreachable
         return types.void
 
-    if variables[outer].actions != None:
-        valid_actions = variables[outer].actions.to_list()
+    variable = variables[outer]
+    if variable.actions != None:
+        valid_actions = variable.actions.to_list()
         for action in actions:
             if action not in valid_actions:
                 fail("The variable {var} is inaccessible from the action {action}. This is required because it is referenced in {nested_label}, which is included by {args_label}, which references that action".format(
-                    var = variables[outer].label,
+                    var = variable.label,
                     nested_label = nested_label,
                     args_label = args_label,
                     action = action.label,
@@ -151,7 +159,7 @@ def get_type(*, name, variables, overrides, actions, args_label, nested_label, f
                 # buildifier: disable=unreachable
                 return types.void
 
-    type = overrides.get(outer, variables[outer].type)
+    type = overrides.get(outer, variable.type)
 
     parent = outer
     for part in name.split(".")[1:]:
@@ -176,7 +184,7 @@ def get_type(*, name, variables, overrides, actions, args_label, nested_label, f
             # buildifier: disable=unreachable
             return types.void
 
-        type = overrides.get(full, type["kv"][part])
+        type = overrides[full] if full in overrides else type["kv"][part]
         parent = full
 
     return type

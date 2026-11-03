@@ -14,6 +14,7 @@
 """A few small helpers for working with Markdown."""
 
 def markdown_link(link_text, href):
+    # type: (str, str) -> str
     """Creates a markdown link.
 
     Args:
@@ -26,6 +27,7 @@ def markdown_link(link_text, href):
     return "[" + link_text + "](" + href + ")"
 
 def xref_substitutions(match_text_patterns):
+    # type: (Mapping[str, str]) -> dict[str, str]
     """Creates a dictionary of substitutions for use for linkification of text.
 
     Example:

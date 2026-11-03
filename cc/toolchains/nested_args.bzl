@@ -41,21 +41,43 @@ Examples:
 """,
 )
 
+# TODO(https://github.com/bazelbuild/bazel/issues/32343): Annotate **kwargs in the
+# declaration when Bazel can type the common rule attributes forwarded here.
+# type _Label = str | Label
+# type _LabelInput = _Label | select[_Label | None] | None
+# type _StringListInput = Collection[str] | depset[str] | select[Collection[str] | depset[str] | None] | None
+# type _LabelListInput = Collection[_Label] | depset[_Label] | select[Collection[_Label] | depset[_Label] | None] | None
+# type _StringInput = str | select[str | None] | None
+
 def cc_nested_args(
         *,
+        # type: str
         name,
+        # type: _StringListInput
         args = None,
+        # type: _LabelListInput
         data = None,
+        # type: Mapping[str, _Label]
         format = {},
+        # type: _LabelInput
         iterate_over = None,
+        # type: _LabelListInput
         nested = None,
+        # type: _LabelInput
         requires_not_none = None,
+        # type: _LabelInput
         requires_none = None,
+        # type: _LabelInput
         requires_true = None,
+        # type: _LabelInput
         requires_false = None,
+        # type: _LabelInput
         requires_equal = None,
+        # type: _StringInput
         requires_equal_value = None,
+        # type: Unpack[CommonRuleAttrs]
         **kwargs):
+    # type: (...) -> None
     """Nested arguments for use in more complex `cc_args` expansions.
 
     While this rule is very similar in shape to `cc_args`, it is intended to be used as a

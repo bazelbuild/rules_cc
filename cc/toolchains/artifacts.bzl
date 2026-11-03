@@ -19,6 +19,7 @@ load(":cc_toolchain_info.bzl", "ArtifactCategoryInfo", "ArtifactNamePatternInfo"
 visibility("public")
 
 def _cc_artifact_name_pattern_impl(ctx):
+    # type: (...) -> list[ArtifactNamePatternInfo]
     return [
         ArtifactNamePatternInfo(
             label = ctx.label,

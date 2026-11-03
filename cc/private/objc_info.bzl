@@ -14,6 +14,7 @@
 # LINT.IfChange(forked_exports)
 """The provider ObjcInfo for ObjC rules. For more context see doc param of provider() call."""
 
+# TODO(https://github.com/bazelbuild/bazel/issues/32021): use a source annotation once depset element types are supported.
 def _objcinfo_init(
         j2objc_library = depset(),
         module_map = depset(),
@@ -21,6 +22,7 @@ def _objcinfo_init(
         strict_include = depset(),
         umbrella_header = depset(),
         providers = []):  # List of depended-on ObjcInfo providers
+    # type: (depset[File], depset[File], depset[File], depset[str], depset[File], Collection[ObjcInfo]) -> dict[{'direct_module_maps': list[File], 'direct_sources': list[File], 'j2objc_library': depset[File], 'module_map': depset[File], 'source': depset[File], 'strict_include': depset[str], 'umbrella_header': depset[File]}]
     direct_module_maps = module_map.to_list()
     direct_sources = source.to_list()
 

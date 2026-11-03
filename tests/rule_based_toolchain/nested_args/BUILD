@@ -1,3 +1,4 @@
+load("@bazel_skylib//rules:common_settings.bzl", "string_list_setting")
 load("//cc/toolchains:nested_args.bzl", "cc_nested_args")
 load("//cc/toolchains/impl:variables.bzl", "cc_variable", "types")
 load("//tests/rule_based_toolchain:analysis_test_suite.bzl", "analysis_test_suite")
@@ -29,6 +30,13 @@ cc_nested_args(
         "{MY_FLAG}",
     ],
     toolchains = [":make_vars"],
+)
+
+filegroup(name = "empty_files")
+
+string_list_setting(
+    name = "unsupported_setting",
+    build_setting_default = ["unsupported"],
 )
 
 analysis_test_suite(

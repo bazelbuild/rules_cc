@@ -27,6 +27,7 @@ visibility([
 ])
 
 def _cc_external_feature_impl(ctx):
+    # type: (...) -> list[FeatureInfo | FeatureSetInfo | FeatureConstraintInfo]
     feature = FeatureInfo(
         label = ctx.label,
         name = ctx.attr.feature_name,
@@ -36,6 +37,8 @@ def _cc_external_feature_impl(ctx):
             args = (),
             files = depset([]),
             by_action = (),
+            allowlist_include_directories = depset(),
+            allowlist_absolute_include_directories = depset(),
         ),
         implies = depset([]),
         requires_any_of = (),

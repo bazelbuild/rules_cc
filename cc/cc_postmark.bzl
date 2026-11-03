@@ -14,20 +14,21 @@
 
 """PostMark is not implemented in Bazel."""
 
-def _get_postmark_attrs():
-    return {}
-
-def _postmark_initializer(**kwargs):
-    return kwargs
+load("//cc:cc_postmark_initializers.bzl", _get_postmark_attrs = "get_postmark_attrs", _postmark_initializer = "postmark_initializer")
 
 def _add_postmark_action(
         ctx,  # @unused
         cc_toolchain,  # @unused
         binary,  # @unused
         output_binary_for_linking):  # @unused
+    # type: (object, object, object, object) -> None
     pass
 
+# The public toolchain never enables PostMark. A broader bool makes the
+# cc_binary branch that passes internal-only action keywords reachable.
+# TODO: Use bool when the public implementation supports that action.
 def _get_use_postmark(ctx):  # @unused
+    # type: (object) -> Literal[False]
     return False
 
 postmark = struct(

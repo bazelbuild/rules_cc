@@ -18,6 +18,7 @@ load("//cc/toolchains:providers.bzl", "ExecutionRequirementsInfo")
 visibility("private")
 
 def _test_execution_requirements_impl(ctx):
+    # type: (...) -> list[ExecutionRequirementsInfo]
     return [
         ExecutionRequirementsInfo(
             label = ctx.label,

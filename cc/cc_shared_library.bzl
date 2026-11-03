@@ -15,5 +15,8 @@
 
 load("@cc_compatibility_proxy//:proxy.bzl", _cc_shared_library = "cc_shared_library")
 
+# TODO(https://github.com/bazelbuild/bazel/issues/32343): Annotate **kwargs
+# when Bazel can derive them from the wrapped cc_shared_library rule.
 def cc_shared_library(**kwargs):
+    # type: (**Unpack[KeywordArgs[_cc_shared_library]]) -> None
     _cc_shared_library(**kwargs)
