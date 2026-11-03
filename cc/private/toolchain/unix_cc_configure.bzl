@@ -552,11 +552,11 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
         bin_search_flags = ["-B" + escape_percent(str(cc_path.dirname))]
     else:
         # cc is inside the repository, don't set -B.
-        bin_search_flags = []  # type: list[string]
+        bin_search_flags = []  # type: list[str]
     if not linker:
         ld_path = repository_ctx.path(tool_paths["ld"])
         if ld_path.dirname != cc_path.dirname:
-            bin_search_flags.append("-B" + escape_string(str(ld_path.dirname)))
+            bin_search_flags.append("-B" + escape_percent(str(ld_path.dirname)))
     elif not linker.path.startswith("/"):
         ld_binary = repository_ctx.which("ld." + linker.path) or repository_ctx.which(linker.path)
         if ld_binary:
