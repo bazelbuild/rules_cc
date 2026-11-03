@@ -39,9 +39,20 @@ bzl_library(
   name = "proxy_bzl",
   srcs = ["proxy.bzl"],
   deps = [
-    "@rules_cc//cc/private/rules_impl:core_rules",
-    "@rules_cc//cc/private/rules_impl:toolchain_rules",
-    "@rules_cc//cc/private:cc_common",
+    "@rules_cc//cc/private/rules_impl:cc_binary",
+    "@rules_cc//cc/private/rules_impl:cc_import",
+    "@rules_cc//cc/private/rules_impl:cc_library",
+    "@rules_cc//cc/private/rules_impl:cc_shared_library",
+    "@rules_cc//cc/private/rules_impl:cc_static_library",
+    "@rules_cc//cc/private/rules_impl:cc_test",
+    "@rules_cc//cc/private/rules_impl:cc_toolchain",
+    "@rules_cc//cc/private/rules_impl:cc_toolchain_alias",
+    "@rules_cc//cc/private/rules_impl:objc_import",
+    "@rules_cc//cc/private/rules_impl:objc_library",
+    "@rules_cc//cc/private/rules_impl/fdo:fdo_prefetch_hints",
+    "@rules_cc//cc/private/rules_impl/fdo:fdo_profile",
+    "@rules_cc//cc/private/rules_impl/fdo:memprof_profile",
+    "@rules_cc//cc/private/rules_impl/fdo:propeller_optimize",
   ],
   visibility = ["@rules_cc//cc:__subpackages__"],
 )
@@ -50,8 +61,11 @@ bzl_library(
   srcs = ["symbols.bzl"],
   deps = [
     "@rules_cc//cc/private:cc_common",
-    "@rules_cc//cc/private:cc_shared_library_info_bzl",
-    "@rules_cc//cc/private/toolchain_config:toolchain_config_bzl",
+    "@rules_cc//cc/private:cc_info",
+    "@rules_cc//cc/private:cc_shared_library_info",
+    "@rules_cc//cc/private:debug_package_info",
+    "@rules_cc//cc/private:objc_info",
+    "@rules_cc//cc/private/toolchain_config:cc_toolchain_config_info",
   ],
   visibility = ["@rules_cc//cc:__subpackages__"],
 )
@@ -125,8 +139,8 @@ bzl_library(
   name = "symbols_bzl",
   srcs = ["symbols.bzl"],
   deps = [
-      "@rules_cc//cc/private/rules_impl:native_cc_common_bzl",
-      "@rules_cc//cc/private/rules_impl:native_providers_bzl",
+      "@rules_cc//cc/private/rules_impl:native_cc_common",
+      "@rules_cc//cc/private/rules_impl:native_providers",
   ],
   visibility = ["@rules_cc//cc:__subpackages__"],
 )

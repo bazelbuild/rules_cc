@@ -15,6 +15,11 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//cc:starlark_doc_extract_helper.bzl", "starlark_doc_extract_helper")
 
+package(
+    default_visibility = ["//visibility:public"],  # copybara-uncomment-this-please
+    # default_visibility = ["//cc:__subpackages__"],  # copybara-comment-this-out-please
+)
+
 exports_files(
     [
         "cc_common.bzl",
@@ -25,76 +30,110 @@ exports_files(
 
 bzl_library(
     name = "common",
-    srcs = [
-        "cc_common.bzl",
-        "cc_helper.bzl",
-        "cc_helper_internal.bzl",
-        "cc_info.bzl",
-        "cc_shared_library_hint_info.bzl",
-        "debug_package_info.bzl",
-        "objc_info.bzl",
-        "semantics.bzl",
-    ],
+    deprecation = "Use the individual bzl_library targets instead of this one.",
     visibility = ["//visibility:public"],
     deps = [
-        ":feature_names_bzl",
-        "//cc/private:cc_internal_bzl",
-        "//cc/private:paths_bzl",
-        "//cc/private:visibility_bzl",
-        "//cc/private/rules_impl:native_cc_common_bzl",
-        "@bazel_skylib//lib:paths",
-        "@cc_compatibility_proxy//:symbols_bzl",
+        ":cc_common",
+        ":cc_helper",
+        ":cc_helper_internal",
+        ":cc_info",
+        ":cc_shared_library_hint_info",
+        ":cc_shared_library_info",
+        ":debug_package_info",
+        ":objc_info",
+        ":semantics",
     ],
 )
 
-bzl_library(
+alias(
     name = "cc_helper_bzl",
+    actual = ":cc_helper",
+    deprecation = "Use //cc/common:cc_helper instead.",
+    visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "cc_helper",
     srcs = ["cc_helper.bzl"],
     visibility = ["//visibility:public"],
     deps = [
-        ":cc_helper_internal_bzl",
-        ":common",
-        "//cc:find_cc_toolchain_bzl",
-        "//cc/private:paths_bzl",
-        "//cc/private:visibility_bzl",
+        ":cc_common",
+        ":cc_helper_internal",
+        ":cc_info",
+        ":feature_names",
+        "//cc:action_names",
+        "//cc:find_cc_toolchain",
+        "//cc/private:paths",
+        "//cc/private:visibility",
         "//cc/private/rules_impl:objc_common",
     ],
 )
 
-bzl_library(
+alias(
     name = "cc_shared_library_info_bzl",
+    actual = ":cc_shared_library_info",
+    deprecation = "Use //cc/common:cc_shared_library_info instead.",
+)
+
+bzl_library(
+    name = "cc_shared_library_info",
     srcs = ["cc_shared_library_info.bzl"],
-    visibility = ["//visibility:public"],
+    # deps = ["//cc/private:cc_shared_library_info"],  # copybara-comment-this-out-please
+    deps = ["@cc_compatibility_proxy//:symbols_bzl"],  # copybara-uncomment-this-please
+)
+
+alias(
+    name = "semantics_bzl",
+    actual = ":semantics",
+    deprecation = "Use //cc/common:semantics instead.",
+    visibility = ["//cc:__subpackages__"],
+)
+
+bzl_library(
+    name = "semantics",
+    srcs = ["semantics.bzl"],
     deps = [
-        "@cc_compatibility_proxy//:symbols_bzl",
+        ":cc_helper_internal",
+        # "//cc/private:layering_check_allowlists",  # copybara-comment-this-out-please
     ],
 )
 
-bzl_library(
-    name = "semantics_bzl",
-    srcs = ["semantics.bzl"],
-    visibility = ["//cc:__subpackages__"],
+alias(
+    name = "cc_helper_internal_bzl",
+    actual = ":cc_helper_internal",
+    deprecation = "Use //cc/common:cc_helper_internal instead.",
+    visibility = ["//visibility:public"],
 )
 
 bzl_library(
-    name = "cc_helper_internal_bzl",
+    name = "cc_helper_internal",
     srcs = ["cc_helper_internal.bzl"],
-    visibility = ["//cc:__subpackages__"],
+    visibility = ["//visibility:public"],
     deps = [
-        "//cc/private:cc_internal_bzl",
-        "//cc/private:paths_bzl",
+        ":feature_names",
+        "//cc/private:paths",
+        "//cc/private:visibility",
         "@bazel_skylib//lib:paths",
     ],
 )
 
-bzl_library(
+alias(
     name = "cc_debug_helper_bzl",
+    actual = ":cc_debug_helper",
+    deprecation = "Use //cc/common:cc_debug_helper instead.",
+    visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "cc_debug_helper",
     srcs = ["cc_debug_helper.bzl"],
     visibility = ["//visibility:public"],
     deps = [
-        ":cc_helper_bzl",
-        "//cc:find_cc_toolchain_bzl",
-        "//cc/private:visibility_bzl",
+        ":cc_common",
+        ":cc_helper",
+        "//cc:action_names",
+        "//cc:find_cc_toolchain",
+        "//cc/private:visibility",
     ],
 )
 
@@ -126,8 +165,54 @@ filegroup(
     ],
 )]
 
-bzl_library(
+alias(
     name = "feature_names_bzl",
-    srcs = ["feature_names.bzl"],
+    actual = ":feature_names",
+    deprecation = "Use //cc/common:feature_names instead.",
+    # visibility = ["//:__subpackages__"],  # copybara-comment-this-out-please
+)
+
+bzl_library(
+    name = "cc_common",
+    srcs = ["cc_common.bzl"],
     visibility = ["//visibility:public"],
+    # deps = ["//cc/private:cc_common"],  # copybara-comment-this-out-please
+    deps = ["@cc_compatibility_proxy//:symbols_bzl"],  # copybara-uncomment-this-please
+)
+
+bzl_library(
+    name = "cc_info",
+    srcs = ["cc_info.bzl"],
+    visibility = ["//visibility:public"],
+    # deps = ["//cc/private:cc_info"],  # copybara-comment-this-out-please
+    deps = ["@cc_compatibility_proxy//:symbols_bzl"],  # copybara-uncomment-this-please
+)
+
+bzl_library(
+    name = "cc_shared_library_hint_info",
+    srcs = ["cc_shared_library_hint_info.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [":cc_common"],
+)
+
+bzl_library(
+    name = "debug_package_info",
+    srcs = ["debug_package_info.bzl"],
+    visibility = ["//visibility:public"],
+    # deps = ["//cc/private:debug_package_info"],  # copybara-comment-this-out-please
+    deps = ["@cc_compatibility_proxy//:symbols_bzl"],  # copybara-uncomment-this-please
+)
+
+bzl_library(
+    name = "objc_info",
+    srcs = ["objc_info.bzl"],
+    visibility = ["//visibility:public"],
+    # deps = ["//cc/private:objc_info"],  # copybara-comment-this-out-please
+    deps = ["@cc_compatibility_proxy//:symbols_bzl"],  # copybara-uncomment-this-please
+)
+
+bzl_library(
+    name = "feature_names",
+    srcs = ["feature_names.bzl"],
+    # visibility = ["//:__subpackages__"],  # copybara-comment-this-out-please
 )
