@@ -17,16 +17,8 @@
 def resolve_labels(repository_ctx, labels):
     """Resolves a collection of labels to their paths.
 
-    Label resolution can cause the evaluation of Starlark functions to restart.
-    For functions with side-effects (like the auto-configuration functions, which
-    inspect the system and touch the file system), such restarts are costly.
-    We cannot avoid the restarts, but we can minimize their penalty by resolving
-    all labels upfront.
-
-    Among other things, doing less work on restarts can cut analysis times by
-    several seconds and may also prevent tickling kernel conditions that cause
-    build failures.  See https://github.com/bazelbuild/bazel/issues/5196 for
-    more details.
+    Deprecated: This function is no longer used by rules_cc and will be removed
+    in the future. Pass labels to repository_ctx methods directly instead.
 
     Args:
       repository_ctx: The context with which to resolve the labels.
@@ -36,6 +28,19 @@ def resolve_labels(repository_ctx, labels):
       A dictionary with the labels as keys and their paths as values.
     """
     return dict([(label, repository_ctx.path(Label(label))) for label in labels])
+
+def copy_file(repository_ctx, src, dest):
+    """Copies a file into the repository.
+
+    Unlike repository_ctx.symlink, this doesn't require the repository
+    containing the file to be present on disk.
+
+    Args:
+      repository_ctx: The repository context.
+      src: The Label of the file to copy.
+      dest: The path of the copy relative to the repository root.
+    """
+    repository_ctx.template(dest, src, executable = False)
 
 def escape_string(arg):
     """Escape percent sign (%) in the string so it can appear in the Crosstool."""
