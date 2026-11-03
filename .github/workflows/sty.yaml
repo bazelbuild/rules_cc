@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - uses: tamird/sty@sty-action-v0.2.0
+      - uses: tamird/sty@95e2b424a7f52fa0b0946da98eb2cc328e9b4107
         with:
           audit-loads: true
           bazel-version: '9.3.0'
@@ -28,6 +28,10 @@ jobs:
           advisory-bazel-load-context: '@cross_repo_test//toolchain_include_dirs:toolchain_config'
           advisory-require-bazel-load-context: tests/builtins_bzl/cc/cc_shared_library/test2/toolchain_include_dirs/cc_toolchain_config.bzl
           files: |
+            @bazel_skylib//:bzl_library.bzl
+            @bazel_skylib//lib:paths.bzl
+            @bazel_skylib//rules:common_settings.bzl
+            @bazel_skylib//rules/directory:providers.bzl
             cc/BUILD
             cc/action_names.bzl
             cc/cc_import.bzl

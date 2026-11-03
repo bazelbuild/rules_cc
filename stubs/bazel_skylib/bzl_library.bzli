@@ -1,0 +1,5 @@
+# TODO(https://github.com/bazelbuild/bazel-skylib/pull/641): Remove this stub
+# when the selected Skylib release types the wrapper's forwarded rule attributes.
+load("@bazel_skylib//rules/private:bzl_library.bzl", _rule = "bzl_library")
+
+def bzl_library(name: str, **kwargs: Unpack[KeywordArgs[_rule, "name"]]) -> None: ...

@@ -8,8 +8,29 @@ require-valid-suppressions = true
 [rules]
 strict = "error"
 
+# The released provider modules also contain unannotated private helpers.
+# Check the provider contracts and report incomplete types in those helpers.
+[[overrides]]
+include = [
+    "@bazel_skylib//rules:common_settings.bzl",
+    "@bazel_skylib//rules/directory:providers.bzl",
+]
+
+[overrides.rules]
+missing-parameter-annotation = "warn"
+missing-return-annotation = "warn"
+non-static-type = "warn"
+
+# _relativize assigns [] to start_segments; Skylib 1.9.0 leaves its element
+# type unknown. Keep checking the function's inputs and return type.
+[[overrides]]
+include = ["@bazel_skylib//lib:paths.bzl"]
+
+[overrides.rules]
+non-static-type = "warn"
+
 [[stub-packages]]
 manifest = "stubs.toml"
 
 [[stub-packages]]
-manifest = "@bazel_skylib//:stubs.toml"
+manifest = "stubs/bazel_skylib/stubs.toml"
