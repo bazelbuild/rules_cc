@@ -1,5 +1,8 @@
 """Conversion from rule-based toolchain providers to legacy configuration values."""
 
+# TODO(https://github.com/bazelbuild/bazel/issues/32207): Move these signatures into source when the native provider declarations
+# expose their field types. The converter imports both sets of types from interfaces.
+
 load("//cc:cc_toolchain_config_lib.bzli", "ActionConfigInfo", "ArtifactNamePatternInfo", "EnvSetInfo", "FeatureInfo", "FlagSetInfo", "MakeVariableInfo", "ToolInfo", "ToolPathInfo", "WithFeatureSetInfo")
 load("//cc/toolchains:cc_toolchain_info.bzli", "ActionTypeInfo", "ArgsInfo", "FeatureConstraintInfo", "ToolConfigInfo", "ToolCapabilityInfo", "ToolchainConfigInfo", NewFeatureInfo = "FeatureInfo", NewToolInfo = "ToolInfo")
 

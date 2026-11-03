@@ -1,5 +1,8 @@
 """Formatting and validation of nested toolchain arguments."""
 
+# TODO(https://github.com/bazelbuild/starlark/pull/362): Move the nested-argument signatures into source when functions can bind
+# the target type used by their attribute schema. A source comment cannot bind T.
+
 load("//cc/toolchains:cc_toolchain_info.bzli", "NestedArgsInfo")
 
 type _Fail = Callable[[str], None]

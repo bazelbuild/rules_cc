@@ -24,7 +24,27 @@ load(
     "ToolInfo",
 )
 
+# TODO(https://github.com/bazelbuild/bazel/issues/32343): Annotate **kwargs in the
+# declaration when Bazel can type the forwarded executable-rule attributes.
+# type _LabelInput = str | Label | select[str | Label | None]
+# type _Labels = Collection[str | Label] | depset[str | Label]
+# type _LabelsInput = _Labels | select[_Labels | None] | None
+# type _EnvironmentInput = Mapping[str, str] | select[Mapping[str, str] | None] | None
+# type _Attrs = struct[{
+#     "src": Target,
+#     "data": Sequence[Target],
+#     "format_keys": list[str],
+#     "format_values": Sequence[Target],
+#     "format_value_indexes": list[int],
+#     "env": dict[str, str],
+#     "execution_requirements": Sequence[Target],
+#     "tags": list[str],
+#     "allowlist_include_directories": Sequence[Target],
+#     "capabilities": Sequence[Target],
+# }, ...]
+
 def _cc_tool_impl(ctx):
+    # type: (ctx[object, _Attrs]) -> list[ToolInfo | DefaultInfo]
     exe_info = ctx.attr.src[DefaultInfo]
     if exe_info.files_to_run != None and exe_info.files_to_run.executable != None:
         exe = exe_info.files_to_run.executable
@@ -190,15 +210,25 @@ cc_tool(
 
 def cc_tool(
         *,
+        # type: str
         name,
+        # type: _LabelInput
         src,
+        # type: _LabelsInput
         data = None,
+        # type: _LabelsInput
         allowlist_include_directories = None,
+        # type: _EnvironmentInput
         env = None,
+        # type: _LabelsInput
         execution_requirements = None,
+        # type: Mapping[str, str | Label]
         format = {},
+        # type: _LabelsInput
         capabilities = None,
+        # type: Unpack[CommonExecutableRuleAttrs]
         **kwargs):
+    # type: (...) -> None
     """Declares a tool for use by toolchain actions.
 
     `cc_tool` rules are used in a `cc_tool_map` rule to ensure all files and

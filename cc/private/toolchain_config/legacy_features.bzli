@@ -13,6 +13,9 @@
 # limitations under the License.
 """Legacy feature and action configuration builders."""
 
+# TODO(https://github.com/bazelbuild/starlark/pull/362): Move _platform_specific_value into source when its signature can bind
+# L and M separately to preserve the two platforms’ possible result types.
+
 load("//cc:cc_toolchain_config_lib.bzl", "ActionConfigInfo", "FeatureInfo")
 
 type _ExistingNames = Collection[str] | str

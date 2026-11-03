@@ -1,5 +1,8 @@
 """Contracts for discovering and configuring a local Unix C++ toolchain."""
 
+# TODO(https://github.com/bazelbuild/starlark/pull/362): Move the helpers into source when its function syntax can bind T.
+# For example, _uniq returns the same item type that its caller supplies.
+
 type _Executable = str | Label | path
 
 def _uniq[T: Hashable](iterable: Collection[T]) -> list[T]: ...

@@ -16,6 +16,9 @@
 ActionConfigInfo also accepts the optional legacy config_name field.
 """
 
+# TODO(https://github.com/bazelbuild/bazel/issues/32207): Declare the constructor and field types on the providers when Bazel
+# can express their field schemas. Callers use their result types across modules.
+
 def _check_is_nonempty_list[T](obj: list[T], parameter_name: str, method_name: str) -> None: ...
 
 def EnvEntryInfo(

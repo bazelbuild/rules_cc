@@ -1,5 +1,8 @@
 """Type contracts for C++ toolchain configuration helpers."""
 
+# TODO(https://github.com/bazelbuild/starlark/pull/362): Move get_env_var and which into source when the supported syntax
+# can bind a type parameter for the caller’s default. Comments cannot bind T.
+
 def resolve_labels[T: str | Label](repository_ctx: repository_ctx, labels: Collection[T]) -> dict[T, path]: ...
 
 def get_env_var[T = Never](

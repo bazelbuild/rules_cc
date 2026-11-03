@@ -1,4 +1,7 @@
 """Contracts for the PostMark initializer compatibility layer."""
 
+# TODO(https://github.com/bazelbuild/starlark/pull/362): Move the initializers into source when supported Bazel versions can bind
+# K and V on the function. A signature comment cannot bind these type parameters.
+
 def _get_postmark_attrs[K, V]() -> dict[K, V]: ...
 def _postmark_initializer[T](**kwargs: T) -> dict[str, T]: ...

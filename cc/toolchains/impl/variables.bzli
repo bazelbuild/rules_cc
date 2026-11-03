@@ -1,5 +1,8 @@
 """Toolchain variable descriptors."""
 
+# TODO(https://github.com/bazelbuild/bazel/issues/32044): Move the descriptors into source when variable types can refer to their
+# recursive element type there. The factory also accepts named fields through its callable protocol.
+
 load(
     "//cc/toolchains:cc_toolchain_info.bzli",
     "ActionTypeInfo",
