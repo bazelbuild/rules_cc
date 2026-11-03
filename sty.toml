@@ -1,3 +1,6 @@
+# TODO(https://github.com/bazelbuild/bazel/pull/30373): Move ordinary signatures
+# into function declarations once the minimum Bazel version supports annotation
+# syntax. Bazel 7 must still be able to load these files.
 [analysis]
 strict-generic-narrowing = true
 require-valid-suppressions = true
