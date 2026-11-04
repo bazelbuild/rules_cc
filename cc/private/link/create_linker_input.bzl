@@ -40,25 +40,31 @@ def create_linker_input(
     Args:
         owner: The owner of the linker input.
         libraries: A depset of libraries to link.
-        user_link_flags: A list of user link flags.
+        user_link_flags: A depset of strings or a sequence of flags or flag groups.
         additional_inputs: A depset of non-code inputs.
         linkstamps: A depset of linkstamps.
 
     Returns:
         A LinkerInputInfo provider.
     """
-    options = []
-
     if type(user_link_flags) == "depset":
-        options.extend(user_link_flags.to_list())
-    elif type(user_link_flags) == "list":
-        for flag in user_link_flags:
-            if type(flag) == "string":
-                options.append(flag)
-            elif type(flag) == "list":
-                options.extend(flag)
-            else:
-                fail("Elements of list in user_link_flags must be either Strings or lists.")
+        user_link_flags = (user_link_flags.to_list(),)
+    elif user_link_flags == None:
+        user_link_flags = ()
+    elif type(user_link_flags) not in ("list", "tuple", "range"):
+        fail("user_link_flags must be a sequence or depset of flags, got %s" % type(user_link_flags))
+
+    options = []
+    for flag in user_link_flags:
+        if type(flag) == "string":
+            options.append(flag)
+        elif type(flag) in ("list", "tuple", "range"):
+            for option in flag:
+                if type(option) != "string":
+                    fail("Expected a string in user_link_flags, got %s" % type(option))
+                options.append(option)
+        else:
+            fail("Expected a string or sequence in user_link_flags, got %s" % type(flag))
 
     return _LinkerInputInfo(
         owner = owner,
