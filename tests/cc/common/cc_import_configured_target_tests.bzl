@@ -336,6 +336,31 @@ def _test_always_link_static_library_impl(env, target):
     assert_library = cc_info_subject.from_target(env, target).linking_context().libraries_to_link().singleton()
     assert_library.alwayslink().equals(True)
 
+def _test_alwayslink_and_disable_whole_archive_error(name, **kwargs):
+    util.helper_target(
+        cc_import,
+        name = name + "/foo",
+        static_library = "libfoo.a",
+        alwayslink = True,
+        features = ["disable_whole_archive_for_static_lib"],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_alwayslink_and_disable_whole_archive_error_impl,
+        target = name + "/foo",
+        with_features = ["disable_whole_archive_for_static_lib_configuration"],
+        expect_failure = True,
+        **kwargs
+    )
+
+def _test_alwayslink_and_disable_whole_archive_error_impl(env, target):
+    env.expect.that_target(target).failures().contains_predicate(
+        matching.str_matches(
+            "*alwayslink should not be True for a target with the disable_whole_archive_for_static_lib feature enabled*",
+        ),
+    )
+
 def _test_system_provided(name, **kwargs):
     util.helper_target(
         cc_import,
@@ -494,6 +519,7 @@ def cc_import_configured_target_tests(name):
     if bazel_features.cc.cc_common_is_in_rules_cc:
         tests.extend([
             _test_data_in_runfiles,
+            _test_alwayslink_and_disable_whole_archive_error,
         ])
 
     test_suite(
