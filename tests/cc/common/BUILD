@@ -17,6 +17,7 @@ load(":compile_build_variables_tests.bzl", "compile_build_variables_tests")
 load(":cpp_modules_test.bzl", "cpp_modules_tests")
 load(":debug_info_packaging_test.bzl", "debug_info_packaging_tests")
 load(":disallowed_copts_test.bzl", "disallowed_copts_tests")
+load(":find_cc_toolchain_test.bzl", "find_cc_toolchain_missing_provider_test")
 load(":link_build_variables_test.bzl", "link_build_variables_tests")
 
 cc_binary_configured_target_tests(name = "cc_binary_configured_target_tests")
@@ -38,6 +39,8 @@ compile_build_variables_tests(name = "compile_build_variables_tests")
 debug_info_packaging_tests(name = "debug_info_packaging_tests")
 
 disallowed_copts_tests(name = "disallowed_copts_tests")
+
+find_cc_toolchain_missing_provider_test(name = "find_cc_toolchain_missing_provider_test")
 
 cc_fdo_env_tests(name = "cc_fdo_env_tests")
 
