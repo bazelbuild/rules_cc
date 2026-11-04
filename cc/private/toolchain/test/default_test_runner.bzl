@@ -57,7 +57,10 @@ def _default_test_runner_impl(_ctx):
         ),
     ]
 
-default_test_runner = rule(_default_test_runner_impl)
+default_test_runner = rule(
+    implementation = _default_test_runner_impl,
+    cfg = config.none() if hasattr(config, "none") else None,
+)
 
 def compat_toolchain(*, name, **kwargs):
     if not bazel_features.toolchains.has_use_target_platform_constraints:

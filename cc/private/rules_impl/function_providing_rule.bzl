@@ -23,6 +23,7 @@ FunctionInfo = provider("Wraps a Starlark function", fields = ["func"])
 def wrap_starlark_function(func):
     return rule(
         implementation = lambda _unused_ctx: FunctionInfo(func = func),
+        cfg = config.none() if hasattr(config, "none") else None,
         provides = [FunctionInfo],
     )
 
