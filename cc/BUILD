@@ -236,13 +236,13 @@ bzl_library(
 cc_toolchain_alias(name = "current_cc_toolchain")
 
 
-_unused = """    # copybara-uncomment-this-please
+# _unused = """ # copybara-comment-this-out-please
 # Use alias, because it doesn't build on Bazel 6.
 alias(
     name = "optional_current_cc_toolchain",  
     actual = "//cc/private/bazel7:optional_current_cc_toolchain",
 )
-"""     # copybara-uncomment-this-please
+""" # copybara-comment-this-out-please
 
 cc_libc_top_alias(name = "current_libc_top")
 
