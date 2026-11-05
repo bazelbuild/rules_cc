@@ -133,6 +133,7 @@ cc_toolchain_config(
     supports_start_end_lib = %{supports_start_end_lib},
     extra_flags_per_feature = %{extra_flags_per_feature},
     features = [%{toolchain_features}],
+    extra_known_features = ["@rules_cc//cc/toolchains/args/std:all_std_features"],
 )
 
 # Android tooling requires a default toolchain for the armeabi-v7a cpu.
