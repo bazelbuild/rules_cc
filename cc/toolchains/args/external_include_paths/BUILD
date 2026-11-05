@@ -3,7 +3,11 @@ load("//cc/toolchains:nested_args.bzl", "cc_nested_args")
 
 cc_args(
     name = "external_include_paths",
-    actions = ["//cc/toolchains/actions:compile_actions"],
+    actions = [
+        "//cc/toolchains/actions:compile_actions",
+        "//cc/toolchains/actions:cpp20_module_compile",
+        "//cc/toolchains/actions:cpp_module_deps_scanning",
+    ],
     nested = [":search_dir_args"],
     requires_not_none = "//cc/toolchains/variables:external_include_paths",
     visibility = ["//visibility:public"],
