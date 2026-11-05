@@ -15,5 +15,4 @@
 
 load("@cc_compatibility_proxy//:proxy.bzl", _cc_static_library = "cc_static_library")
 
-def cc_static_library(**kwargs):
-    _cc_static_library(**kwargs)
+cc_static_library = _cc_static_library
