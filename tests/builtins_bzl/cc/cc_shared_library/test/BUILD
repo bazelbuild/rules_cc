@@ -358,6 +358,7 @@ additional_inputs_test(
 build_failure_test(
     name = "link_once_repeated_test_binary",
     messages = [
+        "cc_shared_library/test:bar_so:",
         "cc_shared_library/test:barX\",",
     ],
     target = "//tests/builtins_bzl/cc/cc_shared_library/test/failing_targets:should_fail_binary",
@@ -366,6 +367,7 @@ build_failure_test(
 build_failure_test(
     name = "link_once_repeated_test_shared_lib",
     messages = [
+        "cc_shared_library/test:bar_so:",
         "cc_shared_library/test:barX\",",
     ],
     target = "//tests/builtins_bzl/cc/cc_shared_library/test/failing_targets:should_fail_shared_lib",
