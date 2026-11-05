@@ -1,4 +1,7 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@rules_testing//lib:util.bzl", "util")
+load("//cc/private/toolchain:unix_cc_toolchain_config.bzl", unix_config = "cc_toolchain_config")  # buildifier: disable=bzl-visibility
+load("//cc/private/toolchain:windows_cc_toolchain_config.bzl", windows_config = "cc_toolchain_config")  # buildifier: disable=bzl-visibility
 load("//cc/toolchains:args.bzl", "cc_args")
 load("//cc/toolchains:feature.bzl", "cc_feature")
 load("//cc/toolchains:feature_set.bzl", "cc_feature_set")
@@ -270,6 +273,46 @@ alias(
     name = "rules_based_cc_toolchain_generated_config",
     actual = ":_rules_based_cc_toolchain_config",
     tags = ["manual"],
+)
+
+util.helper_target(
+    unix_config,
+    name = "legacy_unix_config",
+    abi_libc_version = "local",
+    abi_version = "local",
+    compiler = "gcc",
+    cpu = "k8",
+    extra_enabled_features = [":simple_feature"],
+    extra_known_features = [":builtin_feature"],
+    host_system_name = "local",
+    target_libc = "local",
+    target_system_name = "local",
+    tool_paths = {
+        "ar": "/usr/bin/ar",
+        "gcc": "/usr/bin/cc",
+    },
+    toolchain_identifier = "legacy_unix",
+)
+
+util.helper_target(
+    windows_config,
+    name = "legacy_windows_config",
+    compiler = "msvc-cl",
+    cpu = "x64_windows",
+    extra_enabled_features = [
+        ":builtin_feature",
+        ":simple_feature",
+    ],
+    extra_known_features = [":simple_feature2"],
+    toolchain_identifier = "legacy_windows",
+)
+
+build_test(
+    name = "legacy_external_features_test",
+    targets = [
+        ":legacy_unix_config",
+        ":legacy_windows_config",
+    ],
 )
 
 analysis_test_suite(
