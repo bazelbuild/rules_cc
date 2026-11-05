@@ -35,6 +35,71 @@ def _test_local_defines_in_compile_action_impl(env, target):
     env.expect.that_collection(compile_actions).has_size(1)
     env.expect.that_collection(compile_actions[0].argv).contains("-DLOCAL_DEF=1")
 
+def _test_local_defines_expand_and_tokenize(name, **kwargs):
+    util.helper_target(
+        objc_library,
+        name = name + "_lib",
+        srcs = ["foo.m"],
+        local_defines = [
+            "QUOTED='two words' SECOND=1",
+            "ESCAPED=one\\ two",
+            "MODE=$(COMPILATION_MODE)",
+            "DOLLAR=$$PWD",
+        ],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_local_defines_expand_and_tokenize_impl,
+        target = name + "_lib",
+        with_action_configs = _OBJC_ACTION_CONFIGS,
+        test_features = [FEATURE_NAMES.preprocessor_defines],
+        **kwargs
+    )
+
+def _test_local_defines_expand_and_tokenize_impl(env, target):
+    compile_actions = [a for a in target.actions if a.mnemonic == "ObjcCompile"]
+    env.expect.that_collection(compile_actions).has_size(1)
+    argv = env.expect.that_collection(compile_actions[0].argv)
+    argv.contains("-DQUOTED=two words")
+    argv.contains("-DSECOND=1")
+    argv.contains("-DESCAPED=one two")
+    argv.contains("-DMODE=fastbuild")
+    argv.contains("-DDOLLAR=$PWD")
+
+def _test_local_defines_expand_prerequisite_locations(name, **kwargs):
+    util.helper_target(
+        objc_library,
+        name = name + "_lib",
+        srcs = ["foo.m"],
+        non_arc_srcs = ["non_arc.m"],
+        hdrs = ["objc_header.h"],
+        data = ["objc_data.txt"],
+        local_defines = [
+            "SOURCE=$(location foo.m)",
+            "NON_ARC=$(location non_arc.m)",
+            "HEADER=$(location objc_header.h)",
+            "DATA=$(location objc_data.txt)",
+        ],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_local_defines_expand_prerequisite_locations_impl,
+        target = name + "_lib",
+        with_action_configs = _OBJC_ACTION_CONFIGS,
+        test_features = [FEATURE_NAMES.preprocessor_defines],
+        **kwargs
+    )
+
+def _test_local_defines_expand_prerequisite_locations_impl(env, target):
+    compile_actions = [a for a in target.actions if a.mnemonic == "ObjcCompile"]
+    env.expect.that_collection(compile_actions).has_size(2)
+    for action in compile_actions:
+        argv = env.expect.that_collection(action.argv)
+        argv.contains("-DSOURCE={}/foo.m".format(target.label.package))
+        argv.contains("-DNON_ARC={}/non_arc.m".format(target.label.package))
+        argv.contains("-DHEADER={}/objc_header.h".format(target.label.package))
+        argv.contains("-DDATA={}/objc_data.txt".format(target.label.package))
+
 def _test_local_defines_not_in_cc_info(name, **kwargs):
     """local_defines should not be in CcInfo.compilation_context.defines."""
     util.helper_target(
@@ -91,6 +156,8 @@ def objc_library_local_defines_tests(name):
 
     if bazel_features.cc.cc_common_is_in_rules_cc:
         tests.extend([
+            _test_local_defines_expand_and_tokenize,
+            _test_local_defines_expand_prerequisite_locations,
             _test_local_defines_in_compile_action,
             _test_local_defines_not_in_cc_info,
             _test_local_defines_not_propagated_to_dependent,
