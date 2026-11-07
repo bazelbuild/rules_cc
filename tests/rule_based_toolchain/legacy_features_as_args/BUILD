@@ -9,10 +9,12 @@ load(":goldens/unix/compiler_input_flags.bzl", _UNIX_COMPILER_INPUT_FLAGS = "GOL
 load(":goldens/unix/compiler_output_flags.bzl", _UNIX_COMPILER_OUTPUT_FLAGS = "GOLDEN")
 load(":goldens/unix/cpp20_module_flags.bzl", _UNIX_CPP20_MODULE_FLAGS = "GOLDEN")
 load(":goldens/unix/force_pic_flags.bzl", _UNIX_FORCE_PIC_FLAGS = "GOLDEN")
+load(":goldens/unix/layering_check.bzl", _UNIX_LAYERING_CHECK = "GOLDEN")
 load(":goldens/unix/libraries_to_link.bzl", _UNIX_LIBRARIES_TO_LINK = "GOLDEN")
 load(":goldens/unix/linker_param_file.bzl", _UNIX_LINKER_PARAM_FILE = "GOLDEN")
 load(":goldens/unix/runtime_library_search_directories.bzl", _UNIX_RUNTIME_LIBRARY_SEARCH_DIRECTORIES = "GOLDEN")
 load(":goldens/unix/shared_flag.bzl", _UNIX_SHARED_FLAG = "GOLDEN")
+load(":goldens/unix/use_module_maps.bzl", _UNIX_USE_MODULE_MAPS = "GOLDEN")
 load(":goldens/windows/def_file_gnu.bzl", _WINDOWS_DEF_FILE_GNU = "GOLDEN")
 load(":goldens/windows/libraries_to_link.bzl", _WINDOWS_LIBRARIES_TO_LINK = "GOLDEN")
 load(":goldens/windows/thin_lto.bzl", _WINDOWS_THIN_LTO = "GOLDEN")
@@ -180,5 +182,24 @@ compare_cc_feature_implementation(
     name = "compiler_output_flags_unix_test",
     actual_implementation = "//cc/toolchains/args/compiler_output_flags:feature",
     expected = _UNIX_COMPILER_OUTPUT_FLAGS,
+    platform = ":linux",
+)
+
+# Layering check. CppActionConfigs.java has no such features. Like the features
+# of the same names in unix_cc_toolchain_config, these must not apply to
+# lto-backend (whose input is LLVM IR, so the flags are meaningless and only
+# make otherwise shareable backend actions conflict) or c++-module-codegen.
+
+compare_cc_feature_implementation(
+    name = "layering_check_unix_test",
+    actual_implementation = "//cc/toolchains/args/layering_check",
+    expected = _UNIX_LAYERING_CHECK,
+    platform = ":linux",
+)
+
+compare_cc_feature_implementation(
+    name = "use_module_maps_unix_test",
+    actual_implementation = "//cc/toolchains/args/layering_check:use_module_maps",
+    expected = _UNIX_USE_MODULE_MAPS,
     platform = ":linux",
 )
