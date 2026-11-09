@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("//cc/toolchains:cc_toolchain_alias.bzl", "cc_toolchain_alias")
@@ -43,10 +44,38 @@ exports_files([
     "objc_library.bzl",
 ])
 
+# Bazel versions that forward the toolchain types in @bazel_tools//tools/cpp to
+# the targets below get the actual types. On all others, these are aliases of
+# the types in @bazel_tools, so that both labels always refer to the same type.
+
 # The toolchain type used to distinguish cc toolchains.
-alias(
+# buildifier: disable=no-effect
+toolchain_type(
+    name = "toolchain_type",
+) if bazel_features.cc._toolchain_type_in_rules_cc else alias(
+    # buildifier: disable=duplicated-name
     name = "toolchain_type",
     actual = "@bazel_tools//tools/cpp:toolchain_type",
+)
+
+# The toolchain type used for cc runtimes.
+# buildifier: disable=no-effect
+toolchain_type(
+    name = "cc_runtimes_toolchain_type",
+) if bazel_features.cc._toolchain_type_in_rules_cc else alias(
+    # buildifier: disable=duplicated-name
+    name = "cc_runtimes_toolchain_type",
+    actual = "@bazel_tools//tools/cpp:cc_runtimes_toolchain_type",
+)
+
+# The toolchain type used for cc test runners.
+# buildifier: disable=no-effect
+toolchain_type(
+    name = "test_runner_toolchain_type",
+) if bazel_features.cc._toolchain_type_in_rules_cc else alias(
+    # buildifier: disable=duplicated-name
+    name = "test_runner_toolchain_type",
+    actual = "@bazel_tools//tools/cpp:test_runner_toolchain_type",
 )
 
 filegroup(
