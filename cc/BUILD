@@ -59,10 +59,15 @@ toolchain_type(
 )
 
 # The toolchain type used for cc runtimes.
+#
+# @bazel_tools//tools/cpp:cc_runtimes_toolchain_type only exists as of Bazel 9,
+# so this is a standalone type on older versions. This is safe since only the
+# Starlark implementation of the rules, which older versions don't use,
+# requests toolchains of this type.
 # buildifier: disable=no-effect
 toolchain_type(
     name = "cc_runtimes_toolchain_type",
-) if bazel_features.cc._toolchain_type_in_rules_cc else alias(
+) if bazel_features.cc._toolchain_type_in_rules_cc or not bazel_features.cc.cc_common_is_in_rules_cc else alias(
     # buildifier: disable=duplicated-name
     name = "cc_runtimes_toolchain_type",
     actual = "@bazel_tools//tools/cpp:cc_runtimes_toolchain_type",
