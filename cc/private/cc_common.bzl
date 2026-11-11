@@ -627,6 +627,27 @@ def _ld_tool_path(*, ctx, cc_toolchain):
     _cc_internal.check_private_api(allowlist = _OLD_STARLARK_API_ALLOWLISTED_PACKAGES)
     return cc_toolchain._tool_paths.get("ld", None)
 
+def _per_file_copts(*, cc_toolchain, source_file, label = None):
+    """Returns the `--per_file_copt`s that apply to compiling `source_file`.
+
+    `compile` adds these flags to the `user_compile_flags` of the compile actions it creates.
+    Callers of `create_compile_action` build their compile variables themselves, so they need to
+    add them to `user_compile_flags` as well, so that their action gets the same flags as the
+    compilation of the same sources.
+
+    Args:
+      cc_toolchain: The `CcToolchainInfo` of the toolchain used for the action.
+      source_file: The `File` compiled by the action; `--per_file_copt` regexes are matched
+        against its path.
+      label: The `Label` the action belongs to, or `None`; `--per_file_copt` regexes are also
+        matched against it.
+
+    Returns:
+      A list of strings.
+    """
+    _cc_internal.check_private_api(allowlist = _CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES)
+    return _cc_internal.per_file_copts(cc_toolchain._cpp_configuration, source_file, label)
+
 def _create_compile_action(
         *,
         actions,
@@ -779,6 +800,7 @@ cc_common = struct(
     objcopy_tool_path = _objcopy_tool_path,
     ld_tool_path = _ld_tool_path,
     create_compile_action = _create_compile_action,
+    per_file_copts = _per_file_copts,
     implementation_deps_allowed_by_allowlist = _implementation_deps_allowed_by_allowlist,
     CcSharedLibraryHintInfo = CcSharedLibraryHintInfo,
     build_extra_link_time_libraries = build_libraries,
