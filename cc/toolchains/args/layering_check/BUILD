@@ -47,7 +47,7 @@ cc_feature(
 
 cc_args(
     name = "layering_check_args",
-    actions = ["@rules_cc//cc/toolchains/actions:compile_actions"],
+    actions = ["@rules_cc//cc/toolchains/actions:source_compile_actions"],
     args = [
         "-fmodules-strict-decluse",
         "-Wprivate-header",
@@ -56,7 +56,7 @@ cc_args(
 
 cc_args(
     name = "module_name_args",
-    actions = ["@rules_cc//cc/toolchains/actions:compile_actions"],
+    actions = ["@rules_cc//cc/toolchains/actions:source_compile_actions"],
     args = select({
         "//cc/settings:apple_constraint": ["-Xclang"],
         "//conditions:default": [],
@@ -69,7 +69,7 @@ cc_args(
 
 cc_args(
     name = "module_map_file_args",
-    actions = ["@rules_cc//cc/toolchains/actions:compile_actions"],
+    actions = ["@rules_cc//cc/toolchains/actions:source_compile_actions"],
     args = select({
         "//cc/settings:apple_constraint": ["-Xclang"],
         "//conditions:default": [],
@@ -82,7 +82,7 @@ cc_args(
 
 cc_args(
     name = "dependent_module_map_files_args",
-    actions = ["@rules_cc//cc/toolchains/actions:compile_actions"],
+    actions = ["@rules_cc//cc/toolchains/actions:source_compile_actions"],
     args = select({
         "//cc/settings:apple_constraint": ["-Xclang"],
         "//conditions:default": [],
