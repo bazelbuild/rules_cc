@@ -17,6 +17,7 @@ load("//cc:cc_binary.bzl", _cc_binary = "cc_binary")
 load("//cc:cc_import.bzl", _cc_import = "cc_import")
 load("//cc:cc_library.bzl", _cc_library = "cc_library")
 load("//cc:cc_shared_library.bzl", _cc_shared_library = "cc_shared_library")
+load("//cc:cc_static_library.bzl", _cc_static_library = "cc_static_library")
 load("//cc:cc_test.bzl", _cc_test = "cc_test")
 load("//cc:objc_import.bzl", _objc_import = "objc_import")
 load("//cc:objc_library.bzl", _objc_library = "objc_library")
@@ -39,6 +40,7 @@ cc_binary = _cc_binary
 cc_test = _cc_test
 cc_import = _cc_import
 cc_shared_library = _cc_shared_library
+cc_static_library = _cc_static_library
 
 objc_library = _objc_library
 objc_import = _objc_import
