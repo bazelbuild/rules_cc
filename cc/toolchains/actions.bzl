@@ -30,6 +30,7 @@ def _cc_action_type_impl(ctx):
 
 cc_action_type = rule(
     implementation = _cc_action_type_impl,
+    cfg = config.none() if hasattr(config, "none") else None,
     attrs = {
         "action_name": attr.string(
             mandatory = True,
@@ -41,6 +42,9 @@ cc_action_type = rule(
 perform a specific action. Bazel prescribes a set of known action types that are used to drive
 typical C/C++/ObjC actions like compiling, linking, and archiving. The set of well-known action
 types can be found in [@rules_cc//cc/toolchains/actions:BUILD](https://github.com/bazelbuild/rules_cc/tree/main/cc/toolchains/actions/BUILD).
+
+On Bazel 8 and later, action types are configuration-independent. Give
+`action_name` a fixed value; select action types on `cc_args.actions` instead.
 
 It's possible to create project-specific action types for use in toolchains. Be careful when
 doing this, because every toolchain that encounters the action will need to be configured to
@@ -79,6 +83,10 @@ cc_action_type_set = rule(
 This is a convenience rule to allow for more compact representation of a group of action types.
 Use this anywhere a `cc_action_type` is accepted.
 
+On Bazel 8 and later, action sets are configuration-independent. Give
+`actions` and `excludes` fixed lists; use `select()` on `cc_args.actions`
+if the actions depend on the build configuration.
+
 Example:
 ```
 load("//cc/toolchains:actions.bzl", "cc_action_type_set")
@@ -93,6 +101,7 @@ cc_action_type_set(
 ```
 """,
     implementation = _cc_action_type_set_impl,
+    cfg = config.none() if hasattr(config, "none") else None,
     attrs = {
         "actions": attr.label_list(
             providers = [ActionTypeSetInfo],

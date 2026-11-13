@@ -59,6 +59,7 @@ def _cc_variable_impl(ctx):
 
 _cc_variable = rule(
     implementation = _cc_variable_impl,
+    cfg = config.none() if hasattr(config, "none") else None,
     attrs = {
         "actions": attr.label_list(providers = [ActionTypeSetInfo]),
         "type": attr.string(mandatory = True),
@@ -104,6 +105,7 @@ def _cc_builtin_variables_impl(ctx):
 
 cc_builtin_variables = rule(
     implementation = _cc_builtin_variables_impl,
+    cfg = config.none() if hasattr(config, "none") else None,
     attrs = {
         "srcs": attr.label_list(providers = [VariableInfo]),
     },

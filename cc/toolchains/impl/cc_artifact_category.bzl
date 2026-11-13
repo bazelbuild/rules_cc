@@ -30,6 +30,7 @@ def _cc_artifact_category_impl(ctx):
 
 cc_artifact_category = rule(
     implementation = _cc_artifact_category_impl,
+    cfg = config.none() if hasattr(config, "none") else None,
     doc = """
 An artifact category (eg. static_library, executable, object_file).
 
