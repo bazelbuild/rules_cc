@@ -45,6 +45,8 @@ archive_override(
 )
 
 bazel_dep(name = "stardoc", version = "0.8.0", dev_dependency = True)
+bazel_dep(name = "bazel_skylib_gazelle_plugin", version = "1.9.2", dev_dependency = True)
+bazel_dep(name = "gazelle", version = "0.54.0", dev_dependency = True)
 
 # Compatibility layer
 compat = use_extension("//cc:extensions.bzl", "compatibility_proxy")

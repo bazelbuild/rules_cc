@@ -1,6 +1,9 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//cc:cc_library.bzl", "cc_library")
 
+# gazelle:exclude examples
+# gazelle:exclude tests
+
 package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
