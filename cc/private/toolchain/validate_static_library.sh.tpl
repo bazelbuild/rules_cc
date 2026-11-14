@@ -24,7 +24,10 @@ set -eu
 #    By using the `t` and `d` commands, lines for symbols of type U (undefined)
 #    as well as V and W (weak) and their local lowercase variants are removed.
 # 3. Use sort to sort the lines by symbol name.
-# 4. Use uniq to only keep the lines corresponding to duplicate symbols.
+# 4. Use awk to only keep the lines corresponding to duplicate symbols, that
+#    is, those whose symbol name matches the line before or after.  This is
+#    what uniq -D -f 2 does, but -D is not in POSIX and OpenBSD does not have
+#    it.
 # 5. Use c++filt to demangle the symbol names.
 #    c++filt is applied to the duplicated symbols instead of using the -C flag
 #    of nm because it is not in POSIX and demangled names may not be unique
@@ -36,7 +39,10 @@ SYMBOLS=$("%{nm}" -A -g -P %{nm_extra_args} "$1")
 SYMBOLS=$(printf '%s\n' "$SYMBOLS" |
   sed -E -e 's/.*\[([^][]+)\]: (.+) ([A-TX-Z]) [a-f0-9]+ [a-f0-9]+/\1: \3 \2/g' -e t -e d)
 SYMBOLS=$(printf '%s\n' "$SYMBOLS" | LC_ALL=C sort -k 3)
-DUPLICATE_SYMBOLS=$(printf '%s\n' "$SYMBOLS" | LC_ALL=C uniq -D -f 2)
+DUPLICATE_SYMBOLS=$(printf '%s\n' "$SYMBOLS" | LC_ALL=C awk '
+  { name = $0; sub(/^[^ ]* [^ ]* /, "", name) }
+  NR > 1 && name == prev_name { if (!shown) print prev; print; shown = 1; next }
+  { shown = 0; prev_name = name; prev = $0 }')
 if [ -n "$DUPLICATE_SYMBOLS" ]; then
   DUPLICATE_SYMBOLS=$(printf '%s\n' "$DUPLICATE_SYMBOLS" | "%{c++filt}")
 fi
