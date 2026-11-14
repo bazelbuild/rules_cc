@@ -174,6 +174,9 @@ in binary targets that depend on this library."""),
         common_attrs.SDK_FRAMEWORK_DEPENDER_RULE,
     ),
     fragments = ["objc", "cpp"],
+    exec_groups = {
+        "cpp_compile": exec_group(toolchains = use_cc_toolchain()),
+    },
     toolchains = use_cc_toolchain() + cc_semantics.get_runtimes_toolchain(),
     provides = [CcInfo],
 )
