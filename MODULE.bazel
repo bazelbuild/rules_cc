@@ -13,8 +13,12 @@ bazel_dep(name = "protobuf", version = "27.0", repo_name = "com_google_protobuf"
 cc_configure = use_extension("//cc:extensions.bzl", "cc_configure_extension")
 use_repo(cc_configure, "local_config_cc", "local_config_cc_toolchains")
 
+apple_cc_configure = use_extension("@apple_support//crosstool:setup.bzl", "apple_cc_configure_extension")
+use_repo(apple_cc_configure, "local_config_apple_cc_toolchains")
+
 register_toolchains(
     "@local_config_cc_toolchains//:all",
+    "@local_config_apple_cc_toolchains//:all",
     "//cc/private/toolchain/test:default_test_runner_toolchain",
 )
 
