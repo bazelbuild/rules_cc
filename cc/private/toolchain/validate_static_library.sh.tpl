@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 #
 # Copyright 2023 The Bazel Authors. All rights reserved.
 #
@@ -13,7 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-set -euo pipefail
+set -eu
 
 # Find all duplicate symbols in the given static library:
 # 1. Use nm to list all global symbols in the library in POSIX format:
@@ -29,13 +29,18 @@ set -euo pipefail
 #    c++filt is applied to the duplicated symbols instead of using the -C flag
 #    of nm because it is not in POSIX and demangled names may not be unique
 #    (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=35201).
-DUPLICATE_SYMBOLS=$(
-  "%{nm}" -A -g -P %{nm_extra_args} "$1" |
-  sed -E -e 's/.*\[([^][]+)\]: (.+) ([A-TX-Z]) [a-f0-9]+ [a-f0-9]+/\1: \3 \2/g' -e t -e d |
-  LC_ALL=C sort -k 3 |
-  LC_ALL=C uniq -D -f 2 |
-  "%{c++filt}")
-if [[ -n "$DUPLICATE_SYMBOLS" ]]; then
+#
+# Each step runs on its own and keeps its output in a variable, so that set -e
+# sees any one of them fail; not every sh has pipefail.
+SYMBOLS=$("%{nm}" -A -g -P %{nm_extra_args} "$1")
+SYMBOLS=$(printf '%s\n' "$SYMBOLS" |
+  sed -E -e 's/.*\[([^][]+)\]: (.+) ([A-TX-Z]) [a-f0-9]+ [a-f0-9]+/\1: \3 \2/g' -e t -e d)
+SYMBOLS=$(printf '%s\n' "$SYMBOLS" | LC_ALL=C sort -k 3)
+DUPLICATE_SYMBOLS=$(printf '%s\n' "$SYMBOLS" | LC_ALL=C uniq -D -f 2)
+if [ -n "$DUPLICATE_SYMBOLS" ]; then
+  DUPLICATE_SYMBOLS=$(printf '%s\n' "$DUPLICATE_SYMBOLS" | "%{c++filt}")
+fi
+if [ -n "$DUPLICATE_SYMBOLS" ]; then
   >&2 echo "Duplicate symbols found in $1:"
   >&2 echo "$DUPLICATE_SYMBOLS"
   exit 1
