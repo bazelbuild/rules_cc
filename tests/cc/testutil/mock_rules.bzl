@@ -1,5 +1,6 @@
 """Mock rules for testing C++ rules."""
 
+load("//cc:find_cc_toolchain.bzl", "find_cc_toolchain", "use_cc_toolchain")
 load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/common:cc_info.bzl", "CcInfo")
 
@@ -56,6 +57,40 @@ def _mock_runtime_library_impl(ctx):
 mock_runtime_library = rule(
     implementation = _mock_runtime_library_impl,
     attrs = {},
+)
+
+def _mock_dynamic_runtime_library_impl(ctx):
+    lib_file = _declare_lib_file(ctx, extension = ".so")
+    ctx.actions.write(output = lib_file, content = "mock shared library content")
+    cc_toolchain = find_cc_toolchain(ctx)
+    feature_configuration = cc_common.configure_features(
+        ctx = ctx,
+        cc_toolchain = cc_toolchain,
+    )
+    library_to_link = cc_common.create_library_to_link(
+        actions = ctx.actions,
+        feature_configuration = feature_configuration,
+        cc_toolchain = cc_toolchain,
+        dynamic_library = lib_file,
+    )
+    linker_input = cc_common.create_linker_input(
+        libraries = depset([library_to_link]),
+        owner = ctx.label,
+    )
+    linking_context = cc_common.create_linking_context(
+        linker_inputs = depset([linker_input]),
+    )
+    return [
+        CcInfo(linking_context = linking_context),
+        DefaultInfo(files = depset([lib_file])),
+    ]
+
+mock_dynamic_runtime_library = rule(
+    implementation = _mock_dynamic_runtime_library_impl,
+    doc = "A runtime library that is only available as a shared library.",
+    attrs = {},
+    fragments = ["cpp"],
+    toolchains = use_cc_toolchain(),
 )
 
 def _mock_go_library_impl(ctx):

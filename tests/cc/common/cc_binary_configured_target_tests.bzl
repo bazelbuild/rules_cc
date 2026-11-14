@@ -17,6 +17,7 @@ load("//tests/cc/testutil:link_action_subject.bzl", "link_action_subject")
 load(
     "//tests/cc/testutil:mock_rules.bzl",
     "cc_runtimes_toolchain",
+    "mock_dynamic_runtime_library",
     "mock_go_library",
     "mock_runtime_library",
 )
@@ -987,6 +988,71 @@ def _test_cc_runtimes_added_to_libraries_impl(env, target):
         matching.file_basename_equals("libruntime.a"),
         matching.file_basename_equals("linkstamp.o"),
     ])
+
+def _test_cc_shared_library_runtimes_runfiles(name, **kwargs):
+    util.helper_target(
+        mock_runtime_library,
+        name = name + "/static_runtime",
+    )
+    util.helper_target(
+        mock_dynamic_runtime_library,
+        name = name + "/dynamic_runtime",
+    )
+    util.helper_target(
+        cc_runtimes_toolchain,
+        name = name + "/runtimes_toolchain",
+        runtimes = [name + "/static_runtime", name + "/dynamic_runtime"],
+    )
+    native.toolchain(
+        name = name + "/cc_runtimes_toolchain",
+        toolchain = name + "/runtimes_toolchain",
+        toolchain_type = Label("@bazel_tools//tools/cpp:cc_runtimes_toolchain_type"),
+        tags = ["manual", "notap"],
+    )
+    util.helper_target(
+        cc_library,
+        name = name + "/foo",
+        srcs = ["foo.cc"],
+    )
+    util.helper_target(
+        cc_shared_library,
+        name = name + "/foo_shared",
+        deps = [name + "/foo"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_cc_shared_library_runtimes_runfiles_impl,
+        target = name + "/foo_shared",
+        test_features = [
+            FEATURE_NAMES.supports_pic,
+            FEATURE_NAMES.supports_dynamic_linker,
+        ],
+        config_settings = {
+            "//command_line_option:extra_toolchains": ",".join(
+                MOCK_TOOLCHAINS + [
+                    "//tests/cc/common:" + name + "/cc_runtimes_toolchain",
+                ],
+            ),
+        },
+        **kwargs
+    )
+
+def _test_cc_shared_library_runtimes_runfiles_impl(env, target):
+    link_action = env.expect.that_target(target).action_named("CppLink")
+    link_action.inputs().contains_at_least_predicates([
+        matching.file_basename_equals("libstatic_runtime.a"),
+        matching.file_basename_equals("libdynamic_runtime.so"),
+    ])
+
+    # The runtime that is only available as a shared library must be in the
+    # runfiles, so that the library can be loaded by something that is not a
+    # cc_binary. The static one is linked in and must not be.
+    runfiles = env.expect.that_target(target).runfiles()
+    runfiles.contains_predicate(matching.custom(
+        "_solib_*/libdynamic_runtime.so",
+        lambda path: "/_solib_" in path and path.endswith("/libdynamic_runtime.so"),
+    ))
+    runfiles.not_contains_predicate(matching.str_endswith("libstatic_runtime.a"))
 
 def _test_ignore_custom_malloc(name, **kwargs):
     _create_dep_tree(name, use_actual_cc_binary = True)
@@ -2209,6 +2275,7 @@ def cc_binary_configured_target_tests(name):
             _test_linking_mode_features_true_off,
             _test_linking_mode_features_false_off,
             _test_cc_runtimes_added_to_libraries,
+            _test_cc_shared_library_runtimes_runfiles,
         ])
 
     test_suite(
