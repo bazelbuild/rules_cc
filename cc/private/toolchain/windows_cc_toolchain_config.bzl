@@ -822,10 +822,13 @@ def _impl(ctx):
             ],
         )
 
-        default_compile_flags_list = [
+        # MASM accepts preprocessor defines, but not C/C++ compiler flags.
+        default_assemble_flags_list = [
             "/DNOMINMAX",
             "/D_CRT_SECURE_NO_DEPRECATE",
             "/D_CRT_SECURE_NO_WARNINGS",
+        ]
+        default_compile_flags_list = default_assemble_flags_list + [
             "/bigobj",
             "/Zm500",
             "/EHsc",
@@ -835,6 +838,7 @@ def _impl(ctx):
             "/wd4996",
         ]
         if ctx.attr.win32_winnt_flag:
+            default_assemble_flags_list.append(ctx.attr.win32_winnt_flag)
             default_compile_flags_list.append(ctx.attr.win32_winnt_flag)
 
         default_compile_flags_feature = feature(
@@ -842,8 +846,15 @@ def _impl(ctx):
             enabled = True,
             flag_sets = [
                 flag_set(
+                    actions = [ACTION_NAMES.assemble],
+                    flag_groups = [
+                        flag_group(
+                            flags = default_assemble_flags_list + ctx.attr.default_compile_flags,
+                        ),
+                    ],
+                ),
+                flag_set(
                     actions = [
-                        ACTION_NAMES.assemble,
                         ACTION_NAMES.preprocess_assemble,
                         ACTION_NAMES.linkstamp_compile,
                         ACTION_NAMES.c_compile,
