@@ -97,8 +97,9 @@ def _get_coverage_attrs():
         ),
     }  # buildifier: disable=unsorted-dict-items
 
-def _get_coverage_env(ctx):
-    return ctx.runfiles(), {}
+def _get_coverage_env(_ctx):
+    # rules_cc adds no coverage runfiles or environment.
+    return None, {}
 
 def _get_implementation_deps_allowed_attr():
     return {}
