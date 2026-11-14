@@ -31,6 +31,7 @@ cc_library(
 cc_library(
     name = "registerer_lib",
     srcs = ["registerer.c"],
+    features = ["-supports_start_end_lib"],
     deps = [":registered"],
 )
 
