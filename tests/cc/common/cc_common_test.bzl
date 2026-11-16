@@ -492,6 +492,53 @@ def _test_expanded_defines_duplicate_targets_impl(env, target):
     )
     cc_info_subject.from_target(env, target).compilation_context().defines().contains_exactly([expected])
 
+def _test_defines_tokenization(name):
+    util.helper_target(
+        cc_library,
+        name = name + "/c_lib",
+        srcs = ["foo.cc"],
+        defines = ["""A='"two words"'""", """'B="one-word"'"""],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_defines_tokenization_impl,
+        target = name + "/c_lib",
+    )
+
+def _test_defines_tokenization_impl(env, target):
+    files_to_compile = target[OutputGroupInfo].compilation_outputs.to_list()
+    env.expect.that_collection(files_to_compile).has_size(1)
+    compile_action = env.expect.that_target(target).action_generating(files_to_compile[0].short_path)
+    compile_action.argv().contains_at_least([
+        '-DA="two words"',
+        '-DB="one-word"',
+    ])
+
+def _test_defines_no_tokenization(name):
+    util.helper_target(
+        cc_library,
+        name = name + "/c_lib",
+        srcs = ["foo.cc"],
+        defines = ['A="two words"', 'B="one-word"'],
+        features = ["no_defines_tokenization"],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_defines_no_tokenization_impl,
+        target = name + "/c_lib",
+    )
+
+def _test_defines_no_tokenization_impl(env, target):
+    files_to_compile = target[OutputGroupInfo].compilation_outputs.to_list()
+    env.expect.that_collection(files_to_compile).has_size(1)
+    compile_action = env.expect.that_target(target).action_generating(files_to_compile[0].short_path)
+    compile_action.argv().contains_at_least([
+        '-DA="two words"',
+        '-DB="one-word"',
+    ])
+
 def _test_start_end_lib(name):
     util.helper_target(
         cc_library,
@@ -849,6 +896,7 @@ def cc_common_tests(name):
         _test_expanded_defines_against_srcs,
         _test_expanded_defines_against_data,
         _test_expanded_defines_duplicate_targets,
+        _test_defines_tokenization,
         _test_start_end_lib,
         _test_temps_with_different_extensions,
         _test_temps_for_cc_with_pic,
@@ -870,6 +918,7 @@ def cc_common_tests(name):
             _test_strip_include_prefix_for_public_headers_uses_system_include_paths,
             _test_strip_include_prefix_for_textual_headers_uses_system_include_paths,
             _test_strip_include_prefix_error_not_under_prefix,
+            _test_defines_no_tokenization,
         ])
     test_suite(
         name = name,

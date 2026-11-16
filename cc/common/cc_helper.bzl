@@ -1071,18 +1071,25 @@ def _expand_single_make_variable(ctx, token, additional_make_variable_substituti
     expanded_var = _expand_nested_variable(ctx, additional_make_variable_substitutions, unexpanded_var)
     return expanded_var
 
-def _defines_attribute(ctx, additional_make_variable_substitutions, attr_name, additional_targets):
+def _defines_attribute(ctx, feature_configuration, additional_make_variable_substitutions, attr_name, additional_targets, *, requested_features):
     defines = getattr(ctx.attr, attr_name, [])
     if len(defines) == 0:
         return []
     targets = list(additional_targets)
     for dep in ctx.attr.deps:
         targets.append(dep)
+    config_inhibits_tokenization = feature_configuration != None and feature_configuration.is_enabled(feature_names.NO_DEFINES_TOKENIZATION)
+    if requested_features == None:
+        requested_features = ctx.features
+    tokenization = not (config_inhibits_tokenization or feature_names.NO_DEFINES_TOKENIZATION in requested_features)
     result = []
     for define in defines:
-        expanded_define = _expand(ctx, define, additional_make_variable_substitutions, targets = targets)
         tokens = []
-        _tokenize(tokens, expanded_define)
+        expanded_define = _expand(ctx, define, additional_make_variable_substitutions, targets = targets)
+        if tokenization:
+            _tokenize(tokens, expanded_define)
+        else:
+            tokens.append(expanded_define)
         if len(tokens) == 1:
             result.append(tokens[0])
         elif len(tokens) == 0:
@@ -1092,11 +1099,11 @@ def _defines_attribute(ctx, additional_make_variable_substitutions, attr_name, a
 
     return result
 
-def _defines(ctx, additional_make_variable_substitutions):
-    return _defines_attribute(ctx, additional_make_variable_substitutions, "defines", [])
+def _defines(ctx, additional_make_variable_substitutions, *, feature_configuration = None, requested_features = None):
+    return _defines_attribute(ctx, feature_configuration, additional_make_variable_substitutions, "defines", [], requested_features = requested_features)
 
-def _local_defines(ctx, additional_make_variable_substitutions):
-    return _defines_attribute(ctx, additional_make_variable_substitutions, "local_defines", getattr(ctx.attr, "additional_compiler_inputs", []))
+def _local_defines(ctx, additional_make_variable_substitutions, *, feature_configuration = None, requested_features = None):
+    return _defines_attribute(ctx, feature_configuration, additional_make_variable_substitutions, "local_defines", getattr(ctx.attr, "additional_compiler_inputs", []), requested_features = requested_features)
 
 def _calculate_artifact_label_map(attr_list, attr_name):
     """

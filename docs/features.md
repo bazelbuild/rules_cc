@@ -509,6 +509,19 @@ This feature takes effect even if the toolchain doesn't define it. There
 is no purpose in adding it to your toolchain unless you want to enable
 it everywhere.
 
+### `no_defines_tokenization`
+
+A marker feature to disable shell tokenization of `defines` and `local_defines`
+attribute values in the toolchain.  This can be used by users to make sure
+special characters that are expected in `defines`/`local_defines` are not
+processed.  This is required in some cases when you have quoted arguments.
+
+This feature takes effect even if the toolchain doesn't define it. There
+is no purpose in adding it to your toolchain unless you want to enable
+it everywhere.
+
+This feature requires at least Bazel 9.
+
 ### `sanitize_pwd`
 
 A marker feature indicating the toolchain has sanitized the `PWD` from
