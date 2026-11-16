@@ -62,6 +62,7 @@ def cc_test_initializer(**kwargs):
         Arguments suitable for cc_test.
     """
 
+    kwargs["_explicit_linkstatic"] = kwargs.get("linkstatic")
     if "linkstatic" not in kwargs:
         kwargs["linkstatic"] = semantics.get_linkstatic_default_for_test()
     kwargs = postmark_initializer(**kwargs)

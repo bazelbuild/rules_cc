@@ -1741,7 +1741,7 @@ def _test_link_staticness_binary_static_dynamic_mode_fully(name, **kwargs):
     _register_link_staticness_test(
         name = name,
         target_under_test = name + "/binary-static",
-        expected_static = True,
+        expected_static = False,
         config_settings = {
             "//command_line_option:dynamic_mode": "fully",
         },
@@ -1780,6 +1780,7 @@ def _create_linking_mode_features_dep_tree(name):
         cc_binary,
         name = name + "/linkstatic_true",
         srcs = ["binary.cc"],
+        linkstatic = 1,
     )
     util.helper_target(
         cc_binary,

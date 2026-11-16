@@ -365,6 +365,7 @@ Deprecated, no-op.
         default = True,
         doc = linkstatic_doc,
     ),
+    "_explicit_linkstatic": attr.bool(default = False),
     "malloc": attr.label(
         default = "@bazel_tools//tools/cpp:malloc",
         allow_files = False,
