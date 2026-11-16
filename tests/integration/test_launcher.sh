@@ -55,6 +55,8 @@ scratch_workspace="$TEST_TMPDIR/scratch"
 mkdir -p "$scratch_workspace"
 cd "$scratch_workspace"
 
+add_to_bazelrc "common --module_mirrors=https://bcr.cloudflaremirrors.com"
+
 # Make rules_cc available
 cat > MODULE.bazel << EOF
 module(name = "test_module")

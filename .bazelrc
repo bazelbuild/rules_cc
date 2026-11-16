@@ -1,3 +1,4 @@
+common --module_mirrors=https://bcr.cloudflaremirrors.com
 common --enable_platform_specific_config
 # TODO: Remove https://github.com/bazelbuild/bazel/pull/31423
 common:windows --remote_download_all
