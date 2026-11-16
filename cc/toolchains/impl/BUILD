@@ -30,6 +30,7 @@ bzl_library(
         ":libc_version",
         ":markdown_helpers",
         ":nested_args",
+        ":sysroot",
         ":toolchain_config",
         ":toolchain_config_info",
         ":variables",
@@ -173,11 +174,19 @@ bzl_library(
 )
 
 bzl_library(
+    name = "sysroot",
+    srcs = ["sysroot.bzl"],
+    visibility = ["//tests/rule_based_toolchain/toolchain_config:__pkg__"],
+    deps = ["//cc/toolchains:cc_toolchain_info"],
+)
+
+bzl_library(
     name = "toolchain_config",
     srcs = ["toolchain_config.bzl"],
     deps = [
         ":collect",
         ":legacy_converter",
+        ":sysroot",
         ":toolchain_config_info",
         "//cc/common:cc_common",
         "//cc/toolchains:cc_toolchain_info",
