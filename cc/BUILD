@@ -245,6 +245,26 @@ alias(
 
 cc_libc_top_alias(name = "current_libc_top")
 
+filegroup(
+    name = "for_bazel_tests",
+    testonly = 1,
+    srcs = [
+        "BUILD",
+        ":build_settings_bzl",
+        ":core_rules",
+        ":find_cc_toolchain_bzl",
+        # "//devtools/build_cleaner/skylark:bazel_osx_p4deps",  # copybara-comment-this-out-please
+        # "@bazel_features//:test_deps",  # copybara-comment-this-out-please
+        "//:for_bazel_tests",
+        "//cc/common:srcs",
+        # "//cc/google:srcs",  # copybara-comment-this-out-please
+        "//cc/private:srcs",
+        "@bazel_skylib//:test_deps",
+        "@com_google_protobuf//bazel/private:for_bazel_tests",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 # unused target to test that we have the right bzl_library graph
 starlark_doc_extract_helper(
     name = "defs_doc_extract",
@@ -383,24 +403,4 @@ bzl_library(
 bzl_library(
     name = "use_cc_toolchain",
     srcs = ["use_cc_toolchain.bzl"],
-)
-
-filegroup(
-    name = "for_bazel_tests",
-    testonly = 1,
-    srcs = [
-        "BUILD",
-        ":build_settings_bzl",
-        ":core_rules",
-        ":find_cc_toolchain_bzl",
-        # "//devtools/build_cleaner/skylark:bazel_osx_p4deps",  # copybara-comment-this-out-please
-        # "@bazel_features//:test_deps",  # copybara-comment-this-out-please
-        "//:for_bazel_tests",
-        "//cc/common:srcs",
-        # "//cc/google:srcs",  # copybara-comment-this-out-please
-        "//cc/private:srcs",
-        "@bazel_skylib//:test_deps",
-        "@com_google_protobuf//bazel/private:for_bazel_tests",
-    ],
-    visibility = ["//visibility:public"],
 )
