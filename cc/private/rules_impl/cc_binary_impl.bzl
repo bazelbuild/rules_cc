@@ -453,6 +453,7 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
     target_name = ctx.label.name
     has_legacy_link_shared_name = _is_link_shared(ctx) and cc_helper.is_valid_shared_library_name(target_name)
     binary = None
+    is_dbg_build = (cc_toolchain._cpp_configuration.compilation_mode() == "dbg")
     if has_legacy_link_shared_name:
         binary = ctx.actions.declare_file(target_name)
     else:
