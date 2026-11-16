@@ -1741,7 +1741,7 @@ def _test_link_staticness_binary_static_dynamic_mode_fully(name, **kwargs):
     _register_link_staticness_test(
         name = name,
         target_under_test = name + "/binary-static",
-        expected_static = False,
+        expected_static = True,
         config_settings = {
             "//command_line_option:dynamic_mode": "fully",
         },
@@ -1767,7 +1767,7 @@ def _test_link_staticness_hello_test_linkstatic_dynamic_mode_fully(name, **kwarg
     _register_link_staticness_test(
         name = name,
         target_under_test = name + "/test-linkstatic",
-        expected_static = False,
+        expected_static = True,
         config_settings = {
             "//command_line_option:dynamic_mode": "fully",
         },
@@ -1835,7 +1835,7 @@ def _test_linking_mode_features_true_fully(name, **kwargs):
     _register_linking_mode_features_test(
         name,
         name + "/linkstatic_true",
-        "dynamic",
+        "static",
         config_settings = {"//command_line_option:dynamic_mode": "fully"},
         **kwargs
     )
