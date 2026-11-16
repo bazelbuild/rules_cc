@@ -16,6 +16,7 @@ feature_names = struct(
     DEAD_STRIP = "dead_strip",
     DISABLE_WHOLE_ARCHIVE_FOR_STATIC_LIB = "disable_whole_archive_for_static_lib",
     DISABLE_CPP_LINK_PATH_MAPPING = "disable_cpp_link_path_mapping",
+    DISABLE_REPO_ROOT_INCLUDE_PATH = "disable_repo_root_include_path",
     ENABLE_AFDO_THINLTO = "enable_afdo_thinlto",
     ENABLE_AUTOFDO_MEMPROF_OPTIMIZE = "enable_autofdo_memprof_optimize",
     ENABLE_FDO_MEMPROF_OPTIMIZE = "enable_fdo_memprof_optimize",
