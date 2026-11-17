@@ -392,7 +392,7 @@ def _test_expanded_defines_against_deps(name):
         name = name + "/expand_deps",
         srcs = ["defines.cc"],
         deps = [":" + name + "/foo"],
-        defines = ["FOO=$(location :" + name + "/foo)"],
+        defines = ["FOO=$(execpath :" + name + "/foo)"],
     )
 
     cc_analysis_test(
@@ -419,7 +419,7 @@ def _test_expanded_defines_against_srcs(name):
         cc_library,
         name = name + "/expand_srcs",
         srcs = ["defines.cc"],
-        defines = ["FOO=$(location defines.cc)"],
+        defines = ["FOO=$(execpath defines.cc)"],
     )
 
     cc_analysis_test(
@@ -444,7 +444,7 @@ def _test_expanded_defines_against_data(name):
         name = name + "/expand_srcs",
         srcs = ["defines.cc"],
         data = [":" + name + "/data"],
-        defines = ["FOO=$(location :" + name + "/data)"],
+        defines = ["FOO=$(execpath :" + name + "/data)"],
     )
 
     cc_analysis_test(
@@ -470,7 +470,7 @@ def _test_expanded_defines_duplicate_targets(name):
         srcs = ["defines.cc"],
         data = [":" + name + "/a"],
         deps = [":" + name + "/a"],
-        defines = ["FOO=$(location :" + name + "/a)"],
+        defines = ["FOO=$(execpath :" + name + "/a)"],
     )
 
     cc_analysis_test(
