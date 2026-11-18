@@ -17,10 +17,6 @@ load("@bazel_skylib//lib:paths.bzl", "paths")
 load("//cc/common:cc_helper_internal.bzl", "extensions", "is_versioned_shared_library_extension_valid", "root_relative_path")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 
-# TODO(bgorshenev): Remove this variable once we're sure these functions won't
-# won't interfere with path mapping.
-USE_STARLARK_SOLIB_SYMLINK = True
-
 def _escaped_path(path):
     return path.replace("_", "_U").replace("/", "_S").replace("\\", "_B").replace(":", "_C").replace("@", "_A")
 
@@ -69,7 +65,10 @@ def dynamic_library_soname(actions, library_path, preserve_name):
     Returns:
         soname to embed in the dynamic library
     """
-    if USE_STARLARK_SOLIB_SYMLINK and hasattr(_cc_internal, "maybe_hash_preserve_extension"):
+
+    # Keep Bazel 9 fallback until Bazel 9 support is dropped
+    # (_cc_internal.maybe_hash_preserve_extension was added after Bazel 9).
+    if hasattr(_cc_internal, "maybe_hash_preserve_extension"):
         ctx = _cc_internal.actions2ctx_cheat(actions)
         mnemonic = ctx.bin_dir.path.split("/")[1]
         return _dynamic_library_soname(library_path, preserve_name, mnemonic)
@@ -110,7 +109,7 @@ def dynamic_library_symlink(actions, library, solib_directory, preserve_name, pr
     Returns:
         mangled symlink artifact.
    """
-    if USE_STARLARK_SOLIB_SYMLINK and hasattr(_cc_internal, "maybe_hash_preserve_extension"):
+    if hasattr(_cc_internal, "maybe_hash_preserve_extension"):
         if not _is_shared_library_filetype(library.basename):
             fail("Library '%s' does not match expected filetype" % library.basename)
         if root_relative_path(library).startswith("_solib_"):
@@ -146,7 +145,7 @@ def dynamic_library_symlink2(actions, library, solib_directory, path):
     Returns:
         symlink artifact.
     """
-    if USE_STARLARK_SOLIB_SYMLINK and hasattr(_cc_internal, "maybe_hash_preserve_extension"):
+    if hasattr(_cc_internal, "maybe_hash_preserve_extension"):
         if not _is_shared_library_filetype(library.basename):
             fail("Library '%s' does not match expected filetype" % library.basename)
         if not _is_shared_library_filetype(path.split("/")[-1]):
@@ -175,18 +174,15 @@ def solib_symlink_action(ctx, artifact, solib_directory, runtime_solib_dir_base)
     Returns:
         symlink artifact.
     """
-    if USE_STARLARK_SOLIB_SYMLINK:
-        if not _is_shared_library_filetype(artifact.basename):
-            fail("Library '%s' does not match expected filetype" % artifact.basename)
-        if root_relative_path(artifact).startswith("_solib_"):
-            fail("Library '%s' is already in _solib_" % artifact.path)
-        solib_dir = runtime_solib_dir_base if runtime_solib_dir_base != None else solib_directory
-        symlink_name = solib_dir + "/" + artifact.basename
-        symlink = ctx.actions.declare_shareable_artifact(symlink_name)
-        ctx.actions.symlink(
-            output = symlink,
-            target_file = artifact,
-        )
-        return symlink
-    else:
-        return _cc_internal.solib_symlink_action(ctx, artifact, solib_directory, runtime_solib_dir_base)
+    if not _is_shared_library_filetype(artifact.basename):
+        fail("Library '%s' does not match expected filetype" % artifact.basename)
+    if root_relative_path(artifact).startswith("_solib_"):
+        fail("Library '%s' is already in _solib_" % artifact.path)
+    solib_dir = runtime_solib_dir_base if runtime_solib_dir_base != None else solib_directory
+    symlink_name = solib_dir + "/" + artifact.basename
+    symlink = ctx.actions.declare_shareable_artifact(symlink_name)
+    ctx.actions.symlink(
+        output = symlink,
+        target_file = artifact,
+    )
+    return symlink
