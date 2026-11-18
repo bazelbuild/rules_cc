@@ -823,6 +823,7 @@ def _impl(ctx):
         )
 
         # MASM accepts preprocessor defines, but not C/C++ compiler flags.
+        # Keep the existing defines for compatibility with assembly sources that may rely on them.
         default_assemble_flags_list = [
             "/DNOMINMAX",
             "/D_CRT_SECURE_NO_DEPRECATE",
