@@ -1635,6 +1635,8 @@ def _impl(ctx):
     # Note that we also set --coverage for c++-link-nodeps-dynamic-library. The
     # generated code contains references to gcov symbols, and the dynamic linker
     # can't resolve them unless the library is linked against gcov.
+    # Only instrument targets selected by the filter (or their header consumers).
+    coverage_instrumented_feature = feature(name = "coverage_instrumented")
     coverage_feature = feature(
         name = "coverage",
         provides = ["profile"],
@@ -1650,6 +1652,7 @@ def _impl(ctx):
                 flag_groups = ([
                     flag_group(flags = ctx.attr.coverage_compile_flags),
                 ] if ctx.attr.coverage_compile_flags else []),
+                with_features = [with_feature_set(features = ["coverage_instrumented"])],
             ),
             flag_set(
                 actions = all_link_actions + lto_index_actions,
@@ -1969,6 +1972,7 @@ def _impl(ctx):
             fission_support_feature,
             strip_debug_symbols_feature,
             coverage_feature,
+            coverage_instrumented_feature,
             supports_pic_feature,
             prefer_pic_for_opt_binaries_feature,
             asan_feature,
@@ -2038,6 +2042,7 @@ def _impl(ctx):
             ] if ctx.attr.supports_start_end_lib else []
         ) + [
             coverage_feature,
+            coverage_instrumented_feature,
             default_compile_flags_feature,
             default_link_flags_feature,
             user_link_flags_feature,
