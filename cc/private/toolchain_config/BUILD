@@ -14,18 +14,15 @@
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
+package(default_visibility = ["//visibility:public"])
+
 bzl_library(
     name = "toolchain_config_bzl",
-    srcs = glob(["*.bzl"]),
-    visibility = ["//visibility:public"],
+    deprecation = "Use the individual bzl_library targets instead of this one.",
     deps = [
-        "//cc:action_names_bzl",
-        "//cc:cc_toolchain_config_lib_bzl",
-        "//cc/common:feature_names_bzl",
-        "//cc/common:semantics_bzl",
-        "//cc/private:cc_info_bzl",
-        "//cc/private:cc_internal_bzl",
-        "@bazel_skylib//lib:paths",
+        ":cc_toolchain_config_info",
+        ":configure_features",
+        ":legacy_features",
     ],
 )
 
@@ -34,7 +31,6 @@ filegroup(
     srcs = glob([
         "**/*.bzl",
     ]),
-    visibility = ["//visibility:public"],
 )
 
 filegroup(
@@ -43,5 +39,34 @@ filegroup(
         "**/*.bzl",
         "**/BUILD",
     ]),
-    visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "cc_toolchain_config_info",
+    srcs = ["cc_toolchain_config_info.bzl"],
+    deps = [
+        ":legacy_features",
+        "//cc/private:cc_internal",
+        "@bazel_skylib//lib:paths",
+    ],
+)
+
+bzl_library(
+    name = "configure_features",
+    srcs = ["configure_features.bzl"],
+    deps = [
+        "//cc:action_names",
+        "//cc/common:feature_names",
+        "//cc/common:semantics",
+        "//cc/private:cc_info",
+    ],
+)
+
+bzl_library(
+    name = "legacy_features",
+    srcs = ["legacy_features.bzl"],
+    deps = [
+        "//cc:action_names",
+        "//cc:cc_toolchain_config_lib",
+    ],
 )

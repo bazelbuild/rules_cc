@@ -301,6 +301,14 @@ def create_library_to_link(
     lto_compilation_context = lto_compilation_context or _EMPTY_LTO
     pic_lto_compilation_context = pic_lto_compilation_context or _EMPTY_LTO
 
+    disable_whole_archive = bool(
+        feature_configuration and
+        feature_configuration.is_enabled(feature_names.DISABLE_WHOLE_ARCHIVE_FOR_STATIC_LIB),
+    )
+    if (static_library or pic_static_library) and alwayslink and disable_whole_archive:
+        fail("Attribute alwayslink: alwayslink should not be True for a target" +
+             " with the disable_whole_archive_for_static_lib feature enabled.")
+
     return make_library_to_link(
         static_library = static_library,
         pic_static_library = pic_static_library,
@@ -312,6 +320,7 @@ def create_library_to_link(
         resolved_symlink_interface_library = resolved_symlink_interface_library,
         alwayslink = alwayslink,
         _library_identifier = library_identifier,
+        _disable_whole_archive = disable_whole_archive,
         _must_keep_debug = must_keep_debug,
         _lto_compilation_context = lto_compilation_context,
         _pic_lto_compilation_context = pic_lto_compilation_context,

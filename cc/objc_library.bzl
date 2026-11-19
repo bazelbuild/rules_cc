@@ -15,5 +15,4 @@
 
 load("@cc_compatibility_proxy//:proxy.bzl", _objc_library = "objc_library")
 
-def objc_library(**kwargs):
-    _objc_library(**kwargs)
+objc_library = _objc_library

@@ -17,7 +17,7 @@
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("//cc:find_cc_toolchain.bzl", "find_cc_toolchain")
 load("//cc/common:cc_common.bzl", "cc_common")
-load("//cc/common:cc_helper.bzl", "cc_helper")
+load("//cc/common:cc_helper.bzl", "artifact_category", "cc_helper")
 load("//cc/common:cc_info.bzl", "CcInfo")
 load("//cc/common:cc_shared_library_info.bzl", "CcSharedLibraryInfo")
 load("//cc/common:feature_names.bzl", "feature_names")
@@ -293,9 +293,9 @@ def _check_if_target_under_path(value, pattern):
 
     return pattern.package == value.package and pattern.name == value.name
 
-def _check_if_target_should_be_exported_with_filter(target, current_label, exports_filter):
+def _check_if_target_should_be_exported_with_filter(ctx, target, exports_filter):
     for export_filter in exports_filter:
-        export_filter_label = current_label.relative(export_filter)
+        export_filter_label = ctx.package_relative_label(export_filter)
         if _check_if_target_under_path(target, export_filter_label):
             return True
 
@@ -478,8 +478,8 @@ def _filter_inputs(
                     linker_input,
                 )
             if _check_if_target_should_be_exported_with_filter(
+                ctx,
                 linker_input.owner,
-                ctx.label,
                 ctx.attr.exports_filter,
             ):
                 exports[owner] = True
@@ -690,12 +690,21 @@ def _cc_shared_library_impl(ctx):
                     if library.objects != None:
                         object_files.extend(library.objects)
 
-        generated_def_file = None
+        # The LIBRARY statement of the DEF file determines the DLL name that the import library
+        # refers to, so it has to match the actual output file.
+        if main_output:
+            dll_name = main_output.basename
+        else:
+            dll_name = paths.basename(cc_common.get_artifact_name_for_category(
+                cc_toolchain = cc_toolchain,
+                category = artifact_category.DYNAMIC_LIBRARY,
+                output_name = ctx.label.name,
+            ))
         generated_def_file = cc_helper.generate_def_file(
             ctx,
             ctx.file._def_parser,
             object_files,
-            ctx.label.name,
+            dll_name,
             cc_toolchain,
             feature_configuration,
         )

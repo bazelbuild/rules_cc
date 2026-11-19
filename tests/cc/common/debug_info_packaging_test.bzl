@@ -259,6 +259,176 @@ def _test_dwo_input_set_dynamic_mode_impl(env, target):
 
     dwo_files.contains_exactly([expected_main])
 
+def _test_empty_inputs_in_fission_mode(name):
+    """Tests that a fission build with no .dwo inputs from the target package doesn't contribute any .dwo files.
+
+    Note: When there are zero .dwo inputs overall (as in OSS Bazel, where _stl defaults to None),
+    the .dwp action is optimized to an empty FileWrite. When implicit runtime dependencies such as
+    _stl contribute non-package .dwo files, CcGenerateDwp is created and we verify no package-scoped
+    .dwo files are included.
+    """
+    util.helper_target(
+        cc_library,
+        name = name + "_test_malloc",
+        srcs = [name + "_test_malloc_prebuilt.o"],
+    )
+    util.helper_target(
+        cc_library,
+        name = name + "_empty_lib",
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "_fission",
+        srcs = [name + "_prebuilt.o"],
+        link_extra_lib = name + "_empty_lib",  # copybara:strip
+        malloc = name + "_test_malloc",
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_empty_inputs_in_fission_mode_impl,
+        target = name + "_fission",
+        with_features = [FEATURE_NAMES.supports_pic, FEATURE_NAMES.per_object_debug_info],
+        config_settings = {
+            "//command_line_option:fission": "yes",
+            "//command_line_option:force_pic": True,
+        },
+    )
+
+def _test_empty_inputs_in_fission_mode_impl(env, target):
+    executable = target[DefaultInfo].files_to_run.executable
+    dwp_path = executable.short_path + ".dwp"
+    action = env.expect.that_target(target).action_generating(dwp_path)
+
+    mnemonic = action.actual.mnemonic
+    if mnemonic == "CcGenerateDwp":
+        # Implicit runtime dependencies (such as _stl) can transitively contribute
+        # non-package .dwo inputs, causing CcGenerateDwp to be emitted.
+        dwo_files = _get_dwo_files_subject(env, target, dwp_path)
+        dwo_files.is_empty()
+    elif mnemonic == "FileWrite":
+        # Zero .dwo inputs overall: DWP generation is optimized to an empty FileWrite.
+        action.content().equals("")
+    else:
+        env.fail("Expected DWP action mnemonic to be 'CcGenerateDwp' or 'FileWrite', but got '%s'" % mnemonic)
+
+def _test_dwo_input_set_non_pic_mode(name):
+    """Same as _test_dwo_input_set_pic_mode, but for non-pic-mode linking.
+
+    That means .o files are linked in over their .pic.o counterparts and the
+    .dwo inputs should reflect this change.
+    """
+    _create_dwo_input_set_tree(name, linkstatic = True)
+    cc_analysis_test(
+        name = name,
+        impl = _test_dwo_input_set_non_pic_mode_impl,
+        target = name + "_binary",
+        with_features = [FEATURE_NAMES.per_object_debug_info],
+        config_settings = {
+            "//command_line_option:fission": "yes",
+        },
+    )
+
+def _test_dwo_input_set_non_pic_mode_impl(env, target):
+    executable = target[DefaultInfo].files_to_run.executable
+    dwp_path = executable.short_path + ".dwp"
+    dwo_files = _get_dwo_files_subject(env, target, dwp_path)
+
+    pkg = target.label.package
+    prefix = target.label.name.replace("_binary", "")
+    lib_target = prefix + "_lib"
+    malloc_target = prefix + "_test_malloc"
+    bin_target = prefix + "_binary"
+
+    expected_templates = [
+        "{pkg}/_objs/{lib}/{prefix}_lib1.dwo",
+        "{pkg}/_objs/{lib}/{prefix}_lib2.dwo",
+        "{pkg}/_objs/{malloc}/{prefix}_test_malloc.dwo",
+        "{pkg}/_objs/{bin}/{prefix}_main.dwo",
+    ]
+    expected = [t.format(pkg = pkg, lib = lib_target, malloc = malloc_target, bin = bin_target, prefix = prefix) for t in expected_templates]
+    dwo_files.contains_exactly(expected)
+
+def _test_dwo_input_set_no_pic_for_binaries_mode(name):
+    """Same as _test_dwo_input_set_pic_mode, but for pic-mode configurations where binaries are specially linked without pic.
+
+    See CppConfiguration#usePicForBinaries
+    """
+    _create_dwo_input_set_tree(name, linkstatic = True)
+    cc_analysis_test(
+        name = name,
+        impl = _test_dwo_input_set_no_pic_for_binaries_mode_impl,
+        target = name + "_binary",
+        with_features = [FEATURE_NAMES.supports_pic, FEATURE_NAMES.per_object_debug_info],
+        config_settings = {
+            "//command_line_option:fission": "yes",
+            "//command_line_option:compilation_mode": "opt",
+        },
+    )
+
+def _test_dwo_input_set_no_pic_for_binaries_mode_impl(env, target):
+    executable = target[DefaultInfo].files_to_run.executable
+    dwp_path = executable.short_path + ".dwp"
+    dwo_files = _get_dwo_files_subject(env, target, dwp_path)
+
+    pkg = target.label.package
+    prefix = target.label.name.replace("_binary", "")
+    lib_target = prefix + "_lib"
+    malloc_target = prefix + "_test_malloc"
+    bin_target = prefix + "_binary"
+
+    expected_templates = [
+        "{pkg}/_objs/{lib}/{prefix}_lib1.dwo",
+        "{pkg}/_objs/{lib}/{prefix}_lib2.dwo",
+        "{pkg}/_objs/{malloc}/{prefix}_test_malloc.dwo",
+        "{pkg}/_objs/{bin}/{prefix}_main.dwo",
+    ]
+    expected = [t.format(pkg = pkg, lib = lib_target, malloc = malloc_target, bin = bin_target, prefix = prefix) for t in expected_templates]
+    dwo_files.contains_exactly(expected)
+
+def _create_custom_malloc_tree(name):
+    _create_dwo_input_set_tree(name, linkstatic = True)
+    util.helper_target(
+        cc_library,
+        name = name + "_custom_malloc",
+        srcs = [name + "_custom_malloc.cc"],
+    )
+
+def _test_dwo_input_set_custom_malloc(name):
+    """Tests that when --custom_malloc overrides a rule's default malloc, the custom malloc is the one that makes it into the input set."""
+    _create_custom_malloc_tree(name)
+    custom_malloc_label = Label("//{}:{}_custom_malloc".format(native.package_name(), name))
+    cc_analysis_test(
+        name = name,
+        impl = _test_dwo_input_set_custom_malloc_impl,
+        target = name + "_binary",
+        with_features = [FEATURE_NAMES.supports_pic, FEATURE_NAMES.per_object_debug_info],
+        config_settings = {
+            "//command_line_option:fission": "yes",
+            "//command_line_option:force_pic": True,
+            "//command_line_option:custom_malloc": custom_malloc_label,
+        },
+    )
+
+def _test_dwo_input_set_custom_malloc_impl(env, target):
+    executable = target[DefaultInfo].files_to_run.executable
+    dwp_path = executable.short_path + ".dwp"
+    dwo_files = _get_dwo_files_subject(env, target, dwp_path)
+
+    pkg = target.label.package
+    prefix = target.label.name.replace("_binary", "")
+    lib_target = prefix + "_lib"
+    malloc_target = prefix + "_custom_malloc"
+    bin_target = prefix + "_binary"
+
+    expected_templates = [
+        "{pkg}/_objs/{lib}/{prefix}_lib1.pic.dwo",
+        "{pkg}/_objs/{lib}/{prefix}_lib2.pic.dwo",
+        "{pkg}/_objs/{malloc}/{prefix}_custom_malloc.pic.dwo",
+        "{pkg}/_objs/{bin}/{prefix}_main.pic.dwo",
+    ]
+    expected = [t.format(pkg = pkg, lib = lib_target, malloc = malloc_target, bin = bin_target, prefix = prefix) for t in expected_templates]
+    dwo_files.contains_exactly(expected)
+
 def _test_dwo_files_output_group_dbg_static_mode(name):
     """Tests that the dwo_files output group contains direct and transitive .dwo files in dbg static mode."""
     _create_dwo_input_set_tree(name, linkstatic = True)
@@ -422,6 +592,10 @@ def debug_info_packaging_tests(name):
         _test_dwp_action_structure,
         _test_dwo_input_set_pic_mode,
         _test_dwo_input_set_dynamic_mode,
+        _test_empty_inputs_in_fission_mode,
+        _test_dwo_input_set_non_pic_mode,
+        _test_dwo_input_set_no_pic_for_binaries_mode,
+        _test_dwo_input_set_custom_malloc,
     ]
     if bazel_features.cc.cc_common_is_in_rules_cc:
         tests.extend([

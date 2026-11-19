@@ -108,7 +108,9 @@ def create_compile_variables(
         add_legacy_cxx_options = False,  # buildifier: disable=unused-variable
         variables_extension = {},
         strip_opts = _UNBOUND,
-        input_file = _UNBOUND):
+        input_file = _UNBOUND,
+        cpp_module_map = None,
+        direct_module_maps = depset()):
     """Returns variables used for compilation actions.
 
     Args:
@@ -138,6 +140,9 @@ def create_compile_variables(
         variables_extension: A dictionary of additional variables used by compile actions.
         strip_opts: (Private API)
         input_file: (Private API)
+        cpp_module_map: Optional CppModuleMap of the target being compiled, used to populate
+            module_name and module_map_file build variables when module_maps is enabled.
+        direct_module_maps: Depset of direct dependency module map files.
 
     Returns:
       (CcToolchainVariables) common compile build variables
@@ -167,6 +172,8 @@ def create_compile_variables(
         system_include_dirs = system_include_directories or depset(),
         framework_include_dirs = framework_include_directories or depset(),
         defines = preprocessor_defines or depset(),
+        cpp_module_map = cpp_module_map if feature_configuration.is_enabled(feature_names.MODULE_MAPS) else None,
+        direct_module_maps = direct_module_maps,
     )
 
     additional_build_variables = {}

@@ -46,6 +46,12 @@ action_type_set_diff_test(
 )
 
 action_type_set_diff_test(
+    name = "cpp20_module_actions_test",
+    action_type_set = "//cc/toolchains/actions:cpp20_module_actions",
+    expected = "//tests/rule_based_toolchain/action_type_sets:goldens/cpp20_module_actions.txt",
+)
+
+action_type_set_diff_test(
     name = "link_executable_actions_test",
     action_type_set = "//cc/toolchains/actions:link_executable_actions",
     expected = "//tests/rule_based_toolchain/action_type_sets:goldens/link_executable_actions.txt",

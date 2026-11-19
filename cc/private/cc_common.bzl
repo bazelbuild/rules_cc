@@ -18,6 +18,7 @@ load(
     _CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES = "CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES",
     _PRIVATE_STARLARKIFICATION_ALLOWLIST = "PRIVATE_STARLARKIFICATION_ALLOWLIST",
 )
+load("//cc/common:semantics.bzl", _starlark_cc_semantics = "semantics")
 load("//cc/private:cc_info.bzl", "CcNativeLibraryInfo", "create_compilation_context", "create_debug_context", "create_linking_context", "create_module_map", "merge_cc_infos", "merge_compilation_contexts", "merge_debug_context", "merge_linking_contexts")
 load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private:cc_launcher_info.bzl", "CcLauncherInfo")
@@ -621,6 +622,27 @@ def _ld_tool_path(*, ctx, cc_toolchain):
     _cc_internal.check_private_api(allowlist = _OLD_STARLARK_API_ALLOWLISTED_PACKAGES)
     return cc_toolchain._tool_paths.get("ld", None)
 
+def _per_file_copts(*, cc_toolchain, source_file, label = None):
+    """Returns the `--per_file_copt`s that apply to compiling `source_file`.
+
+    `compile` adds these flags to the `user_compile_flags` of the compile actions it creates.
+    Callers of `create_compile_action` build their compile variables themselves, so they need to
+    add them to `user_compile_flags` as well, so that their action gets the same flags as the
+    compilation of the same sources.
+
+    Args:
+      cc_toolchain: The `CcToolchainInfo` of the toolchain used for the action.
+      source_file: The `File` compiled by the action; `--per_file_copt` regexes are matched
+        against its path.
+      label: The `Label` the action belongs to, or `None`; `--per_file_copt` regexes are also
+        matched against it.
+
+    Returns:
+      A list of strings.
+    """
+    _cc_internal.check_private_api(allowlist = _CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES)
+    return _cc_internal.per_file_copts(cc_toolchain._cpp_configuration, source_file, label)
+
 def _create_compile_action(
         *,
         actions,
@@ -632,19 +654,25 @@ def _create_compile_action(
         action_name,
         compilation_context,
         additional_inputs = None,
-        additional_outputs = []):
+        additional_outputs = [],
+        use_pic = False):
     _cc_internal.check_private_api(allowlist = _CREATE_COMPILE_ACTION_API_ALLOWLISTED_PACKAGES)
-    return _cc_common_internal.create_compile_action(
-        actions = actions,
+    ctx = _cc_internal.actions2ctx_cheat(actions)
+    return _cc_internal.create_cc_compile_action(
+        action_construction_context = ctx,
+        cc_compilation_context = compilation_context,
         cc_toolchain = cc_toolchain,
+        configuration = ctx.configuration,
         feature_configuration = feature_configuration,
-        source_file = source_file,
+        source = source_file,
+        additional_compilation_inputs_set = additional_inputs,
         output_file = output_file,
-        variables = variables,
+        use_pic = use_pic,
+        compile_build_variables = variables,
         action_name = action_name,
-        compilation_context = compilation_context,
-        additional_inputs = additional_inputs,
         additional_outputs = additional_outputs,
+        needs_include_validation = True,
+        toolchain_type = _starlark_cc_semantics.toolchain,
     )
 
 def _implementation_deps_allowed_by_allowlist(*, ctx):
@@ -767,6 +795,7 @@ cc_common = struct(
     objcopy_tool_path = _objcopy_tool_path,
     ld_tool_path = _ld_tool_path,
     create_compile_action = _create_compile_action,
+    per_file_copts = _per_file_copts,
     implementation_deps_allowed_by_allowlist = _implementation_deps_allowed_by_allowlist,
     CcSharedLibraryHintInfo = CcSharedLibraryHintInfo,
     build_extra_link_time_libraries = build_libraries,

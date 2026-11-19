@@ -68,6 +68,9 @@ PRIVATE_STARLARKIFICATION_ALLOWLIST = [
     ("", "third_party/bazel_rules/rules_rust/rust/private"),
     ("rules_rust", "rust/private"),
     ("rules_rs", "rust/private"),
+    # Swift rules
+    ("rules_swift", "swift/internal"),
+    ("build_bazel_rules_swift", "swift/internal"),
     # Python rules
     ("", "third_party/bazel_rules/rules_python"),
     # Various

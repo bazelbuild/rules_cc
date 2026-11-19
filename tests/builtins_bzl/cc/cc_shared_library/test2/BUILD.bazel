@@ -1,4 +1,5 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_shared_library.bzl", "cc_shared_library")
 
 licenses(["notice"])
 
@@ -7,4 +8,18 @@ cc_library(
     srcs = ["bar.cc"],
     hdrs = ["bar.h"],
     visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "bar_wrapper",
+    visibility = ["//visibility:public"],
+    deps = [":bar"],
+)
+
+cc_shared_library(
+    name = "bar_so",
+    exports_filter = select({"//conditions:default": ["@test_repo//:__pkg__"]}),
+    tags = ["manual"],
+    visibility = ["//visibility:public"],
+    deps = [":bar_wrapper"],
 )

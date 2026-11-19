@@ -265,10 +265,21 @@ cc_action_type_set(
     name = "source_compile_actions",
     actions = [
         ":compile_actions",
+        # C++20 module interface units compile like any other source, with the
+        # same build variables, and the dependency scan preprocesses them with
+        # the same variables too. Module codegen compiles a precompiled module,
+        # like `lto_backend`. These stay out of `compile_actions`, which
+        # toolchains use as a `cc_tool_map` key: the scan runs a different tool.
+        ":cpp20_module_compile",
+        ":cpp_module_deps_scanning",
     ],
     excludes = [
         # `lto_backend` actions do not instantiate the full set of build variables.
         ":lto_backend",
+        # `cpp_module_codegen` actions compile a precompiled module and never
+        # preprocess, so include paths, defines and other preprocessing flags
+        # don't apply to them and only make Clang warn about unused arguments.
+        ":cpp_module_codegen",
     ],
 )
 

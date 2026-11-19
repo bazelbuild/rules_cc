@@ -2,4 +2,6 @@ common --enable_platform_specific_config
 # TODO: Remove https://github.com/bazelbuild/bazel/pull/31423
 common:windows --remote_download_all
 
+common --check_direct_dependencies=off
+
 test --test_env=PATH=/bin:/usr/bin:/usr/local/bin

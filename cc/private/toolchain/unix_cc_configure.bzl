@@ -19,11 +19,11 @@ load(
     "auto_configure_fail",
     "auto_configure_warning",
     "auto_configure_warning_maybe",
+    "copy_file",
     "escape_string",
     "execute",
     "get_env_var",
     "get_starlark_list",
-    "resolve_labels",
     "split_escaped",
     "which",
     "write_builtin_include_directory_paths",
@@ -35,8 +35,13 @@ def _uniq(iterable):
     unique_elements = {element: None for element in iterable}
     return unique_elements.keys()
 
-def _generate_system_module_map(repository_ctx, dirs, script_path):
-    return execute(repository_ctx, [script_path] + dirs)
+def _generate_system_module_map(repository_ctx, dirs):
+    # The script has to be present on disk to be run.
+    script = "generate_system_module_map.sh"
+    repository_ctx.template(script, Label("@rules_cc//cc/private/toolchain:generate_system_module_map.sh"))
+    module_map = execute(repository_ctx, [repository_ctx.path(script)] + dirs)
+    repository_ctx.delete(script)
+    return module_map
 
 def _prepare_include_path(repo_ctx, path):
     """Resolve include path before outputting it into the crosstool.
@@ -216,7 +221,7 @@ def _is_linker_option_supported(repository_ctx, cc, force_linker_flags, option, 
 def _is_oso_prefix_supported(repository_ctx, ld):
     return repository_ctx.execute([ld, "-v", "-oso_prefix", "."]).return_code == 0
 
-def _find_linker_path(repository_ctx, cc, linker, is_clang):
+def _find_linker(repository_ctx, cc, linker, is_clang):
     """Checks if a given linker is supported by the C compiler.
 
     Args:
@@ -226,7 +231,8 @@ def _find_linker_path(repository_ctx, cc, linker, is_clang):
       is_clang: whether the compiler is known to be clang
 
     Returns:
-      String to put as value to -fuse-ld= flag, or None if linker couldn't be found.
+      A struct with the linker name or path and the flags that select it, or
+      None if the linker couldn't be found.
     """
     result = repository_ctx.execute([
         cc,
@@ -245,7 +251,7 @@ def _find_linker_path(repository_ctx, cc, linker, is_clang):
         return None
 
     if not is_clang:
-        return linker
+        return struct(path = linker, flags = ["-fuse-ld=" + linker])
 
     # Extract linker path from:
     # /usr/bin/clang ...
@@ -254,9 +260,22 @@ def _find_linker_path(repository_ctx, cc, linker, is_clang):
     # https://github.com/llvm/llvm-project/blob/85c78274358717e4d5d019a801decba5c1add484/clang/lib/Driver/Job.cpp#L207-L209
     invocations = [line for line in result.stderr.splitlines() if line.startswith(" \"")]
     if not invocations:
-        return linker
+        return struct(path = linker, flags = ["-fuse-ld=" + linker])
     linker_command = invocations[-1]
-    return linker_command.strip().split(" ")[0].strip("\"'")
+    linker_path = linker_command.strip().split(" ")[0].strip("\"'")
+
+    # Clang uses the -fuse-ld= value as the linker flavor. --ld-path= (Clang 12+)
+    # specifies the path without losing the flavor.
+    flags = ["-fuse-ld=" + linker, "--ld-path=" + linker_path]
+    result = repository_ctx.execute([
+        cc,
+        str(repository_ctx.path("tools/cpp/empty.cc")),
+        "-o",
+        "/dev/null",
+    ] + flags)
+    if result.return_code != 0:
+        return struct(path = linker_path, flags = ["-fuse-ld=" + linker_path])
+    return struct(path = linker_path, flags = flags)
 
 def _add_compiler_option_if_supported(repository_ctx, cc, option):
     """Returns `[option]` if supported, `[]` otherwise. Doesn't %-escape the option."""
@@ -382,25 +401,15 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
         cpu_value: The CPU value.
         overridden_tools: A dictionary of overridden tools.
     """
-    paths = resolve_labels(repository_ctx, [
-        "@rules_cc//cc/private/toolchain:BUILD.tpl",
-        "@rules_cc//cc/private/toolchain:generate_system_module_map.sh",
-        "@rules_cc//cc/private/toolchain:armeabi_cc_toolchain_config.bzl",
-        "@rules_cc//cc/private/toolchain:unix_cc_toolchain_config.bzl",
-        "@rules_cc//cc/private/toolchain:linux_cc_wrapper.sh.tpl",
-        "@rules_cc//cc/private/toolchain:validate_static_library.sh.tpl",
-        "@rules_cc//cc/private/toolchain:osx_cc_wrapper.sh.tpl",
-        "@rules_cc//cc/private/toolchain:clang_deps_scanner_wrapper.sh.tpl",
-        "@rules_cc//cc/private/toolchain:gcc_deps_scanner_wrapper.sh.tpl",
-    ])
-
-    repository_ctx.symlink(
-        paths["@rules_cc//cc/private/toolchain:unix_cc_toolchain_config.bzl"],
+    copy_file(
+        repository_ctx,
+        Label("@rules_cc//cc/private/toolchain:unix_cc_toolchain_config.bzl"),
         "cc_toolchain_config.bzl",
     )
 
-    repository_ctx.symlink(
-        paths["@rules_cc//cc/private/toolchain:armeabi_cc_toolchain_config.bzl"],
+    copy_file(
+        repository_ctx,
+        Label("@rules_cc//cc/private/toolchain:armeabi_cc_toolchain_config.bzl"),
         "armeabi_cc_toolchain_config.bzl",
     )
 
@@ -487,7 +496,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     if "nm" in tool_paths and "c++filt" in tool_paths:
         repository_ctx.template(
             "validate_static_library.sh",
-            paths["@rules_cc//cc/private/toolchain:validate_static_library.sh.tpl"],
+            Label("@rules_cc//cc/private/toolchain:validate_static_library.sh.tpl"),
             {
                 "%{c++filt}": escape_string(str(repository_ctx.path(tool_paths["c++filt"]))),
                 # Certain weak symbols are otherwise listed with type T in the output of nm on macOS.
@@ -502,7 +511,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     )
     repository_ctx.template(
         "cc_wrapper.sh",
-        paths[cc_wrapper_src],
+        Label(cc_wrapper_src),
         {
             "%{cc}": escape_string(str(cc)),
             "%{env}": escape_string(get_env(repository_ctx)),
@@ -513,13 +522,14 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     )
     deps_scanner = "cpp-module-deps-scanner_not_found"
     if is_clang:
-        cc_str = str(cc)
-        path_arr = cc_str.split("/")[:-1]
-        path_arr.append("clang-scan-deps")
-        deps_scanner = "/".join(path_arr)
+        sibling_deps_scanner = repository_ctx.path(cc).dirname.get_child("clang-scan-deps")
+        if sibling_deps_scanner.exists:
+            deps_scanner = str(sibling_deps_scanner)
+        else:
+            deps_scanner = which(repository_ctx, "clang-scan-deps", deps_scanner)
     repository_ctx.template(
         "deps_scanner_wrapper.sh",
-        paths[deps_scanner_wrapper_src],
+        Label(deps_scanner_wrapper_src),
         {
             "%{cc}": escape_string(str(cc)),
             "%{deps_scanner}": escape_string(deps_scanner),
@@ -547,9 +557,9 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
         False,
     ), ":")
 
-    gold_or_lld_linker_path = (
-        _find_linker_path(repository_ctx, cc, "lld", is_clang) or
-        _find_linker_path(repository_ctx, cc, "gold", is_clang)
+    linker = (
+        _find_linker(repository_ctx, cc, "lld", is_clang) or
+        _find_linker(repository_ctx, cc, "gold", is_clang)
     )
     cc_path = repository_ctx.path(cc)
     if not str(cc_path).startswith(str(repository_ctx.path(".")) + "/"):
@@ -558,13 +568,19 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     else:
         # cc is inside the repository, don't set -B.
         bin_search_flags = []
-    if not gold_or_lld_linker_path:
+    if not linker:
         ld_path = repository_ctx.path(tool_paths["ld"])
         if ld_path.dirname != cc_path.dirname:
-            bin_search_flags.append("-B" + str(ld_path.dirname))
+            bin_search_flags.append("-B" + escape_string(str(ld_path.dirname)))
+    elif not linker.path.startswith("/"):
+        ld_binary = repository_ctx.which("ld." + linker.path) or repository_ctx.which(linker.path)
+        if ld_binary:
+            ld_path = repository_ctx.path(ld_binary)
+            if ld_path.dirname != cc_path.dirname:
+                bin_search_flags.append("-B" + escape_string(str(ld_path.dirname)))
     force_linker_flags = []
-    if gold_or_lld_linker_path:
-        force_linker_flags.append("-fuse-ld=" + gold_or_lld_linker_path)
+    if linker:
+        force_linker_flags.extend(linker.flags)
 
     # TODO: It's unclear why these flags aren't added on macOS.
     if bin_search_flags and not darwin:
@@ -661,7 +677,6 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
         repository_ctx.file("module.modulemap", _generate_system_module_map(
             repository_ctx,
             builtin_include_directories,
-            paths["@rules_cc//cc/private/toolchain:generate_system_module_map.sh"],
         ))
     extra_flags_per_feature = {}
     if is_clang:
@@ -683,7 +698,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     write_builtin_include_directory_paths(repository_ctx, cc, builtin_include_directories)
     repository_ctx.template(
         "BUILD",
-        paths["@rules_cc//cc/private/toolchain:BUILD.tpl"],
+        Label("@rules_cc//cc/private/toolchain:BUILD.tpl"),
         # @unsorted-dict-items
         {
             "%{abi_libc_version}": escape_string(get_env_var(

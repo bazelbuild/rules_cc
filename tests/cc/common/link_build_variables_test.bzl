@@ -1,9 +1,11 @@
 """Tests for link build variables."""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@rules_testing//lib:analysis_test.bzl", "test_suite")
 load("@rules_testing//lib:truth.bzl", "matching")
 load("@rules_testing//lib:util.bzl", "util")
 load("//cc:cc_binary.bzl", "cc_binary")
+load("//cc:cc_import.bzl", "cc_import")
 load("//cc:cc_library.bzl", "cc_library")
 load("//cc:cc_test.bzl", "cc_test")
 load("//tests/cc/testutil:cc_analysis_test.bzl", "cc_analysis_test")
@@ -484,36 +486,123 @@ def _test_linker_inputs_override_whole_archive_impl(env, target):
             "{bindir}/{package}/lib{test_name}_a.lo",
         )
 
+def _test_cc_import_linker_inputs_override_whole_archive(name):
+    a_target = name + "_a"
+    b_target = name + "_b"
+    c_target = name + "_c"
+    d_target = name + "_d"
+
+    util.helper_target(
+        cc_library,
+        name = a_target,
+        srcs = ["a.cc"],
+        features = ["disable_whole_archive_for_static_lib"],
+    )
+    util.helper_target(
+        cc_library,
+        name = b_target,
+        srcs = ["b.cc"],
+        alwayslink = 1,
+    )
+    util.helper_target(
+        cc_import,
+        name = d_target,
+        static_library = "libd.a",
+        features = ["disable_whole_archive_for_static_lib"],
+    )
+    util.helper_target(
+        cc_binary,
+        name = c_target,
+        linkstatic = 1,
+        linkshared = 1,
+        deps = [":" + a_target, ":" + b_target, ":" + d_target],
+    )
+
+    cc_analysis_test(
+        name = name,
+        impl = _test_cc_import_linker_inputs_override_whole_archive_impl,
+        target = ":" + c_target,
+        with_features = [
+            "disable_whole_archive_for_static_lib_configuration",
+            "uses_whole_archive",
+        ],
+        config_settings = {
+            "//command_line_option:incompatible_remove_legacy_whole_archive": False,
+            "//command_line_option:legacy_whole_archive": True,
+        },
+        attrs = {
+            "_is_macos": attr.label(default = "@platforms//os:macos"),
+        },
+    )
+
+def _test_cc_import_linker_inputs_override_whole_archive_impl(env, target):
+    package = target.label.package
+    name = target.label.name
+    output_path = "{}/lib{}.so".format(package, name)
+    action = env.expect.that_target(target).action_generating(output_path)
+
+    is_macos = env.ctx.target_platform_has_constraint(env.ctx.attr._is_macos[platform_common.ConstraintValueInfo])
+    if is_macos:
+        action.argv().contains(
+            "-Wl,-force_load,{bindir}/{package}/lib{test_name}_b.lo",
+        )
+        action.argv().not_contains_predicate(
+            matching.str_matches("-Wl,-force_load,*_a.a"),
+        )
+        action.argv().not_contains_predicate(
+            matching.str_matches("-Wl,-force_load,*_a.lo"),
+        )
+        action.argv().not_contains_predicate(
+            matching.str_matches("-Wl,-force_load,*libd.a"),
+        )
+        action.argv().contains(
+            "{package}/libd.a",
+        )
+    else:
+        action.argv().contains_at_least([
+            "-Wl,-whole-archive",
+            "{bindir}/{package}/lib{test_name}_b.lo",
+            "-Wl,-no-whole-archive",
+            "{package}/libd.a",
+        ]).in_order()
+        action.argv().not_contains(
+            "{bindir}/{package}/lib{test_name}_a.lo",
+        )
+
 def link_build_variables_tests(name):
+    tests = [
+        _test_force_pic_build_variable,
+        _test_libraries_to_link_are_exported,
+        _test_library_search_directories_are_exported,
+        _test_link_simple_lib_name,
+        _test_link_versioned_lib_name,
+        _test_link_unusual_lib_name,
+        _test_interface_library_building_variables_when_generation_possible,
+        _test_interface_library_building_variables_when_generation_not_allowed,
+        _test_no_ifso_building_when_thin_lto_indexing,
+        _test_output_execpath,
+        _test_output_execpath_is_not_exposed_when_thin_lto_indexing,
+        _test_is_cc_test_link_action_build_variable_for_test,
+        _test_is_cc_test_link_action_build_variable_for_binary,
+        _test_strip_always_opt,
+        _test_strip_always_fastbuild,
+        _test_strip_always_dbg,
+        _test_strip_sometimes_opt,
+        _test_strip_sometimes_fastbuild,
+        _test_strip_sometimes_dbg,
+        _test_strip_never_opt,
+        _test_strip_never_fastbuild,
+        _test_strip_never_dbg,
+        _test_is_using_fission_enabled,
+        _test_is_using_fission_disabled,
+        _test_sysroot_variable,
+        _test_user_link_flags_with_linkopt_option,
+        _test_linker_inputs_override_whole_archive,
+    ]
+    if bazel_features.rules.analysis_tests_can_transition_on_experimental_incompatible_flags and bazel_features.cc.cc_common_is_in_rules_cc:
+        tests.append(_test_cc_import_linker_inputs_override_whole_archive)
+
     test_suite(
         name = name,
-        tests = [
-            _test_force_pic_build_variable,
-            _test_libraries_to_link_are_exported,
-            _test_library_search_directories_are_exported,
-            _test_link_simple_lib_name,
-            _test_link_versioned_lib_name,
-            _test_link_unusual_lib_name,
-            _test_interface_library_building_variables_when_generation_possible,
-            _test_interface_library_building_variables_when_generation_not_allowed,
-            _test_no_ifso_building_when_thin_lto_indexing,
-            _test_output_execpath,
-            _test_output_execpath_is_not_exposed_when_thin_lto_indexing,
-            _test_is_cc_test_link_action_build_variable_for_test,
-            _test_is_cc_test_link_action_build_variable_for_binary,
-            _test_strip_always_opt,
-            _test_strip_always_fastbuild,
-            _test_strip_always_dbg,
-            _test_strip_sometimes_opt,
-            _test_strip_sometimes_fastbuild,
-            _test_strip_sometimes_dbg,
-            _test_strip_never_opt,
-            _test_strip_never_fastbuild,
-            _test_strip_never_dbg,
-            _test_is_using_fission_enabled,
-            _test_is_using_fission_disabled,
-            _test_sysroot_variable,
-            _test_user_link_flags_with_linkopt_option,
-            _test_linker_inputs_override_whole_archive,
-        ],
+        tests = tests,
     )

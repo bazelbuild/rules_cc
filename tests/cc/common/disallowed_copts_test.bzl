@@ -6,7 +6,7 @@ load("@rules_testing//lib:truth.bzl", "matching")
 load("@rules_testing//lib:util.bzl", "util")
 load("//cc:cc_binary.bzl", "cc_binary")
 load("//cc:cc_library.bzl", "cc_library")
-load("//tests/cc/testutil:cc_analysis_test.bzl", "MOCK_ALLOWLIST_TOOLCHAINS", "MOCK_EMPTY_ALLOWLIST_TOOLCHAINS", "cc_analysis_test")
+load("//tests/cc/testutil:cc_analysis_test.bzl", "MOCK_ALLOWLIST_TOOLCHAINS", "MOCK_EMPTY_ALLOWLIST_TOOLCHAINS", "MOCK_TARGET_ALLOWLIST_TOOLCHAINS", "cc_analysis_test")
 
 def _test_pass_impl(_env, _target):
     pass
@@ -19,7 +19,9 @@ def _test_fail_impl(env, target):
 def _test_fail_empty_toolchain_allowlist_impl(env, target):
     env.expect.that_target(target).failures().contains_predicate(
         matching.contains(
-            "- Flag '-Wno-error' in attribute 'copts' (target is not in the allowlist '//custom:toolchain_allowlist'): Custom warning policy guidance.",
+            "- Flag '-Wno-error' in attribute 'copts' disallowed by '{}': Custom warning policy guidance.".format(
+                Label("//tests/cc/testutil/toolchains:k8-compiler_config_with_empty_allowlist"),
+            ),
         ),
     )
 
@@ -111,6 +113,22 @@ def _test_no_copts_target_passes(name, **kwargs):
         **kwargs
     )
 
+def _test_disallowed_copt_in_toolchain_target_allowlist_passes(name, **kwargs):
+    util.helper_target(
+        cc_library,
+        name = name + "/test",
+        copts = ["-Wno-error"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_pass_impl,
+        target = name + "/test",
+        config_settings = {
+            "//command_line_option:extra_toolchains": ",".join(MOCK_TARGET_ALLOWLIST_TOOLCHAINS),
+        },
+        **kwargs
+    )
+
 def disallowed_copts_tests(name):
     test_suite(
         name = name,
@@ -118,6 +136,7 @@ def disallowed_copts_tests(name):
             _test_disallowed_copt_fails,
             _test_disallowed_copt_in_toolchain_allowlist_passes,
             _test_disallowed_copt_cc_binary_in_toolchain_allowlist_passes,
+            _test_disallowed_copt_in_toolchain_target_allowlist_passes,
             _test_disallowed_copt_with_empty_toolchain_allowlist_fails,
             _test_valid_warning_passes,
             _test_no_copts_target_passes,

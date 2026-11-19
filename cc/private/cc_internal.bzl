@@ -13,5 +13,7 @@
 # limitations under the License.
 """Gracefully resolve cc_internal."""
 
+visibility("//cc/...")
+
 # buildifier: disable=native-cc-common
 cc_internal = cc_common.internal_DO_NOT_USE() if hasattr(cc_common, "internal_DO_NOT_USE") else struct()

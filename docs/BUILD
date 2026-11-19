@@ -37,6 +37,7 @@ stardoc(
     input = "//cc/toolchains/impl:documented_api.bzl",
     deps = [
         "//cc/toolchains:toolchain_rules",
+        "//cc/toolchains/impl:documented_api",
     ],
 )
 
@@ -44,70 +45,70 @@ stardoc(
     name = "cc_binary",
     out = "cc_binary.md",
     input = "//cc:cc_binary.bzl",
-    deps = ["//cc:core_rules"],
+    deps = ["//cc:cc_binary"],
 )
 
 stardoc(
     name = "cc_library",
     out = "cc_library.md",
     input = "//cc:cc_library.bzl",
-    deps = ["//cc:core_rules"],
+    deps = ["//cc:cc_library"],
 )
 
 stardoc(
     name = "cc_import",
     out = "cc_import.md",
     input = "//cc:cc_import.bzl",
-    deps = ["//cc:core_rules"],
+    deps = ["//cc:cc_import"],
 )
 
 stardoc(
     name = "cc_shared_library",
     out = "cc_shared_library.md",
     input = "//cc:cc_shared_library.bzl",
-    deps = ["//cc:core_rules"],
+    deps = ["//cc:cc_shared_library"],
 )
 
 stardoc(
     name = "cc_static_library",
     out = "cc_static_library.md",
     input = "//cc:cc_static_library.bzl",
-    deps = ["//cc:core_rules"],
+    deps = ["//cc:cc_static_library"],
 )
 
 stardoc(
     name = "cc_test",
     out = "cc_test.md",
     input = "//cc:cc_test.bzl",
-    deps = ["//cc:core_rules"],
+    deps = ["//cc:cc_test"],
 )
 
 stardoc(
     name = "cc_common",
     out = "cc_common.md",
     input = "//cc/common:cc_common.bzl",
-    deps = ["//cc/common"],
+    deps = ["//cc/common:cc_common"],
 )
 
 stardoc(
     name = "cc_info",
     out = "cc_info.md",
     input = "//cc/common:cc_info.bzl",
-    deps = ["//cc/common"],
+    deps = ["//cc/common:cc_info"],
 )
 
 stardoc(
     name = "objc_import",
     out = "objc_import.md",
     input = "//cc:objc_import.bzl",
-    deps = ["//cc:core_rules"],
+    deps = ["//cc:objc_import"],
 )
 
 stardoc(
     name = "objc_library",
     out = "objc_library.md",
     input = "//cc:objc_library.bzl",
-    deps = ["//cc:core_rules"],
+    deps = ["//cc:objc_library"],
 )
 
 expand_template(

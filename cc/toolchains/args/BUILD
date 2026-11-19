@@ -1,3 +1,4 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//cc/toolchains:feature.bzl", "cc_feature")
 load("//cc/toolchains:feature_set.bzl", "cc_feature_set")
 
@@ -36,6 +37,7 @@ cc_feature_set(
         "//cc/toolchains/args/linkstamp_flags:feature",
         "//cc/toolchains/args/library_search_directories:feature",
         "//cc/toolchains/args/dependency_file:feature",
+        "//cc/toolchains/args/cpp_modules:feature",
 
         # NOTE: This should come below default flags so user flags can override them
         "//cc/toolchains/args/compile_flags:feature",
@@ -64,6 +66,7 @@ filegroup(
         "//cc/toolchains/args/compile_flags:srcs",
         "//cc/toolchains/args/compiler_input_flags:srcs",
         "//cc/toolchains/args/compiler_output_flags:srcs",
+        "//cc/toolchains/args/cpp_modules:srcs",
         "//cc/toolchains/args/def_file:srcs",
         "//cc/toolchains/args/dependency_file:srcs",
         "//cc/toolchains/args/external_include_paths:srcs",
@@ -89,4 +92,10 @@ filegroup(
         "//cc/toolchains/args/strip_flags:srcs",
         "//cc/toolchains/args/thin_lto:srcs",
     ],
+)
+
+bzl_library(
+    name = "sysroot",
+    srcs = ["sysroot.bzl"],
+    deps = ["//cc/toolchains:args"],
 )

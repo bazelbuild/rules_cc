@@ -1,3 +1,4 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//cc:cc_library.bzl", "cc_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -54,4 +55,9 @@ filegroup(
         "//cc:srcs",
     ],
     visibility = ["//:__subpackages__"],
+)
+
+bzl_library(
+    name = "local_bazel",
+    srcs = ["local_bazel.bzl"],
 )
