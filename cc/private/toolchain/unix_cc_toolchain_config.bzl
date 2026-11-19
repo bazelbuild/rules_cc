@@ -1652,7 +1652,9 @@ def _impl(ctx):
                 flag_groups = ([
                     flag_group(flags = ctx.attr.coverage_compile_flags),
                 ] if ctx.attr.coverage_compile_flags else []),
-                with_features = [with_feature_set(features = ["coverage_instrumented"])],
+                # Earlier Bazel versions do not request coverage_instrumented.
+                # Keep their legacy behavior (instrument everything).
+                with_features = [with_feature_set(features = ["coverage_instrumented"])] if ge("9.0.0") else [],
             ),
             flag_set(
                 actions = all_link_actions + lto_index_actions,
