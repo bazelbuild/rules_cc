@@ -21,6 +21,7 @@ def rules_cc_integration_test(
         test_script,
         data = [],
         env = {},
+        timeout = "long",
         **kwargs):
     """Integration test for rules_cc.
 
@@ -29,6 +30,7 @@ def rules_cc_integration_test(
         test_script: The shell script for the test.
         data: (optional) Additional data dependencies required for the test.
         env: (optional) Additional environment variables to pass to the test.
+        timeout: (optional) Timeout for the test target.
         **kwargs: Additional arguments to pass to the test target.
     """
 
@@ -55,5 +57,6 @@ def rules_cc_integration_test(
             "@rules_shell//shell/runfiles",
         ] + data,
         env = test_env,
+        timeout = timeout,
         **kwargs
     )

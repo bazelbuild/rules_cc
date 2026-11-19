@@ -33,7 +33,15 @@ def _local_bazel_import_impl(repository_ctx):
         if bazel_path == None:
             fail("Neither '%s' or '%s' not found on PATH." % (bazel_real, bazel_name))
 
-    repository_ctx.symlink(bazel_path, link_name)
+    if "windows" in repository_ctx.os.name.lower():
+        repository_ctx.symlink(bazel_path, link_name)
+    else:
+        # Dereference and copy instead of symlinking so the binary remains
+        # accessible inside sandboxes with --sandbox_tmpfs_path=/tmp when
+        # USE_BAZEL_VERSION points to a binary under /tmp.
+        result = repository_ctx.execute(["cp", "-L", str(bazel_path), link_name])
+        if result.return_code != 0:
+            fail("Failed to copy '%s' to '%s': %s" % (bazel_path, link_name, result.stderr))
 
     # sh_binary on Windows must end with .exe but we want a consistent target name, so we
     # wrap it in an alias.
