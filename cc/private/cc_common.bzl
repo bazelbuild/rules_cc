@@ -495,11 +495,9 @@ def _compile(
         separate_module_headers = _UNBOUND,
         module_interfaces = _UNBOUND,
         non_compilation_additional_inputs = _UNBOUND):
-    if module_map != _UNBOUND or \
-       additional_module_maps != _UNBOUND or \
+    if additional_module_maps != _UNBOUND or \
        additional_exported_hdrs != _UNBOUND or \
        propagate_module_map_to_compile_action != _UNBOUND or \
-       do_not_generate_module_map != _UNBOUND or \
        code_coverage_enabled != _UNBOUND or \
        purpose != _UNBOUND or \
        hdrs_checking_mode != _UNBOUND or \
