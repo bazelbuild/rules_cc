@@ -51,7 +51,7 @@ types = struct(
 
 def _decode_variable_type(encoded):
     # cc_variable is the sole writer of the private rule's JSON attribute.
-    return json.decode(encoded)  # ty: ignore[non-static-type, unsound-return-statement]
+    return json.decode(encoded)  # ty: ignore[non-static-type, unsound-return]
 
 def _cc_variable_impl(ctx):
     # type: (...) -> list[VariableInfo]

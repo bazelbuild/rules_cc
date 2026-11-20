@@ -59,7 +59,7 @@ def _compilation_artifacts_init(
         [s for s in srcs if s.is_directory or  # ty: ignore[not-iterable]
                             s.extension in COMPILABLE_OR_PRECOMPILED_SRC_EXTENSIONS]
     ):
-        archive = intermediate_artifacts.archive()  # ty: ignore[unresolved-attribute]
+        archive = intermediate_artifacts.archive()  # ty: ignore[missing-union-attribute]
     else:
         archive = None
     return {
