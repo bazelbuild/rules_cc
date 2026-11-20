@@ -291,6 +291,7 @@ def get_cc_toolchain_provider(ctx, attributes):
         supports_header_parsing = attributes.supports_header_parsing,
         link_dynamic_library_tool = attributes.link_dynamic_library_tool,
         grep_includes = attributes.grep_includes,
+        grep_includes_execution_platform = attributes.grep_includes_execution_platform,
         aggregate_ddi = attributes.aggregate_ddi,
         generate_modmap = attributes.generate_modmap,
         allowlist_for_layering_check = attributes.allowlist_for_layering_check,

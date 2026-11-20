@@ -95,6 +95,7 @@ def _create_cc_toolchain_info(
         objcopy_files,
         aggregate_ddi,
         generate_modmap,
+        grep_includes_execution_platform = None,
         disallowed_copts_infos = [],
         extra_cpp_configuration = None):
     cc_toolchain_info = dict(
@@ -147,6 +148,7 @@ def _create_cc_toolchain_info(
         _cpp_configuration = cpp_configuration,
         _link_dynamic_library_tool = link_dynamic_library_tool,
         _grep_includes = grep_includes,
+        _grep_includes_execution_platform = grep_includes_execution_platform,
         _if_so_builder = if_so_builder,
         _is_tool_configuration = is_tool_configuration,
         _is_sibling_repository_layout = is_sibling_repository_layout,
@@ -244,6 +246,7 @@ CcToolchainInfo, _ = provider(
         "_cpp_configuration": "INTERNAL API, DO NOT USE!",
         "_link_dynamic_library_tool": "INTERNAL API, DO NOT USE!",
         "_grep_includes": "INTERNAL API, DO NOT USE!",
+        "_grep_includes_execution_platform": "INTERNAL API, DO NOT USE!",
         "_if_so_builder": "INTERNAL API, DO NOT USE!",
         "_is_tool_configuration": "INTERNAL API, DO NOT USE!",
         "_is_sibling_repository_layout": "INTERNAL API, DO NOT USE!",

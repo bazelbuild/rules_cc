@@ -17,6 +17,7 @@
 load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/common:cc_helper.bzl", "cc_helper")
 load("//cc/common:semantics.bzl", "semantics")
+load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 load("//cc/private/rules_impl/fdo:fdo_context.bzl", "create_fdo_context")
 load("//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
 load("//cc/toolchains:cc_toolchain_info.bzl", "ActionTypeSetInfo", "FeatureSetInfo", "ToolConfigInfo")
@@ -143,6 +144,9 @@ def _attributes(ctx):
         all_files = all_files,
         link_dynamic_library_tool = ctx.file._link_dynamic_library_tool,
         grep_includes = _single_file(ctx, "grep_includes"),
+        grep_includes_execution_platform = (
+            None if semantics.is_bazel else _cc_internal.exec_group_execution_platform(ctx, "grep_includes")
+        ),
         aggregate_ddi = _single_file(ctx, "_aggregate_ddi"),
         generate_modmap = _single_file(ctx, "_generate_modmap"),
         module_map = ctx.attr.module_map,
@@ -195,6 +199,9 @@ def _cc_toolchain_impl(ctx):
 cc_toolchain = rule(
     implementation = _cc_toolchain_impl,
     fragments = ["cpp"],
+    exec_groups = {
+        "grep_includes": exec_group(),
+    },
     doc = """
 <p>Represents a C++ toolchain.</p>
 
