@@ -55,9 +55,11 @@ def _compilation_artifacts_init(
     # headers, we don't generate an archive.
     if (
         non_arc_srcs or
-        [s for s in srcs if s.is_directory or
-                            s.extension in COMPILABLE_OR_PRECOMPILED_SRC_EXTENSIONS]
+        [s for s in (srcs or ()) if s.is_directory or
+                                    s.extension in COMPILABLE_OR_PRECOMPILED_SRC_EXTENSIONS]
     ):
+        if intermediate_artifacts == None:
+            fail("intermediate_artifacts is required to produce an archive")
         archive = intermediate_artifacts.archive()
     else:
         archive = None
