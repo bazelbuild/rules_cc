@@ -129,3 +129,7 @@ LINK_TARGET_TYPE = struct(
 def is_dynamic_library(link_target):
     """Returns true iff this link type is a dynamic library or transitive dynamic library."""
     return link_target in [LINK_TARGET_TYPE.NODEPS_DYNAMIC_LIBRARY, LINK_TARGET_TYPE.DYNAMIC_LIBRARY]
+
+def is_nodeps_dynamic_library(link_target):
+    """Returns true iff this link type is a nodeps dynamic library."""
+    return link_target == LINK_TARGET_TYPE.NODEPS_DYNAMIC_LIBRARY

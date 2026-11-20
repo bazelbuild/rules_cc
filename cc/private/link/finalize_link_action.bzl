@@ -21,7 +21,7 @@ load("//cc/private/compile:linkstamp_compile.bzl", "register_linkstamp_compile_a
 load("//cc/private/link:collect_solib_dirs.bzl", "collect_solib_dirs")
 load("//cc/private/link:create_libraries_to_link_values.bzl", "add_libraries_to_link", "add_object_files_to_link", "process_objects_for_lto")
 load("//cc/private/link:link_build_variables.bzl", "setup_common_linking_variables")
-load("//cc/private/link:target_types.bzl", "LINKING_MODE", "LINK_TARGET_TYPE", "USE_ARCHIVER", "USE_LINKER", "is_dynamic_library")
+load("//cc/private/link:target_types.bzl", "LINKING_MODE", "LINK_TARGET_TYPE", "USE_ARCHIVER", "USE_LINKER", "is_dynamic_library", "is_nodeps_dynamic_library")
 load("//cc/private/rules_impl:native_cc_common.bzl", _cc_common_internal = "native_cc_common")
 
 def finalize_link_action(
@@ -424,10 +424,9 @@ def _can_split_command_line(
         interface_output):
     if not cc_toolchain._supports_param_files:
         return False
-    elif is_dynamic_library(link_type):
-        # On Unix, we currently can't split dynamic library links if they have interface outputs.
-        # That was probably an unintended side effect of the change that introduced interface
-        # outputs.
+    elif is_nodeps_dynamic_library(link_type):
+        # On Unix, we do not split nodeps dynamic library links when they have interface outputs
+        # (legacy behavior, avoiding param-file rewriting for single-target libraries).
         if interface_output:
             # On Windows, We can always split the command line when building DLL.
             return feature_configuration.is_enabled(feature_names.TARGETS_WINDOWS)
