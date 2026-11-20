@@ -71,7 +71,6 @@ def _cc_library_impl(ctx):
         local_includes = cc_helper.include_dirs(ctx, additional_make_variable_substitutions, attr = "local_includes"),
         purpose = "cc_library-compile",
         srcs = cc_helper.get_srcs(ctx),
-        module_interfaces = cc_helper.get_cpp_module_interfaces(ctx),
         private_hdrs = cc_helper.get_private_hdrs(ctx),
         public_hdrs = cc_helper.get_public_hdrs(ctx),
         compilation_contexts = compilation_contexts,
@@ -529,6 +528,7 @@ ALLOWED_SRC_FILES.extend(cc_helper.extensions.PIC_ARCHIVE)
 ALLOWED_SRC_FILES.extend(cc_helper.extensions.ALWAYSLINK_LIBRARY)
 ALLOWED_SRC_FILES.extend(cc_helper.extensions.ALWAYSLINK_PIC_LIBRARY)
 ALLOWED_SRC_FILES.extend(cc_helper.extensions.SHARED_LIBRARY)
+ALLOWED_SRC_FILES.extend(cc_helper.extensions.CPP_MODULE_INTERFACE)
 
 SRCS_FOR_COMPILATION = []
 SRCS_FOR_COMPILATION.extend(cc_helper.extensions.CC_SOURCE)

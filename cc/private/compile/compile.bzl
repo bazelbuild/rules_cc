@@ -137,7 +137,6 @@ def compile(
         language = None,
         purpose = None,
         separate_module_headers = [],
-        module_interfaces = [],
         non_compilation_additional_inputs = [],
         progress_message_prefix = None):
     """Should be used for C++ compilation.
@@ -206,8 +205,6 @@ def compile(
         language: undocumented
         purpose: undocumented
         separate_module_headers: undocumented
-        module_interfaces: The list of module interfaces source files to be compiled. Note: this is an
-            experimental feature, only enabled with --experimental_cpp_modules
         non_compilation_additional_inputs: undocumented
         progress_message_prefix: A prefix to be added to logged progress messages.
 
@@ -249,9 +246,6 @@ def compile(
     if not generate_pic_action and not generate_no_pic_action:
         fail("Either PIC or no PIC actions have to be created.")
 
-    if module_interfaces and not feature_configuration.is_enabled(feature_names.CPP_MODULES):
-        fail("to use C++20 Modules, the feature {} must be enabled".format(feature_names.CPP_MODULES))
-
     language_normalized = "c++" if language == None else language
     language_normalized = language_normalized.replace("+", "p").upper()
     source_category = SOURCE_CATEGORY_CC if language_normalized == "CPP" else SOURCE_CATEGORY_CC_AND_OBJC
@@ -280,11 +274,12 @@ def compile(
         srcs_with_labels,
         source_category,
     )
-    module_interfaces_with_labels = _to_file_label_tuple_list(module_interfaces, label)
     _add_suitable_srcs_to_module_interfaces_sources(
         module_interfaces_sources,
-        module_interfaces_with_labels,
+        srcs_with_labels,
     )
+    if module_interfaces_sources and not feature_configuration.is_enabled(feature_names.CPP_MODULES):
+        fail("to use C++20 Modules, the feature {} must be enabled".format(feature_names.CPP_MODULES))
 
     public_hdrs_artifacts = _to_file_list(public_hdrs)
     private_hdrs_artifacts = _to_file_list(private_hdrs)
@@ -457,14 +452,15 @@ def _add_suitable_srcs_to_compilation_unit_sources(
 
 def _add_suitable_srcs_to_module_interfaces_sources(
         module_interfaces_sources,
-        module_interfaces_with_labels):
-    """Adds CPP_SOURCE_TYPE_SOURCE to module_interfaces_sources"""
-    for source, label in module_interfaces_with_labels:
-        module_interfaces_sources[source] = _CppSourceInfo(
-            label = label,
-            source = source,
-            type = CPP_SOURCE_TYPE_SOURCE,
-        )
+        srcs_with_labels):
+    """Adds C++20 module interfaces among srcs to module_interfaces_sources."""
+    for source, label in srcs_with_labels:
+        if "." + source.extension in extensions.CPP_MODULE_INTERFACE:
+            module_interfaces_sources[source] = _CppSourceInfo(
+                label = label,
+                source = source,
+                type = CPP_SOURCE_TYPE_SOURCE,
+            )
 
 def _to_file_list(list_of_files_or_tuples):
     """Converts a list that may contain File objects or tuples into  a list of File objects.

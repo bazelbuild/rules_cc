@@ -14,7 +14,7 @@ def _test_cpp_modules_cc_library_configuration_no_flags(name):
     util.helper_target(
         cc_library,
         name = name + "_lib",
-        module_interfaces = [name + "/foo.cppm"],
+        srcs = [name + "/foo.cppm"],
     )
     cc_analysis_test(
         name = name,
@@ -28,7 +28,7 @@ def _test_cpp_modules_cc_binary_configuration_no_flags(name):
     util.helper_target(
         cc_binary,
         name = name + "_bin",
-        module_interfaces = [name + "/foo.cppm"],
+        srcs = [name + "/foo.cppm"],
     )
     cc_analysis_test(
         name = name,
@@ -42,7 +42,7 @@ def _test_cpp_modules_cc_test_configuration_no_flags(name):
     util.helper_target(
         cc_test,
         name = name + "_test",
-        module_interfaces = [name + "/foo.cppm"],
+        srcs = [name + "/foo.cppm"],
     )
     cc_analysis_test(
         name = name,
@@ -61,7 +61,7 @@ def _test_cpp_modules_cc_library_configuration_no_features(name):
     util.helper_target(
         cc_library,
         name = name + "_lib",
-        module_interfaces = [name + "/foo.cppm"],
+        srcs = [name + "/foo.cppm"],
     )
     cc_analysis_test(
         name = name,
@@ -78,7 +78,7 @@ def _test_cpp_modules_cc_binary_configuration_no_features(name):
     util.helper_target(
         cc_binary,
         name = name + "_bin",
-        module_interfaces = [name + "/foo.cppm"],
+        srcs = [name + "/foo.cppm"],
     )
     cc_analysis_test(
         name = name,
@@ -95,7 +95,7 @@ def _test_cpp_modules_cc_test_configuration_no_features(name):
     util.helper_target(
         cc_test,
         name = name + "_test",
-        module_interfaces = [name + "/foo.cppm"],
+        srcs = [name + "/foo.cppm"],
     )
     cc_analysis_test(
         name = name,
