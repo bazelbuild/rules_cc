@@ -168,6 +168,7 @@ cc_library(
     }),
     deps = [
         "hdr_only",  # copybara-uncomment-this-please
+        "linkopts_only",
         "qux2",  # copybara-uncomment-this-please
         # do not sort
         "bar",
@@ -177,6 +178,14 @@ cc_library(
         "prebuilt",
         "//tests/builtins_bzl/cc/cc_shared_library/test3:diff_pkg",
     ],
+)
+
+cc_library(
+    name = "linkopts_only",
+    linkopts = select({
+        "@platforms//os:linux": ["-Wl,-rpath,linkopts_only"],
+        "//conditions:default": [],
+    }),
 )
 
 wrapped_cc_lib(
