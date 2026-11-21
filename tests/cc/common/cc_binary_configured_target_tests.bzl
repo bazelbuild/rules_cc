@@ -988,6 +988,46 @@ def _test_cc_runtimes_added_to_libraries_impl(env, target):
         matching.file_basename_equals("linkstamp.o"),
     ])
 
+def _test_runfiles_library_linkable_more_than_once(name, **kwargs):
+    for lib in ["a", "b"]:
+        util.helper_target(
+            cc_library,
+            name = name + "/" + lib,
+            srcs = [lib + ".cc"],
+            deps = ["//cc/runfiles"],
+        )
+        util.helper_target(
+            cc_shared_library,
+            name = name + "/" + lib + "_shared",
+            deps = [name + "/" + lib],
+        )
+    util.helper_target(
+        cc_binary,
+        name = name + "/bin",
+        srcs = ["main.cc"],
+        dynamic_deps = [name + "/a_shared", name + "/b_shared"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_runfiles_library_linkable_more_than_once_impl,
+        target = name + "/bin",
+        test_features = [
+            FEATURE_NAMES.supports_pic,
+            FEATURE_NAMES.supports_dynamic_linker,
+        ],
+        **kwargs
+    )
+
+def _test_runfiles_library_linkable_more_than_once_impl(env, target):
+    # Both shared libraries link the runfiles library statically. Without the
+    # LINKABLE_MORE_THAN_ONCE tag, analysis of the binary fails with "Two
+    # shared libraries in dependencies link the same library statically".
+    link_action = link_action_subject.from_target(env, target)
+    link_action.inputs().contains_at_least_predicates([
+        matching.file_basename_contains("a_shared"),
+        matching.file_basename_contains("b_shared"),
+    ])
+
 def _test_ignore_custom_malloc(name, **kwargs):
     _create_dep_tree(name, use_actual_cc_binary = True)
     custom_malloc_label = Label("//tests/cc/common:" + name + "/system_malloc")
@@ -2209,6 +2249,7 @@ def cc_binary_configured_target_tests(name):
             _test_linking_mode_features_true_off,
             _test_linking_mode_features_false_off,
             _test_cc_runtimes_added_to_libraries,
+            _test_runfiles_library_linkable_more_than_once,
         ])
 
     test_suite(
