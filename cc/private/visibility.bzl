@@ -73,6 +73,8 @@ PRIVATE_STARLARKIFICATION_ALLOWLIST = [
     ("build_bazel_rules_swift", "swift/internal"),
     # Python rules
     ("", "third_party/bazel_rules/rules_python"),
+    # Zig rules
+    ("rules_zig", "zig/private"),
     # Various
     ("", "research/colab"),
     ("", "javatests/com/google/devtools/grok/kythe"),
