@@ -33,7 +33,8 @@ load(
 )
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
-load("@rules_cc//cc/toolchains:feature_injection.bzl", "FeatureInfo", "convert_feature")
+load("@rules_cc//cc/toolchains:feature_injection.bzl", "INJECTED_FEATURE_PROVIDERS", "convert_injected_features")
+load("@rules_cc//cc/toolchains/args/std:standards.bzl", "MSVC_CPP_STANDARDS", "MSVC_C_STANDARDS")
 
 all_compile_actions = [
     ACTION_NAMES.c_compile,
@@ -800,9 +801,12 @@ def _impl(ctx):
             name = "default_c_std",
             enabled = True,
             flag_sets = [
+                # Dropped when a C standard feature from
+                # @rules_cc//cc/toolchains/args/std/msvc is selected instead.
                 flag_set(
                     actions = all_c_compile_actions,
                     flag_groups = [flag_group(flags = ["/std:c17"])],
+                    with_features = [with_feature_set(not_features = MSVC_C_STANDARDS.keys())],
                 ),
             ],
         )
@@ -818,6 +822,9 @@ def _impl(ctx):
                             flags = ["/std:c++17"],
                         ),
                     ],
+                    # Dropped when a C++ standard feature from
+                    # @rules_cc//cc/toolchains/args/std/msvc is selected instead.
+                    with_features = [with_feature_set(not_features = MSVC_CPP_STANDARDS.keys())],
                 ),
             ],
         )
@@ -1781,8 +1788,7 @@ def _impl(ctx):
     )
     features.extend([windows_quoting_for_param_files_feature, cpp_modules_feature, cpp_module_modmap_file_feature, cpp20_module_compile_flags_feature])
 
-    extra_rules_based_features = depset(ctx.attr.extra_enabled_features + ctx.attr.extra_known_features)
-    features.extend([convert_feature(extra_feature[FeatureInfo], enabled = extra_feature in ctx.attr.extra_enabled_features) for extra_feature in extra_rules_based_features.to_list()])
+    features.extend(convert_injected_features(ctx.attr.extra_enabled_features, ctx.attr.extra_known_features))
 
     return cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
@@ -1818,19 +1824,19 @@ cc_toolchain_config = rule(
         "default_compile_flags": attr.string_list(default = []),
         "default_link_flags": attr.string_list(default = []),
         "extra_enabled_features": attr.label_list(
-            providers = [FeatureInfo],
+            providers = INJECTED_FEATURE_PROVIDERS,
             default = [],
             doc = """
-Extra `cc_feature` features to add to this toolchain in an initially enabled state.
+Extra `cc_feature` or `cc_feature_set` features to add to this toolchain in an initially enabled state.
 This attribute has limited integration with `cc_feature`, and does not run additional correctness checks or handle things like `data` files.
 This is only offered as a migration bridge for projects transitioning to rule-based toolchain configurations, or sharing of simple argument sets with older toolchains.
 """,
         ),
         "extra_known_features": attr.label_list(
-            providers = [FeatureInfo],
+            providers = INJECTED_FEATURE_PROVIDERS,
             default = [],
             doc = """
-Extra `cc_feature` features to add to this toolchain in an initially disabled state.
+Extra `cc_feature` or `cc_feature_set` features to add to this toolchain in an initially disabled state.
 This attribute has limited integration with `cc_feature`, and does not run additional correctness checks or handle things like `data` files.
 This is only offered as a migration bridge for projects transitioning to rule-based toolchain configurations, or sharing of simple argument sets with older toolchains.
 """,
