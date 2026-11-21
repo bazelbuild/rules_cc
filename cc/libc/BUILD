@@ -93,6 +93,11 @@ config_setting(
 # The C standard libraries developed as part of the respective BSD operating
 # system.
 config_setting(
+    name = "dragonfly",
+    flag_values = {":libc": "dragonfly"},
+)
+
+config_setting(
     name = "freebsd",
     flag_values = {":libc": "freebsd"},
 )

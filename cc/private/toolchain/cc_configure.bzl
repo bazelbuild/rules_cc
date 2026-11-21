@@ -34,6 +34,16 @@ def _should_disable_toolchain(repository_ctx):
 
     return False
 
+def _use_legacy_bsd_toolchain(repository_ctx):
+    """Returns true if the static BSD toolchain is requested instead of autoconfiguration.
+
+    Only FreeBSD and OpenBSD can honour it: BUILD.static.bsd describes those two
+    and no other. It is a way back for the platforms that were on the static
+    crosstool before, not a switch to extend, and it goes when that crosstool
+    does.
+    """
+    return repository_ctx.os.environ.get("BAZEL_USE_LEGACY_BSD_TOOLCHAIN", "0") == "1"
+
 def cc_autoconf_toolchains_impl(repository_ctx):
     """Generate BUILD file with 'toolchain' targets for the local host C++ toolchain.
 
@@ -86,11 +96,11 @@ def cc_autoconf_impl(repository_ctx, overriden_tools = dict()):
         repository_ctx.template("BUILD", Label("@rules_cc//cc/private/toolchain:BUILD.empty.tpl"), {
             "%{cpu}": get_cpu_value(repository_ctx),
         })
-    elif cpu_value == "freebsd" or cpu_value == "openbsd":
-        # This is defaulting to a static crosstool. We should eventually
-        # autoconfigure this platform too. Theoretically, FreeBSD and OpenBSD
-        # should be straightforward to add but we cannot run them in a Docker
-        # container so skipping until we have proper tests for these platforms.
+    elif cpu_value in ("freebsd", "openbsd") and _use_legacy_bsd_toolchain(repository_ctx):
+        # The static crosstool predates the autoconfiguration on the BSDs. It
+        # writes in the compiler, the include directories and the link
+        # libraries of FreeBSD and OpenBSD, and is kept for
+        # BAZEL_USE_LEGACY_BSD_TOOLCHAIN=1.
         copy_file(repository_ctx, Label("@rules_cc//cc/private/toolchain:armeabi_cc_toolchain_config.bzl"), "armeabi_cc_toolchain_config.bzl")
         copy_file(repository_ctx, Label("@rules_cc//cc/private/toolchain:bsd_cc_toolchain_config.bzl"), "cc_toolchain_config.bzl")
         copy_file(repository_ctx, Label("@rules_cc//cc/private/toolchain:BUILD.static.bsd"), "BUILD")
@@ -140,6 +150,7 @@ cc_autoconf = repository_rule(
         "BAZEL_TARGET_LIBC",
         "BAZEL_TARGET_SYSTEM",
         "BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN",
+        "BAZEL_USE_LEGACY_BSD_TOOLCHAIN",
         "BAZEL_USE_LEGACY_MACOS_TOOLCHAIN",
         "BAZEL_USE_LLVM_NATIVE_COVERAGE",
         "BAZEL_WIN32_WINNT",
