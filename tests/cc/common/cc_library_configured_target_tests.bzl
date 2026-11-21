@@ -244,6 +244,31 @@ def _test_coverage_module_action_has_no_gcno_file_impl(env, target):
         "{package}/_objs/{test_name}/instrumented/instrumented.pcm",
     ])
 
+# Without include scanning, every transitive module is a mandatory input of a compile, so the .d
+# file can prune the textual headers that a compile using modules doesn't include.
+def _test_header_modules_source_compile_has_dotd_file(name, **kwargs):
+    util.helper_target(
+        cc_library,
+        name = name + "/lib",
+        srcs = ["source.cc"],
+        hdrs = ["header.h"],
+        features = ["header_modules"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_header_modules_source_compile_has_dotd_file_impl,
+        target = name + "/lib",
+        test_features = ["header_modules_feature_configuration"],
+        **kwargs
+    )
+
+def _test_header_modules_source_compile_has_dotd_file_impl(env, target):
+    env.expect.that_target(target).action_generating(
+        "{package}/_objs/{test_name}/lib/source.o",
+    ).outputs().contains_at_least([
+        "{package}/_objs/{test_name}/lib/source.d",
+    ])
+
 def cc_library_configured_target_tests(name):
     test_suite(
         name = name,
@@ -256,5 +281,6 @@ def cc_library_configured_target_tests(name):
             _test_coverage_implementation_dep_makes_target_instrumented,
             _test_coverage_unmatched_target_is_not_instrumented,
             _test_coverage_module_action_has_no_gcno_file,
+            _test_header_modules_source_compile_has_dotd_file,
         ] if bazel_features.cc.cc_common_is_in_rules_cc else [],
     )
