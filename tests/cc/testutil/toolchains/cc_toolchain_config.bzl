@@ -31,6 +31,7 @@ _cpp_modules_feature = feature(
 )
 
 _no_copts_tokenization_feature = feature(name = FEATURE_NAMES.no_copts_tokenization)
+_no_defines_tokenization_feature = feature(name = FEATURE_NAMES.no_defines_tokenization)
 
 _disable_pbh_feature = feature(name = FEATURE_NAMES.disable_pbh)
 
@@ -1837,6 +1838,7 @@ _feature_name_to_feature = {
     FEATURE_NAMES.strip_debug_symbols: _strip_debug_symbols_feature,
     FEATURE_NAMES.disable_pbh: _disable_pbh_feature,
     FEATURE_NAMES.no_copts_tokenization: _no_copts_tokenization_feature,
+    FEATURE_NAMES.no_defines_tokenization: _no_defines_tokenization_feature,
     FEATURE_NAMES.optional_cc_flags_feature: _optional_cc_flags_feature,
     FEATURE_NAMES.cpp_compile_with_requirements: _cpp_compile_with_requirements,
     FEATURE_NAMES.generate_pdb_file: _generate_pdb_file_feature,
