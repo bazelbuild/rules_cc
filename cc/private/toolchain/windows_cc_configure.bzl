@@ -930,11 +930,6 @@ def configure_windows_toolchain(repository_ctx):
     )
     copy_file(
         repository_ctx,
-        Label("@rules_cc//cc/private/toolchain:armeabi_cc_toolchain_config.bzl"),
-        "armeabi_cc_toolchain_config.bzl",
-    )
-    copy_file(
-        repository_ctx,
         Label("@rules_cc//cc/private/toolchain:msys_gcc_installation_error.bat"),
         "msys_gcc_installation_error.bat",
     )

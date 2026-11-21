@@ -113,16 +113,6 @@ alias(
 )
 
 bzl_library(
-    name = "armeabi_cc_toolchain_config",
-    srcs = ["armeabi_cc_toolchain_config.bzl"],
-    deps = [
-        "//cc:cc_toolchain_config_lib",
-        "//cc/common:cc_common",
-        "//cc/toolchains:cc_toolchain_config_info",
-    ],
-)
-
-bzl_library(
     name = "bsd_cc_toolchain_config",
     srcs = ["bsd_cc_toolchain_config.bzl"],
     deps = [
