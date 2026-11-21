@@ -2091,7 +2091,7 @@ def _test_propeller_host_builds(name, **kwargs):
         name = name + "/lib_genrule",
         srcs = [],
         outs = [name + "/libfile.cc"],
-        cmd = "$(location :" + name + "/gen_lib) > \"$@\"",
+        cmd = "$(execpath :" + name + "/gen_lib) > \"$@\"",
         tools = [":" + name + "/gen_lib"],
     )
     util.helper_target(

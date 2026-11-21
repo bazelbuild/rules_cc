@@ -1329,7 +1329,7 @@ def _test_additional_linker_inputs(name, **kwargs):
         name = name + "/bin",
         srcs = ["main.cc"],
         additional_linker_inputs = [":" + name + "/gen_extra"],
-        linkopts = ["--option=$(location :" + name + "/gen_extra)"],
+        linkopts = ["--option=$(execpath :" + name + "/gen_extra)"],
     )
     cc_analysis_test(
         name = name,
