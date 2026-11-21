@@ -19,6 +19,9 @@ perform a specific action. Bazel prescribes a set of known action types that are
 typical C/C++/ObjC actions like compiling, linking, and archiving. The set of well-known action
 types can be found in [@rules_cc//cc/toolchains/actions:BUILD](https://github.com/bazelbuild/rules_cc/tree/main/cc/toolchains/actions/BUILD).
 
+On Bazel 8 and later, action types are configuration-independent. Give
+`action_name` a fixed value; select action types on `cc_args.actions` instead.
+
 It's possible to create project-specific action types for use in toolchains. Be careful when
 doing this, because every toolchain that encounters the action will need to be configured to
 support the custom action type. If your project is a library, avoid creating new action types as
@@ -58,6 +61,10 @@ Represents a set of actions.
 
 This is a convenience rule to allow for more compact representation of a group of action types.
 Use this anywhere a [`cc_action_type`](#cc_action_type) is accepted.
+
+On Bazel 8 and later, action sets are configuration-independent. Give
+`actions` and `excludes` fixed lists; use `select()` on `cc_args.actions`
+if the actions depend on the build configuration.
 
 Example:
 ```
@@ -486,6 +493,10 @@ cc_tool_capability(<a href="#cc_tool_capability-name">name</a>, <a href="#cc_too
 </pre>
 
 A capability is an optional feature that a tool supports.
+
+On Bazel 8 and later, capabilities are configuration-independent. Give
+`feature_name` a fixed value; select capabilities on `cc_tool.capabilities`
+instead.
 
 For example, not all compilers support PIC, so to handle this, we write:
 

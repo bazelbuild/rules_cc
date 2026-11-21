@@ -53,8 +53,13 @@ def _cc_tool_capability_impl(ctx):
 
 cc_tool_capability = rule(
     implementation = _cc_tool_capability_impl,
+    cfg = config.none() if hasattr(config, "none") else None,
     provides = [ToolCapabilityInfo, FeatureConstraintInfo],
     doc = """A capability is an optional feature that a tool supports.
+
+On Bazel 8 and later, capabilities are configuration-independent. Give
+`feature_name` a fixed value; select capabilities on `cc_tool.capabilities`
+instead.
 
 For example, not all compilers support PIC, so to handle this, we write:
 

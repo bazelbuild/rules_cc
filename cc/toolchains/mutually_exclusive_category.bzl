@@ -23,6 +23,7 @@ def _cc_mutually_exclusive_category_impl(ctx):
 
 cc_mutually_exclusive_category = rule(
     implementation = _cc_mutually_exclusive_category_impl,
+    cfg = config.none() if hasattr(config, "none") else None,
     doc = """A rule used to categorize `cc_feature` definitions for which only one can be enabled.
 
 This is used by [`cc_feature.mutually_exclusive`](#cc_feature-mutually_exclusive) to express groups

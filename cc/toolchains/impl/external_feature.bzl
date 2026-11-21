@@ -59,6 +59,7 @@ def _cc_external_feature_impl(ctx):
 
 cc_external_feature = rule(
     implementation = _cc_external_feature_impl,
+    cfg = config.none() if hasattr(config, "none") else None,
     attrs = {
         "feature_name": attr.string(
             mandatory = True,
