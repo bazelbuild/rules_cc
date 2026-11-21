@@ -5,8 +5,7 @@
 #     "@rules_cc//cc/toolchains/args/layering_check:module_maps",
 # ],
 # known_features = [
-#     "@rules_cc//cc/toolchains/args/layering_check:layering_check",
-#     "@rules_cc//cc/toolchains/args/layering_check:use_module_maps",
+#     "@rules_cc//cc/toolchains/args/layering_check:known_features",
 # ],
 #
 # And make sure you have 'module_map' set to a module map file that contains
@@ -17,8 +16,35 @@
 
 load("//cc/toolchains:args.bzl", "cc_args")
 load("//cc/toolchains:feature.bzl", "cc_feature")
+load("//cc/toolchains:feature_set.bzl", "cc_feature_set")
 
 package(default_visibility = ["//visibility:public"])
+
+cc_feature_set(
+    name = "known_features",
+    all_of = [
+        ":generate_submodules",
+        ":layering_check",
+        ":module_map_home_cwd",
+        ":module_map_without_extern_module",
+        ":use_module_maps",
+    ],
+)
+
+cc_feature(
+    name = "generate_submodules",
+    feature_name = "generate_submodules",
+)
+
+cc_feature(
+    name = "module_map_home_cwd",
+    feature_name = "module_map_home_cwd",
+)
+
+cc_feature(
+    name = "module_map_without_extern_module",
+    feature_name = "module_map_without_extern_module",
+)
 
 cc_feature(
     name = "module_maps",
