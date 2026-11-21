@@ -185,6 +185,20 @@ cc_external_feature(
     overridable = True,
 )
 
+# Requested whenever coverage is enabled, like `coverage`.
+cc_external_feature(
+    name = "coverage_enabled",
+    feature_name = "coverage_enabled",
+    overridable = True,
+)
+
+# Requested only for targets that are instrumented for coverage.
+cc_external_feature(
+    name = "coverage_instrumented",
+    feature_name = "coverage_instrumented",
+    overridable = True,
+)
+
 cc_external_feature(
     name = "llvm_coverage_map_format",
     feature_name = "llvm_coverage_map_format",
@@ -281,6 +295,8 @@ cc_feature_set(
         ":fission_support",
         ":strip_debug_symbols",
         ":coverage",
+        ":coverage_enabled",
+        ":coverage_instrumented",
         ":llvm_coverage_map_format",
         ":gcc_coverage_map_format",
         ":fully_static_link",
