@@ -135,6 +135,13 @@ ArgsListInfo = provider(
     },
 )
 
+CcSysrootInfo = provider(
+    doc = "Sysroots declared by cc_sysroot or collected through args and features",
+    fields = {
+        "sysroots": "(depset[struct(label=Label, path=str)]) The declaring labels and paths, relative to the execution root if not absolute",
+    },
+)
+
 FeatureInfo = provider(
     doc = "Contains all flag specifications for one feature.",
     # @unsorted-dict-items

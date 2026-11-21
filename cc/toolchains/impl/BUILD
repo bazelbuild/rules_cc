@@ -19,6 +19,7 @@ bzl_library(
     deprecation = "Use the individual bzl_library targets instead of this one.",
     visibility = ["//cc/toolchains:__subpackages__"],
     deps = [
+        ":args",
         ":args_utils",
         ":cc_artifact_category",
         ":collect",
@@ -29,6 +30,7 @@ bzl_library(
         ":libc_version",
         ":markdown_helpers",
         ":nested_args",
+        ":sysroot",
         ":toolchain_config",
         ":toolchain_config_info",
         ":variables",
@@ -86,6 +88,23 @@ config_setting(
 filegroup(
     name = "srcs",
     srcs = glob(["**"]),
+)
+
+bzl_library(
+    name = "args",
+    srcs = ["args.bzl"],
+    visibility = [
+        "//cc/toolchains:__pkg__",
+        "//cc/toolchains/args:__pkg__",
+    ],
+    deps = [
+        ":args_utils",
+        ":collect",
+        ":nested_args",
+        "//cc/private:paths",
+        "//cc/toolchains:cc_toolchain_info",
+        "@bazel_skylib//rules/directory:providers",
+    ],
 )
 
 bzl_library(
@@ -155,11 +174,19 @@ bzl_library(
 )
 
 bzl_library(
+    name = "sysroot",
+    srcs = ["sysroot.bzl"],
+    visibility = ["//tests/rule_based_toolchain/toolchain_config:__pkg__"],
+    deps = ["//cc/toolchains:cc_toolchain_info"],
+)
+
+bzl_library(
     name = "toolchain_config",
     srcs = ["toolchain_config.bzl"],
     deps = [
         ":collect",
         ":legacy_converter",
+        ":sysroot",
         ":toolchain_config_info",
         "//cc/common:cc_common",
         "//cc/toolchains:cc_toolchain_info",
