@@ -16,6 +16,7 @@
 load(":cc_toolchain_info.bzl", "MutuallyExclusiveCategoryInfo")
 
 def _cc_mutually_exclusive_category_impl(ctx):
+    # type: (...) -> list[MutuallyExclusiveCategoryInfo]
     return [MutuallyExclusiveCategoryInfo(
         label = ctx.label,
         name = str(ctx.label),

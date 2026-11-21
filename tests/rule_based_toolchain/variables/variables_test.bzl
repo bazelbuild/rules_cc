@@ -89,6 +89,7 @@ str_list
     expect_type("struct.unknown").err().equals("""Unable to find "unknown" in "struct", which had the following attributes:
 nested_str: string
 nested_str_list: List[string]""")
+    expect_type("struct.unknown", overrides = {"struct.unknown": types.string}).ok().equals(types.string)
 
     expect_type("struct", actions = [c_compile]).ok()
     expect_type("struct", actions = [c_compile, cpp_compile]).err().equals(

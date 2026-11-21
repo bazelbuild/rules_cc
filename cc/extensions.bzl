@@ -16,7 +16,9 @@
 load("@bazel_features//:features.bzl", "bazel_features")
 load("//cc/private/toolchain:cc_configure.bzl", "cc_autoconf", "cc_autoconf_toolchains")
 
+# TODO(https://github.com/bazelbuild/bazel/issues/32020): use a source annotation once Bazel exposes these context and metadata types.
 def _cc_configure_extension_impl(ctx):
+    # type: (...) -> extension_metadata | None
     cc_autoconf_toolchains(name = "local_config_cc_toolchains")
     cc_autoconf(name = "local_config_cc")
     if bazel_features.external_deps.extension_metadata_has_reproducible:
@@ -27,6 +29,7 @@ def _cc_configure_extension_impl(ctx):
 cc_configure_extension = module_extension(implementation = _cc_configure_extension_impl)
 
 def _compatibility_proxy_repo_impl(rctx):
+    # type: (...) -> repo_metadata | None
     if bazel_features.cc.cc_common_is_in_rules_cc:
         rctx.file(
             "BUILD",
@@ -192,9 +195,11 @@ _compatibility_proxy_repo_rule = repository_rule(
 )
 
 def compatibility_proxy_repo():
+    # type: () -> None
     _compatibility_proxy_repo_rule(name = "cc_compatibility_proxy")
 
 def _compat_proxy_impl(module_ctx):
+    # type: (...) -> extension_metadata | None
     compatibility_proxy_repo()
 
     # module_ctx.extension_metadata has the paramater `reproducible` as of Bazel 7.1.0. We can't

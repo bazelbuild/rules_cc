@@ -14,6 +14,16 @@ exports_files(
     visibility = ["//docs:__pkg__"],
 )
 
+exports_files(
+    [
+        "collect.bzli",
+        "legacy_converter.bzli",
+        "nested_args.bzli",
+        "variables.bzli",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 bzl_library(
     name = "toolchain_impl_rules",
     deprecation = "Use the individual bzl_library targets instead of this one.",

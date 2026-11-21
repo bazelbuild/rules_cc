@@ -16,6 +16,7 @@
 load("//cc/toolchains:nested_args.bzl", "cc_nested_args")
 
 def apple_force_load_library_args(name, variable):
+    # type: (str, str | Label) -> None
     """A helper for declaring -force_load argument expansion for a library.
 
     This creates an argument expansion that will expand to -Wl,-force_load,<library>
@@ -50,6 +51,7 @@ def apple_force_load_library_args(name, variable):
     )
 
 def library_link_args(name, library_type, from_variable, iterate_over_variable = False):
+    # type: (str, str | select[str], str | Label, bool) -> None
     """A helper for declaring a library to link.
 
     For most platforms, this expands something akin to the following:

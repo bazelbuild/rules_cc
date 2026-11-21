@@ -20,6 +20,7 @@ visibility([
 ])
 
 def libc_without_version(libc):
+    # type: (str) -> str
     """Strips a version suffix from a target_libc value.
 
     Args:

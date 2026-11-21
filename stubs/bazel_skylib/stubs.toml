@@ -1,0 +1,12 @@
+format-version = 1
+
+[source]
+repository = "@bazel_skylib"
+module = "bazel_skylib"
+versions = ["1.9.0"]
+
+[files]
+"bzl_library.bzl" = "bzl_library.bzli"
+"lib/paths.bzl" = "paths.bzli"
+"rules/common_settings.bzl" = "common_settings.bzli"
+"rules/directory/providers.bzl" = "directory_providers.bzli"

@@ -1,0 +1,3 @@
+# TODO(https://github.com/bazelbuild/bazel-skylib/pull/641): Remove this stub
+# when the selected Skylib release types BuildSettingInfo.value.
+def BuildSettingInfo[T = object](*, value: T) -> record[{"value": T}]: ...
