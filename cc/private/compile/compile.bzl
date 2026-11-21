@@ -197,9 +197,15 @@ def compile(
         disallow_nopic_outputs: Whether NOPIC outputs should be created.
         additional_include_scanning_roots: undocumented
         additional_inputs: List of additional files needed for compilation of srcs
-        module_map: undocumented
+        module_map: The module map of the target, created with
+          `cc_common.create_module_map` from a file that the calling target
+          generates. If `None`, rules_cc generates one from the headers, unless
+          `do_not_generate_module_map` is set. Use this to declare headers
+          differently than rules_cc would, for example to make some of the
+          files of a tree artifact textual headers.
         additional_module_maps: undocumented
-        do_not_generate_module_map: undocumented
+        do_not_generate_module_map: Whether to skip generating a module map
+          for the target. Set this when providing `module_map`.
         code_coverage_enabled: undocumented
         hdrs_checking_mode: undocumented
         variables_extension: undocumented
