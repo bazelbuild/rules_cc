@@ -12,236 +12,233 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Runfiles lookup library for Bazel-built C++ binaries and tests.
-//
-// USAGE:
-// 1.  Depend on this runfiles library from your build rule:
-//
-//       cc_binary(
-//           name = "my_binary",
-//           ...
-//           deps = ["@rules_cc//cc/runfiles"],
-//       )
-//
-// 2.  Include the runfiles library.
-//
-//       #include "rules_cc/cc/runfiles/runfiles.h"
-//
-//       using rules_cc::cc::runfiles::Runfiles;
-//
-// 3.  Create a Runfiles object and use rlocation to look up runfile paths:
-//
-//       int main(int argc, char** argv) {
-//         std::string error;
-//         std::unique_ptr<Runfiles> runfiles(
-//             Runfiles::Create(argv[0], BAZEL_CURRENT_REPOSITORY, &error));
-//
-//         // Important:
-//         //   If this is a test, use
-//         //   Runfiles::CreateForTest(BAZEL_CURRENT_REPOSITORY, &error).
-//
-//         if (runfiles == nullptr) {
-//           ...  // error handling
-//         }
-//         std::string path =
-//             runfiles->Rlocation("my_workspace/path/to/my/data.txt");
-//         ...
-//
-//      The code above creates a Runfiles object and retrieves a runfile path.
-//      The BAZEL_CURRENT_REPOSITORY macro is available in every target that
-//      depends on the runfiles library.
-//
-//      The Runfiles::Create function uses the runfiles manifest and the
-//      runfiles directory from the RUNFILES_MANIFEST_FILE and RUNFILES_DIR
-//      environment variables. If not present, the function looks for the
-//      manifest and directory near argv[0], the path of the main program.
-//
-// To start child processes that also need runfiles, you need to set the right
-// environment variables for them:
-//
-//   std::unique_ptr<Runfiles> runfiles(Runfiles::Create(
-//     argv[0], BAZEL_CURRENT_REPOSITORY, &error));
-//
-//   std::string path = runfiles->Rlocation("path/to/binary"));
-//   if (!path.empty()) {
-//     ... // create "args" argument vector for execv
-//     const auto envvars = runfiles->EnvVars();
-//     pid_t child = fork();
-//     if (child) {
-//       int status;
-//       waitpid(child, &status, 0);
-//     } else {
-//       for (const auto i : envvars) {
-//         setenv(i.first.c_str(), i.second.c_str(), 1);
-//       }
-//       execv(args[0], args);
-//     }
+/// @file runfiles.h
+/// @brief Runfiles lookup for Bazel-built C++ binaries and tests.
+///
+/// 1. Depend on the library:
+///
+/// @code{.py}
+///   cc_binary(
+///       name = "my_binary",
+///       ...
+///       deps = ["@rules_cc//cc/runfiles"],
+///   )
+/// @endcode
+///
+/// 2. Create a #rules_cc::cc::runfiles::Runfiles and look up paths with
+///    #rules_cc::cc::runfiles::Runfiles::Rlocation:
+///
+/// @code{.cpp}
+///   #include "rules_cc/cc/runfiles/runfiles.h"
+///
+///   using rules_cc::cc::runfiles::Runfiles;
+///
+///   int main(int argc, char** argv) {
+///     std::string error;
+///     std::unique_ptr<Runfiles> runfiles(
+///         Runfiles::Create(argv[0], BAZEL_CURRENT_REPOSITORY, &error));
+///
+///     // In a test, use
+///     //   Runfiles::CreateForTest(BAZEL_CURRENT_REPOSITORY, &error).
+///
+///     if (runfiles == nullptr) { /* handle error */ }
+///     std::string path =
+///         runfiles->Rlocation("my_workspace/path/to/my/data.txt");
+///     ...
+///   }
+/// @endcode
+///
+/// `BAZEL_CURRENT_REPOSITORY` is defined in every target that depends on
+/// the runfiles library.
+///
+/// To start child processes that also need runfiles, set the key/value
+/// pairs from #rules_cc::cc::runfiles::Runfiles::EnvVars in the child's
+/// environment.
+///
+/// Instances are independent and own their parsed state. An instance may be
+/// read concurrently from several threads, but must not be destroyed while
+/// a lookup is in flight.
 
 #ifndef RULES_CC_CC_RUNFILES_RUNFILES_H_
-#define RULES_CC_CC_RUNFILES_RUNFILES_H_ 1
+#define RULES_CC_CC_RUNFILES_RUNFILES_H_
 
 #include <functional>
-#include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
+
+// Forward declarations from runfiles_c.h, so that this header does not
+// expose the C API. rf_free is the shared_ptr deleter for handle_.
+extern "C" {
+struct rf_runfiles;
+void rf_free(struct rf_runfiles*);
+}
 
 namespace rules_cc {
 namespace cc {
 namespace runfiles {
 
+/// Runfiles lookup for Bazel-built C++ binaries and tests. Wraps the C
+/// library in `runfiles_c.h`.
 class Runfiles {
  public:
-  virtual ~Runfiles() {}
+  virtual ~Runfiles();
 
-  // Returns a new `Runfiles` instance.
-  //
-  // Use this from within `cc_test` rules.
-  //
-  // Returns nullptr on error. If `error` is provided, the method prints an
-  // error message into it.
-  //
-  // This method looks at the RUNFILES_MANIFEST_FILE and TEST_SRCDIR
-  // environment variables.
-  //
-  // If source_repository is not provided, it defaults to the main repository
-  // (also known as the workspace).
+  /// Creates an instance for a `cc_test` from `RUNFILES_MANIFEST_FILE` and
+  /// `TEST_SRCDIR`, with the main repository as default source repository.
+  ///
+  /// @param error Optional out-parameter for an error message.
+  /// @return New instance owned by the caller, or `nullptr` on error.
   static Runfiles* CreateForTest(std::string* error = nullptr);
+
+  /// Creates an instance for a `cc_test` from `RUNFILES_MANIFEST_FILE` and
+  /// `TEST_SRCDIR`.
+  ///
+  /// @param source_repository Canonical name of the default source
+  ///   repository; `""` is the main repository.
+  /// @param error Optional out-parameter for an error message.
+  /// @return New instance owned by the caller, or `nullptr` on error.
   static Runfiles* CreateForTest(const std::string& source_repository,
                                  std::string* error = nullptr);
 
-  // Returns a new `Runfiles` instance.
-  //
-  // Use this from `cc_binary` or `cc_library` rules. You may pass an empty
-  // `argv0` if `argv[0]` from the `main` method is unknown.
-  //
-  // Returns nullptr on error. If `error` is provided, the method prints an
-  // error message into it.
-  //
-  // This method looks at the RUNFILES_MANIFEST_FILE and RUNFILES_DIR
-  // environment variables. If either is empty, the method looks for the
-  // manifest or directory using the other environment variable, or using argv0
-  // (unless it's empty).
-  //
-  // If source_repository is not provided, it defaults to the main repository
-  // (also known as the workspace).
+  /// Creates an instance for a `cc_binary` or `cc_library` from
+  /// `RUNFILES_MANIFEST_FILE` and `RUNFILES_DIR`, falling back to discovery
+  /// next to @p argv0, with the main repository as default source
+  /// repository.
+  ///
+  /// @param argv0 `argv[0]`, or `""` if unknown.
+  /// @param error Optional out-parameter for an error message.
+  /// @return New instance owned by the caller, or `nullptr` on error.
   static Runfiles* Create(const std::string& argv0,
                           std::string* error = nullptr);
+
+  /// Creates an instance for a `cc_binary` or `cc_library` from
+  /// `RUNFILES_MANIFEST_FILE` and `RUNFILES_DIR`, falling back to discovery
+  /// next to @p argv0.
+  ///
+  /// @param argv0 `argv[0]`, or `""` if unknown.
+  /// @param source_repository Canonical name of the default source
+  ///   repository; `""` is the main repository.
+  /// @param error Optional out-parameter for an error message.
+  /// @return New instance owned by the caller, or `nullptr` on error.
   static Runfiles* Create(const std::string& argv0,
                           const std::string& source_repository,
                           std::string* error = nullptr);
 
-  // Returns a new `Runfiles` instance.
-  //
-  // Use this from any `cc_*` rule if you want to manually specify the paths to
-  // the runfiles manifest and/or runfiles directory. You may pass an empty
-  // `argv0` if `argv[0]` from the `main` method is unknown.
-  //
-  // This method is the same as `Create(argv0, error)`, except it uses
-  // `runfiles_manifest_file` and `runfiles_dir` as the corresponding
-  // environment variable values, instead of looking up the actual environment
-  // variables.
+  /// Creates an instance from explicit paths, with the main repository as
+  /// default source repository.
+  ///
+  /// @param argv0 `argv[0]`, or `""` if unknown.
+  /// @param runfiles_manifest_file Manifest path, or `""` to derive it from
+  ///   @p runfiles_dir or @p argv0.
+  /// @param runfiles_dir Runfiles directory, or `""` to derive it from
+  ///   @p runfiles_manifest_file or @p argv0.
+  /// @param error Optional out-parameter for an error message.
+  /// @return New instance owned by the caller, or `nullptr` on error.
   static Runfiles* Create(const std::string& argv0,
                           const std::string& runfiles_manifest_file,
                           const std::string& runfiles_dir,
                           std::string* error = nullptr);
+
+  /// Creates an instance from explicit paths.
+  ///
+  /// @param argv0 `argv[0]`, or `""` if unknown.
+  /// @param runfiles_manifest_file Manifest path, or `""` to derive it from
+  ///   @p runfiles_dir or @p argv0.
+  /// @param runfiles_dir Runfiles directory, or `""` to derive it from
+  ///   @p runfiles_manifest_file or @p argv0.
+  /// @param source_repository Canonical name of the default source
+  ///   repository; `""` is the main repository.
+  /// @param error Optional out-parameter for an error message.
+  /// @return New instance owned by the caller, or `nullptr` on error.
   static Runfiles* Create(const std::string& argv0,
                           const std::string& runfiles_manifest_file,
                           const std::string& runfiles_dir,
                           const std::string& source_repository,
                           std::string* error = nullptr);
 
-  // Returns the runtime path of a runfile.
-  //
-  // Runfiles are data-dependencies of Bazel-built binaries and tests.
-  //
-  // The returned path may not exist. The caller should verify the path's
-  // existence.
-  //
-  // The function may return an empty string if it cannot find a runfile.
-  //
-  // Args:
-  //   path: runfiles-root-relative path of the runfile; must not be empty and
-  //     must not contain uplevel references.
-  //   source_repository: if provided, overrides the source repository set when
-  //     this Runfiles instance was created.
-  // Returns:
-  //   the path to the runfile, which the caller should check for existence, or
-  //   an empty string if the method doesn't know about this runfile
+  /// Resolves a runfile using the default source repository.
+  ///
+  /// @param path Runfiles-root-relative path.
+  /// @return Runtime path, which may not exist, or `""` if @p path is
+  ///   invalid or unknown.
   std::string Rlocation(const std::string& path) const;
+
+  /// Resolves a runfile.
+  ///
+  /// @param path Runfiles-root-relative path.
+  /// @param source_repository Canonical name of the source repository to
+  ///   apply `_repo_mapping` for; `""` is the main repository.
+  /// @return Runtime path, which may not exist, or `""` if @p path is
+  ///   invalid or unknown.
   std::string Rlocation(const std::string& path,
                         const std::string& source_repository) const;
 
-  // Returns environment variables for subprocesses.
-  //
-  // The caller should set the returned key-value pairs in the environment of
-  // subprocesses, so that those subprocesses can also access runfiles (in case
-  // they are also Bazel-built binaries).
+  /// @return Environment variables a subprocess needs in order to find the
+  ///   same runfiles.
   const std::vector<std::pair<std::string, std::string> >& EnvVars() const {
     return envvars_;
   }
 
-  // Returns a new Runfiles instance that by default uses the provided source
-  // repository as a default for all calls to Rlocation.
-  //
-  // The current instance remains valid.
+  /// Derives an instance that shares this instance's parsed state. This
+  /// instance remains valid.
+  ///
+  /// @param source_repository Canonical name of the new instance's default
+  ///   source repository; `""` is the main repository.
+  /// @return New instance owned by the caller.
   std::unique_ptr<Runfiles> WithSourceRepository(
       const std::string& source_repository) const {
-    return std::unique_ptr<Runfiles>(new Runfiles(
-        runfiles_map_, directory_, repo_mapping_, envvars_, source_repository));
+    return std::unique_ptr<Runfiles>(
+        new Runfiles(handle_, source_repository, envvars_));
   }
 
  private:
-  Runfiles(
-      std::map<std::string, std::string> runfiles_map, std::string directory,
-      std::map<std::pair<std::string, std::string>, std::string> repo_mapping,
-      std::vector<std::pair<std::string, std::string> > envvars,
-      std::string source_repository)
-      : runfiles_map_(std::move(runfiles_map)),
-        directory_(std::move(directory)),
-        repo_mapping_(std::move(repo_mapping)),
-        envvars_(std::move(envvars)),
-        source_repository_(std::move(source_repository)) {}
+  /// Takes ownership of @p handle.
+  ///
+  /// @param handle Handle from `rf_create`; freed with `rf_free`.
+  /// @param source_repository Default source repository.
+  /// @param envvars Value returned by #EnvVars.
+  Runfiles(rf_runfiles* handle, std::string source_repository,
+           std::vector<std::pair<std::string, std::string> > envvars)
+      : handle_(handle, &rf_free),
+        source_repository_(std::move(source_repository)),
+        envvars_(std::move(envvars)) {}
+  /// Shares @p handle with another instance.
+  ///
+  /// @param handle Handle shared with the instance this one derives from.
+  /// @param source_repository Default source repository.
+  /// @param envvars Value returned by #EnvVars.
+  Runfiles(std::shared_ptr<rf_runfiles> handle, std::string source_repository,
+           std::vector<std::pair<std::string, std::string> > envvars)
+      : handle_(std::move(handle)),
+        source_repository_(std::move(source_repository)),
+        envvars_(std::move(envvars)) {}
   Runfiles(const Runfiles&) = delete;
   Runfiles(Runfiles&&) = delete;
   Runfiles& operator=(const Runfiles&) = delete;
   Runfiles& operator=(Runfiles&&) = delete;
 
-  static std::string RlocationUnchecked(
-      const std::string& path,
-      const std::map<std::string, std::string>& runfiles_map,
-      const std::string& directory);
-
-  const std::map<std::string, std::string> runfiles_map_;
-  const std::string directory_;
-  const std::map<std::pair<std::string, std::string>, std::string>
-      repo_mapping_;
-  const std::vector<std::pair<std::string, std::string> > envvars_;
+  const std::shared_ptr<rf_runfiles> handle_;
   const std::string source_repository_;
+  const std::vector<std::pair<std::string, std::string> > envvars_;
 };
 
-// The "testing" namespace contains functions that allow unit testing the code.
-// Do not use these outside of runfiles_test.cc, they are only part of the
-// public API for the benefit of the tests.
-// These functions and their interface may change without notice.
+/// Exposed only for `runfiles_test.cc`; may change without notice.
 namespace testing {
 
-// For testing only.
-//
-// Computes the path of the runfiles manifest and the runfiles directory.
-//
-// If the method finds both a valid manifest and valid directory according to
-// `is_runfiles_manifest` and `is_runfiles_directory`, then the method sets
-// the corresponding values to `out_manifest` and `out_directory` and returns
-// true.
-//
-// If the method only finds a valid manifest or a valid directory, but not
-// both, then it sets the corresponding output variable (`out_manifest` or
-// `out_directory`) to the value while clearing the other output variable. The
-// method still returns true in this case.
-//
-// If the method cannot find either a valid manifest or valid directory, it
-// clears both output variables and returns false.
+/// Computes the runfiles manifest and directory paths using the given
+/// predicates in place of filesystem checks.
+///
+/// @param argv0 `argv[0]`, or `""` if unknown.
+/// @param runfiles_manifest_file Candidate manifest path; may be `""`.
+/// @param runfiles_dir Candidate directory; may be `""`.
+/// @param is_runfiles_manifest Returns whether a path is a readable
+///   manifest.
+/// @param is_runfiles_directory Returns whether a path is a directory.
+/// @param out_manifest Set to the manifest path found, or cleared.
+/// @param out_directory Set to the directory found, or cleared.
+/// @return `true` if at least one output was set.
 bool TestOnly_PathsFrom(
     const std::string& argv0, std::string runfiles_manifest_file,
     std::string runfiles_dir,
@@ -249,11 +246,8 @@ bool TestOnly_PathsFrom(
     std::function<bool(const std::string&)> is_runfiles_directory,
     std::string* out_manifest, std::string* out_directory);
 
-// For testing only.
-// Returns true if `path` is an absolute Unix or Windows path.
-// For Windows paths, this function does not regard drive-less absolute paths
-// (i.e. absolute-on-current-drive, e.g. "\foo\bar") as absolute and returns
-// false for these.
+/// @param path Path to test.
+/// @return `true` if @p path is an absolute Unix or Windows path.
 bool TestOnly_IsAbsolute(const std::string& path);
 
 }  // namespace testing

@@ -747,7 +747,8 @@ TEST_F(RunfilesTest, ManifestBasedRlocationWithRepoMapping_fromExtensionRepo) {
   EXPECT_TRUE(error.empty());
 
   EXPECT_EQ(r->Rlocation("my_module/foo"), "/the/path/to/my_module+/runfile");
-  EXPECT_EQ(r->Rlocation("repo1/foo"), "/the/path/to/my_module++ext+repo1/runfile");
+  EXPECT_EQ(r->Rlocation("repo1/foo"),
+            "/the/path/to/my_module++ext+repo1/runfile");
   EXPECT_EQ(r->Rlocation("repo2+/foo"), "/the/path/to/repo2+/runfile");
 }
 
@@ -859,10 +860,10 @@ TEST_F(RunfilesTest,
   string argv0(dir.substr(0, dir.size() - string(".runfiles").size()));
 
   string error;
-  unique_ptr<Runfiles> r(Runfiles::Create(argv0, /*runfiles_manifest_file=*/"",
-                                          /*runfiles_dir=*/"",
-                                          /*source_repository=*/"", &error));
-  r = r->WithSourceRepository("protobuf+3.19.2");
+  unique_ptr<Runfiles> r(
+      Runfiles::Create(argv0, /*runfiles_manifest_file=*/"",
+                       /*runfiles_dir=*/"",
+                       /*source_repository=*/"protobuf+3.19.2", &error));
   ASSERT_TRUE(r != nullptr);
   EXPECT_TRUE(error.empty());
 
@@ -905,10 +906,10 @@ TEST_F(RunfilesTest, DirectoryBasedRlocationWithRepoMapping_fromExtensionRepo) {
   string argv0(dir.substr(0, dir.size() - string(".runfiles").size()));
 
   string error;
-  unique_ptr<Runfiles> r(Runfiles::Create(argv0, /*runfiles_manifest_file=*/"",
-                                          /*runfiles_dir=*/"",
-                                          /*source_repository=*/"", &error));
-  r = r->WithSourceRepository("my_module++ext+repo1");
+  unique_ptr<Runfiles> r(
+      Runfiles::Create(argv0, /*runfiles_manifest_file=*/"",
+                       /*runfiles_dir=*/"",
+                       /*source_repository=*/"my_module++ext+repo1", &error));
   ASSERT_TRUE(r != nullptr);
   EXPECT_TRUE(error.empty());
 
@@ -931,6 +932,48 @@ TEST_F(RunfilesTest, InvalidRepoMapping) {
                                           /*source_repository=*/"", &error));
   EXPECT_EQ(r, nullptr);
   EXPECT_TRUE(error.find("bad repository mapping") != string::npos);
+}
+
+TEST_F(RunfilesTest, WithSourceRepositoryReRoutesRepoMappingLookups) {
+  string uid = LINE_AS_STRING();
+  unique_ptr<MockFile> rm(MockFile::Create(
+      "foo" + uid + ".runfiles/_repo_mapping",
+      {",my_module,_main", "protobuf+3.19.2,protobuf,protobuf+3.19.2"}));
+  ASSERT_TRUE(rm != nullptr);
+  string dir = rm->DirName();
+  string argv0(dir.substr(0, dir.size() - string(".runfiles").size()));
+
+  string error;
+  unique_ptr<Runfiles> r_main(
+      Runfiles::Create(argv0, /*runfiles_manifest_file=*/"",
+                       /*runfiles_dir=*/"",
+                       /*source_repository=*/"", &error));
+  ASSERT_TRUE(r_main != nullptr);
+  EXPECT_TRUE(error.empty());
+
+  EXPECT_EQ(r_main->Rlocation("my_module/foo/runfile"),
+            dir + "/_main/foo/runfile");
+  EXPECT_EQ(r_main->Rlocation("protobuf/foo/runfile"),
+            dir + "/protobuf/foo/runfile");
+
+  unique_ptr<Runfiles> r_pb = r_main->WithSourceRepository("protobuf+3.19.2");
+  ASSERT_TRUE(r_pb != nullptr);
+
+  EXPECT_EQ(r_pb->Rlocation("protobuf/foo/runfile"),
+            dir + "/protobuf+3.19.2/foo/runfile");
+  EXPECT_EQ(r_pb->Rlocation("my_module/foo/runfile"),
+            dir + "/my_module/foo/runfile");
+
+  EXPECT_EQ(r_main->Rlocation("my_module/foo/runfile"),
+            dir + "/_main/foo/runfile");
+
+  ASSERT_EQ(r_pb->EnvVars(), r_main->EnvVars());
+  ASSERT_EQ(r_pb->EnvVars().size(), size_t{3});
+
+  // The derived instance must outlive the original.
+  r_main.reset();
+  EXPECT_EQ(r_pb->Rlocation("protobuf/foo/runfile"),
+            dir + "/protobuf+3.19.2/foo/runfile");
 }
 
 }  // namespace
