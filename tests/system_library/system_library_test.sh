@@ -23,6 +23,13 @@ fi
 source "$(rlocation rules_cc/tests/unittest.bash)" \
   || { echo "Could not source rules_cc/tests/unittest.bash" >&2; exit 1; }
 
+# Put bazel on PATH
+bazel_binary="$(rlocation "$BAZEL_BINARY")"
+bazel_bin_dir="$TEST_TMPDIR/bazel"
+mkdir -p "$bazel_bin_dir"
+cp "$bazel_binary" "$bazel_bin_dir/bazel"
+export PATH="$bazel_bin_dir:$PATH"
+
 
 function setup_system_library() {
   mkdir -p systemlib

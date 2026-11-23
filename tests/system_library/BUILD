@@ -22,7 +22,11 @@ sh_test(
         "//cc:system_library.bzl",
         "//tests:unittest_bash",
         "@bazel_tools//tools/bash/runfiles",
+        "@local_bazel//:bazel",
     ],
+    env = {
+        "BAZEL_BINARY": "$(rlocationpath @local_bazel//:bazel)",
+    },
     env_inherit = ["PATH"],
     target_compatible_with = [
         "@platforms//os:linux",
