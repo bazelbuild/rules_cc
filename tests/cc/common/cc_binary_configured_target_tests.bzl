@@ -109,9 +109,13 @@ def _test_action_graph(name, **kwargs):
         cc_binary,
         name = name + "/hello",
         srcs = ["hello.cc"],
+        linkopts = ["-static"],
     )
     config_settings = {
         "//command_line_option:force_pic": False,
+        # Apple builds do not support statically linked binaries (-static in linkopts),
+        # so force the target platform to Linux to select the k8 mock toolchain on macOS hosts.
+        "//command_line_option:platforms": str(Label("//tests/cc/testutil/toolchains:linux_x86_64")),
     }
 
     cc_analysis_test(
@@ -128,6 +132,12 @@ def _test_action_graph(name, **kwargs):
 def _test_action_graph_impl(env, target):
     executable = target[DefaultInfo].files_to_run.executable
     link_action = link_action_subject.from_target(env, target)
+
+    # Regression test for #943558: Make sure the linkopts contains only one "-static".
+    link_action.argv().transform(
+        desc = "'-static' args",
+        filter = matching.equals_wrapper("-static"),
+    ).has_size(1)
 
     object_file = "{package}/_objs/{name}/hello.o"
 
@@ -148,7 +158,10 @@ def _test_action_graph_impl(env, target):
         object_file,
     ])
 
-    # TODO: Test stripped action
+    strip_action = env.expect.that_target(target).action_generating(
+        "{package}/{name}.stripped",
+    )
+    strip_action.argv().has_size(6)
 
 def _make_dll(name):
     # make a fake dll so the dll shows up in the output directory (where the
@@ -2128,6 +2141,237 @@ def _test_thin_lto_disabled_impl(env, target):
     lto_backend_actions = [a for a in actions if a.mnemonic == "CcLtoBackendCompile"]
     env.expect.that_collection(lto_backend_actions).is_empty()
 
+def _setup_embedded_runtimes_test(name, linkstatic, impl, **kwargs):
+    util.helper_target(
+        cc_test,
+        name = name + "/test",
+        srcs = ["test.cc"],
+        linkopts = ["-static"],
+        linkstatic = linkstatic,
+    )
+    cc_analysis_test(
+        name = name,
+        impl = impl,
+        target = name + "/test",
+        with_features = [FEATURE_NAMES.static_link_cpp_runtimes],
+        config_settings = {
+            # Apple builds do not support statically linked binaries (-static in linkopts),
+            # so force the target platform to Linux to select the k8 mock toolchain on macOS hosts.
+            "//command_line_option:platforms": str(Label("//tests/cc/testutil/toolchains:linux_x86_64")),
+        },
+        **kwargs
+    )
+
+# Regression test for b/5604285 (default dynamic linking mode on cc_test).
+def _test_embedded_runtimes(name, **kwargs):
+    _setup_embedded_runtimes_test(
+        name = name,
+        linkstatic = False,
+        impl = _test_embedded_runtimes_impl,
+        **kwargs
+    )
+
+def _test_embedded_runtimes_impl(env, target):
+    link_action = link_action_subject.from_target(env, target)
+    link_action.inputs().contains_predicate(matching.file_path_matches("*libdynamic_runtime.so"))
+    link_action.inputs().not_contains_predicate(matching.file_path_matches("*libstatic_runtime.a"))
+    env.expect.that_target(target).runfiles().contains_predicate(
+        matching.str_endswith("libdynamic_runtime.so"),
+    )
+
+def _test_embedded_runtimes_static(name, **kwargs):
+    _setup_embedded_runtimes_test(
+        name = name,
+        linkstatic = True,
+        impl = _test_embedded_runtimes_static_impl,
+        **kwargs
+    )
+
+def _test_embedded_runtimes_static_impl(env, target):
+    link_action = link_action_subject.from_target(env, target)
+    link_action.inputs().contains_predicate(matching.file_path_matches("*libstatic_runtime.a"))
+    link_action.inputs().not_contains_predicate(matching.file_path_matches("*libdynamic_runtime.so"))
+    env.expect.that_target(target).runfiles().not_contains_predicate(
+        matching.str_endswith("libdynamic_runtime.so"),
+    )
+
+def _test_cpp_module_maps(name, **kwargs):
+    util.helper_target(
+        cc_library,
+        name = name + "/core",
+        srcs = ["core.cc"],
+        features = [FEATURE_NAMES.layering_check],
+    )
+    util.helper_target(
+        cc_library,
+        name = name + "/lib1",
+        srcs = ["lib1.cc"],
+        deps = [name + "/core"],
+        features = [FEATURE_NAMES.layering_check],
+    )
+    util.helper_target(
+        cc_library,
+        name = name + "/lib2",
+        srcs = ["lib2.cc"],
+        deps = [name + "/core"],
+        features = [FEATURE_NAMES.layering_check],
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/app",
+        srcs = ["app.cc"],
+        deps = [
+            name + "/lib1",
+            name + "/lib2",
+        ],
+        features = [FEATURE_NAMES.layering_check],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_cpp_module_maps_impl,
+        target = name + "/app",
+        with_features = [FEATURE_NAMES.module_maps],
+        **kwargs
+    )
+
+def _test_cpp_module_maps_impl(env, target):
+    objs = target[OutputGroupInfo].compilation_outputs.to_list()
+    env.expect.that_collection(objs).is_not_empty()
+    for o_file in objs:
+        compile_action = env.expect.that_target(target).action_generating(o_file.short_path)
+        compile_action.argv().contains("module_name://{package}:{name}")
+
+def _test_no_layering_check(name, **kwargs):
+    util.helper_target(
+        cc_library,
+        name = name + "/lib",
+        srcs = ["lib.cc"],
+        features = ["no_layering_check"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_no_layering_check_impl,
+        target = name + "/lib",
+        with_features = ["simple_layering_check"],
+        test_features = [FEATURE_NAMES.layering_check],
+        **kwargs
+    )
+
+def _test_no_layering_check_impl(env, target):
+    objs = target[OutputGroupInfo].compilation_outputs.to_list()
+    env.expect.that_collection(objs).is_not_empty()
+    compile_action = env.expect.that_target(target).action_generating(objs[0].short_path)
+
+    # TODO(b/587074509): Replace indistinct "<flag>" in simple_layering_check with a specific flag.
+    compile_action.argv().not_contains("<flag>")
+
+def _setup_cpp_host_compilation_flags_test(name, pkg_default_feature, cmdline_feature, impl, **kwargs):
+    util.helper_target(
+        cc_binary,
+        name = name + "/cc",
+        srcs = ["cc_src.cc"],
+        features = [pkg_default_feature],
+    )
+    util.helper_target(
+        util.force_exec_config,
+        name = name + "/exec_wrapper",
+        tools = [name + "/cc"],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = impl,
+        target = name + "/exec_wrapper",
+        with_features = [FEATURE_NAMES.simple_compile_feature],
+        config_settings = {
+            "//command_line_option:host_features": [cmdline_feature],
+        },
+        **kwargs
+    )
+
+def _get_exec_compile_action(env, target):
+    cc_target = target[TestingAspectInfo].attrs.tools[0]
+    objs = cc_target[OutputGroupInfo].compilation_outputs.to_list()
+    env.expect.that_collection(objs).has_size(1)
+    return env.expect.that_target(cc_target).action_generating(objs[0].short_path)
+
+def _test_negative_flag_overrides_positive_default_feature_in_exec_config(name, **kwargs):
+    _setup_cpp_host_compilation_flags_test(
+        name = name,
+        pkg_default_feature = FEATURE_NAMES.simple_compile_feature,
+        cmdline_feature = "-" + FEATURE_NAMES.simple_compile_feature,
+        impl = _test_negative_flag_overrides_positive_default_feature_in_exec_config_impl,
+        **kwargs
+    )
+
+def _test_negative_flag_overrides_positive_default_feature_in_exec_config_impl(env, target):
+    _get_exec_compile_action(env, target).argv().not_contains("<flag>")
+
+def _test_positive_flag_does_not_override_negative_default_feature_in_exec_config(name, **kwargs):
+    _setup_cpp_host_compilation_flags_test(
+        name = name,
+        pkg_default_feature = "-" + FEATURE_NAMES.simple_compile_feature,
+        cmdline_feature = FEATURE_NAMES.simple_compile_feature,
+        impl = _test_positive_flag_does_not_override_negative_default_feature_in_exec_config_impl,
+        **kwargs
+    )
+
+def _test_positive_flag_does_not_override_negative_default_feature_in_exec_config_impl(env, target):
+    _get_exec_compile_action(env, target).argv().not_contains("<flag>")
+
+def _test_positive_flag_in_command_line_and_in_pkg_default_feature_in_exec_config(name, **kwargs):
+    _setup_cpp_host_compilation_flags_test(
+        name = name,
+        pkg_default_feature = FEATURE_NAMES.simple_compile_feature,
+        cmdline_feature = FEATURE_NAMES.simple_compile_feature,
+        impl = _test_positive_flag_in_command_line_and_in_pkg_default_feature_in_exec_config_impl,
+        **kwargs
+    )
+
+def _test_positive_flag_in_command_line_and_in_pkg_default_feature_in_exec_config_impl(env, target):
+    _get_exec_compile_action(env, target).argv().contains("<flag>")
+
+# Tests that individual alwayslink dependencies are linked using force_load, instead of
+# applying all_load to the whole thing.
+def _test_no_all_load_for_always_link_deps(name, **kwargs):
+    util.helper_target(
+        cc_library,
+        name = name + "/foo",
+        srcs = ["foo.cc"],
+        alwayslink = 1,
+    )
+    util.helper_target(
+        cc_library,
+        name = name + "/bar",
+        srcs = ["bar.cc"],
+    )
+    util.helper_target(
+        cc_binary,
+        name = name + "/c",
+        deps = [
+            name + "/bar",
+            name + "/foo",
+        ],
+    )
+    cc_analysis_test(
+        name = name,
+        impl = _test_no_all_load_for_always_link_deps_impl,
+        target = name + "/c",
+        config_settings = {
+            "//command_line_option:platforms": str(Label("//tests/cc/testutil/toolchains:macos_arm64")),
+        },
+        **kwargs
+    )
+
+def _test_no_all_load_for_always_link_deps_impl(env, target):
+    link_action = link_action_subject.from_target(env, target)
+    link_action.argv().not_contains("-Wl,-all_load")
+    force_args = link_action.argv().transform(
+        desc = "args starting with '-Wl,-force_load'",
+        filter = matching.str_startswith("-Wl,-force_load"),
+    )
+    force_args.has_size(1)
+    force_args.offset(0, factory = subjects.str).contains("foo")
+
 def cc_binary_configured_target_tests(name):
     """Creates the test suite for cc_binary tests.
 
@@ -2172,6 +2416,14 @@ def cc_binary_configured_target_tests(name):
         _test_cctoolchain_coverage_files,
         _test_thin_lto,
         _test_thin_lto_disabled,
+        _test_embedded_runtimes,
+        _test_embedded_runtimes_static,
+        _test_cpp_module_maps,
+        _test_no_layering_check,
+        _test_negative_flag_overrides_positive_default_feature_in_exec_config,
+        _test_positive_flag_does_not_override_negative_default_feature_in_exec_config,
+        _test_positive_flag_in_command_line_and_in_pkg_default_feature_in_exec_config,
+        _test_no_all_load_for_always_link_deps,
     ]
 
     # sanitize_pwd is implemented in Starlark in rules_cc, requires Bazel 9+.

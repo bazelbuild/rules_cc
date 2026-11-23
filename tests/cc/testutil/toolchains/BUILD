@@ -1,5 +1,6 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@bazel_skylib//rules:common_settings.bzl", "string_flag", "string_list_flag")
+load("@rules_testing//lib:util.bzl", "util")
 load("//cc:cc_library.bzl", "cc_library")
 load("//cc/toolchains:cc_toolchain.bzl", "cc_toolchain")
 load("//cc/toolchains:cc_toolchain_alias.bzl", "cc_toolchain_alias")
@@ -46,22 +47,26 @@ cc_toolchain_alias(name = "current_cc_toolchain")
 string_list_flag(
     name = "with_features",
     build_setting_default = ["debug_variables"],
+    scope = "universal",
 )
 
 # Sets the mock toolchain's action configs.
 string_list_flag(
     name = "with_action_configs",
     build_setting_default = [],
+    scope = "universal",
 )
 
 string_flag(
     name = "object_file_extension",
     build_setting_default = "",
+    scope = "universal",
 )
 
 string_list_flag(
     name = "dynamic_library_pattern",
     build_setting_default = [],
+    scope = "universal",
 )
 
 # "everything" is a filegroup that the implementation of --grte_top (more specifically, the
@@ -389,6 +394,20 @@ cc_toolchain(
     toolchain_identifier = "mock-toolchain-macos",
 )
 
+util.empty_file("libstatic_runtime.a")
+
+util.empty_file("libdynamic_runtime.so")
+
+filegroup(
+    name = "static-runtime-lib-k8",
+    srcs = [":libstatic_runtime.a"],
+)
+
+filegroup(
+    name = "dynamic-runtime-lib-k8",
+    srcs = [":libdynamic_runtime.so"],
+)
+
 cc_toolchain(
     name = "cc-compiler-k8-compiler",
     all_files = ":every-file",
@@ -398,11 +417,13 @@ cc_toolchain(
     compiler_files_without_includes = "compile-without-includes-k8",
     coverage_files = "coverage-file",
     dwp_files = "dwp-k8",
+    dynamic_runtime_lib = ":dynamic-runtime-lib-k8",
     licenses = ["unencumbered"],
     linker_files = "link-k8",
     module_map = "crosstool.cppmap",
     objcopy_files = "objcopy-k8",
     output_licenses = ["unencumbered"],
+    static_runtime_lib = ":static-runtime-lib-k8",
     strip_files = ":every-file",
     supports_header_parsing = 1,
     toolchain_config = ":k8-compiler_config",
