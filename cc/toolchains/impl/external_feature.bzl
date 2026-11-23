@@ -35,7 +35,6 @@ def _cc_external_feature_impl(ctx):
             label = ctx.label,
             args = (),
             files = depset([]),
-            by_action = (),
         ),
         implies = depset([]),
         requires_any_of = (),

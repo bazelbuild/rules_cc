@@ -30,7 +30,6 @@ def _cc_tool_capability_impl(ctx):
             label = ctx.label,
             args = (),
             files = depset(),
-            by_action = (),
             allowlist_include_directories = depset(),
         ),
         implies = depset(),

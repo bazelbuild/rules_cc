@@ -138,7 +138,10 @@ bzl_library(
 bzl_library(
     name = "legacy_converter",
     srcs = ["legacy_converter.bzl"],
-    deps = ["//cc:cc_toolchain_config_lib"],
+    deps = [
+        ":args_utils",
+        "//cc:cc_toolchain_config_lib",
+    ],
 )
 
 bzl_library(

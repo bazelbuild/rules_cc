@@ -68,7 +68,7 @@ def _simple_test(env, targets):
     simple.env().entries().contains_exactly({"BAR": "bar"})
     simple.files().contains_exactly(_SIMPLE_FILES)
 
-    c_compile = env.expect.that_target(targets.simple).provider(ArgsListInfo).by_action().get(
+    c_compile = env.expect.that_value(targets.simple[ArgsListInfo], factory = subjects.args_by_action).get(
         targets.c_compile[ActionTypeInfo],
     )
     c_compile.args().contains_exactly([targets.simple[ArgsInfo]])
@@ -97,7 +97,7 @@ def _env_only_test(env, targets):
     env_only.env().entries().contains_exactly({"BAR": "bar"})
     env_only.files().contains_exactly(_SIMPLE_FILES)
 
-    c_compile = env.expect.that_target(targets.simple).provider(ArgsListInfo).by_action().get(
+    c_compile = env.expect.that_value(targets.simple[ArgsListInfo], factory = subjects.args_by_action).get(
         targets.c_compile[ActionTypeInfo],
     )
     c_compile.files().contains_exactly(_SIMPLE_FILES)
@@ -182,7 +182,7 @@ def _with_dir_test(env, targets):
     with_dir.allowlist_include_directories().contains_exactly([_TOOL_DIRECTORY])
     with_dir.files().contains_exactly([])
 
-    c_compile = env.expect.that_target(targets.with_dir).provider(ArgsListInfo).by_action().get(
+    c_compile = env.expect.that_value(targets.with_dir[ArgsListInfo], factory = subjects.args_by_action).get(
         targets.c_compile[ActionTypeInfo],
     )
     c_compile.files().contains_exactly([])
@@ -192,7 +192,7 @@ def _with_dir_and_data_test(env, targets):
     with_dir.allowlist_include_directories().contains_exactly([_TOOL_DIRECTORY])
     with_dir.files().contains_at_least(_SIMPLE_FILES)
 
-    c_compile = env.expect.that_target(targets.with_dir_and_data).provider(ArgsListInfo).by_action().get(
+    c_compile = env.expect.that_value(targets.with_dir_and_data[ArgsListInfo], factory = subjects.args_by_action).get(
         targets.c_compile[ActionTypeInfo],
     )
     c_compile.files().contains_at_least(_SIMPLE_FILES)

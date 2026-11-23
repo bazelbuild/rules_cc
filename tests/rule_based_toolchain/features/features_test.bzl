@@ -33,6 +33,7 @@ load(
     "convert_feature",
     "convert_feature_constraint",
 )
+load("//tests/rule_based_toolchain:subjects.bzl", "subjects")
 
 visibility("private")
 
@@ -54,7 +55,7 @@ def _simple_feature_test(env, targets):
     simple.overridable().equals(False)
 
     simple.args().files().contains_exactly([_C_COMPILE_FILE])
-    c_compile_action = simple.args().by_action().get(
+    c_compile_action = env.expect.that_value(targets.simple[FeatureInfo].args, factory = subjects.args_by_action).get(
         targets.c_compile_args[ArgsInfo].actions.to_list()[0],
     )
     c_compile_action.files().contains_exactly([_C_COMPILE_FILE])
@@ -156,7 +157,7 @@ def _feature_with_directory_test(env, targets):
     with_dir = env.expect.that_target(targets.feature_with_dir).provider(FeatureInfo)
     with_dir.allowlist_include_directories().contains_exactly([_SUBDIR1])
 
-    c_compile = env.expect.that_target(targets.feature_with_dir).provider(FeatureInfo).args().by_action().get(
+    c_compile = env.expect.that_value(targets.feature_with_dir[FeatureInfo].args, factory = subjects.args_by_action).get(
         targets.c_compile[ActionTypeInfo],
     )
     c_compile.files().contains_at_least(_SUBDIR1_FILES)

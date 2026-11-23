@@ -121,10 +121,6 @@ def _cc_args_impl(ctx):
             label = ctx.label,
             args = args_tuple,
             files = files,
-            by_action = tuple([
-                struct(action = action, args = args_tuple, files = files)
-                for action in actions_list
-            ]),
             allowlist_include_directories = args.allowlist_include_directories,
             allowlist_absolute_include_directories = args.allowlist_absolute_include_directories,
         ),
