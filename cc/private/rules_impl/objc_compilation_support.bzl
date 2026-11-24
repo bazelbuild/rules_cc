@@ -121,7 +121,6 @@ def _build_common_variables(
         unsupported_features = unsupported_features,
         alwayslink = alwayslink,
         use_pch = use_pch,
-        objc_config = ctx.fragments.objc,
         objc_provider = objc_provider,
     )
 
