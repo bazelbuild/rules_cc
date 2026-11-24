@@ -18,6 +18,7 @@ load(":cpp_modules_test.bzl", "cpp_modules_tests")
 load(":debug_info_packaging_test.bzl", "debug_info_packaging_tests")
 load(":disallowed_copts_test.bzl", "disallowed_copts_tests")
 load(":find_cc_toolchain_test.bzl", "find_cc_toolchain_missing_provider_test")
+load(":lib_cc_configure_test.bzl", "lib_cc_configure_tests")
 load(":link_build_variables_test.bzl", "link_build_variables_tests")
 
 cc_binary_configured_target_tests(name = "cc_binary_configured_target_tests")
@@ -61,3 +62,5 @@ cc_linkstamp_compile_tests(name = "cc_linkstamp_compile_tests")
 cc_binary_fdo_tests(name = "cc_binary_fdo_tests")
 
 cc_toolchain_include_directories_tests(name = "cc_toolchain_include_directories_tests")
+
+lib_cc_configure_tests(name = "lib_cc_configure_tests")
