@@ -175,6 +175,52 @@ EOF
   expect_not_log "Compiling foo/linkstampfile.cc"
 }
 
+function test_linkstamp_includes_build_info_headers() {
+  mkdir -p linkstamp_includes
+  cat > linkstamp_includes/BUILD <<'EOF'
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+cc_library(
+    name = "lib",
+    linkstamp = "linkstampfile.cc",
+)
+cc_binary(
+    name = "bin",
+    srcs = ["main.cc"],
+    deps = [":lib"],
+)
+EOF
+  cat > linkstamp_includes/linkstampfile.cc <<'EOF'
+#include <stdio.h>
+
+// BUILD_EMBED_LABEL and BUILD_TIMESTAMP are defined in build-info headers
+// force-included via the toolchain's `includes` feature.
+const char* kBuildEmbedLabel = BUILD_EMBED_LABEL;
+long long kBuildTimestamp = BUILD_TIMESTAMP;
+
+void print_build_info() {
+  printf("label=%s timestamp=%lld\n", kBuildEmbedLabel, kBuildTimestamp);
+}
+EOF
+  cat > linkstamp_includes/main.cc <<'EOF'
+void print_build_info();
+
+int main() {
+  print_build_info();
+  return 0;
+}
+EOF
+
+  bazel build --nostamp //linkstamp_includes:bin >& "${TEST_log}" || fail "nostamp build failed"
+  bazel-bin/linkstamp_includes/bin >> "${TEST_log}" || fail "nostamp run failed"
+  expect_log "label=redacted timestamp=0"
+
+  bazel build --stamp --embed_label=my_test_label //linkstamp_includes:bin >& "${TEST_log}" \
+      || fail "stamp build failed"
+  bazel-bin/linkstamp_includes/bin >> "${TEST_log}" || fail "stamp run failed"
+  expect_log "label=my_test_label timestamp=[0-9]"
+}
+
 function test_cc_rule_api_with_aspect() {
   mkdir -p foo
   cat > foo/extension.bzl << EOF
