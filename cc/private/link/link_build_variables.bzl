@@ -112,7 +112,8 @@ def create_link_variables(
         is_linking_dynamic_library = False,
         must_keep_debug = True,
         use_test_only_flags = False,
-        is_static_linking_mode = None):  # buildifier: disable=unused-variable
+        is_static_linking_mode = None,  # buildifier: disable=unused-variable
+        variables_extension = {}):
     """Returns common link build variables used for both linking and thin LTO indexing actions.
 
     The implementation also includes variables specified by cc_toolchain.
@@ -137,6 +138,8 @@ def create_link_variables(
         which is usually used to use the linker to strip debug symbols from the output file.
       use_test_only_flags: When set to true, 'is_cc_test' variable will be set.
       is_static_linking_mode: (bool) Unused.
+      variables_extension: (dict[str, str|list[str]|depset[str]]) Additional variables to pass to
+        the toolchain configuration, e.g. `runtime_solib_name` when linking a dynamic library.
 
     Returns:
       (CcToolchainVariables) common linking build variables
@@ -172,6 +175,19 @@ def create_link_variables(
         if type(output_file) != type(""):
             fail("Parameter 'output_file' expected String, got '%s'" % type(output_file))
         vars["output_execpath"] = output_file
+
+    for key, value in (variables_extension or {}).items():
+        if type(value) == type([]):
+            vars[key] = _cc_internal.intern_string_sequence_variable_value(value)
+        elif type(value) == type(""):
+            vars[key] = value
+        elif type(value) == type(depset()):
+            for e in value.to_list():
+                if type(e) != type(""):
+                    fail("for string_sequence_variables_extension, got element of type " + type(e) + ", want string")
+            vars[key] = value
+        else:
+            fail("for variable extension key:" + key + ", got element of type " + type(value) + ", want string")
     return _cc_internal.cc_toolchain_variables(vars = vars)
 
 def setup_common_linking_variables(
