@@ -233,7 +233,7 @@ Dependencies that are only made available to the C++ linker command.
         doc = """
 Any additional files you might want to pass to the compiler command line, such as sanitizer
 ignorelists, for example. Files specified here can then be used in copts with the
-$(location) function.
+$(execpath) function.
 """,
     ),
     "win_def_file": attr.label(

@@ -99,7 +99,7 @@ cc_shared_library(
         ":foo.lds",
     ],
     user_link_flags = [
-        "-Wl,--version-script=$(location :foo.lds)",
+        "-Wl,--version-script=$(execpath :foo.lds)",
     ],
 )
 cc_library(
@@ -295,8 +295,8 @@ following:
     user_link_flags = select({
       "//src/conditions:linux": [
         "-Wl,-rpath,kittens",
-        "-Wl,--version-script=$(location :foo.lds)",
-        "-Wl,--script=$(location :additional_script.txt)",
+        "-Wl,--version-script=$(execpath :foo.lds)",
+        "-Wl,--script=$(execpath :additional_script.txt)",
       ],
       "//conditions:default": []}),
       ...
