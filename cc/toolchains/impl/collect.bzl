@@ -127,19 +127,11 @@ def collect_args_lists(targets, label):
         together.
     """
     args = []
-    by_action = {}
     transitive_files = []
     for target in targets:
         args_list = target[ArgsListInfo]
         args.extend(args_list.args)
         transitive_files.extend([args_info.files for args_info in args_list.args])
-        for value in args_list.by_action:
-            out = by_action.setdefault(
-                value.action,
-                struct(args = [], transitive_files = [], action = value.action),
-            )
-            out.args.extend(value.args)
-            out.transitive_files.append(value.files)
 
     return ArgsListInfo(
         label = label,
@@ -151,12 +143,4 @@ def collect_args_lists(targets, label):
         allowlist_absolute_include_directories = depset(
             transitive = [a.allowlist_absolute_include_directories for a in args],
         ),
-        by_action = tuple([
-            struct(
-                action = k,
-                args = tuple(v.args),
-                files = depset(transitive = v.transitive_files),
-            )
-            for k, v in by_action.items()
-        ]),
     )

@@ -19,6 +19,7 @@ load(
     "ArgsInfo",
     "ArgsListInfo",
 )
+load("//tests/rule_based_toolchain:subjects.bzl", "subjects")
 
 visibility("private")
 
@@ -53,8 +54,9 @@ def _collect_args_lists_test(env, targets):
         _BOTH_FILE,
     ])
 
-    c_compile_action = args.by_action().get(targets.c_compile[ActionTypeInfo])
-    cpp_compile_action = args.by_action().get(targets.cpp_compile[ActionTypeInfo])
+    args_by_action = env.expect.that_value(targets.args_list[ArgsListInfo], factory = subjects.args_by_action)
+    c_compile_action = args_by_action.get(targets.c_compile[ActionTypeInfo])
+    cpp_compile_action = args_by_action.get(targets.cpp_compile[ActionTypeInfo])
 
     c_compile_action.files().contains_exactly([_C_COMPILE_FILE, _BOTH_FILE])
     c_compile_action.args().contains_exactly([
@@ -72,12 +74,12 @@ def _collect_args_list_dirs_test(env, targets):
     args.allowlist_include_directories().contains_exactly(_ALL_TEST_DIRS)
     args.files().contains_exactly(_ALL_TEST_DIRS_FILES)
 
-    c_compile = env.expect.that_target(targets.args_list_with_dir).provider(ArgsListInfo).by_action().get(
+    c_compile = env.expect.that_value(targets.args_list_with_dir[ArgsListInfo], factory = subjects.args_by_action).get(
         targets.c_compile[ActionTypeInfo],
     )
     c_compile.files().contains_exactly(_TEST_DIR_1_FILES)
 
-    cpp_compile = env.expect.that_target(targets.args_list_with_dir).provider(ArgsListInfo).by_action().get(
+    cpp_compile = env.expect.that_value(targets.args_list_with_dir[ArgsListInfo], factory = subjects.args_by_action).get(
         targets.cpp_compile[ActionTypeInfo],
     )
     cpp_compile.files().contains_exactly(_TEST_DIR_2_FILES)

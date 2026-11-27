@@ -20,21 +20,20 @@ visibility([
     "//tests/rule_based_toolchain/...",
 ])
 
-def get_action_type(args_list, action_type):
-    """Returns the corresponding entry in ArgsListInfo.by_action.
+def get_args_by_action(args):
+    """Groups args by the action types they apply to.
 
     Args:
-        args_list: (ArgsListInfo) The args list to look through
-        action_type: (ActionTypeInfo) The action type to look up.
+        args: (Sequence[ArgsInfo]) The args to group.
     Returns:
-        The information corresponding to this action type.
-
+        (dict[ActionTypeInfo, List[ArgsInfo]]) The args that apply to each
+        action type, in their original order.
     """
-    for args in args_list.by_action:
-        if args.action == action_type:
-            return args
-
-    return struct(action = action_type, args = tuple(), files = depset([]))
+    args_by_action = {}
+    for args_info in args:
+        for action in args_info.actions.to_list():
+            args_by_action.setdefault(action, []).append(args_info)
+    return args_by_action
 
 def validate_nested_args(*, nested_args, variables, actions, label, fail = fail):
     """Validates the typing for an nested_args invocation.

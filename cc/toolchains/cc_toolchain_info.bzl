@@ -129,7 +129,6 @@ ArgsListInfo = provider(
         "label": "(Label) The label defining this provider. Place in error messages to simplify debugging",
         "args": "(Sequence[ArgsInfo]) The flag sets contained within",
         "files": "(depset[File]) The files required for all of the arguments",
-        "by_action": "(Sequence[struct(action=ActionTypeInfo, args=List[ArgsInfo], files=depset[Files])]) Relevant information about the args keyed by the action type.",
         "allowlist_include_directories": "(depset[DirectoryInfo]) Include directories implied by these arguments that should be allowlisted in Bazel's include checker",
         "allowlist_absolute_include_directories": "(depset[str]) Absolute include directories implied by these arguments that should be allowlisted in Bazel's include checker",
     },

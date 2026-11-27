@@ -27,6 +27,7 @@ load(
     legacy_tool_path = "tool_path",  # buildifier: disable=deprecated-function
     legacy_with_feature_set = "with_feature_set",
 )
+load(":args_utils.bzl", "get_args_by_action")
 
 visibility([
     "//cc/toolchains/...",
@@ -195,9 +196,9 @@ def convert_toolchain(toolchain):
     # attached to the action configs directly, as that is the only way to ensure the correct
     # ordering.
     args_by_action = {}
-    for a in toolchain.args.by_action:
-        args = args_by_action.setdefault(a.action.name, struct(flag_sets = [], env_sets = []))
-        new_args = _convert_args_sequence(a.args, strip_actions = True)
+    for action, action_args in get_args_by_action(toolchain.args.args).items():
+        args = args_by_action.setdefault(action.name, struct(flag_sets = [], env_sets = []))
+        new_args = _convert_args_sequence(action_args, strip_actions = True)
         args.flag_sets.extend(new_args.flag_sets)
         args.env_sets.extend(new_args.env_sets)
 

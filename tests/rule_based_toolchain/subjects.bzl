@@ -32,6 +32,7 @@ load(
     "ToolInfo",
     "ToolchainConfigInfo",
 )
+load("//cc/toolchains/impl:args_utils.bzl", "get_args_by_action")
 load(":generate_factory.bzl", "ProviderDepset", "ProviderSequence", "generate_factory")
 load(":generics.bzl", "dict_key_subject", "optional_subject", "result_subject", "struct_subject", _result_fn_wrapper = "result_fn_wrapper")
 
@@ -170,10 +171,6 @@ _ArgsListFactory = generate_factory(
     "ArgsListInfo",
     dict(
         args = ProviderSequence(_ArgsFactory),
-        by_action = lambda values, *, meta: dict_key_subject(struct_subject(
-            args = _subjects.collection,
-            files = _subjects.depset_file,
-        ))({value.action: value for value in values}, meta = meta),
         files = _subjects.depset_file,
         allowlist_include_directories = _FakeDirectoryDepset,
         allowlist_absolute_include_directories = ProviderDepset(_subjects.str),
@@ -260,6 +257,16 @@ FACTORIES = [
 
 result_fn_wrapper = _result_fn_wrapper
 
+def _args_by_action_subject(value, *, meta):
+    """A subject for the args of an ArgsListInfo, grouped by action type."""
+    return dict_key_subject(struct_subject(
+        args = _subjects.collection,
+        files = _subjects.depset_file,
+    ))({
+        action: struct(args = args, files = depset(transitive = [a.files for a in args]))
+        for action, args in get_args_by_action(value.args).items()
+    }, meta = meta)
+
 subjects = struct(
     **(structs.to_dict(_subjects) | dict(
         unknown = unknown_subject,
@@ -268,5 +275,6 @@ subjects = struct(
         struct = struct_subject,
         runfiles = runfiles_subject,
         dict_key = dict_key_subject,
+        args_by_action = _args_by_action_subject,
     ) | {factory.name: factory.factory for factory in FACTORIES})
 )
