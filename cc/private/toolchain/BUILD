@@ -23,6 +23,11 @@ package(
 
 licenses(["notice"])
 
+exports_files([
+    "lib_cc_configure.bzli",
+    "unix_cc_configure.bzli",
+])
+
 # It is frequently necessary to constrain platforms based on the cc compiler type.
 constraint_setting(name = "cc_compiler")
 

@@ -320,7 +320,7 @@ def merge_debug_context(debug_contexts = []):
 
 def _create_cc_info(
         *,
-        compilation_context = None,
+        compilation_context = None,  # type: CcCompilationContextInfo | None
         linking_context = None,
         debug_context = None,
         cc_native_library_info = None):

@@ -29,6 +29,7 @@ load(
 )
 
 def _cc_feature_impl(ctx):
+    # type: (...) -> list[FeatureInfo | FeatureSetInfo | FeatureConstraintInfo | MutuallyExclusiveCategoryInfo]
     if bool(ctx.attr.feature_name) == (ctx.attr.overrides != None):
         fail("Exactly one of 'feature_name' and 'overrides' are required")
 

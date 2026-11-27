@@ -16,6 +16,7 @@
 load(":cc_toolchain_info.bzl", "LegacyToolInfo")
 
 def _cc_legacy_tool_impl(ctx):
+    # type: (...) -> list[LegacyToolInfo]
     return [LegacyToolInfo(
         label = ctx.label,
         name = ctx.attr.tool_name,

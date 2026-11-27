@@ -23,6 +23,7 @@ CC_PROTO_LIBRARY_DEPRECATION = (
 )
 
 def _impl(_ctx):
+    # type: (...) -> Never
     fail(CC_PROTO_LIBRARY_DEPRECATION)
 
 cc_proto_library = rule(
