@@ -20,6 +20,7 @@ load("//cc/common:cc_common.bzl", "cc_common")
 load("//cc/common:cc_helper.bzl", "artifact_category")
 load("//cc/common:cc_info.bzl", "CcInfo")
 load("//cc/common:feature_names.bzl", "feature_names")
+load("//cc/private:cc_internal.bzl", _cc_internal = "cc_internal")
 
 def _declare_static_library(*, name, actions, cc_toolchain):
     basename = paths.basename(name)
@@ -45,6 +46,18 @@ def _flatten_and_get_objects(linker_inputs):
 
     return depset(transitive = transitive_objects, order = "topological")
 
+def _expand_archiver_flags(archive):
+    # Bazel maps File.path during Args expansion.
+    variables = _cc_internal.combine_cc_toolchain_variables(
+        archive.variables,
+        _cc_internal.cc_toolchain_variables(vars = {"output_execpath": archive.output.path}),
+    )
+    return cc_common.get_memory_inefficient_command_line(
+        feature_configuration = archive.feature_configuration,
+        action_name = ACTION_NAMES.cpp_link_static_library,
+        variables = variables,
+    )
+
 def _archive_objects(*, name, actions, cc_toolchain, feature_configuration, objects):
     static_library = _declare_static_library(
         name = name,
@@ -62,13 +75,13 @@ def _archive_objects(*, name, actions, cc_toolchain, feature_configuration, obje
         output_file = static_library.path,
         is_using_linker = False,
     )
-    command_line = cc_common.get_memory_inefficient_command_line(
+    archive = struct(
         feature_configuration = feature_configuration,
-        action_name = ACTION_NAMES.cpp_link_static_library,
+        output = static_library,
         variables = archiver_variables,
     )
     args = actions.args()
-    args.add_all(command_line)
+    args.add_all([archive], map_each = _expand_archiver_flags)
     args.add_all(objects)
 
     if feature_configuration.is_enabled(

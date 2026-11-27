@@ -269,6 +269,7 @@ bzl_library(
         "//cc/common:cc_helper",
         "//cc/common:cc_info",
         "//cc/common:feature_names",
+        "//cc/private:cc_internal",
         "@bazel_skylib//lib:paths",
     ],
 )
