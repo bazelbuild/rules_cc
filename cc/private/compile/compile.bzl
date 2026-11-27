@@ -538,7 +538,7 @@ def _create_scan_deps_action(
     dotd_file = None
     if (
         dotd_files_enabled(language, cpp_configuration, feature_configuration) and
-        _use_dotd_file(feature_configuration, source_artifact)
+        _use_dotd_file(feature_configuration, cpp_configuration, source_artifact)
     ):
         dotd_file = _get_compile_output_file(
             action_construction_context,
@@ -1350,7 +1350,7 @@ def _create_cc_compile_actions(
             ),
         ) if (
             dotd_files_enabled(language, cpp_configuration, feature_configuration) and
-            _use_dotd_file(feature_configuration, source_file)
+            _use_dotd_file(feature_configuration, cpp_configuration, source_file)
         ) else None
         diagnostics_file = _get_compile_output_file(
             action_construction_context,
@@ -2006,7 +2006,7 @@ def _create_module_codegen_action(
 
     dotd_file = None
     if (dotd_files_enabled(language, cpp_configuration, feature_configuration) and
-        _use_dotd_file(feature_configuration, module)):
+        _use_dotd_file(feature_configuration, cpp_configuration, module)):
         dotd_file = _get_compile_output_file(
             ctx = action_construction_context,
             label = label,
@@ -2167,14 +2167,27 @@ def _get_compile_output_file(ctx, label, *, output_name, configuration):
     )
     return file
 
-def _use_dotd_file(feature_configuration, source_file):
+def _use_dotd_file(feature_configuration, cpp_configuration, source_file):
     extension = "." + source_file.extension if source_file.extension else ""
-    header_discover_required = extension not in (extensions.ASSEMBLER + extensions.CPP_MODULE)
-    use_header_modules = (
-        feature_configuration.is_enabled(feature_names.USE_HEADER_MODULES) and
-        extension in extensions.CC_SOURCE + extensions.CC_HEADER + extensions.CPP_MODULE_MAP
-    )
-    return header_discover_required and not use_header_modules
+    if extension in extensions.ASSEMBLER or extension in extensions.CPP_MODULE:
+        return False
+    if not feature_configuration.is_enabled(feature_names.USE_HEADER_MODULES):
+        return True
+    if extension in extensions.CPP_MODULE_MAP:
+        # The module is the only output of a module compile.
+        return False
+    if extension in extensions.CC_SOURCE or extension in extensions.CC_HEADER:
+        # With include scanning, the scanned headers determine the inputs of a
+        # compile, including the modules it uses. Without it, all transitive
+        # modules are mandatory inputs, so the .d file only prunes the textual
+        # headers that the compile didn't read. Without that, a change to any
+        # header of a dependency rebuilds every file of a target that uses
+        # modules.
+        return not (
+            cpp_configuration.include_scanning() and
+            feature_configuration.is_requested("cc_include_scanning")
+        )
+    return True
 
 def _calculate_output_name_map_by_type(sources, prefix_dir):
     return (
@@ -2245,7 +2258,7 @@ def _maybe_declare_dotd_file(
         configuration,
         feature_configuration):
     dotd_file = None
-    if (_use_dotd_file(feature_configuration, source_artifact)):
+    if (_use_dotd_file(feature_configuration, cc_toolchain._cpp_configuration, source_artifact)):
         dotd_base_name = output_name
         if category != artifact_category.OBJECT_FILE and category != artifact_category.PROCESSED_HEADER:
             dotd_base_name = _cc_internal.get_artifact_name_for_category(
