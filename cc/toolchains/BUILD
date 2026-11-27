@@ -99,11 +99,7 @@ bzl_library(
     srcs = ["args.bzl"],
     deps = [
         ":cc_toolchain_info",
-        "//cc/private:paths",
-        "//cc/toolchains/impl:args_utils",
-        "//cc/toolchains/impl:collect",
-        "//cc/toolchains/impl:nested_args",
-        "@bazel_skylib//rules/directory:providers",
+        "//cc/toolchains/impl:args",
     ],
 )
 
