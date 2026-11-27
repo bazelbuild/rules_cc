@@ -70,6 +70,7 @@ FEATURE_NAMES = struct(
     module_maps = feature_names.MODULE_MAPS,
     native_deps_link = "native_deps_link",
     no_copts_tokenization = feature_names.NO_COPTS_TOKENIZATION,
+    no_defines_tokenization = feature_names.NO_DEFINES_TOKENIZATION,
     no_dotd_file = "no_dotd_file",
     no_legacy_features = "no_legacy_features",
     no_use_lto_indexing_bitcode_file = feature_names.NO_USE_LTO_INDEXING_BITCODE_FILE,

@@ -45,6 +45,7 @@ feature_names = struct(
     MODULE_MAP_WITHOUT_EXTERN_MODULE = "module_map_without_extern_module",
     MODULE_MAPS = "module_maps",
     NO_COPTS_TOKENIZATION = "no_copts_tokenization",
+    NO_DEFINES_TOKENIZATION = "no_defines_tokenization",
     NO_DOTD_FILE = "no_dotd_file",
     NO_GENERATE_DEBUG_SYMBOLS = "no_generate_debug_symbols",
     NO_STRIPPING = "no_stripping",

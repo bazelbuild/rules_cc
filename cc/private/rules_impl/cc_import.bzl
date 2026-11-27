@@ -178,7 +178,7 @@ def _cc_import_impl(ctx):
         includes = cc_helper.system_include_dirs(ctx, additional_make_variable_substitutions),
         name = ctx.label.name,
         strip_include_prefix = ctx.attr.strip_include_prefix,
-        defines = cc_helper.defines(ctx, {}),
+        defines = cc_helper.defines(ctx, {}, feature_configuration = feature_configuration, requested_features = ctx.features),
     )
 
     this_cc_info = CcInfo(compilation_context = compilation_context, linking_context = linking_context)
