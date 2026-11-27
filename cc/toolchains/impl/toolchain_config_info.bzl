@@ -14,7 +14,6 @@
 """Helper functions to create and validate a ToolchainConfigInfo."""
 
 load("//cc/toolchains:cc_toolchain_info.bzl", "ArtifactNamePatternInfo", "LegacyToolInfo", "MakeVariableInfo", "ToolConfigInfo", "ToolchainConfigInfo")
-load(":args_utils.bzl", "get_action_type")
 load(":collect.bzl", "collect_args_lists", "collect_features")
 
 visibility([
@@ -127,12 +126,21 @@ def _validate_toolchain(self, fail = fail):
     for args in self.args.args:
         _validate_args(args, known_features, fail = fail)
 
-def _collect_files_for_action_type(action_type, tool_map, features, args):
-    transitive_files = [tool_map[action_type].runfiles.files, get_action_type(args, action_type).files]
-    for ft in features:
-        transitive_files.append(get_action_type(ft.args, action_type).files)
+def _collect_files_by_action_type(tool_map, features, args):
+    files_by_action = {
+        action_type: [tool.runfiles.files]
+        for action_type, tool in tool_map.items()
+    }
+    for args_list in [args] + [feature.args for feature in features]:
+        for entry in args_list.by_action:
+            action_files = files_by_action.get(entry.action)
+            if action_files != None:
+                action_files.append(entry.files)
 
-    return depset(transitive = transitive_files)
+    return {
+        action_type: depset(transitive = action_files)
+        for action_type, action_files in files_by_action.items()
+    }
 
 def _collect_artifact_name_patterns(targets, fail):
     artifact_name_patterns = {}
@@ -198,10 +206,7 @@ def toolchain_config_info(label, known_features = [], enabled_features = [], arg
 
     args = collect_args_lists(args, label = label)
     tools = tool_map[ToolConfigInfo].configs
-    files = {
-        action_type: _collect_files_for_action_type(action_type, tools, features, args)
-        for action_type in tools.keys()
-    }
+    files = _collect_files_by_action_type(tools, features, args)
     allowlist_include_directories = depset(
         transitive = [
             src.allowlist_include_directories
