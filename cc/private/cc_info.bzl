@@ -171,7 +171,6 @@ def create_module_map(*, file, name = None):
     Returns:
         A module map struct.
     """
-    check_private_api()
     return _ModuleMapInfo(file = file, name = name)
 
 def module_map_name_for_label(label):
