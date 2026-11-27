@@ -49,4 +49,35 @@ EOF
   "$binary" >> "$TEST_log" || fail "Binary failed"
 }
 
+function test_cc_static_library_path_mapping() {
+  # Linux toolchains enable archive_param_file by default.
+  is_linux || return 0
+
+  mkdir -p path_mapping
+  cat > path_mapping/BUILD <<'EOF'
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_static_library.bzl", "cc_static_library")
+
+cc_library(
+    name = "input",
+    srcs = ["input.cc"],
+)
+
+cc_static_library(
+    name = "archive",
+    deps = [":input"],
+)
+EOF
+  echo 'int value() { return 42; }' > path_mapping/input.cc
+
+  bazel build //path_mapping:archive \
+    --spawn_strategy=sandboxed \
+    --experimental_output_paths=strip \
+    --modify_execution_info='^CppTransitiveArchive$=+supports-path-mapping' \
+    --materialize_param_files \
+    >& "$TEST_log" || fail "Build with archive path mapping failed"
+  grep -Fxq 'bazel-out/cfg/bin/path_mapping/libarchive.a' bazel-bin/path_mapping/libarchive.a-0.params \
+    || fail "Mapped archive output path is missing from the response file"
+}
+
 run_suite "Integration tests for C++ linking"
