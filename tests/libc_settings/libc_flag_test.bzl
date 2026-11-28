@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Unit tests for libc_without_version()"""
+"""Unit tests for libc_without_version() and libc_version()"""
 
 load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
-load("//cc/toolchains/impl:libc_version.bzl", "libc_without_version")
+load("//cc/toolchains/impl:libc_version.bzl", "libc_version", "libc_without_version")
 
 def _libc_without_version_impl(ctx):
     env = unittest.begin(ctx)
@@ -45,8 +45,42 @@ def _libc_without_version_impl(ctx):
 
 libc_without_version_test = unittest.make(_libc_without_version_impl)
 
+def _libc_version_impl(ctx):
+    env = unittest.begin(ctx)
+
+    # Versions with two or three numeric components are parsed.
+    asserts.equals(env, (2, 31), libc_version("glibc-2.31"))
+    asserts.equals(env, (2, 2, 2), libc_version("glibc-2.2.2"))
+    asserts.equals(env, (1, 2, 4), libc_version("musl-1.2.4"))
+    asserts.equals(env, (2, 0), libc_version("glibc-2.0"))
+
+    # Versions are compared numerically.
+    asserts.true(env, libc_version("glibc-2.31") > libc_version("glibc-2.9"))
+    asserts.true(env, libc_version("glibc-2.31.1") > libc_version("glibc-2.31"))
+    asserts.true(env, libc_version("glibc-3.0") > libc_version("glibc-2.44"))
+
+    # Values without a version suffix have no version.
+    asserts.equals(env, None, libc_version("glibc"))
+    asserts.equals(env, None, libc_version("wasi-libc"))
+    asserts.equals(env, None, libc_version("unknown"))
+    asserts.equals(env, None, libc_version(""))
+
+    # Other version suffixes are not parsed.
+    asserts.equals(env, None, libc_version("glibc-2"))
+    asserts.equals(env, None, libc_version("wasi-libc-25"))
+    asserts.equals(env, None, libc_version("newlib-4.3.0.20230120"))
+    asserts.equals(env, None, libc_version("glibc-2.31-vendor"))
+    asserts.equals(env, None, libc_version("glibc-2.x"))
+    asserts.equals(env, None, libc_version("glibc-2..31"))
+    asserts.equals(env, None, libc_version("glibc-2.031"))
+
+    return unittest.end(env)
+
+libc_version_test = unittest.make(_libc_version_impl)
+
 def libc_flag_test_suite(name):
     unittest.suite(
         name,
         libc_without_version_test,
+        libc_version_test,
     )
