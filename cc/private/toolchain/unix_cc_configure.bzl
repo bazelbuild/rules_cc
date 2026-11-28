@@ -557,10 +557,7 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
         False,
     ), ":")
 
-    linker = (
-        _find_linker(repository_ctx, cc, "lld", is_clang) or
-        _find_linker(repository_ctx, cc, "gold", is_clang)
-    )
+    linker = _find_linker(repository_ctx, cc, "lld", is_clang)
     cc_path = repository_ctx.path(cc)
     if not str(cc_path).startswith(str(repository_ctx.path(".")) + "/"):
         # cc is outside the repository, set -B
@@ -581,6 +578,17 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
     force_linker_flags = []
     if linker:
         force_linker_flags.extend(linker.flags)
+    else:
+        # GNU ld rejects unresolved symbols from indirect shared library
+        # dependencies when linking an executable. Bazel supplies those
+        # dependencies at runtime.
+        force_linker_flags.extend(_add_linker_option_if_supported(
+            repository_ctx,
+            cc,
+            force_linker_flags,
+            "-Wl,--allow-shlib-undefined",
+            "--allow-shlib-undefined",
+        ))
 
     # TODO: It's unclear why these flags aren't added on macOS.
     if bin_search_flags and not darwin:

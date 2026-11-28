@@ -3,12 +3,20 @@ set -euo pipefail
 source "$(rlocation rules_cc/tests/test_utils.sh)"
 source "$(rlocation rules_cc/tests/unittest.bash)"
 
+LTO_TESTS_ENABLED=1
+
 function set_up() {
   if is_bazel; then
     local -r clang="$(which clang || true)"
     if [[ ! -x "$clang" ]]; then
       echo "clang not installed. Skipping test."
-      return 1
+      LTO_TESTS_ENABLED=0
+      return
+    fi
+    if ! linker_supports_start_end_lib "$clang"; then
+      echo "Linker does not support --start-lib/--end-lib. Skipping test."
+      LTO_TESTS_ENABLED=0
+      return
     fi
     add_to_bazelrc "common --repo_env=CC=$clang"
   else
@@ -17,6 +25,7 @@ function set_up() {
 }
 
 function test_thin_lto() {
+  [[ "$LTO_TESTS_ENABLED" == 1 ]] || return 0
   mkdir -p hello
   cat > hello/BUILD << EOF
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
@@ -56,6 +65,7 @@ EOF
 }
 
 function test_thin_lto_only_dep_has_source() {
+  [[ "$LTO_TESTS_ENABLED" == 1 ]] || return 0
   mkdir -p hello
   cat > hello/BUILD << EOF
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
