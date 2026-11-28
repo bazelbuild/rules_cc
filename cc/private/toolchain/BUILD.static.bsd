@@ -76,6 +76,7 @@ cc_toolchain(
 cc_toolchain_config(
     name = "local_freebsd",
     cpu = "freebsd",
+    extra_known_features = ["@rules_cc//cc/toolchains/args/std:all_std_features"],
 )
 
 toolchain(
@@ -110,6 +111,7 @@ cc_toolchain(
 cc_toolchain_config(
     name = "local_openbsd",
     cpu = "openbsd",
+    extra_known_features = ["@rules_cc//cc/toolchains/args/std:all_std_features"],
 )
 
 toolchain(
