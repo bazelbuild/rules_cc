@@ -23,6 +23,7 @@ load(":cc_shared_library.bzl", "dynamic_deps_initializer")
 load(":function_providing_rule.bzl", "proxy")
 
 def _cc_binary_initializer(**kwargs):
+    kwargs["_explicit_linkstatic"] = kwargs.get("linkstatic")
     kwargs = postmark_initializer(**kwargs)
     return dynamic_deps_initializer(**kwargs)
 
