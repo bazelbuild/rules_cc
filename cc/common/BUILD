@@ -213,6 +213,6 @@ bzl_library(
 
 bzl_library(
     name = "feature_names",
-    srcs = ["feature_names.bzl"],
+    srcs = ["feature_names.bzl"],  # keep
     # visibility = ["//:__subpackages__"],  # copybara-comment-this-out-please
 )
