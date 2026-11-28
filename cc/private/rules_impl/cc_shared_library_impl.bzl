@@ -745,6 +745,18 @@ def _cc_shared_library_impl(ctx):
     for dep in ctx.attr.dynamic_deps:
         runfiles = runfiles.merge(dep[DefaultInfo].data_runfiles)
 
+    # The C++ runtimes toolchain may deliver the runtime as shared libraries
+    # (linked above through runtimes_linking_contexts). A consumer that is
+    # not itself a cc_binary -- e.g. an interpreter loading this library as
+    # an extension module -- only has this target's runfiles to find them.
+    for runtimes_linking_context in runtimes_linking_contexts:
+        runfiles = runfiles.merge(ctx.runfiles(
+            files = cc_helper.get_dynamic_libraries_for_runtime(
+                runtimes_linking_context,
+                linking_statically = True,
+            ),
+        ))
+
     if feature_configuration.is_enabled(feature_names.COPY_DYNAMIC_LIBRARIES_TO_BINARY):
         libraries_to_copy = []
         copy_linking_contexts = [linking_context] + runtimes_linking_contexts
