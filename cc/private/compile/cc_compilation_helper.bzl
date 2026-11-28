@@ -469,13 +469,13 @@ def _init_cc_compilation_context(
         system_include_dirs_for_context = list(system_include_dirs)
         include_dirs_for_context = list(include_dirs)
     else:
-        # Do not add include dirs directly to the regular compilation context; all public search
-        # paths for external repositories are reclassified as external includes.
-        quote_include_dirs_for_context = []
+        # Keep the repository root as a quote-only include so repository-relative quoted includes
+        # keep working without allowing the root to shadow angle-bracket system headers. Reclassify
+        # all other public search paths for external repositories as external includes.
+        quote_include_dirs_for_context = [repo_path]
         system_include_dirs_for_context = []
         include_dirs_for_context = []
 
-        external_include_dirs.append(repo_path)
         external_include_dirs.append(gen_include_dir)
         external_include_dirs.append(bin_include_dir)
         external_include_dirs.extend(quote_include_dirs)
