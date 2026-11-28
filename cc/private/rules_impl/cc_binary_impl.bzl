@@ -401,14 +401,6 @@ def _collect_linking_context(ctx):
     cc_infos = _get_providers(ctx)
     return cc_common.merge_cc_infos(direct_cc_infos = cc_infos, cc_infos = cc_infos).linking_context
 
-def _get_link_staticness(ctx, cpp_config, force_linkstatic, _is_dbg_build):
-    if cpp_config.dynamic_mode() == "FULLY":
-        return linker_mode.LINKING_DYNAMIC
-    elif cpp_config.dynamic_mode() == "OFF" or ctx.attr.linkstatic or force_linkstatic:
-        return linker_mode.LINKING_STATIC
-    else:
-        return linker_mode.LINKING_DYNAMIC
-
 def _is_link_shared(ctx):
     return hasattr(ctx.attr, "linkshared") and ctx.attr.linkshared
 
@@ -470,11 +462,10 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
             cc_toolchain = cc_toolchain,
             linked_artifact_category = linked_artifact_category,
         )
-    linking_mode = _get_link_staticness(
+    linking_mode = cc_helper.get_link_staticness(
         ctx,
         cpp_config,
         force_linkstatic,
-        is_dbg_build,
     )
     features = ctx.features
     features.append(linking_mode)
