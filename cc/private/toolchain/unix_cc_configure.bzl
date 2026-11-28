@@ -407,12 +407,6 @@ def configure_unix_toolchain(repository_ctx, cpu_value, overridden_tools):
         "cc_toolchain_config.bzl",
     )
 
-    copy_file(
-        repository_ctx,
-        Label("@rules_cc//cc/private/toolchain:armeabi_cc_toolchain_config.bzl"),
-        "armeabi_cc_toolchain_config.bzl",
-    )
-
     repository_ctx.file("tools/cpp/empty.cc", "int main() {}")
     darwin = cpu_value.startswith("darwin")
     bsd = cpu_value == "freebsd" or cpu_value == "openbsd"
